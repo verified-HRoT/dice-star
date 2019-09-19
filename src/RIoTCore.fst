@@ -1,36 +1,30 @@
 module RIoTCore
-
+module ST = FStar.HyperStack.ST
+module HS = FStar.HyperStack
 open FStar
+open RIoTCrypt
 
 // TODO: Date Types
 // TODO: Modules
 
 // NOTE: Getting familiar with F* and DICE/RIoT by simply re-implement reference code (https://github.com/microsoft/RIoT/blob/master/Reference/RIoT/Core/RIoT.cpp) in F*.
 
-type nat = x : int{x > 0}
-
 (*digest lengths*)
+// NOTE: bits/words in F*? Low*!
 assume val _SHA256_DIGEST_LENGTH : nat
 assume val _RIOT_DIGEST_LENGTH : nat
 
 assume val _RIOT_LABEL_IDENTITY : nat
 assume val _RIOT_LABEL_IDENTITY_SIZE : nat
 
-(*crypt hash functions*)
-assume val _RiotCrypt_Hash : resultSize:nat -> data:string -> dataSize:nat -> string
-
-(*Device Derivation Function*)
-assume val _RiotCrypt_DeriveEccKey
-  (srcData : string)
-  (srcDataSize : nat)
-  (label : nat)
-  (labelSize : nat)
-  : (publicKey:string * privateKey:string)
+assume val _fwImage : string
+assume val _fwSize : nat
 
 (*Layer 0 START*)
 let _RiotStart (_CDI:string) (_CDILen:nat) =
   // DONE: Get CDI Digest
   // REF: RiotCrypt_Hash(cDigest, RIOT_DIGEST_LENGTH, CDI, CDILen);
+  // NOTE: pointer in F*?
   let cDigest = (_RiotCrypt_Hash _RIOT_DIGEST_LENGTH
                                  _CDI // <--
                                  _CDILen) in
@@ -77,29 +71,43 @@ let _RiotStart (_CDI:string) (_CDILen:nat) =
   // TODO: Calculate base VA of FW code
   // REF: fwImage = (BYTE *)((uint64_t)fwDLL + offset);
 
-  // TODO: Measure FW, i.e., calculate FWID
+  // DONE: Measure FW, i.e., calculate FWID
   // REF: RiotCrypt_Hash(FWID, RIOT_DIGEST_LENGTH, fwImage, fwSize);
+  let _FWID = (_RiotCrypt_Hash _RIOT_DIGEST_LENGTH
+                               _fwImage // <--
+                               _fwSize) in
 
-  // TODO: Combine CDI and FWID, result in cDigest
+  // DONE: Combine CDI and FWID, result in cDigest
   // REF: RiotCrypt_Hash2(cDigest, RIOT_DIGEST_LENGTH,
   //       cDigest, RIOT_DIGEST_LENGTH,
   //       FWID,    RIOT_DIGEST_LENGTH);
+  let cDigest = (_RiotCrypt_Hash2 _RIOT_DIGEST_LENGTH
+                                  cDigest // <--
+                                  _RIOT_DIGEST_LENGTH
+                                  _FWID // <--
+                                  _RIOT_DIGEST_LENGTH) in
 
-  // TODO: Derive Alias key pair from CDI and FWID
+  // DONE: Derive Alias key pair from CDI and FWID
   // REF: RiotCrypt_DeriveEccKey(&AliasKeyPub,
   //                             &AliasKeyPriv,
   //                             cDigest, RIOT_DIGEST_LENGTH,
   //                             (const uint8_t *)RIOT_LABEL_ALIAS,
   //                             lblSize(RIOT_LABEL_ALIAS));
+  let (_AliasKeyPub, _AliasKeyPriv) = (_RiotCrypt_DeriveEccKey cDigest // <--
+                                                               _RIOT_DIGEST_LENGTH
+                                                               _RIOT_LABEL_IDENTITY
+                                                               _RIOT_LABEL_IDENTITY_SIZE) in
 
   // TODO: With the Alias Key pair derived, we can now Seed DRBG
   // REF: RiotCrypt_SeedDRBG((uint8_t*)&AliasKeyPriv, sizeof(RIOT_ECC_PRIVATE));
+  // NOTE: DRBG for Deterministic Random Bit Generator?
 
   // TODO: Set the serial number
   // REF: RiotSetSerialNumber(&x509AliasTBSData, cDigest, RIOT_DIGEST_LENGTH);
 
   // TODO: Clean up potentially sensative data
   // REF: memset(cDigest, 0x00, RIOT_DIGEST_LENGTH);
+  // NOTE: Does F* supports memory operation?
 
   // TODO: Build the TBS (to be signed) region of Alias Key Certificate
   // REF: DERInitContext(&derCtx, derBuffer, DER_MAX_TBS);
@@ -109,6 +117,9 @@ let _RiotStart (_CDI:string) (_CDILen:nat) =
 
   // TODO: Sign the Alias Key Certificate's TBS region
   // REF: RiotCrypt_Sign(&tbsSig, derCtx.Buffer, derCtx.Position, &deviceIDPriv);
+  //let tbsSig = (_RiotCrypt_Sign derCtx.Buffer
+  //                              derCtx.Position
+  //                              deviceIDPriv) in
 
   // TODO: Generate Alias Key Certificate
   // REF: X509MakeAliasCert(&derCtx, &tbsSig);
