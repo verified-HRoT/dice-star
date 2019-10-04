@@ -1,8 +1,15 @@
 module RIoTCore
-module ST = FStar.HyperStack.ST
-module HS = FStar.HyperStack
-open FStar
-open RIoTCrypt
+
+open FStar.Buffer
+open FStar.UInt32
+
+module HS  = FStar.HyperStack
+module B   = FStar.Buffer
+module U32 = FStar.UInt32
+module U8  = FStar.UInt8
+
+let uint32 = U32.t
+let uint8 = U8.t
 
 // TODO: Date Types
 // TODO: Modules
@@ -10,17 +17,29 @@ open RIoTCrypt
 // NOTE: Getting familiar with F* and DICE/RIoT by simply re-implement reference code (https://github.com/microsoft/RIoT/blob/master/Reference/RIoT/Core/RIoT.cpp) in F*.
 
 (*digest lengths*)
-// NOTE: bits/words in F*? Low*!
-assume val _SHA256_DIGEST_LENGTH : nat
-assume val _RIOT_DIGEST_LENGTH : nat
+assume val _SHA256_DIGEST_LENGTH : U32.t
+assume val _RIOT_DIGEST_LENGTH : uint32
 
-assume val _RIOT_LABEL_IDENTITY : nat
-assume val _RIOT_LABEL_IDENTITY_SIZE : nat
+assume val _RIOT_LABEL_IDENTITY : uint32
+assume val _RIOT_LABEL_IDENTITY_SIZE : uint32
 
-assume val _fwImage : string
-assume val _fwSize : nat
+assume val _fwImage : uint32
+assume val _fwSize : uint32
 
-(*Layer 0 START*)
+effect ST
+  (a:Type)
+  (pre :HS.mem -> Type0)
+  (post:HS.mem -> a -> HS.mem -> Type0)
+= FStar.HyperStack.ST.ST a pre post
+
+effect St (a:Type) = FStar.HyperStack.ST.St a
+
+val _DICEStart (something:unit) : ST unit
+  (requires fun h -> True)
+  (ensures  fun h0 _ h1 -> True)
+let _DICEStart () = ()
+let a = _DICEStart ()
+(*
 let _RiotStart (_CDI:string) (_CDILen:nat) =
   // DONE: Get CDI Digest
   // REF: RiotCrypt_Hash(cDigest, RIOT_DIGEST_LENGTH, CDI, CDILen);
@@ -33,7 +52,7 @@ let _RiotStart (_CDI:string) (_CDILen:nat) =
   // REF: RiotCrypt_DeriveEccKey(&DeviceIDPub,
   //                             &deviceIDPriv,
   //                             cDigest, RIOT_DIGEST_LENGTH,
-  //                             (const uint8_t *)RIOT_LABEL_IDENTITY,
+  //                             (const uint8_t * )RIOT_LABEL_IDENTITY,
   //                             lblSize(RIOT_LABEL_IDENTITY));
   // NOTE: F* represents a record (inductive type) in a form of product type?
   let (_DeviceIDPub, _DeviceIDPriv) =
@@ -130,3 +149,4 @@ let _RiotStart (_CDI:string) (_CDILen:nat) =
   //      AliasCert[length] = '\0';
 
 false
+*)
