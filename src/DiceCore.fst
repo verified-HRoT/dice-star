@@ -12,7 +12,7 @@ module IB  = LowStar.ImmutableBuffer
 module M   = LowStar.Modifies
 
 let _DICE_UDS_LENGTH    : uint_32 = 0x20ul
-let _DICE_DIGEST_LENGTH : uint_32 = 0x20ul
+let _DICE_DIGEST_LENGTH : uint_8 = 0x20ul
 
 let f () : HST.St unit =
   let l = LowStar.Buffer.malloc HS.root 0uy 8ul in
@@ -64,6 +64,11 @@ let b = B.malloc HS.root 0uL 64ul in
 
 assume val _fwImage : uint_32
 assume val _fwSize : uint_32
+assume val _DiceSHA256
+  (buf     : B.buffer uint_8)
+  (bufsize : uint_8)
+  (digest  : B.buffer uint_8)
+  : HST.St unit
 
 val _DICEStart
   (riotImagePath   : string)
@@ -72,8 +77,22 @@ val _DICEStart
   (requires fun h -> True)
   (ensures  fun h0 _ h1 -> True)
 let _DICEStart _ _ =
-  let uDigest = B.malloc HS.root 0ul _DICE_DIGEST_LENGTH in
-  let rDigest = B.malloc HS.root 0ul _DICE_DIGEST_LENGTH in
+  let uDigest : B.buffer uint_8
+              = B.malloc HS.root 0uy _DICE_DIGEST_LENGTH in
+  let rDigest : B.buffer uint_8
+              = B.malloc HS.root 0uy _DICE_DIGEST_LENGTH in
+  let riotCore : B.buffer uint_8
+               = B.malloc HS.root 0uy _DICE_DIGEST_LENGTH in
+  //let riotSize : B.buffer uint_8
+  //             = B.malloc HS.root 0uy _DICE_DIGEST_LENGTH in
+  let riotSize : uint_8 = _DICE_DIGEST_LENGTH in
   let _UDS = IB.igcmalloc_of_list HS.root udsContent in
+
+/// hRiotDLL = LoadLibrary(riotImagePath)
+/// fpRiotStart RiotStart = (fpRiotStart)GetProcAddress(hRiotDLL, RIOT_ENTRY)
+///
+/// DiceCore:
+/// Measure RIoT Invariant Code
+  _DiceSHA256 riotCore riotSize rDigest;
   ()
 
