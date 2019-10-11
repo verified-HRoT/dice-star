@@ -29,7 +29,8 @@ exit_code main()
   Prims_int cdi[1U] = { (krml_checked_int_t)0x00 };
   KRML_CHECK_SIZE(sizeof (uint8_t), _DICE_DIGEST_LENGTH);
   uint8_t uDigest[_DICE_DIGEST_LENGTH];
-  memset(uDigest, 0U, _DICE_DIGEST_LENGTH * sizeof uDigest[0U]);
+  for (uint32_t _i = 0U; _i < _DICE_DIGEST_LENGTH; ++_i)
+    uDigest[_i] = (uint8_t)(krml_checked_int_t)0x00;
   KRML_CHECK_SIZE(sizeof (uint8_t), _DICE_DIGEST_LENGTH);
   uint8_t rDigest[_DICE_DIGEST_LENGTH];
   memset(rDigest, 0U, _DICE_DIGEST_LENGTH * sizeof rDigest[0U]);
