@@ -9,23 +9,21 @@
 
 uint32_t _DICE_DIGEST_LENGTH = (uint32_t)0x20U;
 
+uint32_t _DICE_UDS_LENGTH = (uint32_t)0x20U;
+
+uint8_t
+_UDS[32U] =
+  {
+    (uint8_t)0xb5U, (uint8_t)0x85U, (uint8_t)0x94U, (uint8_t)0x93U, (uint8_t)0x66U, (uint8_t)0x1eU,
+    (uint8_t)0x2eU, (uint8_t)0xaeU, (uint8_t)0x96U, (uint8_t)0x77U, (uint8_t)0xc5U, (uint8_t)0x5dU,
+    (uint8_t)0x59U, (uint8_t)0x0bU, (uint8_t)0x92U, (uint8_t)0x94U, (uint8_t)0xe0U, (uint8_t)0x94U,
+    (uint8_t)0xabU, (uint8_t)0xafU, (uint8_t)0xd7U, (uint8_t)0x40U, (uint8_t)0x78U, (uint8_t)0x7eU,
+    (uint8_t)0x05U, (uint8_t)0x0dU, (uint8_t)0xfeU, (uint8_t)0x6dU, (uint8_t)0x85U, (uint8_t)0x90U,
+    (uint8_t)0x53U, (uint8_t)0xa0U
+  };
+
 exit_code main()
 {
-  Prims_int
-  uds[32U] =
-    {
-      (krml_checked_int_t)0xb5, (krml_checked_int_t)0x85, (krml_checked_int_t)0x94,
-      (krml_checked_int_t)0x93, (krml_checked_int_t)0x66, (krml_checked_int_t)0x1e,
-      (krml_checked_int_t)0x2e, (krml_checked_int_t)0xae, (krml_checked_int_t)0x96,
-      (krml_checked_int_t)0x77, (krml_checked_int_t)0xc5, (krml_checked_int_t)0x5d,
-      (krml_checked_int_t)0x59, (krml_checked_int_t)0x0b, (krml_checked_int_t)0x92,
-      (krml_checked_int_t)0x94, (krml_checked_int_t)0xe0, (krml_checked_int_t)0x94,
-      (krml_checked_int_t)0xab, (krml_checked_int_t)0xaf, (krml_checked_int_t)0xd7,
-      (krml_checked_int_t)0x40, (krml_checked_int_t)0x78, (krml_checked_int_t)0x7e,
-      (krml_checked_int_t)0x05, (krml_checked_int_t)0x0d, (krml_checked_int_t)0xfe,
-      (krml_checked_int_t)0x6d, (krml_checked_int_t)0x85, (krml_checked_int_t)0x90,
-      (krml_checked_int_t)0x53, (krml_checked_int_t)0xa0
-    };
   Prims_int cdi[1U] = { (krml_checked_int_t)0x00 };
   KRML_CHECK_SIZE(sizeof (uint8_t), _DICE_DIGEST_LENGTH);
   uint8_t uDigest[_DICE_DIGEST_LENGTH];

@@ -14,6 +14,10 @@
 
 extern uint32_t _DICE_DIGEST_LENGTH;
 
+extern uint32_t _DICE_UDS_LENGTH;
+
+extern uint8_t _UDS[32U];
+
 exit_code main();
 
 #define __Test1_H_DEFINED
