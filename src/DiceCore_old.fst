@@ -27,24 +27,12 @@ inline_for_extraction let udsContent = [
     0x05; 0x0d; 0xfe; 0x6d; 0x85; 0x90; 0x53; 0xa0
     ]
 
-let test () : HST.St unit =
-  let _UDS = IB.igcmalloc_of_list HS.root udsContent in
-  ()
-
 let _CDI = B.malloc HS.root [0x00] _DICE_DIGEST_LENGTH
-
-//let x = B.as_seq HS.root (_CDI)
-
-//let f () : St unit =
-//  let b = B.malloc h
 
 
 let _DEFAULT_RIOT_PATH : string = "riot.dll"
 let _DEFAULT_LOADER_PATH : string = "FW.dll"
 let _RIOT_ENTRY : string = "RiotStart"
-
-// TODO: Date Types
-// TODO: Modules
 
 // NOTE: Getting familiar with F* and DICE/RIoT by simply re-implement reference code (https://github.com/microsoft/RIoT/blob/master/Reference/RIoT/Core/RIoT.cpp) in F*.
 
