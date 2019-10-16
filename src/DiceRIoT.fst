@@ -1,4 +1,4 @@
-module Test1
+module DiceRIoT
 
 open FStar.Integers
 open FStar.HyperStack.ST
@@ -17,8 +17,10 @@ module M   = LowStar.Modifies
 module HS  = FStar.HyperStack
 module HST = FStar.HyperStack.ST
 
-let _DICE_DIGEST_LENGTH : uint_32 = 0x20ul
-let _DICE_UDS_LENGTH    : uint_32 = 0x20ul
+let _DICE_DIGEST_LENGTH   : uint_32 = 0x20ul
+let _DICE_UDS_LENGTH      : uint_32 = 0x20ul
+let _DER_MAX_PEM          : uint_32 = 0x400ul
+let _SHA256_DIGEST_LENGTH : uint_32 = 0x20ul
 
 inline_for_extraction
 let udslist : list uint_8
@@ -43,13 +45,17 @@ let ibCDI : LowStar.ImmutableBuffer.libuffer UInt8.t
 
 noeq
 type uds_t (len: uint_32) =
-| UDS : (B.lbuffer uint_8 (v len)) -> uds_t len
+| UDS : (data: B.lbuffer uint_8 (v len)) -> uds_t len
 
 noeq
 type cdi_t (len: uint_32) =
-| CDI : (B.lbuffer uint_8 (v len)) -> cdi_t len
+| CDI : (data: B.lbuffer uint_8 (v len)) -> cdi_t len
 
-let _BIGLEN = 9
+noeq
+type cert_t (len: uint_32) =
+| CERT : (data: B.lbuffer uint_8 (v len)) -> cert_t len
+
+let _BIGLEN : uint_32 = 0x09ul
 
 /// REF:
 /// typedef struct {
@@ -57,8 +63,9 @@ let _BIGLEN = 9
 /// } bigval_t;
 noeq
 type bigval_t = {
-     data : B.lbuffer uint_32 _BIGLEN
+     data : B.lbuffer uint_32 (v _BIGLEN)
   }
+/// NOTE: BUG?
 
 /// REF:
 /// typedef struct {
@@ -119,13 +126,67 @@ let riotStart
   (#cdiLen: uint_32)
   (cdi: cdi_t cdiLen)
 : ST unit
-  (requires fun _ -> True)
+  (requires fun _ ->
+/// REF: Parameter validation
+/// if (!(CDI) || (CDILen != SHA256_DIGEST_LENGTH)) {
+///     return;
+/// }
+    (B.len (CDI?.data cdi) = _SHA256_DIGEST_LENGTH))
   (ensures  fun _ _ _ -> True)
 =
   push_frame();
-  let digest : digest_t _DICE_DIGEST_LENGTH
-             = Digest (B.alloca 0x00uy _DICE_DIGEST_LENGTH) in
-  riotCrypto_Hash digest cdi;
+
+/// NOTE: Should be global variables?
+/// REF: RIOT_ECC_PUBLIC     DeviceIDPub;
+  let deviceIDPub : riot_ecc_publickey =
+    RIoT_ECC_PublicKey ({
+      x = {data = B.alloca 0ul _BIGLEN};
+      y = {data = B.alloca 0ul _BIGLEN};
+      infinity = B.alloca 0ul 1ul
+  }) in
+
+/// REF: RIOT_ECC_PUBLIC     AliasKeyPub;
+  let aliasKeyPub : riot_ecc_publickey =
+    RIoT_ECC_PublicKey ({
+      x = {data = B.alloca 0ul _BIGLEN};
+      y = {data = B.alloca 0ul _BIGLEN};
+      infinity = B.alloca 0ul 1ul
+  }) in
+
+/// REF: RIOT_ECC_PRIVATE     AliasKeyPriv;
+  let aliasKeyPriv : riot_ecc_privatekey =
+    RIoT_ECC_PrivateKey ({
+      r = {data = B.alloca 0ul _BIGLEN};
+      s = {data = B.alloca 0ul _BIGLEN}
+  }) in
+
+/// REF: char                AliasCert[DER_MAX_PEM];
+  let aliasCert : cert_t _DER_MAX_PEM =
+    CERT (
+      B.alloca 0x00uy _DER_MAX_PEM
+  ) in
+
+/// REF: char                DeviceCert[DER_MAX_PEM];
+  let deviceCert : cert_t _DER_MAX_PEM =
+    CERT (
+      B.alloca 0x00uy _DER_MAX_PEM
+  ) in
+
+/// REF: char                r00tCert[DER_MAX_PEM];
+  let r00tCert : cert_t _DER_MAX_PEM =
+    CERT (
+      B.alloca 0x00uy _DER_MAX_PEM
+  ) in
+
+/// NOTE: init
+/// REF: BYTE                cDigest[RIOT_DIGEST_LENGTH];
+  let cDigest : digest_t _DICE_DIGEST_LENGTH =
+    Digest (
+      B.alloca 0x00uy _DICE_DIGEST_LENGTH
+  ) in
+
+  riotCrypto_Hash cDigest cdi;
+
   pop_frame()
 
 /// NOTE: Dice Start Point
@@ -168,7 +229,7 @@ let main (): Stack C.exit_code
   let rDigest : B.lbuffer uint_8 (v _DICE_DIGEST_LENGTH)
               = B.alloca 0x00uy _DICE_DIGEST_LENGTH in
 
-  //riotStart cdi;
+  riotStart cdi;
 
   pop_frame ();
   C.EXIT_SUCCESS
