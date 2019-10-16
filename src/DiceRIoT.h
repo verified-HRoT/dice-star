@@ -105,9 +105,47 @@ bool uu___is_Digest(uint32_t len, uint8_t *projectee);
 
 uint8_t *__proj__Digest__item___0(uint32_t len, uint8_t *projectee);
 
+typedef struct riot_x509_tbs_data_s
+{
+  uint8_t *serialNum;
+  uint8_t *issuerCommon;
+  uint8_t *issuerOrg;
+  uint8_t *issuerCountry;
+  uint8_t *validForm;
+  uint8_t *validTo;
+  uint8_t *subjectCommon;
+  uint8_t *subjectOrg;
+  uint8_t *subjectCountry;
+}
+riot_x509_tbs_data;
+
+uint8_t *__proj__Mkriot_x509_tbs_data__item__serialNum(riot_x509_tbs_data projectee);
+
+uint8_t *__proj__Mkriot_x509_tbs_data__item__issuerCommon(riot_x509_tbs_data projectee);
+
+uint8_t *__proj__Mkriot_x509_tbs_data__item__issuerOrg(riot_x509_tbs_data projectee);
+
+uint8_t *__proj__Mkriot_x509_tbs_data__item__issuerCountry(riot_x509_tbs_data projectee);
+
+uint8_t *__proj__Mkriot_x509_tbs_data__item__validForm(riot_x509_tbs_data projectee);
+
+uint8_t *__proj__Mkriot_x509_tbs_data__item__validTo(riot_x509_tbs_data projectee);
+
+uint8_t *__proj__Mkriot_x509_tbs_data__item__subjectCommon(riot_x509_tbs_data projectee);
+
+uint8_t *__proj__Mkriot_x509_tbs_data__item__subjectOrg(riot_x509_tbs_data projectee);
+
+uint8_t *__proj__Mkriot_x509_tbs_data__item__subjectCountry(riot_x509_tbs_data projectee);
+
 void riotCrypto_Hash(uint32_t digestLen, uint8_t *cDigest, uint32_t cdiLen, uint8_t *cdi);
 
-void riotCrypto_DeriveEccKey();
+void
+riotCrypto_DeriveEccKey(
+  affine_point_t deviceIDPub,
+  ecdsa_sig_t deviceIDPriv,
+  uint32_t digestLen,
+  uint8_t *cDigest
+);
 
 void riotStart(uint32_t cdiLen, uint8_t *cdi);
 

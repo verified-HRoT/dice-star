@@ -103,11 +103,36 @@ noeq
 type digest_t (len: uint_32) =
 | Digest : B.lbuffer uint_8 (v len) -> digest_t len
 
+/// REF: typedef struct
+/// {
+///    uint8_t SerialNum[RIOT_X509_SNUM_LEN];
+///    const char *IssuerCommon;
+///    const char *IssuerOrg;
+///    const char *IssuerCountry;
+///    const char *ValidFrom;
+///    const char *ValidTo;
+///    const char *SubjectCommon;
+///    const char *SubjectOrg;
+///    const char *SubjectCountry;
+/// } RIOT_X509_TBS_DATA;
+noeq
+type riot_x509_tbs_data = {
+     serialNum      : B.buffer uint_8;
+     issuerCommon   : B.buffer uint_8;
+     issuerOrg      : B.buffer uint_8;
+     issuerCountry  : B.buffer uint_8;
+     validForm      : B.buffer uint_8;
+     validTo        : B.buffer uint_8;
+     subjectCommon  : B.buffer uint_8;
+     subjectOrg     : B.buffer uint_8;
+     subjectCountry : B.buffer uint_8
+  }
+
 let riotCrypto_Hash
   (#digestLen: uint_32)
-  (cDigest : digest_t digestLen)
-  (#cdiLen: uint_32)
-  (cdi : cdi_t cdiLen)
+  (cDigest   : digest_t digestLen)
+  (#cdiLen   : uint_32)
+  (cdi       : cdi_t cdiLen)
 : ST unit
   (requires fun _ -> True)
   (ensures  fun _ _ _ -> True)
@@ -115,13 +140,17 @@ let riotCrypto_Hash
   ()
 
 let riotCrypto_DeriveEccKey
-  ()
+  (deviceIDPub : riot_ecc_publickey)
+  (deviceIDPriv: riot_ecc_privatekey)
+  (#digestLen  : uint_32)
+  (cDigest     : digest_t digestLen)
 : ST unit
   (requires fun _ -> True)
   (ensures  fun _ _ _ -> True)
 =
   ()
 
+/// <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 let riotStart
   (#cdiLen: uint_32)
   (cdi: cdi_t cdiLen)
@@ -178,6 +207,8 @@ let riotStart
       B.alloca 0x00uy _DER_MAX_PEM
   ) in
 
+/// REF: BYTE                derBuffer[DER_MAX_TBS];
+
 /// NOTE: init
 /// REF: BYTE                cDigest[RIOT_DIGEST_LENGTH];
   let cDigest : digest_t _DICE_DIGEST_LENGTH =
@@ -185,10 +216,34 @@ let riotStart
       B.alloca 0x00uy _DICE_DIGEST_LENGTH
   ) in
 
-  riotCrypto_Hash cDigest cdi;
+/// TODO: REF: BYTE                FWID[RIOT_DIGEST_LENGTH];
+
+/// REF: RIOT_ECC_PRIVATE    deviceIDPriv;
+  let deviceIDPriv : riot_ecc_privatekey =
+    RIoT_ECC_PrivateKey ({
+      r = {data = B.alloca 0ul _BIGLEN};
+      s = {data = B.alloca 0ul _BIGLEN}
+  }) in
+
+/// TODO: REF: RIOT_ECC_SIGNATURE  tbsSig;
+/// TODO: REF: DERBuilderContext   derCtx;
+/// TODO: REF: fpFirmwareEntry     FirmwareEntry;
+/// TODO: REF: BYTE               *fwImage;
+/// TODO: REF: uint32_t            length, PEMtype;
+/// TODO: REF: DWORD               fwSize, offset, i;
+/// TODO: REF: HINSTANCE           fwDLL;
+
+  riotCrypto_Hash
+    cDigest cdi;
+
+  riotCrypto_DeriveEccKey
+    deviceIDPub
+    deviceIDPriv
+    cDigest;
 
   pop_frame()
 
+/// <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 /// NOTE: Dice Start Point
 let main (): Stack C.exit_code
   (requires fun _ -> True)

@@ -133,12 +133,63 @@ uint8_t *__proj__Digest__item___0(uint32_t len, uint8_t *projectee)
   return projectee;
 }
 
+uint8_t *__proj__Mkriot_x509_tbs_data__item__serialNum(riot_x509_tbs_data projectee)
+{
+  return projectee.serialNum;
+}
+
+uint8_t *__proj__Mkriot_x509_tbs_data__item__issuerCommon(riot_x509_tbs_data projectee)
+{
+  return projectee.issuerCommon;
+}
+
+uint8_t *__proj__Mkriot_x509_tbs_data__item__issuerOrg(riot_x509_tbs_data projectee)
+{
+  return projectee.issuerOrg;
+}
+
+uint8_t *__proj__Mkriot_x509_tbs_data__item__issuerCountry(riot_x509_tbs_data projectee)
+{
+  return projectee.issuerCountry;
+}
+
+uint8_t *__proj__Mkriot_x509_tbs_data__item__validForm(riot_x509_tbs_data projectee)
+{
+  return projectee.validForm;
+}
+
+uint8_t *__proj__Mkriot_x509_tbs_data__item__validTo(riot_x509_tbs_data projectee)
+{
+  return projectee.validTo;
+}
+
+uint8_t *__proj__Mkriot_x509_tbs_data__item__subjectCommon(riot_x509_tbs_data projectee)
+{
+  return projectee.subjectCommon;
+}
+
+uint8_t *__proj__Mkriot_x509_tbs_data__item__subjectOrg(riot_x509_tbs_data projectee)
+{
+  return projectee.subjectOrg;
+}
+
+uint8_t *__proj__Mkriot_x509_tbs_data__item__subjectCountry(riot_x509_tbs_data projectee)
+{
+  return projectee.subjectCountry;
+}
+
 void riotCrypto_Hash(uint32_t digestLen, uint8_t *cDigest, uint32_t cdiLen, uint8_t *cdi)
 {
   
 }
 
-void riotCrypto_DeriveEccKey()
+void
+riotCrypto_DeriveEccKey(
+  affine_point_t deviceIDPub,
+  ecdsa_sig_t deviceIDPriv,
+  uint32_t digestLen,
+  uint8_t *cDigest
+)
 {
   
 }
@@ -165,9 +216,9 @@ void riotStart(uint32_t cdiLen, uint8_t *cdi)
   uint32_t buf6[_BIGLEN];
   memset(buf6, 0U, _BIGLEN * sizeof buf6[0U]);
   KRML_CHECK_SIZE(sizeof (uint32_t), _BIGLEN);
-  uint32_t buf[_BIGLEN];
-  memset(buf, 0U, _BIGLEN * sizeof buf[0U]);
-  ecdsa_sig_t aliasKeyPriv = { .r = buf6, .s = buf };
+  uint32_t buf7[_BIGLEN];
+  memset(buf7, 0U, _BIGLEN * sizeof buf7[0U]);
+  ecdsa_sig_t aliasKeyPriv = { .r = buf6, .s = buf7 };
   KRML_CHECK_SIZE(sizeof (uint8_t), _DER_MAX_PEM);
   uint8_t aliasCert[_DER_MAX_PEM];
   memset(aliasCert, 0U, _DER_MAX_PEM * sizeof aliasCert[0U]);
@@ -180,7 +231,15 @@ void riotStart(uint32_t cdiLen, uint8_t *cdi)
   KRML_CHECK_SIZE(sizeof (uint8_t), _DICE_DIGEST_LENGTH);
   uint8_t cDigest[_DICE_DIGEST_LENGTH];
   memset(cDigest, 0U, _DICE_DIGEST_LENGTH * sizeof cDigest[0U]);
+  KRML_CHECK_SIZE(sizeof (uint32_t), _BIGLEN);
+  uint32_t buf8[_BIGLEN];
+  memset(buf8, 0U, _BIGLEN * sizeof buf8[0U]);
+  KRML_CHECK_SIZE(sizeof (uint32_t), _BIGLEN);
+  uint32_t buf[_BIGLEN];
+  memset(buf, 0U, _BIGLEN * sizeof buf[0U]);
+  ecdsa_sig_t deviceIDPriv = { .r = buf8, .s = buf };
   riotCrypto_Hash(_DICE_DIGEST_LENGTH, cDigest, cdiLen, cdi);
+  riotCrypto_DeriveEccKey(deviceIDPub, deviceIDPriv, _DICE_DIGEST_LENGTH, cDigest);
 }
 
 exit_code main()
