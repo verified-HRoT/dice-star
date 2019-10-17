@@ -17,10 +17,38 @@ module M   = LowStar.Modifies
 module HS  = FStar.HyperStack
 module HST = FStar.HyperStack.ST
 
+
+module H8  = Hacl.UInt8
+module H32 = Hacl.UInt32
+module H64 = Hacl.UInt64
+module H128= Hacl.UInt128
+
+let uinth8  = Hacl.UInt8.t
+let uinth32 = Hacl.UInt32.t
+let uinth64 = Hacl.UInt64.t
+let uinth128 = Hacl.UInt128.t
+
+module HC  = Hacl.Cast
+module HH  = Hacl.SHA2_512
+
 let _DICE_DIGEST_LENGTH   : uint_32 = 0x20ul
 let _DICE_UDS_LENGTH      : uint_32 = 0x20ul
 let _DER_MAX_PEM          : uint_32 = 0x400ul
 let _SHA256_DIGEST_LENGTH : uint_32 = 0x20ul
+
+let f
+  (hash: FStar.Buffer.buffer H8.t {FStar.Buffer.length hash = 64})
+  (input:FStar.Buffer.buffer H8.t {FStar.Buffer.length input < pow2 125})
+  (len  :uint_32{v len = FStar.Buffer.length input})
+: St unit
+=
+  push_frame ();
+  HH.hash
+    hash
+    input
+    len;
+  pop_frame ();
+  ()
 
 inline_for_extraction
 let udslist : list uint_8
@@ -55,12 +83,19 @@ noeq
 type cert_t (len: uint_32) =
 | CERT : (data: B.lbuffer uint_8 (v len)) -> cert_t len
 
-let _BIGLEN : uint_32 = 0x09ul
+noeq
+type hinstance =
+| HINSTANCE : (addr: B.buffer uint_64) -> hinstance
+
+assume val b32 : B.buffer uint_32
 
 /// REF:
 /// typedef struct {
 ///     uint32_t data[BIGLEN];
 /// } bigval_t;
+
+let _BIGLEN : uint_32 = 0x09ul
+
 noeq
 type bigval_t = {
      data : B.lbuffer uint_32 (v _BIGLEN)
@@ -128,9 +163,24 @@ type riot_x509_tbs_data = {
      subjectCountry : B.buffer uint_8
   }
 
+/// <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+
 let riotCrypto_Hash
   (#digestLen: uint_32)
   (cDigest   : digest_t digestLen)
+  (#cdiLen   : uint_32)
+  (cdi       : cdi_t cdiLen)
+: ST unit
+  (requires fun _ -> True)
+  (ensures  fun _ _ _ -> True)
+=
+  ()
+
+let riotCrypto_Hash2
+  (#digestLen1: uint_32)
+  (cDigest1   : digest_t digestLen1)
+  (#digestLen2: uint_32)
+  (cDigest2   : digest_t digestLen2)
   (#cdiLen   : uint_32)
   (cdi       : cdi_t cdiLen)
 : ST unit
@@ -149,6 +199,8 @@ let riotCrypto_DeriveEccKey
   (ensures  fun _ _ _ -> True)
 =
   ()
+
+
 
 /// <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 let riotStart
@@ -225,6 +277,8 @@ let riotStart
       s = {data = B.alloca 0ul _BIGLEN}
   }) in
 
+  let fwDLL = 1 in
+
 /// TODO: REF: RIOT_ECC_SIGNATURE  tbsSig;
 /// TODO: REF: DERBuilderContext   derCtx;
 /// TODO: REF: fpFirmwareEntry     FirmwareEntry;
@@ -239,6 +293,17 @@ let riotStart
   riotCrypto_DeriveEccKey
     deviceIDPub
     deviceIDPriv
+    cDigest;
+
+/// REF: Derive Alias key pair from CDI and FWID
+///    RiotCrypt_DeriveEccKey(&AliasKeyPub,
+///                           &AliasKeyPriv,
+///                           cDigest, RIOT_DIGEST_LENGTH,
+///                           (const uint8_t *)RIOT_LABEL_ALIAS,
+///                           lblSize(RIOT_LABEL_ALIAS));
+  riotCrypto_DeriveEccKey
+    aliasKeyPub
+    aliasKeyPriv
     cDigest;
 
   pop_frame()

@@ -184,6 +184,19 @@ void riotCrypto_Hash(uint32_t digestLen, uint8_t *cDigest, uint32_t cdiLen, uint
 }
 
 void
+riotCrypto_Hash2(
+  uint32_t digestLen1,
+  uint8_t *cDigest1,
+  uint32_t digestLen2,
+  uint8_t *cDigest2,
+  uint32_t cdiLen,
+  uint8_t *cdi
+)
+{
+  
+}
+
+void
 riotCrypto_DeriveEccKey(
   affine_point_t deviceIDPub,
   ecdsa_sig_t deviceIDPriv,
