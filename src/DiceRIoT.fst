@@ -13,8 +13,8 @@ module I  = FStar.Integers
 module HI  = Lib.IntTypes
 
 module SHA2= Hacl.Hash.SHA2
-module HD  = Hacl.Hash.Definitions
-module SHD = Spec.Hash.Definitions
+module HMAC= Hacl.HMAC
+module Ed25519 = Hacl.Ed25519
 
 module CL  = C.Loops
 module CE  = C.Endianness
@@ -33,26 +33,6 @@ let _DICE_UDS_LENGTH      : I.uint_32 = 0x20ul
 let _DER_MAX_PEM          : I.uint_32 = 0x400ul
 let _SHA256_DIGEST_LENGTH : I.uint_32 = 0x20ul
 
-let f
-  (input:B.buffer uint8)
-  (len  :I.uint_32{I.v len = B.length input})
-  (hash: hash_t SHA2_512)
-: HST.Stack unit
-  (requires (fun h ->
-      B.live h input /\
-      B.live h hash /\
-      B.disjoint input hash /\
-      B.length input <= SHD.max_input_length SHD.SHA2_512))
-  (ensures fun _ _ _ -> True)
-=
-  HST.push_frame ();
-  SHA2.hash_512
-    input
-    len
-    hash;
-  HST.pop_frame ();
-  ()
-
 inline_for_extraction
 let udslist : list uint8
 = [u8 0xb5; u8 0x85; u8 0x94; u8 0x93; u8 0x66; u8 0x1e; u8 0x2e; u8 0xae;
@@ -60,31 +40,19 @@ let udslist : list uint8
    u8 0xe0; u8 0x94; u8 0xab; u8 0xaf; u8 0xd7; u8 0x40; u8 0x78; u8 0x7e;
    u8 0x05; u8 0x0d; u8 0xfe; u8 0x6d; u8 0x85; u8 0x90; u8 0x53; u8 0xa0]
 
-(*)
-let ibUDS //: IB.libuffer uint_8 (v _DICE_UDS_LENGTH)
-          = IB.igcmalloc_of_list HS.root [
-    0xb5uy; 0x85uy; 0x94uy; 0x93uy; 0x66uy; 0x1euy; 0x2euy; 0xaeuy;
-    0x96uy; 0x77uy; 0xc5uy; 0x5duy; 0x59uy; 0x0buy; 0x92uy; 0x94uy;
-    0xe0uy; 0x94uy; 0xabuy; 0xafuy; 0xd7uy; 0x40uy; 0x78uy; 0x7euy;
-    0x05uy; 0x0duy; 0xfeuy; 0x6duy; 0x85uy; 0x90uy; 0x53uy; 0xa0uy]
-
-let ibCDI : LowStar.ImmutableBuffer.libuffer UInt8.t
-    (UInt32.v (_DICE_DIGEST_LENGTH))
-    (Seq.Base.create (UInt32.v (_DICE_DIGEST_LENGTH)) (0x00uy))
-    = IB.igcmalloc HS.root 0x00uy _DICE_DIGEST_LENGTH
-*)
-
 noeq
 type uds_t (len: I.uint_32) =
-| UDS : (data: B.lbuffer uint8 (v len)) -> uds_t len
+| UDS : (v: B.lbuffer uint8 (v len)) -> uds_t len
 
 noeq
-type cdi_t (len: I.uint_32) =
-| CDI : (data: B.lbuffer uint8 (v len)) -> cdi_t len
+type cdi_t = {
+     alg : hash_alg;
+     cdi : hash_t alg
+  }
 
 noeq
 type cert_t (len: I.uint_32) =
-| CERT : (data: B.lbuffer uint8 (v len)) -> cert_t len
+| CERT : (v: B.lbuffer uint8 (v len)) -> cert_t len
 
 noeq
 type hinstance =
@@ -204,135 +172,53 @@ let riotCrypto_DeriveEccKey
 
 
 /// <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+///
+//#reset-options "--z3rlimit 50 --initial_fuel 0 --max_fuel 100"
+//#push-options "--query_stats"
+#reset-options "--z3rlimit 100"
+
+let f (a) = a
+
 let riotStart
-  (#cdiLen: I.uint_32)
-  (cdi: cdi_t cdiLen)
+  (cdi: cdi_t)
 : HST.Stack unit
-  (requires fun _ ->
-///
-/// REF: Parameter validation
-/// if (!(CDI) || (CDILen != SHA256_DIGEST_LENGTH)) {
-///     return;
-/// }
-///
-    (B.len (CDI?.data cdi) = _SHA256_DIGEST_LENGTH))
+  (requires (fun h ->
+    B.live h cdi.cdi /\
+    B.length cdi.cdi <= max_input_length cdi.alg))
   (ensures  fun _ _ _ -> True)
 =
   HST.push_frame();
-///
-/// NOTE: Should be global variables?
-/// REF: RIOT_ECC_PUBLIC     DeviceIDPub;
-///
-  let deviceIDPub : riot_ecc_publickey =
-    RIoT_ECC_PublicKey ({
-      x = {data = B.alloca (u32 0) _BIGLEN};
-      y = {data = B.alloca (u32 0) _BIGLEN};
-      infinity = B.alloca (u32 0) 1ul
-  }) in
-
-///
-/// REF: RIOT_ECC_PUBLIC     AliasKeyPub;
-///
-  let aliasKeyPub : riot_ecc_publickey =
-    RIoT_ECC_PublicKey ({
-      x = {data = B.alloca (u32 0) _BIGLEN};
-      y = {data = B.alloca (u32 0) _BIGLEN};
-      infinity = B.alloca (u32 0) 1ul
-  }) in
-
-/// REF: RIOT_ECC_PRIVATE     AliasKeyPriv;
-  let aliasKeyPriv : riot_ecc_privatekey =
-    RIoT_ECC_PrivateKey ({
-      r = {data = B.alloca (u32 0) _BIGLEN};
-      s = {data = B.alloca (u32 0) _BIGLEN}
-  }) in
-
-///
-/// REF: char                AliasCert[DER_MAX_PEM];
-///
-  let aliasCert : cert_t _DER_MAX_PEM =
-    CERT (
-      B.alloca (u8 0x00) _DER_MAX_PEM
-  ) in
-
-///
-/// REF: char                DeviceCert[DER_MAX_PEM];
-///
-  let deviceCert : cert_t _DER_MAX_PEM =
-    CERT (
-      B.alloca (u8 0x00) _DER_MAX_PEM
-  ) in
-
-///
-/// REF: char                r00tCert[DER_MAX_PEM];
-///
-  let r00tCert : cert_t _DER_MAX_PEM =
-    CERT (
-      B.alloca (u8 0x00) _DER_MAX_PEM
-  ) in
-
-/// REF: BYTE                derBuffer[DER_MAX_TBS];
-
-///
-/// NOTE: init
-/// REF: BYTE                cDigest[RIOT_DIGEST_LENGTH];
-///
-  let cDigest : hash_t SHA2_512 =
-    B.alloca (u8 0x00) (hash_len SHA2_512)
+  let cDigest : hash_t SHA2_256 =
+    B.alloca (u8 0x00) (hash_len SHA2_256)
   in
-
-/// TODO: REF: BYTE                FWID[RIOT_DIGEST_LENGTH];
+///
+/// DONE: RiotCrypt_Hash(cDigest, RIOT_DIGEST_LENGTH, CDI, CDILen);
+///
+  SHA2.hash_256 (cdi.cdi) (hash_len cdi.alg) cDigest;
+///
+/// TODO: RiotCrypt_DeriveEccKey(&DeviceIDPub,
+///                       &deviceIDPriv,
+///                       cDigest, RIOT_DIGEST_LENGTH,
+///                       (const uint8_t *)RIOT_LABEL_IDENTITY,
+///                       lblSize(RIOT_LABEL_IDENTITY));
+///
+/// NOTE: How do we derive key pair using Ed25519?
+///
 
 ///
-/// REF: RIOT_ECC_PRIVATE    deviceIDPriv;
+/// NOTE: Do we have X.509 or primitives for X.509, like RSA or ECDSA?
 ///
-  let deviceIDPriv : riot_ecc_privatekey =
-    RIoT_ECC_PrivateKey ({
-      r = {data = B.alloca (u32 0x00) _BIGLEN};
-      s = {data = B.alloca (u32 0x00) _BIGLEN}
-  }) in
-
-
-/// TODO: REF: RIOT_ECC_SIGNATURE  tbsSig;
-/// TODO: REF: DERBuilderContext   derCtx;
-/// TODO: REF: fpFirmwareEntry     FirmwareEntry;
-/// TODO: REF: BYTE               *fwImage;
-/// TODO: REF: uint32_t            length, PEMtype;
-/// TODO: REF: DWORD               fwSize, offset, i;
-/// TODO: REF: HINSTANCE           fwDLL;
-
-//    SHA2.hash_512
-
-//  riotCrypto_Hash
-//    cDigest cdi;
-
-//  riotCrypto_DeriveEccKey
-//    deviceIDPub
-//    deviceIDPriv
-//    cDigest;
-
-///
-/// REF: Derive Alias key pair from CDI and FWID
-///    RiotCrypt_DeriveEccKey(&AliasKeyPub,
-///                           &AliasKeyPriv,
-///                           cDigest, RIOT_DIGEST_LENGTH,
-///                           (const uint8_t *)RIOT_LABEL_ALIAS,
-///                           lblSize(RIOT_LABEL_ALIAS));
-///
-//  riotCrypto_DeriveEccKey
-//    aliasKeyPub
-//    aliasKeyPriv
-//    cDigest;
-
   HST.pop_frame()
+
 
 /// <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 /// NOTE: Dice Start Point
-let main (): Stack C.exit_code
+let main ()
+: HST.Stack C.exit_code
   (requires fun _ -> True)
   (ensures  fun h _ h' -> True)
 =
-  push_frame ();
+  HST.push_frame ();
 
 /// REF: const BYTE UDS[DICE_UDS_LENGTH] = {
 ///    0xb5, 0x85, 0x94, 0x93, 0x66, 0x1e, 0x2e, 0xae,
@@ -369,5 +255,5 @@ let main (): Stack C.exit_code
 
   riotStart cdi;
 
-  pop_frame ();
+  HST.pop_frame ();
   C.EXIT_SUCCESS
