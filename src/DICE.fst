@@ -27,6 +27,10 @@ module M   = LowStar.Modifies
 module HS  = FStar.HyperStack
 module HST = FStar.HyperStack.ST
 
+let _DICE_UDS_LENGTH = 0x20
+
+assume val uds : B.lbuffer uint8 _DICE_UDS_LENGTH
+
 type imagePath =
 
 noeq
@@ -69,8 +73,8 @@ assume val getProcAddress
 
 assume val diceGetRiotInfo
   (hDLL: hinstance)
-  (offset: B.pointer uint32)
-  (riotSize: B.pointer uint32)
+  (offset: B.pointer I.uint_32)
+  (riotSize: B.pointer nat)
 : HST.Stack unit
   (requires fun h ->
       h `B.live` hDLL.addr
@@ -83,13 +87,43 @@ assume val diceGetRiotInfo
       B.modifies (B.loc_buffer offset) h0 h1
     /\ B.modifies (B.loc_buffer riotSize) h0 h1)
 
+assume val diceSHA256
+  (size : nat)
+  (data: B.lbuffer uint8 size)
+  (digest: hash_t SHA2_256)
+: HST.Stack unit
+  (requires fun h ->
+      B.live h data
+    /\ B.live h digest
+    /\ B.disjoint data digest)
+  (ensures  fun h0 _ h1 ->
+      B.modifies (B.loc_buffer digest) h0 h1)
 
-#reset-options "--z3rlimit 50"
+assume val diceSHA256_2
+  (size1 : nat)
+  (data1: B.lbuffer uint8 size1)
+  (size2 : nat)
+  (data2 : B.lbuffer uint8 size2)
+  (digest: hash_t SHA2_256)
+: HST.Stack unit
+  (requires fun h ->
+      B.live h data1
+    /\ B.live h data2
+    /\ B.live h digest
+    /\ B.disjoint data1 data2
+    /\ B.disjoint data1 digest
+    /\ B.disjoint data2 digest)
+  (ensures  fun h0 _ h1 ->
+      B.modifies (B.loc_buffer digest) h0 h1)
+
+#reset-options "--z3rlimit 50 --max_fuel 50 --max_ifuel 50"
+#push-options "--query_stats"
 let _tmain
   (ret: B.pointer int32)
 : HST.Stack unit
   (requires fun h ->
       B.live h ret
+    /\ B.live h uds
     /\ B.live h _DEFAULT_LOADER_PATH
     /\ B.live h _DEFAULT_RIOT_PATH)
   (ensures  fun _ _ _ -> True)
@@ -118,10 +152,10 @@ let _tmain
 
 /// REF: uint8_t     *riotCore;
 /// REF: DWORD       riotSize, offset;
-  let riotSize: B.pointer uint32
-    = B.alloca (u32 0x00) 1ul in
-  let offset: B.pointer uint32
-    = B.alloca (u32 0x00) 1ul in
+  let riotSize: B.pointer nat
+    = B.alloca 0x00 1ul in
+  let offset: B.pointer I.uint_32
+    = B.alloca 0x00ul 1ul in
 
 ///
 /// Boot:
@@ -144,10 +178,54 @@ let _tmain
   let riotStart: fpRiotStart
     = getProcAddress hRiotDLL _RIOT_ENTRY in
 
+/// DONE: Get base offset and size of RIoT Invariant Code
+/// REF: if (!DiceGetRiotInfo(hRiotDLL, &offset, &riotSize)) {
+///          fprintf(stderr, "ERROR: Failed to locate RIoT Invariant code\n");
+///          goto Error;
+///      }
   diceGetRiotInfo hRiotDLL offset riotSize;
 
-  let riotCore
-    = !*(hRiotDLL.addr) +. !*offset in
+
+/// TODO: Calculate base VA of RIoT Invariant Code
+/// TOOD: Cast
+/// REF: riotCore = (uint8_t *)((uint64_t)hRiotDLL + offset);
+  //let riotCore : I.uint_32 = (UInt32.uint_to_t (!*offset)) in
+  //B.alloca (u8 0x00) (UInt32.uint_to_t !*riotSize) in
+    //: B.pointer uint8
+    //= B.alloca (to_u8 (!*(hRiotDLL.addr) +. !*offset)) 1ul in
+    //= B.offset hRiotDLL.addr !*offset in
+
+///
+/// DiceCore:
+///
+/// TODO: Measure RIoT Invariant Code
+/// REF: DiceSHA256(riotCore, riotSize, rDigest);
+  //diceSHA256 !*riotSize riotCore rDigest;
+
+/// DONE: Don't use UDS directly
+/// REF: DiceSHA256(UDS, DICE_UDS_LENGTH, uDigest);
+  diceSHA256
+    _DICE_UDS_LENGTH
+    uds
+    uDigest;
+
+/// DONE: Derive CDI value
+/// REF: DiceSHA256_2(uDigest, DICE_DIGEST_LENGTH, rDigest, DICE_DIGEST_LENGTH, CDI);
+    let cdi: hash_t SHA2_256
+      = B.alloca (u8 0x00) (hash_len SHA2_256) in
+    diceSHA256_2
+      (hash_length SHA2_256) uDigest
+      (hash_length SHA2_256) rDigest
+      cdi;
+
+/// TODO: Clean up potentially sensative data
+/// REF: memset(uDigest, 0x00, DICE_DIGEST_LENGTH);
+///      memset(rDigest, 0x00, DICE_DIGEST_LENGTH);
+
+///
+/// Start RIoT:
+///
+    riotStart ({alg=SHA2_256;cdi=cdi});
 
   ret *= ret_TRUE;
   HST.pop_frame()
