@@ -1,6 +1,7 @@
-module DICE
+module DICE.Core
 
 open Common
+open DICE.Stubs
 
 open LowStar.BufferOps
 open Lib.IntTypes
@@ -27,96 +28,8 @@ module M   = LowStar.Modifies
 module HS  = FStar.HyperStack
 module HST = FStar.HyperStack.ST
 
-let _DICE_UDS_LENGTH = 0x20
 
-assume val uds : B.lbuffer uint8 _DICE_UDS_LENGTH
-
-type imagePath =
-
-noeq
-type hinstance = {
-     addr: B.pointer uint32
-  }
-
-assume val loadLibrary
-  (path: B.buffer imagePath)
-  (hDLL: hinstance)
-: HST.Stack unit
-  (requires fun h ->
-      B.live h path
-    /\ B.live h hDLL.addr
-    /\ B.disjoint path hDLL.addr)
-  (ensures fun h0 r h1 ->
-      B.modifies (B.loc_buffer hDLL.addr) h0 h1)
-
-assume val _DEFAULT_RIOT_PATH: B.buffer imagePath
-assume val _DEFAULT_LOADER_PATH: B.buffer imagePath
-
-noeq
-type cdi_t = {
-     alg: hash_alg;
-     cdi: hash_t alg;
-  }
-
-let fpRiotStart =
-  (cdi: cdi_t)
--> HST.Stack unit
-  (requires fun _ -> True)
-  (ensures  fun _ _ _ -> True)
-
-type entryPoint =
-assume val _RIOT_ENTRY: entryPoint
-assume val getProcAddress
-  (hDLL: hinstance)
-  (entry: entryPoint)
-: fpRiotStart
-
-assume val diceGetRiotInfo
-  (hDLL: hinstance)
-  (offset: B.pointer I.uint_32)
-  (riotSize: B.pointer nat)
-: HST.Stack unit
-  (requires fun h ->
-      h `B.live` hDLL.addr
-    /\ h `B.live` offset
-    /\ h `B.live` riotSize
-    /\ hDLL.addr `B.disjoint` offset
-    /\ hDLL.addr `B.disjoint` riotSize
-    /\ riotSize  `B.disjoint` offset)
-  (ensures  fun h0 _ h1 ->
-      B.modifies (B.loc_buffer offset) h0 h1
-    /\ B.modifies (B.loc_buffer riotSize) h0 h1)
-
-assume val diceSHA256
-  (size : nat)
-  (data: B.lbuffer uint8 size)
-  (digest: hash_t SHA2_256)
-: HST.Stack unit
-  (requires fun h ->
-      B.live h data
-    /\ B.live h digest
-    /\ B.disjoint data digest)
-  (ensures  fun h0 _ h1 ->
-      B.modifies (B.loc_buffer digest) h0 h1)
-
-assume val diceSHA256_2
-  (size1 : nat)
-  (data1: B.lbuffer uint8 size1)
-  (size2 : nat)
-  (data2 : B.lbuffer uint8 size2)
-  (digest: hash_t SHA2_256)
-: HST.Stack unit
-  (requires fun h ->
-      B.live h data1
-    /\ B.live h data2
-    /\ B.live h digest
-    /\ B.disjoint data1 data2
-    /\ B.disjoint data1 digest
-    /\ B.disjoint data2 digest)
-  (ensures  fun h0 _ h1 ->
-      B.modifies (B.loc_buffer digest) h0 h1)
-
-#reset-options "--z3rlimit 50 --max_fuel 50 --max_ifuel 50"
+#reset-options "--z3rlimit 50"
 #push-options "--query_stats"
 let _tmain
   (ret: B.pointer int32)
@@ -198,6 +111,7 @@ let _tmain
 ///
 /// DiceCore:
 ///
+
 /// TODO: Measure RIoT Invariant Code
 /// REF: DiceSHA256(riotCore, riotSize, rDigest);
   //diceSHA256 !*riotSize riotCore rDigest;
@@ -222,10 +136,12 @@ let _tmain
 /// REF: memset(uDigest, 0x00, DICE_DIGEST_LENGTH);
 ///      memset(rDigest, 0x00, DICE_DIGEST_LENGTH);
 
+
+
 ///
 /// Start RIoT:
 ///
     riotStart ({alg=SHA2_256;cdi=cdi});
 
-  ret *= ret_TRUE;
+  ret *= ret_SUCCESS;
   HST.pop_frame()
