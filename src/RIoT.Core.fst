@@ -23,6 +23,7 @@ module CS  = C.String
 module S   = FStar.Seq
 module IB  = LowStar.ImmutableBuffer
 module B   = LowStar.Buffer
+module MB  = LowStar.Monotonic.Buffer
 module M   = LowStar.Modifies
 module HS  = FStar.HyperStack
 module HST = FStar.HyperStack.ST
@@ -41,6 +42,52 @@ assume val riotCrypt_Hash
   (ensures  fun h0 _ h1 ->
       B.modifies (B.loc_buffer digest) h0 h1)
 
+let _BIGLEN : I.uint_32 = 0x09ul
+
+noeq
+type bigval_t = {
+     data : B.lbuffer uint32 (v _BIGLEN)
+  }
+
+/// REF:
+/// typedef struct {
+///     bigval_t x;
+///     bigval_t y;
+///     uint32_t infinity;
+/// } affine_point_t;
+noeq
+type affine_point_t = {
+     x: bigval_t;
+     y: bigval_t;
+     infinity: B.pointer uint32
+  }
+
+/// REF:
+/// typedef struct {
+///     bigval_t r;
+///     bigval_t s;
+/// } ECDSA_sig_t;
+noeq
+type ecdsa_sig_t = {
+     r: bigval_t;
+     s: bigval_t
+  }
+
+type riot_ecc_publickey = affine_point_t
+
+type riot_ecc_privatekey = ecdsa_sig_t
+
+/// -> ECDH_derive
+assume val riotCrypt_DeriveEccKey
+  (public_key : riot_ecc_publickey)
+  (private_key: riot_ecc_privatekey)
+  (digest_alg: hash_alg)
+  (digest: hash_t digest_alg)
+  (label_size: I.uint_32)
+  (label: B.lbuffer uint8 (I.v label_size))
+: HST.Stack unit
+  (requires fun h -> True)
+  (ensures  fun h0 _ h1 -> True)
 /// <><><><><><><><<><><><><><><><><><><><><><><><><><><><><><><><>
 
 #reset-options "--z3rlimit 100"
@@ -67,6 +114,8 @@ let riotStart
 ///      DWORD               fwSize, offset, i;
 ///      HINSTANCE           fwDLL;
 
+/// Don't use CDI directly
+/// REF: RiotCrypt_Hash(cDigest, RIOT_DIGEST_LENGTH, CDI, CDILen);
   let cDigest : hash_t SHA2_256
     = B.alloca (u8 0x00) (hash_len SHA2_256) in
 
@@ -75,5 +124,26 @@ let riotStart
     cdi.cdi
     SHA2_256
     cDigest;
+
+/// TODO: Set the serial number for DeviceID certificate
+/// REF: RiotSetSerialNumber(&x509DeviceTBSData, cDigest, RIOT_DIGEST_LENGTH);
+  let deviceIDPub: riot_ecc_publickey = {
+    x = {data = B.alloca (u32 0x00) _BIGLEN};
+    y = {data = B.alloca (u32 0x00) _BIGLEN};
+    infinity = B.alloca (u32 0x00) 1ul
+  } in
+
+  let deviceIDPriv: riot_ecc_privatekey = {
+    r = {data = B.alloca (u32 0x00) _BIGLEN};
+    s = {data = B.alloca (u32 0x00) _BIGLEN}
+  } in
+
+  let data = B.alloca (u8 0x00) _BIGLEN in
+
+  riotCrypt_DeriveEccKey
+    deviceIDPub
+    deviceIDPriv
+    SHA2_256 cDigest
+    _BIGLEN data;
 
   HST.pop_frame()
