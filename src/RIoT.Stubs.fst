@@ -188,18 +188,9 @@ assume val riotCrypt_DeriveEccKey
     /\ B.live h label)
   (ensures  fun h0 _ h1 -> True)
 
-/// Sets tbsData->SerialNumber to a quasi-random value derived from seedData
-/// REF: void RiotSetSerialNumber(RIOT_X509_TBS_DATA* tbsData, const uint8_t* seedData, size_t seedLen);
-assume val riotCrypt_SeedDRBG
-  //TODO: (tbsData: riot_X509_TBS_DATA)
-  (#seedLen: I.uint_32)
-  (seedData: B.lbuffer HI.uint8 (I.v seedLen))
-: HST.Stack unit
-  (requires fun h -> True)
-  (ensures  fun h0 _ h1 -> True)
-
 /// TODO: RIOT_STATUS
-///
+
+/// Sets tbsData->SerialNumber to a quasi-random value derived from seedData
 /// REF: RIOT_STATUS
 ///      RiotCrypt_SeedDRBG(
 ///          uint8_t     *bytes,
@@ -209,6 +200,14 @@ assume val riotCrypt_SeedDRBG
 ///          set_drbg_seed(bytes, size);
 ///          return RIOT_SUCCESS;
 ///      }
+assume val riotCrypt_SeedDRBG
+  //TODO: (tbsData: riot_X509_TBS_DATA)
+  (#seedLen: I.uint_32)
+  (seedData: B.lbuffer HI.uint8 (I.v seedLen))
+: HST.Stack unit
+  (requires fun h -> True)
+  (ensures  fun h0 _ h1 -> True)
+
 ///
 /// REF: RIOT_STATUS
 ///      RiotCrypt_Kdf(
@@ -222,6 +221,19 @@ assume val riotCrypt_SeedDRBG
 ///          size_t          labelSize,      // IN:  Size of the label in bytes
 ///          uint32_t        bytesToDerive   // IN:  Number of bytesto be produced
 ///      )
+assume val riotCrypt_Kdf
+  (#resultSize: I.uint_32)
+  (result: B.lbuffer HI.uint8 (I.v resultSize))
+  (#sourceSize: I.uint_32)
+  (source: B.lbuffer HI.uint8 (I.v sourceSize))
+  (#contextSize: I.uint_32)
+  (context: B.lbuffer HI.uint8 (I.v contextSize))
+  (#labelSize: I.uint_32)
+  (label: B.lbuffer HI.uint8 (I.v labelSize))
+  (bytesToDerive: I.uint_32)
+: HST.Stack unit
+  (requires fun h -> True)
+  (ensures  fun h0 _ h1 -> True)
 ///      {
 ///          uint8_t  fixed[RIOT_MAX_KDF_FIXED_SIZE];
 ///          size_t   fixedSize = sizeof(fixed);
@@ -253,6 +265,9 @@ assume val riotCrypt_SeedDRBG
 ///      #define RiotCrypt_HashUpdate    RIOT_SHA256_Update
 ///      #define RiotCrypt_HashFinal     RIOT_SHA256_Final
 ///
+
+
+///
 /// REF: RIOT_STATUS
 ///      RiotCrypt_Hash(
 ///          uint8_t        *result,         // OUT: Buffer to receive the digest
@@ -260,6 +275,14 @@ assume val riotCrypt_SeedDRBG
 ///          const void     *data,           // IN:  Data to hash
 ///          size_t          dataSize        // IN:  Data size in bytes
 ///      )
+assume val riotCrypt_Hash'
+  (#resultSize: I.uint_32)
+  (result: B.lbuffer HI.uint8 (I.v resultSize))
+  (#dataSize: I.uint_32)
+  (data: B.lbuffer HI.uint8 (I.v dataSize))
+: HST.Stack unit
+  (requires fun h -> True)
+  (ensures  fun h0 _ h1 -> True)
 ///      {
 ///          RIOT_HASH_CONTEXT ctx;
 ///
@@ -274,6 +297,9 @@ assume val riotCrypt_SeedDRBG
 ///          return RIOT_SUCCESS;
 ///      }
 ///
+
+
+///
 /// REF: RIOT_STATUS
 ///      RiotCrypt_Hash2(
 ///          uint8_t        *result,         // OUT: Buffer to receive the digest
@@ -283,6 +309,16 @@ assume val riotCrypt_SeedDRBG
 ///          const void     *data2,          // IN:  2nd operand to hash
 ///          size_t          data2Size       // IN:  2nd operand size in bytes
 ///      )
+assume val riotCrypt_Hash2
+  (#resultSize: I.uint_32)
+  (result: B.lbuffer HI.uint8 (I.v resultSize))
+  (#data1Size: I.uint_32)
+  (data1: B.lbuffer HI.uint8 (I.v data1Size))
+  (#data2Size: I.uint_32)
+  (data2: B.lbuffer HI.uint8 (I.v data2Size))
+: HST.Stack unit
+  (requires fun h -> True)
+  (ensures  fun h0 _ h1 -> True)
 ///      {
 ///          RIOT_HASH_CONTEXT ctx;
 ///
@@ -304,6 +340,9 @@ assume val riotCrypt_SeedDRBG
 ///      #define RiotCrypt_HmacUpdate    RIOT_HMAC_SHA256_Update
 ///      #define RiotCrypt_HmacFinal     RIOT_HMAC_SHA256_Final
 ///
+
+
+///
 /// REF: RIOT_STATUS
 ///      RiotCrypt_Hmac(
 ///          uint8_t        *result,         // OUT: Buffer to receive the HMAC
@@ -313,6 +352,16 @@ assume val riotCrypt_SeedDRBG
 ///          const uint8_t  *key,            // IN:  HMAK key
 ///          size_t          keySize         // IN:  HMAC key size in bytes
 ///      )
+assume val riotCrypt_Hmac
+  (#resultSize: I.uint_32)
+  (result: B.lbuffer HI.uint8 (I.v resultSize))
+  (#dataSize: I.uint_32)
+  (data: B.lbuffer HI.uint8 (I.v dataSize))
+  (#keySize: I.uint_32)
+  (key: B.lbuffer HI.uint8 (I.v keySize))
+: HST.Stack unit
+  (requires fun h -> True)
+  (ensures  fun h0 _ h1 -> True)
 ///      {
 ///          RIOT_HMAC_CONTEXT ctx;
 ///
@@ -328,6 +377,8 @@ assume val riotCrypt_SeedDRBG
 ///          return RIOT_SUCCESS;
 ///      }
 ///
+
+///
 /// REF: RIOT_STATUS
 ///      RiotCrypt_Hmac2(
 ///          uint8_t        *result,         // OUT: Buffer to receive the HMAK
@@ -339,6 +390,18 @@ assume val riotCrypt_SeedDRBG
 ///          const uint8_t  *key,            // IN:  HMAK key
 ///          size_t          keySize         // IN:  HMAC key size in bytes
 ///      )
+assume val riotCrypt_Hmac2
+  (#resultSize: I.uint_32)
+  (result: B.lbuffer HI.uint8 (I.v resultSize))
+  (#data1Size: I.uint_32)
+  (data1: B.lbuffer HI.uint8 (I.v data1Size))
+  (#data2Size: I.uint_32)
+  (data2: B.lbuffer HI.uint8 (I.v data2Size))
+  (#keySize: I.uint_32)
+  (key: B.lbuffer HI.uint8 (I.v keySize))
+: HST.Stack unit
+  (requires fun h -> True)
+  (ensures  fun h0 _ h1 -> True)
 ///      {
 ///          RIOT_HMAC_CONTEXT ctx;
 ///
