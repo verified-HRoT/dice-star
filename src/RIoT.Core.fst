@@ -29,65 +29,7 @@ module HS  = FStar.HyperStack
 module HST = FStar.HyperStack.ST
 
 /// <><><><><><><><<><><><><><> Stubs <><><><><><><><><><><><><><>
-assume val riotCrypt_Hash
-  (size: I.uint_32)
-  (data: B.lbuffer uint8 (v size))
-  (digest_alg: hash_alg)
-  (digest: hash_t digest_alg)
-: HST.Stack unit
-  (requires fun h ->
-      B.live h data
-    /\ B.live h digest
-    /\ B.disjoint data digest)
-  (ensures  fun h0 _ h1 ->
-      B.modifies (B.loc_buffer digest) h0 h1)
 
-let _BIGLEN : I.uint_32 = 0x09ul
-
-noeq
-type bigval_t = {
-     data : B.lbuffer uint32 (v _BIGLEN)
-  }
-
-/// REF:
-/// typedef struct {
-///     bigval_t x;
-///     bigval_t y;
-///     uint32_t infinity;
-/// } affine_point_t;
-noeq
-type affine_point_t = {
-     x: bigval_t;
-     y: bigval_t;
-     infinity: B.pointer uint32
-  }
-
-/// REF:
-/// typedef struct {
-///     bigval_t r;
-///     bigval_t s;
-/// } ECDSA_sig_t;
-noeq
-type ecdsa_sig_t = {
-     r: bigval_t;
-     s: bigval_t
-  }
-
-type riot_ecc_publickey = affine_point_t
-
-type riot_ecc_privatekey = ecdsa_sig_t
-
-/// -> ECDH_derive
-assume val riotCrypt_DeriveEccKey
-  (public_key : riot_ecc_publickey)
-  (private_key: riot_ecc_privatekey)
-  (digest_alg: hash_alg)
-  (digest: hash_t digest_alg)
-  (label_size: I.uint_32)
-  (label: B.lbuffer uint8 (I.v label_size))
-: HST.Stack unit
-  (requires fun h -> True)
-  (ensures  fun h0 _ h1 -> True)
 /// <><><><><><><><<><><><><><><><><><><><><><><><><><><><><><><><>
 
 #reset-options "--z3rlimit 100"
