@@ -4,7 +4,8 @@ open Common
 open DICE.Stubs
 
 open LowStar.BufferOps
-open Lib.IntTypes
+//open Lib.IntTypes
+open FStar.Integers
 
 open Spec.Hash.Definitions
 open Hacl.Hash.Definitions
@@ -28,11 +29,55 @@ module M   = LowStar.Modifies
 module HS  = FStar.HyperStack
 module HST = FStar.HyperStack.ST
 
+let rec memcpy
+  (#a)
+  (dst: B.buffer a)
+  (src: B.buffer a)
+  (len: I.uint_32)
+: HST.Stack unit
+  (requires fun h ->
+      B.live h dst
+    /\ B.live h src
+    /\ B.disjoint dst src
+    /\ len > 0ul
+    /\ len <= B.len src
+    /\ B.len src <= B.len dst)
+  (ensures  fun h0 _ h1 ->
+      M.modifies (M.loc_buffer dst) h0 h1
+/// TODO: /\ (S.slice (B.as_seq h1 dst) 0 (v len - 1)) `S.equal` (S.slice (B.as_seq h1 src) 0 (v len - 1))
+    )
+=
+  let cur = len - 1ul in
+  dst.(cur) <- src.(cur);
+  match cur with
+  | 0ul -> ()
+  | _   -> memcpy dst src cur
+
+let rec memset
+  (#a)
+  (dst: B.buffer a)
+  (v: a)
+  (len: I.uint_32)
+: HST.Stack unit
+  (requires fun h ->
+      B.live h dst
+    /\ len > 0ul
+    /\ len <= B.len dst)
+  (ensures  fun h0 _ h1 ->
+      M.modifies (M.loc_buffer dst) h0 h1
+/// TODO: /\ (S.slice (B.as_seq h1 dst) 0 (v len - 1)) `S.equal` (S.slice (B.as_seq h1 src) 0 (v len - 1))
+    )
+=
+  let cur = len - 1ul in
+  dst.(cur) <- v;
+  match cur with
+  | 0ul -> ()
+  | _   -> memset dst v cur
 
 #reset-options "--z3rlimit 50"
 #push-options "--query_stats"
 let _tmain
-  (ret: B.pointer int32)
+  (ret: B.pointer HI.int32)
 : HST.Stack unit
   (requires fun h ->
       B.live h ret
@@ -46,12 +91,12 @@ let _tmain
 /// DONE: Init UDS digest
 /// REF: uint8_t     uDigest[DICE_DIGEST_LENGTH] = { 0 };
   let uDigest :hash_t SHA2_256 =
-    B.alloca (u8 0x00) (hash_len SHA2_256) in
+    B.alloca (HI.u8 0x00) (hash_len SHA2_256) in
 
 /// DONE: Init RIoT Invariant Code Digest
 /// REF: uint8_t     rDigest[DICE_DIGEST_LENGTH] = { 0 };
   let rDigest :hash_t SHA2_256 =
-    B.alloca (u8 0x00) (hash_len SHA2_256) in
+    B.alloca (HI.u8 0x00) (hash_len SHA2_256) in
 
 /// DONE: Init default paths
 /// TODO: Check paths
@@ -79,7 +124,7 @@ let _tmain
 /// REF: HINSTANCE   hRiotDLL;
 ///      hRiotDLL = LoadLibrary(riotImagePath);
   let hRiotDLL: hinstance
-    = {addr = B.alloca (u32 0x00) 1ul} in
+    = {addr = B.alloca (HI.u32 0x00) 1ul} in
   loadLibrary riotImagePath hRiotDLL;
 
 /// DONE: Locate RiotStart
@@ -96,7 +141,7 @@ let _tmain
 ///          fprintf(stderr, "ERROR: Failed to locate RIoT Invariant code\n");
 ///          goto Error;
 ///      }
-  diceGetRiotInfo hRiotDLL offset riotSize;
+  //diceGetRiotInfo hRiotDLL offset riotSize;
 
 
 /// TODO: Calculate base VA of RIoT Invariant Code
@@ -126,7 +171,7 @@ let _tmain
 /// DONE: Derive CDI value
 /// REF: DiceSHA256_2(uDigest, DICE_DIGEST_LENGTH, rDigest, DICE_DIGEST_LENGTH, CDI);
     let cdi: hash_t SHA2_256
-      = B.alloca (u8 0x00) (hash_len SHA2_256) in
+      = B.alloca (HI.u8 0x00) (hash_len SHA2_256) in
     diceSHA256_2
       (hash_length SHA2_256) uDigest
       (hash_length SHA2_256) rDigest
@@ -136,7 +181,8 @@ let _tmain
 /// REF: memset(uDigest, 0x00, DICE_DIGEST_LENGTH);
 ///      memset(rDigest, 0x00, DICE_DIGEST_LENGTH);
 
-
+    memset uDigest (HI.u8 0x00) (hash_len SHA2_256);
+    memset rDigest (HI.u8 0x00) (hash_len SHA2_256);
 
 ///
 /// Start RIoT:
