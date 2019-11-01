@@ -78,6 +78,51 @@ let rec memset
 let _BIGLEN : I.uint_32 = 0x09ul
 
 
+/// REF: typedef enum RIOT_STATUS {
+///          RIOT_SUCCESS = 0,
+///          RIOT_FAILURE = RIOT_SUCCESS + 0x80,
+///          RIOT_INVALID_PARAMETER,
+///          RIOT_LOAD_MODULE_FAILED,
+///          RIOT_BAD_FORMAT,
+///          RIOT_INVALID_BOOT_MODE,
+///          RIOT_INVALID_STATE,
+///          RIOT_INVALID_METADATA,
+///          RIOT_INVALID_DEVICE_ID,
+///          RIOT_INVALID_MODULE,
+///          RIOT_INVALID_MODULE_DIGEST,
+///          RIOT_MODULE_UPDATE_FAILED,
+///          RIOT_METADATA_WRITE_FAILED,
+///          RIOT_STATE_UPDATE_FAILED,
+///          RIOT_INVALID_VENDOR_SIGNING_KEY,
+///          RIOT_INVALID_VENDOR_SIGNATURE,
+///          RIOT_INVALID_DEVICE_SIGNATURE,
+///          RIOT_INVALID_TICKET_SIGNATURE,
+///          RIOT_MODULE_UPDATE_NOT_APPROVED,
+///          RIOT_FAILED_UPDATE_POLICY,
+///      } RIOT_STATUS;
+
+type _RIOT_STATUS =
+| RIOT_SUCCESS
+| RIOT_FAILURE
+| RIOT_INVALID_PARAMETER
+| RIOT_LOAD_MODULE_FAILED
+| RIOT_BAD_FORMAT
+| RIOT_INVALID_BOOT_MODE
+| RIOT_INVALID_STATE
+| RIOT_INVALID_METADATA
+| RIOT_INVALID_DEVICE_ID
+| RIOT_INVALID_MODULE
+| RIOT_INVALID_MODULE_DIGEST
+| RIOT_MODULE_UPDATE_FAILED
+| RIOT_METADATA_WRITE_FAILED
+| RIOT_STATE_UPDATE_FAILED
+| RIOT_INVALID_VENDOR_SIGNING_KEY
+| RIOT_INVALID_VENDOR_SIGNATURE
+| RIOT_INVALID_DEVICE_SIGNATURE
+| RIOT_INVALID_TICKET_SIGNATURE
+| RIOT_MODULE_UPDATE_NOT_APPROVED
+| RIOT_FAILED_UPDATE_POLICY
+
 /// Size, in bytes, of a RIoT digest using the chosen hash algorithm.
 /// REF: #define RIOT_DIGEST_LENGTH      SHA256_DIGEST_LENGTH
 let _RIOT_DIGEST_LENGTH : I.uint_32 = hash_len SHA2_256
@@ -713,11 +758,58 @@ assume val derInitContext
   (requires fun h -> True)
   (ensures  fun h0 _ h1 -> True)
 
+/// REF: OIDs.  Note that the encoder expects a -1 sentinel.
+///      static int riotOID[] = { 2,23,133,5,4,1,-1 };
+///      static int ecdsaWithSHA256OID[] = { 1,2,840,10045,4,3,2,-1 };
+///      static int ecPublicKeyOID[] = { 1,2,840,10045, 2,1,-1 };
+///      static int prime256v1OID[] = { 1,2,840,10045, 3,1,7,-1 };
+///      static int keyUsageOID[] = { 2,5,29,15,-1 };
+///      static int extKeyUsageOID[] = { 2,5,29,37,-1 };
+///      static int extAuthKeyIdentifierOID[] = { 2,5,29,35,-1 };
+///      static int subjectAltNameOID[] = { 2,5,29,17,-1 };
+///      static int clientAuthOID[] = { 1,3,6,1,5,5,7,3,2,-1 };
+///      static int sha256OID[] = { 2,16,840,1,101,3,4,2,1,-1 };
+///      static int commonNameOID[] = { 2,5,4,3,-1 };
+///      static int countryNameOID[] = { 2,5,4,6,-1 };
+///      static int orgNameOID[] = { 2,5,4,10,-1 };
+///      static int basicConstraintsOID[] = { 2,5,29,19,-1 };
+
+let riotOID: list HI.int32 = [HI.i32 2; HI.i32 23; HI.i32 133; HI.i32 5; HI.i32 4; HI.i32 1; HI.i32 (-1)]
+
+let ecPublicKeyOID:HI.int32 = [HI.i32 1; HI.i32 2; HI.i32 840; HI.i32 10045; HI.i32  2; HI.i32 1; HI.i32 (-1)]
+let prime256v1OID:HI.int32 = [HI.i32 1; HI.i32 2; HI.i32 840; HI.i32 10045; HI.i32  3; HI.i32 1; HI.i32 7; HI.i32 (-1)]
+let keyUsageOID:HI.int32 = [HI.i32 2; HI.i32 5; HI.i32 29; HI.i32 15; HI.i32 (-1)]
+let extKeyUsageOID:HI.int32 = [HI.i32 2; HI.i32 5; HI.i32 29; HI.i32 37; HI.i32 (-1)]
+let extAuthKeyIdentifierOID:HI.int32 = [HI.i32 2; HI.i32 5; HI.i32 29; HI.i32 35; HI.i32 (-1)]
+let subjectAltNameOID:HI.int32 = [HI.i32 2; HI.i32 5; HI.i32 29; HI.i32 17; HI.i32 (-1)]
+let clientAuthOID:HI.int32 = [HI.i32 1; HI.i32 3; HI.i32 6; HI.i32 1; HI.i32 5; HI.i32 5; HI.i32 7; HI.i32 3; HI.i32 2; HI.i32 (-1)]
+let sha256OID:HI.int32 = [HI.i32 2; HI.i32 16; HI.i32 840; HI.i32 1; HI.i32 101; HI.i32 3; HI.i32 4; HI.i32 2; HI.i32 1; HI.i32 (-1)]
+let commonNameOID:HI.int32 = [HI.i32 2; HI.i32 5; HI.i32 4; HI.i32 3; HI.i32 (-1)]
+let countryNameOID:HI.int32 = [HI.i32 2; HI.i32 5; HI.i32 4; HI.i32 6; HI.i32 (-1)]
+let orgNameOID:HI.int32 = [HI.i32 2; HI.i32 5; HI.i32 4; HI.i32 10; HI.i32 (-1)]
+let basicConstraintsOID:HI.int32 = [HI.i32 2; HI.i32 5; HI.i32 29; HI.i32 19; HI.i32 (-1)]
+
+
+
+///
+/// REF: int
+///      X509GetAliasCertTBS(
+///          DERBuilderContext   *Tbs,
+///          RIOT_X509_TBS_DATA  *TbsData,
+///          RIOT_ECC_PUBLIC     *AliasKeyPub,
+///          RIOT_ECC_PUBLIC     *DevIdKeyPub,
+///          uint8_t             *Fwid,
+///          uint32_t             FwidLen
+///      )
 assume val x509GetAliasCertTBS
-  (u:unit)
+  (tbs: derBuilderContext)
+  (tbsData: riot_x509_tbs_data)
 : HST.Stack unit
   (requires fun h -> True)
   (ensures  fun h0 _ h1 -> True)
+///      {...}
+///
+
 
 assume val x509GetRootCertTBS
   (u:unit)
