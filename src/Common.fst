@@ -25,7 +25,7 @@ module M   = LowStar.Modifies
 module HS  = FStar.HyperStack
 module HST = FStar.HyperStack.ST
 
-/// An API to get UDS
+/// UDS type
 type uds_t (size: nat) = B.lbuffer HI.uint8 size
 
 /// CDI type, an alias of the hash digest type in Hacl*.
