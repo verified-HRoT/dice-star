@@ -1,7 +1,7 @@
 module Common
 
 open LowStar.BufferOps
-open Lib.IntTypes
+open FStar.Integers
 
 open Spec.Hash.Definitions
 open Hacl.Hash.Definitions
@@ -25,31 +25,22 @@ module M   = LowStar.Modifies
 module HS  = FStar.HyperStack
 module HST = FStar.HyperStack.ST
 
-let ret_SUCCESS : int32 = i32 1
-let ret_FAILURE : int32 = i32 0
-let ret_ERROR   : int32 = i32 (-1)
+/// An API to get UDS
+type uds_t (size: nat) = B.lbuffer HI.uint8 size
 
-let _DICE_UDS_LENGTH = 0x20
+/// CDI type, an alias of the hash digest type in Hacl*.
+type cdi_t (alg: hash_alg) = hash_t alg
 
-assume val uds : B.lbuffer uint8 _DICE_UDS_LENGTH
+/// Handler/address for loaded libraries.
+/// No reference code yet.
+type hinstance = B.pointer HI.uint32
 
-type imagePath =
-
-noeq
-type hinstance = {
-     addr: B.pointer uint32
-  }
-
-assume val _DEFAULT_RIOT_PATH: B.buffer imagePath
-assume val _DEFAULT_LOADER_PATH: B.buffer imagePath
-
-
-noeq
-type cdi_t = {
-     alg: hash_alg;
-     cdi: hash_t alg;
-  }
-
-
-type entryPoint =
-assume val _RIOT_ENTRY: entryPoint
+/// Function pointer to RiotStart function.
+/// REF: typedef void(__cdecl* fpRiotStart)(const BYTE *, const uint32_t, const TCHAR *);
+let fpRiotStart: Type0 =
+#alg: hash_alg
+-> cdi: cdi_t alg
+-> HST.Stack unit
+  (requires fun h ->
+      B.live h cdi)
+  (ensures  fun _ _ _ -> True)

@@ -1,6 +1,9 @@
+/// Reference: https://github.com/microsoft/RIoT/blob/master/Reference/DICE/DiceCore.cpp
 module DICE.Core
 
+/// Common definitions
 open Common
+/// DICE stub definitions
 open DICE.Stubs
 
 open LowStar.BufferOps
@@ -29,64 +32,38 @@ module M   = LowStar.Modifies
 module HS  = FStar.HyperStack
 module HST = FStar.HyperStack.ST
 
-let rec memcpy
-  (#a)
-  (dst: B.buffer a)
-  (src: B.buffer a)
-  (len: I.uint_32)
-: HST.Stack unit
-  (requires fun h ->
-      B.live h dst
-    /\ B.live h src
-    /\ B.disjoint dst src
-    /\ len > 0ul
-    /\ len <= B.len src
-    /\ B.len src <= B.len dst)
-  (ensures  fun h0 _ h1 ->
-      M.modifies (M.loc_buffer dst) h0 h1
-/// TODO: /\ (S.slice (B.as_seq h1 dst) 0 (v len - 1)) `S.equal` (S.slice (B.as_seq h1 src) 0 (v len - 1))
-    )
-=
-  let cur = len - 1ul in
-  dst.(cur) <- src.(cur);
-  match cur with
-  | 0ul -> ()
-  | _   -> memcpy dst src cur
 
-let rec memset
-  (#a)
-  (dst: B.buffer a)
-  (v: a)
-  (len: I.uint_32)
-: HST.Stack unit
-  (requires fun h ->
-      B.live h dst
-    /\ len > 0ul
-    /\ len <= B.len dst)
-  (ensures  fun h0 _ h1 ->
-      M.modifies (M.loc_buffer dst) h0 h1
-/// TODO: /\ (S.slice (B.as_seq h1 dst) 0 (v len - 1)) `S.equal` (S.slice (B.as_seq h1 src) 0 (v len - 1))
-    )
-=
-  let cur = len - 1ul in
-  dst.(cur) <- v;
-  match cur with
-  | 0ul -> ()
-  | _   -> memset dst v cur
+/// DICE definitions
+/// REF: #define DICE_UDS_LENGTH         0x20
+///      #define DICE_DIGEST_LENGTH      0x20
+let _DICE_UDS_LENGTH    = 0x20
+let _DICE_DIGEST_LENGTH = hash_len SHA2_256
+
+/// Simulation-only definitions
+/// REF: #define DEFAULT_RIOT_PATH       L"riot.dll"     // Contains RIoT Invariant Code
+///      #define DEFAULT_LOADER_PATH     L"FW.dll"       // Our simulated Device Firmware
+///      #define RIOT_ENTRY              "RiotStart"     // RIoT Core entry point
+assume val _DEFAULT_RIOT_PATH   : string
+assume val _DEFAULT_LOADER_PATH : string
+assume val _RIOT_ENTRY          : string
+
+
+
+/// <><><><><><><><><><><><><><><><><> DICE Core main funtion <><><><><><><><><><><><><><><><><><><
+
 
 #reset-options "--z3rlimit 50"
-#push-options "--query_stats"
-let _tmain
-  (ret: B.pointer HI.int32)
-: HST.Stack unit
-  (requires fun h ->
-      B.live h ret
-    /\ B.live h uds
-    /\ B.live h _DEFAULT_LOADER_PATH
-    /\ B.live h _DEFAULT_RIOT_PATH)
+let _tmain ()
+: HST.Stack C.exit_code
+  (requires fun h -> True)
   (ensures  fun _ _ _ -> True)
 =
   HST.push_frame();
+
+/// DONE: Get UDS using API
+/// REF: None
+  let uds : uds_t _DICE_UDS_LENGTH
+    = get_UDS _DICE_UDS_LENGTH in
 
 /// DONE: Init UDS digest
 /// REF: uint8_t     uDigest[DICE_DIGEST_LENGTH] = { 0 };
@@ -103,17 +80,13 @@ let _tmain
 /// REF: TCHAR       *riotImagePath, *loaderImagePath;
 ///      riotImagePath = DEFAULT_RIOT_PATH;
 ///      loaderImagePath = DEFAULT_LOADER_PATH;
-  let riotImagePath :B.buffer imagePath =
-    _DEFAULT_RIOT_PATH in
-  let loaderImagePath :B.buffer imagePath =
-    _DEFAULT_LOADER_PATH in
+  let riotImagePath   : string = _DEFAULT_RIOT_PATH in
+  let loaderImagePath : string = _DEFAULT_LOADER_PATH in
 
 /// REF: uint8_t     *riotCore;
 /// REF: DWORD       riotSize, offset;
-  let riotSize: B.pointer nat
-    = B.alloca 0x00 1ul in
-  let offset: B.pointer I.uint_32
-    = B.alloca 0x00ul 1ul in
+  let riotSize : B.pointer nat = B.alloca 0x00 1ul in
+  let offset   : B.pointer nat = B.alloca 0x00 1ul in
 
 ///
 /// Boot:
@@ -124,7 +97,7 @@ let _tmain
 /// REF: HINSTANCE   hRiotDLL;
 ///      hRiotDLL = LoadLibrary(riotImagePath);
   let hRiotDLL: hinstance
-    = {addr = B.alloca (HI.u32 0x00) 1ul} in
+    = B.alloca (HI.u32 0x00) 1ul in
   loadLibrary riotImagePath hRiotDLL;
 
 /// DONE: Locate RiotStart
@@ -163,31 +136,30 @@ let _tmain
 
 /// DONE: Don't use UDS directly
 /// REF: DiceSHA256(UDS, DICE_UDS_LENGTH, uDigest);
-  diceSHA256
-    _DICE_UDS_LENGTH
-    uds
-    uDigest;
+    diceSHA256
+      uds
+      uDigest;
 
 /// DONE: Derive CDI value
 /// REF: DiceSHA256_2(uDigest, DICE_DIGEST_LENGTH, rDigest, DICE_DIGEST_LENGTH, CDI);
-    let cdi: hash_t SHA2_256
+    let cdi: cdi_t SHA2_256
       = B.alloca (HI.u8 0x00) (hash_len SHA2_256) in
-    diceSHA256_2
-      (hash_length SHA2_256) uDigest
-      (hash_length SHA2_256) rDigest
-      cdi;
+    //diceSHA256_2
+    //  uDigest
+    //  rDigest
+    //  cdi;
 
 /// TODO: Clean up potentially sensative data
 /// REF: memset(uDigest, 0x00, DICE_DIGEST_LENGTH);
 ///      memset(rDigest, 0x00, DICE_DIGEST_LENGTH);
 
-    memset uDigest (HI.u8 0x00) (hash_len SHA2_256);
-    memset rDigest (HI.u8 0x00) (hash_len SHA2_256);
+    B.fill uDigest (HI.u8 0x00) (hash_len SHA2_256);
+    B.fill rDigest (HI.u8 0x00) (hash_len SHA2_256);
 
 ///
 /// Start RIoT:
 ///
-    riotStart ({alg=SHA2_256;cdi=cdi});
+    riotStart (cdi);
 
-  ret *= ret_SUCCESS;
-  HST.pop_frame()
+  HST.pop_frame();
+  C.EXIT_SUCCESS
