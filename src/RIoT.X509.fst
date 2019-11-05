@@ -79,65 +79,6 @@ let live_ecdsa_sig
   /\ B.live h s.s.data
 type live_ecc_privatekey = live_ecdsa_sig
 
-#set-options "--max_fuel 50 --max_ifuel 50"
-#push-options "--query_stats"
-(*)
-val memcpy: #a:eqtype -> src:B.buffer a -> dst:B.buffer a -> len:I.uint_32 -> HST.Stack unit
-  (requires fun h0 ->
-    let l_src = M.loc_buffer src in
-    let l_dst = M.loc_buffer dst in
-    B.live h0 src /\ B.live h0 dst /\
-    B.length src = I.v len /\
-    B.length dst = I.v len /\
-    M.loc_disjoint l_src l_dst)
-  (ensures fun h0 () h1 ->
-    let l_src = M.loc_buffer src in
-    let l_dst = M.loc_buffer dst in
-    B.live h1 src /\
-    B.live h1 dst /\
-    M.(modifies l_dst h0 h1) /\
-    S.equal (B.as_seq h1 dst) (B.as_seq h0 src))
-let memcpy #a src dst len =
-  let h0 = HST.get () in
-  let inv h (i: nat) =
-    B.live h src /\ B.live h dst /\
-    M.(M.modifies (M.loc_buffer dst) h0 h) /\
-    i <= I.v len /\
-    S.equal (Seq.slice (B.as_seq h src) 0 i) (Seq.slice (B.as_seq h dst) 0 i)
-  in
-  let body (i: I.uint_32{ 0 <= I.v i /\ I.v i < I.v len }): HST.Stack unit
-    (requires (fun h -> inv h (I.v i)))
-    (ensures (fun h0 () h1 -> inv h0 (I.v i) /\ inv h1 (I.v i + 1)))
-  =
-    let open B in
-    dst.(i) <- src.(i)
-  in
-  C.Loops.for 0ul len inv body
-*)
-let rec memcpy
-  (#a:eqtype)
-  (dst: B.buffer a)
-  (src: B.buffer a)
-  (len: I.uint_32)
-: HST.Stack unit
-  (requires fun h ->
-      B.live h dst
-    /\ B.live h src
-    /\ B.disjoint dst src
-    /\ len > 0ul
-    /\ len <= B.len src
-    /\ B.len src <= B.len dst)
-  (ensures  fun h0 _ h1 ->
-      M.modifies (M.loc_buffer dst) h0 h1
-/// TODO: /\ (S.slice (B.as_seq h1 dst) 0 (v len - 1)) `S.equal` (S.slice (B.as_seq h1 src) 0 (v len - 1))
-    )
-=
-  let cur = len - 1ul in
-  dst.(cur) <- src.(cur);
-  match cur with
-  | 0ul -> ()
-  | _   -> memcpy dst src cur
-
 assume val unit32_to_bigendian
   (i: I.uint_32)
 : I.uint_32
