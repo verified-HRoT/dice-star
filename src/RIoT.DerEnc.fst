@@ -161,14 +161,14 @@ let encodeInt
 : HST.Stack riotResult
   (requires fun h ->
       B.live h b
-    /\ ( (value < 128ul /\
+    /\ (value < 128ul ==>
          B.length b > 1)
-      \/ (128ul <= value /\
-         value < 256ul /\
-         B.length b > 2)
-      \/ (256ul <= value /\
-         value < 166536ul /\
-         B.length b > 3)))
+    /\ (128ul <= value ==>
+         value < 256ul
+       /\ B.length b > 2)
+    /\ (256ul <= value ==>
+         value < 166536ul
+       /\ B.length b > 3))
   (ensures fun h0 _ h1 -> True)
 ///      // DER-encode Val into buffer. Function assumes the caller knows how many
 ///      // bytes it will need (e.g., from GetIntEncodedNumBytes).
