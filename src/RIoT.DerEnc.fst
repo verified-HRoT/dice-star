@@ -47,22 +47,35 @@ module HST = FStar.HyperStack.ST
 ///          int CollectionPos;
 ///      } DERBuilderContext;
 noeq
-type derBuilderContext = {
-     derCtxLength   : uint_32;
-     derCtxBuffer   : B.lbuffer HI.uint8 (v derCtxLength);
-     derCtxPosition : uint_32
-  }
+type builderContext = {
+     ctxLen : uint_32;
+     ctxBuf : B.lbuffer uint_8 (v ctxLen);
+     ctxPos : B.pointer uint_32
+}
 
-let live_derCtx
-  (h: Monotonic.HyperStack.mem)
-  (ctx: derBuilderContext)
-: GTot Type0
-= B.live h ctx.derCtxBuffer
+let bufList_of_ctx
+  (ctx: builderContext)
+: GTot (list B.buf_t)
+= [ B.buf ctx.ctxBuf
+  ; B.buf ctx.ctxPos]
 
-let disjoint_derCtx
-  (ctx1 ctx2: derBuilderContext)
-: GTot Type0
-= B.disjoint ctx1.derCtxBuffer ctx2.derCtxBuffer
+let locList_of_ctx
+  (ctx: builderContext)
+: GTot (list B.loc)
+= [ B.loc_buffer ctx.ctxBuf
+  ; B.loc_buffer ctx.ctxPos]
+
+let well_formed_ctx
+  (h: HS.mem)
+  (ctx: builderContext)
+: Type0
+=
+    B.all_live h (bufList_of_ctx ctx)
+  /\ B.all_disjoint (locList_of_ctx ctx)
+  /\ B.get h ctx.ctxPos 0 < ctx.ctxLen
+
+
+//unfold let derBuilderContext = ctx: builderContext {well_formed_ctx ctx}
 
 ///      // We only have a small subset of potential PEM encodings
 ///      enum CertType {
@@ -109,23 +122,34 @@ type certType =
 ///      // properly test low-buffer situations. CHECK_SPACE is appropriate for short
 ///      // additions. CHECK_SPACE2 when larger objects are being added (and the length
 ///      // is known.)
-///      #define CHECK_SPACE(_X)      if((_X->Length-_X->Position)<32)        {goto Error;}
+/// REF: #define CHECK_SPACE(_X)      if((_X->Length-_X->Position)<32)        {goto Error;}
 open FStar.Error
 let riotResult = optResult int_32 int_32
 
 let check_space
-  (_X: derBuilderContext)
+  (_X: builderContext)
 : HST.Stack bool
   (requires fun h ->
-      live_derCtx h _X
-    /\ ok I.op_Subtraction _X.derCtxLength _X.derCtxPosition)
+      well_formed_ctx h _X)
   (ensures  fun h0 _ h1 -> True)
 =
-  (_X.derCtxLength - _X.derCtxPosition) < 32ul
+  (_X.ctxLen - !*_X.ctxPos) < 32ul
 
-let r: uint_8 = cast (-1l)
+/// REF: #define CHECK_SPACE2(_X, _N) if(((_X->Length-_X->Position)+(_N))<32) {goto Error;}
+let check_space2
+  (_X: builderContext)
+  (_N: uint_32)
+: HST.Stack bool
+  (requires fun h ->
+      well_formed_ctx h _X
+    /\ ok I.op_Subtraction 32ul _N)
+  (ensures  fun h0 _ h1 -> True)
+=
+  (_X.ctxLen - !*_X.ctxPos) < 32ul - _N
 
-/// NOTE: demostrate my current encoding way
+/// <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+
+///
 /// REF: static int
 ///      EncodeInt(
 ///          uint8_t     *Buffer,
@@ -133,27 +157,23 @@ let r: uint_8 = cast (-1l)
 ///      )
 let encodeInt
   (b: B.buffer uint_8)
-  (value: uint_32)
+  (value: uint_32) // <-- NOTE: Workaround
 : HST.Stack riotResult
   (requires fun h ->
       B.live h b
-    /\ (value < 128ul ->
-          B.length b > 1
-        /\ cast_ok (Unsigned W8) value)
-    /\ ((128ul <= value /\ value < 256ul) ->
-          B.length b > 2
-        /\ cast_ok (Unsigned W8) value)
-    /\ ((256ul <= value /\ value < 166536ul) ->
-          B.length b > 3
-        // /\ ok (/) value 256ul
-        /\ within_bounds (Unsigned W32) ((v value) / 256)
-        // /\ ok (%) value 256ul
-        /\ within_bounds (Unsigned W32) ((v value) % 256)
-        /\ cast_ok (Unsigned W8) value))
+    /\ ( (value < 128ul /\
+         B.length b > 1)
+      \/ (128ul <= value /\
+         value < 256ul /\
+         B.length b > 2)
+      \/ (256ul <= value /\
+         value < 166536ul /\
+         B.length b > 3)))
   (ensures fun h0 _ h1 -> True)
 ///      // DER-encode Val into buffer. Function assumes the caller knows how many
 ///      // bytes it will need (e.g., from GetIntEncodedNumBytes).
 =
+
 ///
 /// REF:     ASRT(Val < 166536);  //Recall: #define ASRT(_X) if(!(_X)) {goto Error;}
   if value < 166536ul then
@@ -163,7 +183,7 @@ let encodeInt
 ///              return 0;
 ///          }
     if value < 128ul then
-      ( b.(0ul) <- cast value
+      ( b.(0ul) <- cast (value % 0x100ul)
       ; Correct 0l )
 ///
 /// REF:     if (Val < 256) {
@@ -182,11 +202,115 @@ let encodeInt
 ///          return 0;
     else
       ( b.(0ul) <- 0x82uy
-      ; b.(1ul) <- cast (value / 256ul)
-      ; b.(2ul) <- cast (value % 256ul)
+      ; b.(1ul) <- cast ((value / 0x100ul) % 0x100ul)
+      ; b.(2ul) <- cast (value % 0x100ul)
       ; Correct 0l )
   else
 ///
 /// REF: Error:
 ///          return -1;
     Error (-1l)
+
+let g (a b: uint_32)
+: Pure unit
+  (requires
+      ok op_Subtraction a b
+    /\ a - b > 32ul)
+  (ensures fun _ -> True)
+=
+  assert (ok (+) b 1ul)
+
+let another_demo (x: B.pointer uint_32)
+: HST.Stack unit
+  (requires fun h ->
+      B.live h x
+    /\ ok (+) (B.get h x 0) 1ul)
+  (ensures fun _ _ _ -> True)
+=
+  assert (ok (+) !*x 1ul);
+  let a: uint_32 = !*x + 1ul in
+  x *= !*x;
+
+/// Error Message: (Error) (*?u425*) _ is not equal to the expected type y: int_t (Unsigned (W32)) {UInt.size (UInt32.v x + UInt32.v y) 32}
+  //x *= !*x + 1ul; //  <- failed!
+  //x.(0ul) <- x.(0ul) + 1ul; // <-- also failed
+    ()
+
+
+let f (a b:B.pointer uint_32)
+: HST.Stack unit
+  (requires fun h ->
+    B.live h a /\ B.live h b /\ B.disjoint a b
+    ///\ ok op_Subtraction (B.get h a 0) (B.get h b 0)
+    ///\ (B.get h a 0) > (B.get h b 0)
+    /\ ok (+) (B.get h b 0) 1ul
+    )
+  (ensures fun _ _ _ -> True)
+=
+  HST.push_frame();
+  (a *= ((!*b) + 1ul));
+  //a.(0ul) <- (b.(0ul) + 1ul);
+  //assert (ok (+) b.(0ul) 1ul);
+  HST.pop_frame()
+
+///
+///      int
+///      DERAddUTF8String(
+///          DERBuilderContext   *Context,
+///          const char          *Str
+///      )
+let derAddUTF8String
+  (ctx: builderContext)
+  (#strSize: int)
+  (str: C.String.t)
+: HST.Stack riotResult
+  (requires fun h ->
+      well_formed_ctx h ctx
+    /\ CS.length str = strSize
+    /\ strSize <= 32
+    /\ ctx.ctxLen - (B.get h ctx.ctxPos 0) >= 32ul)
+  (ensures fun h0 _ h1 -> True)
+=
+///
+/// REF:     uint32_t j, numChar = (uint32_t)strlen(Str);
+  //let j: uint_32 = 0ul in
+  let numChar: uint_32 = u strSize in
+///
+/// REF:     ASRT(numChar < 127);
+  if numChar < 127ul then
+///
+/// REF:     CHECK_SPACE2(Context, numChar);
+    if check_space2 ctx numChar then
+      Error (-1l)
+    else
+///
+/// REF:     Context->Buffer[Context->Position++] = 0x0c;
+      ( ctx.ctxPos *= !*ctx.ctxPos + 1ul
+      ; ctx.ctxBuf.(!*ctx.ctxPos) <- 0x0cuy
+
+///
+/// REF:     Context->Buffer[Context->Position++] = (uint8_t)numChar;
+      ; ctx.ctxBuf.(ctx.ctxPos + 1ul) <- cast (numChar % 0x100ul)
+
+      ; Correct 0l)
+///          Context->Buffer[Context->Position++] = (uint8_t)numChar;
+///
+///          for (j = 0; j < numChar; j++) {
+///              Context->Buffer[Context->Position++] = Str[j];
+///          }
+
+/// REF: Error:
+///          return -1;
+  else
+    Error (-1l)
+
+
+///
+///          Context->Buffer[Context->Position++] = 0x0c;
+///          Context->Buffer[Context->Position++] = (uint8_t)numChar;
+///
+///          for (j = 0; j < numChar; j++) {
+///              Context->Buffer[Context->Position++] = Str[j];
+///          }
+///          return 0;
+///      }
