@@ -1,0 +1,5 @@
+USER_TARGET=
+USER_CFLAGS=
+USER_C_FILES=
+ALL_C_FILES=FStar.c WasmSupport.c C_Endianness.c Lib_IntTypes.c Lib_Buffer.c Lib_ByteSequence.c Spec_Hash_Definitions.c Spec_Hash_PadFinish.c Spec_Hash_Incremental.c Hacl_Hash_Definitions.c C.c DICE_Core.c kremlinit.c
+ALL_H_FILES=Prims.h FStar.h WasmSupport.h C_Endianness.h Lib_LoopCombinators.h Lib_IntTypes.h Lib_RawIntTypes.h Lib_Buffer.h Lib_ByteSequence.h Spec_Hash_Definitions.h Spec_Agile_Hash.h Spec_Hash_PadFinish.h Spec_Hash_Incremental.h Hacl_Hash_Definitions.h Hacl_Hash_Core_SHA2.h Hacl_Hash_SHA2.h C.h DICE_Core.h kremlinit.h

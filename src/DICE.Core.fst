@@ -1,13 +1,9 @@
 /// Reference: https://github.com/microsoft/RIoT/blob/master/Reference/DICE/DiceCore.cpp
 module DICE.Core
 
-/// Common definitions
-open Common
-/// DICE stub definitions
-open DICE.Stubs
 
 open LowStar.BufferOps
-//open Lib.IntTypes
+open Lib.IntTypes
 open FStar.Integers
 
 open Spec.Hash.Definitions
@@ -17,149 +13,151 @@ module I  = FStar.Integers
 module HI  = Lib.IntTypes
 
 module SHA2= Hacl.Hash.SHA2
-module HMAC= Hacl.HMAC
-module Ed25519 = Hacl.Ed25519
+// module HMAC= Hacl.HMAC
+// module Ed25519 = Hacl.Ed25519
 
-module CL  = C.Loops
-module CE  = C.Endianness
-module CF  = C.Failure
-module C   = C
-module CS  = C.String
-module S   = FStar.Seq
-module IB  = LowStar.ImmutableBuffer
+// module CL  = C.Loops
+// module CE  = C.Endianness
+// module CF  = C.Failure
+// module C   = C
+// module CS  = C.String
+// module S   = FStar.Seq
+// module IB  = LowStar.ImmutableBuffer
 module B   = LowStar.Buffer
 module M   = LowStar.Modifies
 module HS  = FStar.HyperStack
 module HST = FStar.HyperStack.ST
 
 
+
+/// UDS type
+type uds_t (size: nat) = B.lbuffer HI.uint8 size
+
+/// CDI type, an alias of the hash digest type in Hacl*.
+type cdi_t (alg: hash_alg) = hash_t alg
+
+
+/// <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+
+/// An API to get UDS.
+/// REF: None
+assume val get_UDS
+  (size: nat)
+: HST.Stack (b:B.buffer HI.uint8 {B.length b = size})
+  (requires fun _ -> True)
+  (ensures  fun h0 uds h1 ->
+      B.live h1 uds)
+
+assume val get_Measurement
+  (alg: hash_alg)
+: HST.Stack (hash_t alg)
+  (requires fun _ -> True)
+  (ensures  fun h0 r h1 ->
+      B.live h1 r)
+
+/// REF: void DiceSHA256 (
+///        const uint8_t *buf,
+///        size_t bufSize,
+///        uint8_t *digest
+///      )
+assume val diceSHA256
+  (size : nat)
+  (data: B.lbuffer HI.uint8 size)
+  (digest: hash_t SHA2_256)
+: HST.Stack unit
+  (requires fun h ->
+      B.live h data
+    /\ B.live h digest
+    /\ B.disjoint data digest)
+  (ensures  fun h0 _ h1 ->
+      B.modifies (B.loc_buffer digest) h0 h1)
+///      {
+///          DICE_SHA256_CONTEXT context;
+///          DICE_SHA256_Init(&context);
+///          DICE_SHA256_Update(&context, buf, bufSize);
+///          DICE_SHA256_Final(&context, digest);
+///      }
+
+
+/// REF: void DiceSHA256_2 (
+///        const uint8_t *buf1,
+///        size_t bufSize1,
+///        const uint8_t *buf2,
+///        size_t bufSize2,
+///        uint8_t *digest
+///      )
+assume val diceSHA256_2
+  (size1 : nat)
+  (data1: B.lbuffer HI.uint8 size1)
+  (size2 : nat)
+  (data2 : B.lbuffer HI.uint8 size2)
+  (digest: hash_t SHA2_256)
+: HST.Stack unit
+  (requires fun h ->
+      B.live h data1
+    /\ B.live h data2
+    /\ B.live h digest
+    /\ B.disjoint data1 data2
+    /\ B.disjoint data1 digest
+    /\ B.disjoint data2 digest)
+  (ensures  fun h0 _ h1 ->
+      B.modifies (B.loc_buffer digest) h0 h1)
+///      {
+///          DICE_SHA256_CONTEXT context;
+///          DICE_SHA256_Init(&context);
+///          DICE_SHA256_Update(&context, buf1, bufSize1);
+///          DICE_SHA256_Update(&context, buf2, bufSize2);
+///          DICE_SHA256_Final(&context, digest);
+///      }
+
+
+/// <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+
+
 /// DICE definitions
 /// REF: #define DICE_UDS_LENGTH         0x20
 ///      #define DICE_DIGEST_LENGTH      0x20
 let _DICE_UDS_LENGTH    = 0x20
-let _DICE_DIGEST_LENGTH = hash_len SHA2_256
-
-/// Simulation-only definitions
-/// REF: #define DEFAULT_RIOT_PATH       L"riot.dll"     // Contains RIoT Invariant Code
-///      #define DEFAULT_LOADER_PATH     L"FW.dll"       // Our simulated Device Firmware
-///      #define RIOT_ENTRY              "RiotStart"     // RIoT Core entry point
-assume val _DEFAULT_RIOT_PATH   : string
-assume val _DEFAULT_LOADER_PATH : string
-assume val _RIOT_ENTRY          : string
-
+let _DICE_DIGEST_LENGTH: uint_32 = hash_len SHA2_256
 
 
 /// <><><><><><><><><><><><><><><><><> DICE Core main funtion <><><><><><><><><><><><><><><><><><><
 
 
 #reset-options "--z3rlimit 50"
-let _tmain ()
+let main ()
 : HST.Stack C.exit_code
   (requires fun h -> True)
   (ensures  fun _ _ _ -> True)
 =
   HST.push_frame();
 
-/// DONE: Get UDS using API
-/// REF: None
-  let uds : uds_t _DICE_UDS_LENGTH
-    = get_UDS _DICE_UDS_LENGTH in
-
-/// DONE: Init UDS digest
-/// REF: uint8_t     uDigest[DICE_DIGEST_LENGTH] = { 0 };
-  let uDigest :hash_t SHA2_256 =
-    B.alloca (HI.u8 0x00) (hash_len SHA2_256) in
-
-/// DONE: Init RIoT Invariant Code Digest
-/// REF: uint8_t     rDigest[DICE_DIGEST_LENGTH] = { 0 };
-  let rDigest :hash_t SHA2_256 =
-    B.alloca (HI.u8 0x00) (hash_len SHA2_256) in
-
-/// DONE: Init default paths
-/// TODO: Check paths
-/// REF: TCHAR       *riotImagePath, *loaderImagePath;
-///      riotImagePath = DEFAULT_RIOT_PATH;
-///      loaderImagePath = DEFAULT_LOADER_PATH;
-  let riotImagePath   : string = _DEFAULT_RIOT_PATH in
-  let loaderImagePath : string = _DEFAULT_LOADER_PATH in
-
-/// REF: uint8_t     *riotCore;
-/// REF: DWORD       riotSize, offset;
-  let riotSize : B.pointer nat = B.alloca 0x00 1ul in
-  let offset   : B.pointer nat = B.alloca 0x00 1ul in
-
-///
-/// Boot:
-///
-
-/// DONE: Load DLL containing RIoT Core
-/// TODO: Check return value
-/// REF: HINSTANCE   hRiotDLL;
-///      hRiotDLL = LoadLibrary(riotImagePath);
-  let hRiotDLL: hinstance
-    = B.alloca (HI.u32 0x00) 1ul in
-  loadLibrary riotImagePath hRiotDLL;
-
-/// DONE: Locate RiotStart
-/// REF: fpRiotStart RiotStart = (fpRiotStart)GetProcAddress(hRiotDLL, RIOT_ENTRY);
-///      if (!RiotStart) {
-///          fprintf(stderr, "ERROR: Failed to locate RiotStart\n");
-///          goto Error;
-///      }
-  let riotStart: fpRiotStart
-    = getProcAddress hRiotDLL _RIOT_ENTRY in
-
-/// DONE: Get base offset and size of RIoT Invariant Code
-/// REF: if (!DiceGetRiotInfo(hRiotDLL, &offset, &riotSize)) {
-///          fprintf(stderr, "ERROR: Failed to locate RIoT Invariant code\n");
-///          goto Error;
-///      }
-  //diceGetRiotInfo hRiotDLL offset riotSize;
-
-
-/// TODO: Calculate base VA of RIoT Invariant Code
-/// TOOD: Cast
-/// REF: riotCore = (uint8_t *)((uint64_t)hRiotDLL + offset);
-  //let riotCore : I.uint_32 = (UInt32.uint_to_t (!*offset)) in
-  //B.alloca (u8 0x00) (UInt32.uint_to_t !*riotSize) in
-    //: B.pointer uint8
-    //= B.alloca (to_u8 (!*(hRiotDLL.addr) +. !*offset)) 1ul in
-    //= B.offset hRiotDLL.addr !*offset in
-
-///
-/// DiceCore:
-///
-
-/// TODO: Measure RIoT Invariant Code
-/// REF: DiceSHA256(riotCore, riotSize, rDigest);
-  //diceSHA256 !*riotSize riotCore rDigest;
-
-/// DONE: Don't use UDS directly
-/// REF: DiceSHA256(UDS, DICE_UDS_LENGTH, uDigest);
-    diceSHA256
+/// NOTE: compute digest `uDigest` of `uds`
+  let uds : uds_t _DICE_UDS_LENGTH = get_UDS _DICE_UDS_LENGTH in
+  let uDigest :hash_t SHA2_256 = B.alloca (HI.u8 0x00) (hash_len SHA2_256) in
+    SHA2.hash_256
       uds
+      (u _DICE_UDS_LENGTH)
       uDigest;
 
-/// DONE: Derive CDI value
-/// REF: DiceSHA256_2(uDigest, DICE_DIGEST_LENGTH, rDigest, DICE_DIGEST_LENGTH, CDI);
+/// NOTE: compute digest `rDigest` of `measurement`
+  let measurement: hash_t SHA2_256 = get_Measurement SHA2_256 in
+  let rDigest :hash_t SHA2_256 = B.alloca (HI.u8 0x00) (hash_len SHA2_256) in
+    SHA2.hash_256
+      measurement
+      (hash_len SHA2_256)
+      rDigest;
+
     let cdi: cdi_t SHA2_256
       = B.alloca (HI.u8 0x00) (hash_len SHA2_256) in
-    //diceSHA256_2
-    //  uDigest
-    //  rDigest
-    //  cdi;
 
-/// TODO: Clean up potentially sensative data
-/// REF: memset(uDigest, 0x00, DICE_DIGEST_LENGTH);
-///      memset(rDigest, 0x00, DICE_DIGEST_LENGTH);
+    diceSHA256_2
+     (v (hash_len SHA2_256)) uDigest
+     (v (hash_len SHA2_256)) rDigest
+     cdi;
 
     B.fill uDigest (HI.u8 0x00) (hash_len SHA2_256);
     B.fill rDigest (HI.u8 0x00) (hash_len SHA2_256);
-
-///
-/// Start RIoT:
-///
-    riotStart (cdi);
 
   HST.pop_frame();
   C.EXIT_SUCCESS
