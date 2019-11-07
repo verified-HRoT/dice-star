@@ -7,33 +7,39 @@
 
 #include "DICE_Core.h"
 
+Spec_Hash_Definitions_hash_alg _DICE_ALG = Spec_Hash_Definitions_SHA2_256;
+
 Prims_int _DICE_UDS_LENGTH = (krml_checked_int_t)0x20;
 
-uint32_t _DICE_DIGEST_LENGTH = (uint32_t)32U;
+uint32_t _DICE_DIGEST_LENGTH;
 
 exit_code main()
 {
   kremlinit_globals();
   Lib_IntTypes_sec_int_t____ *uds = get_UDS(_DICE_UDS_LENGTH);
-  KRML_CHECK_SIZE(sizeof (Lib_IntTypes_sec_int_t____), (uint32_t)32U);
-  Lib_IntTypes_sec_int_t____ uDigest[32U];
-  for (uint32_t _i = 0U; _i < (uint32_t)32U; ++_i)
+  KRML_CHECK_SIZE(sizeof (Lib_IntTypes_sec_int_t____), _DICE_DIGEST_LENGTH);
+  Lib_IntTypes_sec_int_t____ uDigest[_DICE_DIGEST_LENGTH];
+  for (uint32_t _i = 0U; _i < _DICE_DIGEST_LENGTH; ++_i)
     uDigest[_i] = Lib_IntTypes_mk_int(Lib_IntTypes_U8, Lib_IntTypes_SEC, (krml_checked_int_t)0x00);
   Hacl_Hash_SHA2_hash_256(uds, FStar_UInt32_uint_to_t(_DICE_UDS_LENGTH), uDigest);
-  Lib_IntTypes_sec_int_t____ *measurement = get_Measurement(Spec_Hash_Definitions_SHA2_256);
-  KRML_CHECK_SIZE(sizeof (Lib_IntTypes_sec_int_t____), (uint32_t)32U);
-  Lib_IntTypes_sec_int_t____ rDigest[32U];
-  for (uint32_t _i = 0U; _i < (uint32_t)32U; ++_i)
+  Lib_IntTypes_sec_int_t____ *measurement = get_measurement(_DICE_ALG);
+  KRML_CHECK_SIZE(sizeof (Lib_IntTypes_sec_int_t____), _DICE_DIGEST_LENGTH);
+  Lib_IntTypes_sec_int_t____ rDigest[_DICE_DIGEST_LENGTH];
+  for (uint32_t _i = 0U; _i < _DICE_DIGEST_LENGTH; ++_i)
     rDigest[_i] = Lib_IntTypes_mk_int(Lib_IntTypes_U8, Lib_IntTypes_SEC, (krml_checked_int_t)0x00);
-  Hacl_Hash_SHA2_hash_256(measurement, (uint32_t)32U, rDigest);
-  KRML_CHECK_SIZE(sizeof (Lib_IntTypes_sec_int_t____), (uint32_t)32U);
-  Lib_IntTypes_sec_int_t____ cdi[32U];
-  for (uint32_t _i = 0U; _i < (uint32_t)32U; ++_i)
+  Hacl_Hash_SHA2_hash_256(measurement, _DICE_DIGEST_LENGTH, rDigest);
+  KRML_CHECK_SIZE(sizeof (Lib_IntTypes_sec_int_t____), _DICE_DIGEST_LENGTH);
+  Lib_IntTypes_sec_int_t____ cdi[_DICE_DIGEST_LENGTH];
+  for (uint32_t _i = 0U; _i < _DICE_DIGEST_LENGTH; ++_i)
     cdi[_i] = Lib_IntTypes_mk_int(Lib_IntTypes_U8, Lib_IntTypes_SEC, (krml_checked_int_t)0x00);
-  diceSHA256_2((krml_checked_int_t)32, uDigest, (krml_checked_int_t)32, rDigest, cdi);
-  for (uint32_t _i = 0U; _i < (uint32_t)32U; ++_i)
+  diceSHA256_2(FStar_UInt32_v(_DICE_DIGEST_LENGTH),
+    uDigest,
+    FStar_UInt32_v(_DICE_DIGEST_LENGTH),
+    rDigest,
+    cdi);
+  for (uint32_t _i = 0U; _i < _DICE_DIGEST_LENGTH; ++_i)
     uDigest[_i] = Lib_IntTypes_mk_int(Lib_IntTypes_U8, Lib_IntTypes_SEC, (krml_checked_int_t)0x00);
-  for (uint32_t _i = 0U; _i < (uint32_t)32U; ++_i)
+  for (uint32_t _i = 0U; _i < _DICE_DIGEST_LENGTH; ++_i)
     rDigest[_i] = Lib_IntTypes_mk_int(Lib_IntTypes_U8, Lib_IntTypes_SEC, (krml_checked_int_t)0x00);
   return EXIT_SUCCESS;
 }

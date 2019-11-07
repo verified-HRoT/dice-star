@@ -9,6 +9,8 @@
 #ifndef __kremlinit_H
 #define __kremlinit_H
 
+#include "DICE_Core.h"
+#include "Spec_Hash_Definitions.h"
 #include "Lib_IntTypes.h"
 #include "Prims.h"
 

@@ -18,5 +18,45 @@ void kremlinit_globals()
   Lib_IntTypes_max_size_t =
     Prims_op_Subtraction(Prims_pow2((krml_checked_int_t)32),
       (krml_checked_int_t)1);
+  uint32_t sw;
+  switch (_DICE_ALG)
+  {
+    case Spec_Hash_Definitions_MD5:
+      {
+        sw = (uint32_t)16U;
+        break;
+      }
+    case Spec_Hash_Definitions_SHA1:
+      {
+        sw = (uint32_t)20U;
+        break;
+      }
+    case Spec_Hash_Definitions_SHA2_224:
+      {
+        sw = (uint32_t)28U;
+        break;
+      }
+    case Spec_Hash_Definitions_SHA2_256:
+      {
+        sw = (uint32_t)32U;
+        break;
+      }
+    case Spec_Hash_Definitions_SHA2_384:
+      {
+        sw = (uint32_t)48U;
+        break;
+      }
+    case Spec_Hash_Definitions_SHA2_512:
+      {
+        sw = (uint32_t)64U;
+        break;
+      }
+    default:
+      {
+        KRML_HOST_EPRINTF("KreMLin incomplete match at %s:%d\n", __FILE__, __LINE__);
+        KRML_HOST_EXIT(253U);
+      }
+  }
+  _DICE_DIGEST_LENGTH = sw;
 }
 

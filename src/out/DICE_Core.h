@@ -17,16 +17,11 @@
 #include "FStar.h"
 
 
+extern Spec_Hash_Definitions_hash_alg _DICE_ALG;
+
 extern Lib_IntTypes_sec_int_t____ *get_UDS(Prims_int size1);
 
-extern Lib_IntTypes_sec_int_t____ *get_Measurement(Spec_Hash_Definitions_hash_alg alg);
-
-extern void
-diceSHA256(
-  Prims_int size1,
-  Lib_IntTypes_sec_int_t____ *data,
-  Lib_IntTypes_sec_int_t____ *digest
-);
+extern Lib_IntTypes_sec_int_t____ *get_measurement(Spec_Hash_Definitions_hash_alg alg);
 
 extern void
 diceSHA256_2(
