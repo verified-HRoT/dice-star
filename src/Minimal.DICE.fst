@@ -1,5 +1,5 @@
 /// Reference: https://github.com/microsoft/RIoT/blob/master/Reference/DICE/DiceCore.cpp
-module DICE.Core
+module Minimal.DICE
 
 open LowStar.BufferOps
 open Lib.IntTypes
@@ -18,67 +18,33 @@ module M   = LowStar.Modifies
 module HS  = FStar.HyperStack
 module HST = FStar.HyperStack.ST
 
-/// dice hash algorithm
 let _DICE_ALG = SHA2_256
+let _DICE_UDS_LENGTH    = 0x20
+let _DICE_DIGEST_LENGTH: uint_32 = hash_len _DICE_ALG
 
 /// <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 
-/// An API to get UDS.
-/// REF: None
 assume val get_UDS
   (size: nat)
-: HST.Stack (b:B.buffer HI.uint8 {B.length b = size})
-  (requires fun _ -> True)
-  (ensures  fun h0 result h1 ->
-      B.live h1 result)
+: HST.St (b:B.buffer HI.uint8 {B.length b = size})
 
 assume val get_measurement
   (alg: hash_alg)
-: HST.Stack (hash_t alg)
-  (requires fun _ -> True)
-  (ensures  fun h0 r h1 ->
-      B.live h1 r)
+: HST.St (hash_t alg)
 
-/// REF: void DiceSHA256_2 (
-///        const uint8_t *buf1,
-///        size_t bufSize1,
-///        const uint8_t *buf2,
-///        size_t bufSize2,
-///        uint8_t *digest
-///      )
 assume val diceSHA256_2
   (size1 : nat)
   (data1: B.lbuffer HI.uint8 size1)
   (size2 : nat)
   (data2 : B.lbuffer HI.uint8 size2)
   (digest: hash_t _DICE_ALG)
-: HST.Stack unit
-  (requires fun h ->
-      B.live h data1
-    /\ B.live h data2
-    /\ B.live h digest
-    /\ B.disjoint data1 data2
-    /\ B.disjoint data1 digest
-    /\ B.disjoint data2 digest)
-  (ensures  fun h0 _ h1 ->
-      B.modifies (B.loc_buffer digest) h0 h1)
-
-/// <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
-
-
-/// DICE definitions
-/// REF: #define DICE_UDS_LENGTH         0x20
-///      #define DICE_DIGEST_LENGTH      0x20
-let _DICE_UDS_LENGTH    = 0x20
-let _DICE_DIGEST_LENGTH: uint_32 = hash_len _DICE_ALG
-
-
+: HST.St unit
 
 /// <><><><><><><><><><><><> DICE Core main funtion <><><><><><><><><><><>
 
 #reset-options "--z3rlimit 10"
-let main ()
-: HST.Stack C.exit_code
+let diceStart ()
+: HST.Stack (B.lbuffer uint8 (v _DICE_DIGEST_LENGTH))
   (requires fun _ -> True)
   (ensures  fun _ _ _ -> True)
 =
@@ -112,4 +78,4 @@ let main ()
     B.fill rDigest (HI.u8 0x00) _DICE_DIGEST_LENGTH;
 
   HST.pop_frame();
-  C.EXIT_SUCCESS
+  cdi
