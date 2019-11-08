@@ -1,6 +1,5 @@
-module RIoT.Core
-
-open RIoT.Stubs
+/// Reference: https://github.com/microsoft/RIoT/blob/master/Reference/RIoT/Core/RIoT.cpp
+module Minimal.RIoT
 
 open LowStar.BufferOps
 open Lib.IntTypes
@@ -13,16 +12,7 @@ module I  = FStar.Integers
 module HI  = Lib.IntTypes
 
 module SHA2= Hacl.Hash.SHA2
-module HMAC= Hacl.HMAC
-module Ed25519 = Hacl.Ed25519
 
-module CL  = C.Loops
-module CE  = C.Endianness
-module CF  = C.Failure
-module C   = C
-module CS  = C.String
-module S   = FStar.Seq
-module IB  = LowStar.ImmutableBuffer
 module B   = LowStar.Buffer
 module MB  = LowStar.Monotonic.Buffer
 module M   = LowStar.Modifies
@@ -31,6 +21,59 @@ module HST = FStar.HyperStack.ST
 
 /// <><><><><><><><<><><><><><> Stubs <><><><><><><><><><><><><><>
 let _RIOT_ALG = SHA2_256
+let _RIOT_DIGEST_LENGTH : I.uint_32 = hash_len _RIOT_ALG
+let _BIGLEN = 9ul
+noeq
+type bigval_t = {
+     bigval : B.lbuffer HI.uint32 (v _BIGLEN)
+  }
+
+noeq
+type affine_point_t = {
+     x: bigval_t;
+     y: bigval_t;
+     infinity: B.pointer HI.uint32
+  }
+
+noeq
+type ecdsa_sig_t = {
+     r: bigval_t;
+     s: bigval_t
+  }
+
+type ecc_signature  = ecdsa_sig_t
+type ecc_privatekey = bigval_t
+type ecc_publickey  = affine_point_t
+type ecc_secret     = affine_point_t
+
+type riot_ecc_signature  = ecc_signature
+type riot_ecc_publickey  = ecc_publickey
+type riot_ecc_privatekey = ecc_privatekey
+
+assume val riotCrypt_Hash
+  (resultSize: I.uint_32)
+  (result: B.lbuffer HI.uint8 (I.v resultSize))
+  (dataSize: I.uint_32)
+  (data: B.lbuffer HI.uint8 (I.v dataSize))
+: HST.St unit
+
+assume val riotCrypt_Hash2
+  (resultSize: I.uint_32)
+  (result: B.lbuffer HI.uint8 (I.v resultSize))
+  (data1Size: I.uint_32)
+  (data1: B.lbuffer HI.uint8 (I.v data1Size))
+  (data2Size: I.uint_32)
+  (data2: B.lbuffer HI.uint8 (I.v data2Size))
+: HST.St unit
+
+assume val riotCrypt_DeriveEccKey
+  (public_key : riot_ecc_publickey)
+  (private_key: riot_ecc_privatekey)
+  (digest_alg: hash_alg)
+  (digest: hash_t digest_alg)
+  (label_size: I.uint_32)
+  (label: B.lbuffer HI.uint8 (I.v label_size))
+: HST.St unit
 
 assume val signAliasCert
   (aliasKeyPub: riot_ecc_publickey)
@@ -38,30 +81,35 @@ assume val signAliasCert
   (fwidLen: I.uint_32)
   (fwid: B.lbuffer HI.uint8 (v fwidLen))
   (privKey: riot_ecc_privatekey)
-: B.buffer HI.uint8
+: HST.St (B.buffer HI.uint8)
 
 assume val signDeviceCert
   (deviceIDPub: riot_ecc_publickey)
   (rootKeyPub : option riot_ecc_publickey)
   (privKey: riot_ecc_privatekey)
-: B.buffer HI.uint8
+: HST.St (B.buffer HI.uint8)
+
+assume val get_FWID
+  (u: unit)
+: HST.St (B.lbuffer uint8 (v _RIOT_DIGEST_LENGTH))
+
+///
 /// <><><><><><><><<><><><><><><><><><><><><><><><><><><><><><><><>
-//#reset-options "--z3rlimit 100"
+///
+
 let riotStart
   (cdiLen: uint_32)
-  (cdi : B.lbuffer uint8 (v cdiLen))
-  (fwid: B.lbuffer uint8 (v _RIOT_DIGEST_LENGTH))
+  (cdi : B.buffer uint8 {B.length cdi = v cdiLen})
 : HST.Stack unit
   (requires (fun h ->
-      B.all_live h [B.buf cdi
-                   ;B.buf fwid]
-    /\ B.all_disjoint [B.loc_buffer cdi
-                     ;B.loc_buffer fwid]
+      B.all_live h [B.buf cdi]
+    /\ B.all_disjoint [B.loc_buffer cdi]
     /\ B.length cdi <= max_input_length _RIOT_ALG))
   (ensures  fun _ _ _ -> True)
 =
   HST.push_frame();
 
+  let fwid = get_FWID () in
   let cDigest : hash_t SHA2_256 = B.alloca (u8 0x00) _RIOT_DIGEST_LENGTH in
   let deviceIDPub: riot_ecc_publickey = {
     x = {bigval = B.alloca (u32 0x00) _BIGLEN};
@@ -120,10 +168,3 @@ let riotStart
   in
 
   HST.pop_frame()
-
-let main ()
-: HST.Stack C.exit_code
-  (requires fun _ -> True)
-  (ensures  fun _ _ _ -> True)
-=
-  C.EXIT_SUCCESS

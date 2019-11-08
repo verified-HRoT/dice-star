@@ -1,9 +1,7 @@
 module RIoT.Stubs
 
-open Common
-
 open LowStar.BufferOps
-//open Lib.IntTypes
+open Lib.IntTypes
 open FStar.Integers
 
 open Spec.Hash.Definitions

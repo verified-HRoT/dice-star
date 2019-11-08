@@ -1,8 +1,8 @@
-riot:
+minimal:
 	krml \
   -no-prefix \
-  RIoT.Core \
-  RIoT.Core.fst \
+  Minimal.Main \
+  Minimal.Main.fst \
   -skip-compilation \
   -tmpdir out \
   -I $(HACL_HOME)/specs \
