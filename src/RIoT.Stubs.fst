@@ -29,77 +29,7 @@ module HS  = FStar.HyperStack
 module HST = FStar.HyperStack.ST
 
 /// <><><><><><><><<><><><><><><><><><><><><><><><><><><><><><><><>
-let rec memcpy
-  (#a)
-  (dst: B.buffer a)
-  (src: B.buffer a)
-  (len: I.uint_32)
-: HST.Stack unit
-  (requires fun h ->
-      B.live h dst
-    /\ B.live h src
-    /\ B.disjoint dst src
-    /\ len > 0ul
-    /\ len <= B.len src
-    /\ B.len src <= B.len dst)
-  (ensures  fun h0 _ h1 ->
-      M.modifies (M.loc_buffer dst) h0 h1
-/// TODO: /\ (B.get h1 dst (v len)) == (B.get h1 src (v len))
-/// TODO: /\ (S.slice (B.as_seq h1 dst) 0 (v len - 1)) `S.equal` (S.slice (B.as_seq h1 src) 0 (v len - 1))
-    )
-=
-  let cur = len - 1ul in
-  dst.(cur) <- src.(cur);
-  match cur with
-  | 0ul -> ()
-  | _   -> memcpy dst src cur
-
-let rec memset
-  (#a)
-  (dst: B.buffer a)
-  (v: a)
-  (len: I.uint_32)
-: HST.Stack unit
-  (requires fun h ->
-      B.live h dst
-    /\ len > 0ul
-    /\ len <= B.len dst)
-  (ensures  fun h0 _ h1 ->
-      M.modifies (M.loc_buffer dst) h0 h1
-/// TODO: /\ (S.slice (B.as_seq h1 dst) 0 (v len - 1)) `S.equal` (S.slice (B.as_seq h1 src) 0 (v len - 1))
-    )
-=
-  let cur = len - 1ul in
-  dst.(cur) <- v;
-  match cur with
-  | 0ul -> ()
-  | _   -> memset dst v cur
-
 let _BIGLEN : I.uint_32 = 0x09ul
-
-
-/// REF: typedef enum RIOT_STATUS {
-///          RIOT_SUCCESS = 0,
-///          RIOT_FAILURE = RIOT_SUCCESS + 0x80,
-///          RIOT_INVALID_PARAMETER,
-///          RIOT_LOAD_MODULE_FAILED,
-///          RIOT_BAD_FORMAT,
-///          RIOT_INVALID_BOOT_MODE,
-///          RIOT_INVALID_STATE,
-///          RIOT_INVALID_METADATA,
-///          RIOT_INVALID_DEVICE_ID,
-///          RIOT_INVALID_MODULE,
-///          RIOT_INVALID_MODULE_DIGEST,
-///          RIOT_MODULE_UPDATE_FAILED,
-///          RIOT_METADATA_WRITE_FAILED,
-///          RIOT_STATE_UPDATE_FAILED,
-///          RIOT_INVALID_VENDOR_SIGNING_KEY,
-///          RIOT_INVALID_VENDOR_SIGNATURE,
-///          RIOT_INVALID_DEVICE_SIGNATURE,
-///          RIOT_INVALID_TICKET_SIGNATURE,
-///          RIOT_MODULE_UPDATE_NOT_APPROVED,
-///          RIOT_FAILED_UPDATE_POLICY,
-///      } RIOT_STATUS;
 
 type _RIOT_STATUS =
 | RIOT_SUCCESS
@@ -203,25 +133,12 @@ type riot_ecc_publickey  = ecc_publickey
 type riot_ecc_privatekey = ecc_privatekey
 
 /// <><><><><><><><<><><><><><><><><><><><><><><><><><><><><><><><>
-assume val riotCrypt_Hash
-  (# size: I.uint_32)
-  (data: B.lbuffer HI.uint8 (v size))
-  (# digest_alg: hash_alg)
-  (digest: hash_t digest_alg)
-: HST.Stack unit
-  (requires fun h ->
-      B.live h data
-    /\ B.live h digest
-    /\ B.disjoint data digest)
-  (ensures  fun h0 _ h1 ->
-      B.modifies (B.loc_buffer digest) h0 h1)
-
 assume val riotCrypt_DeriveEccKey
   (public_key : riot_ecc_publickey)
   (private_key: riot_ecc_privatekey)
-  (#digest_alg: hash_alg)
+  (digest_alg: hash_alg)
   (digest: hash_t digest_alg)
-  (#label_size: I.uint_32)
+  (label_size: I.uint_32)
   (label: B.lbuffer HI.uint8 (I.v label_size))
 : HST.Stack unit
   (requires fun h ->
@@ -247,7 +164,7 @@ assume val riotCrypt_DeriveEccKey
 ///      }
 assume val riotCrypt_SeedDRBG
   //TODO: (tbsData: riot_X509_TBS_DATA)
-  (#seedLen: I.uint_32)
+  (seedLen: I.uint_32)
   (seedData: B.lbuffer HI.uint8 (I.v seedLen))
 : HST.Stack unit
   (requires fun h -> True)
@@ -267,13 +184,13 @@ assume val riotCrypt_SeedDRBG
 ///          uint32_t        bytesToDerive   // IN:  Number of bytesto be produced
 ///      )
 assume val riotCrypt_Kdf
-  (#resultSize: I.uint_32)
+  (resultSize: I.uint_32)
   (result: B.lbuffer HI.uint8 (I.v resultSize))
-  (#sourceSize: I.uint_32)
+  (sourceSize: I.uint_32)
   (source: B.lbuffer HI.uint8 (I.v sourceSize))
-  (#contextSize: I.uint_32)
+  (contextSize: I.uint_32)
   (context: B.lbuffer HI.uint8 (I.v contextSize))
-  (#labelSize: I.uint_32)
+  (labelSize: I.uint_32)
   (label: B.lbuffer HI.uint8 (I.v labelSize))
   (bytesToDerive: I.uint_32)
 : HST.Stack unit
@@ -320,10 +237,10 @@ assume val riotCrypt_Kdf
 ///          const void     *data,           // IN:  Data to hash
 ///          size_t          dataSize        // IN:  Data size in bytes
 ///      )
-assume val riotCrypt_Hash'
-  (#resultSize: I.uint_32)
+assume val riotCrypt_Hash
+  (resultSize: I.uint_32)
   (result: B.lbuffer HI.uint8 (I.v resultSize))
-  (#dataSize: I.uint_32)
+  (dataSize: I.uint_32)
   (data: B.lbuffer HI.uint8 (I.v dataSize))
 : HST.Stack unit
   (requires fun h -> True)
@@ -355,11 +272,11 @@ assume val riotCrypt_Hash'
 ///          size_t          data2Size       // IN:  2nd operand size in bytes
 ///      )
 assume val riotCrypt_Hash2
-  (#resultSize: I.uint_32)
+  (resultSize: I.uint_32)
   (result: B.lbuffer HI.uint8 (I.v resultSize))
-  (#data1Size: I.uint_32)
+  (data1Size: I.uint_32)
   (data1: B.lbuffer HI.uint8 (I.v data1Size))
-  (#data2Size: I.uint_32)
+  (data2Size: I.uint_32)
   (data2: B.lbuffer HI.uint8 (I.v data2Size))
 : HST.Stack unit
   (requires fun h -> True)
@@ -398,11 +315,11 @@ assume val riotCrypt_Hash2
 ///          size_t          keySize         // IN:  HMAC key size in bytes
 ///      )
 assume val riotCrypt_Hmac
-  (#resultSize: I.uint_32)
+  (resultSize: I.uint_32)
   (result: B.lbuffer HI.uint8 (I.v resultSize))
-  (#dataSize: I.uint_32)
+  (dataSize: I.uint_32)
   (data: B.lbuffer HI.uint8 (I.v dataSize))
-  (#keySize: I.uint_32)
+  (keySize: I.uint_32)
   (key: B.lbuffer HI.uint8 (I.v keySize))
 : HST.Stack unit
   (requires fun h -> True)
@@ -436,13 +353,13 @@ assume val riotCrypt_Hmac
 ///          size_t          keySize         // IN:  HMAC key size in bytes
 ///      )
 assume val riotCrypt_Hmac2
-  (#resultSize: I.uint_32)
+  (resultSize: I.uint_32)
   (result: B.lbuffer HI.uint8 (I.v resultSize))
-  (#data1Size: I.uint_32)
+  (data1Size: I.uint_32)
   (data1: B.lbuffer HI.uint8 (I.v data1Size))
-  (#data2Size: I.uint_32)
+  (data2Size: I.uint_32)
   (data2: B.lbuffer HI.uint8 (I.v data2Size))
-  (#keySize: I.uint_32)
+  (keySize: I.uint_32)
   (key: B.lbuffer HI.uint8 (I.v keySize))
 : HST.Stack unit
   (requires fun h -> True)
@@ -518,7 +435,7 @@ assume val riotCrypt_Hmac2
 ///      )
 assume val riotCrypt_Sign
   (sig: riot_ecc_signature)
-  (#dataSize: I.uint_32)
+  (dataSize: I.uint_32)
   (data: B.lbuffer HI.uint8 (v dataSize))
   (key: riot_ecc_privatekey)
 : HST.Stack unit
@@ -550,7 +467,7 @@ assume val riotCrypt_Sign
 ///      }
 assume val riotCrypt_SignDigest
   (sig: riot_ecc_signature)
-  (#digest_alg: hash_alg)
+  (digest_alg: hash_alg)
   (digest: hash_t digest_alg)
   (key: riot_ecc_publickey)
 : HST.Stack unit
@@ -572,7 +489,7 @@ assume val riotCrypt_SignDigest
 ///          return RIOT_DSAVerifyDigest(digest, sig, key);
 ///      }
 assume val riotCrypt_Verify
-  (#dataSize: I.uint_32)
+  (dataSize: I.uint_32)
   (data: B.lbuffer HI.uint8 (v dataSize))
   (sig: riot_ecc_signature)
   (key: riot_ecc_publickey)
@@ -595,7 +512,7 @@ assume val riotCrypt_Verify
 ///          return RIOT_DSAVerifyDigest(digest, sig, key);
 ///      }
 assume val riotCrypt_VerifyDigest
-  (#digest_alg: hash_alg)
+  (digest_alg: hash_alg)
   (digest: hash_t digest_alg)
   (sig: riot_ecc_signature)
   (key: riot_ecc_publickey)
@@ -614,10 +531,10 @@ assume val riotCrypt_VerifyDigest
 ///          const RIOT_ECC_PUBLIC  *key             // IN:  Encryption key
 ///      )
 assume val riotCrypt_EccEncrypt
-  (#resultCapacity: I.uint_32)
+  (resultCapacity: I.uint_32)
   (result: B.lbuffer HI.uint8 (v resultCapacity))
   (ephKey: riot_ecc_publickey)
-  (#dataSize: I.uint_32)
+  (dataSize: I.uint_32)
   (data: B.lbuffer HI.uint8 (v dataSize))
   (key: riot_ecc_publickey)
 : HST.Stack unit
@@ -669,10 +586,10 @@ assume val riotCrypt_EccEncrypt
 ///          const RIOT_ECC_PRIVATE *key             // IN:  Decryption key
 ///      )
 assume val riotCrypt_EccDecrypt
-  (#resultCapacity: I.uint_32)
+  (resultCapacity: I.uint_32)
   (result: B.lbuffer HI.uint8 (v resultCapacity))
   (ephKey: riot_ecc_publickey)
-  (#dataSize: I.uint_32)
+  (dataSize: I.uint_32)
   (data: B.lbuffer HI.uint8 (v dataSize))
   (key: riot_ecc_privatekey)
 : HST.Stack unit
@@ -717,11 +634,11 @@ assume val riotCrypt_EccDecrypt
 ///          uint8_t     key[RIOT_SYM_KEY_LENGTH]  // IN/OUT: Symmetric key & IV
 ///      )
 assume val riotCrypt_SymEncryptDecrypt
-  (#outSize: I.uint_32)
+  (outSize: I.uint_32)
   (outData: B.lbuffer HI.uint32 (I.v outSize))
-  (#inSize: I.uint_32)
+  (inSize: I.uint_32)
   (inData: B.lbuffer HI.uint32 (I.v inSize))
-  (key: B.lbuffer HI.uint8 _RIOT_SYM_KEY_LENGT)
+  (key: B.lbuffer HI.uint8 (v _RIOT_SYM_KEY_LENGT))
 : HST.Stack unit
   (requires fun h -> True)
   (ensures  fun h0 _ h1 -> True)
@@ -776,6 +693,7 @@ assume val derInitContext
 
 let riotOID: list HI.int32 = [HI.i32 2; HI.i32 23; HI.i32 133; HI.i32 5; HI.i32 4; HI.i32 1; HI.i32 (-1)]
 
+(*)
 let ecPublicKeyOID:HI.int32 = [HI.i32 1; HI.i32 2; HI.i32 840; HI.i32 10045; HI.i32  2; HI.i32 1; HI.i32 (-1)]
 let prime256v1OID:HI.int32 = [HI.i32 1; HI.i32 2; HI.i32 840; HI.i32 10045; HI.i32  3; HI.i32 1; HI.i32 7; HI.i32 (-1)]
 let keyUsageOID:HI.int32 = [HI.i32 2; HI.i32 5; HI.i32 29; HI.i32 15; HI.i32 (-1)]
@@ -801,12 +719,12 @@ let basicConstraintsOID:HI.int32 = [HI.i32 2; HI.i32 5; HI.i32 29; HI.i32 19; HI
 ///          uint8_t             *Fwid,
 ///          uint32_t             FwidLen
 ///      )
-assume val x509GetAliasCertTBS
-  (tbs: derBuilderContext)
-  (tbsData: riot_x509_tbs_data)
-: HST.Stack unit
-  (requires fun h -> True)
-  (ensures  fun h0 _ h1 -> True)
+// assume val x509GetAliasCertTBS
+//   (tbs: derBuilderContext)
+//   (tbsData: riot_x509_tbs_data)
+// : HST.Stack unit
+//   (requires fun h -> True)
+//   (ensures  fun h0 _ h1 -> True)
 ///      {...}
 ///
 
@@ -858,3 +776,4 @@ assume val firmwareEntry
 : HST.Stack unit
   (requires fun h -> True)
   (ensures  fun h0 _ h1 -> True)
+*)

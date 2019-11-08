@@ -1,9 +1,10 @@
 module RIoT.Core
 
-open Common
+open RIoT.Stubs
 
 open LowStar.BufferOps
 open Lib.IntTypes
+open FStar.Integers
 
 open Spec.Hash.Definitions
 open Hacl.Hash.Definitions
@@ -29,63 +30,72 @@ module HS  = FStar.HyperStack
 module HST = FStar.HyperStack.ST
 
 /// <><><><><><><><<><><><><><> Stubs <><><><><><><><><><><><><><>
-
+let _RIOT_ALG = SHA2_256
 /// <><><><><><><><<><><><><><><><><><><><><><><><><><><><><><><><>
-
-#reset-options "--z3rlimit 100"
-#push-options "--query_stats"
+//#reset-options "--z3rlimit 100"
 let riotStart
-  (cdi: cdi_t)
+  (cdiLen: uint_32)
+  (cdi : B.lbuffer uint8 (v cdiLen))
+  (fwid: B.lbuffer uint8 (v _RIOT_DIGEST_LENGTH))
 : HST.Stack unit
   (requires (fun h ->
-    B.live h cdi.cdi /\
-    B.length cdi.cdi <= max_input_length cdi.alg))
+      B.all_live h [B.buf cdi
+                   ;B.buf fwid]
+    /\ B.all_disjoint [B.loc_buffer cdi
+                     ;B.loc_buffer fwid]
+    /\ B.length cdi <= max_input_length _RIOT_ALG))
   (ensures  fun _ _ _ -> True)
 =
   HST.push_frame();
 
-/// REF: BYTE                derBuffer[DER_MAX_TBS];
-///      BYTE                cDigest[RIOT_DIGEST_LENGTH];
-///      BYTE                FWID[RIOT_DIGEST_LENGTH];
-///      RIOT_ECC_PRIVATE    deviceIDPriv;
-///      RIOT_ECC_SIGNATURE  tbsSig;
-///      DERBuilderContext   derCtx;
-///      fpFirmwareEntry     FirmwareEntry;
-///      BYTE               *fwImage;
-///      uint32_t            length, PEMtype;
-///      DWORD               fwSize, offset, i;
-///      HINSTANCE           fwDLL;
-
-/// Don't use CDI directly
-/// REF: RiotCrypt_Hash(cDigest, RIOT_DIGEST_LENGTH, CDI, CDILen);
-  let cDigest : hash_t SHA2_256
-    = B.alloca (u8 0x00) (hash_len SHA2_256) in
-
-  riotCrypt_Hash
-    (hash_len cdi.alg)
-    cdi.cdi
-    SHA2_256
-    cDigest;
-
-/// TODO: Set the serial number for DeviceID certificate
-/// REF: RiotSetSerialNumber(&x509DeviceTBSData, cDigest, RIOT_DIGEST_LENGTH);
+  let cDigest : hash_t SHA2_256 = B.alloca (u8 0x00) _RIOT_DIGEST_LENGTH in
   let deviceIDPub: riot_ecc_publickey = {
-    x = {data = B.alloca (u32 0x00) _BIGLEN};
-    y = {data = B.alloca (u32 0x00) _BIGLEN};
+    x = {bigval = B.alloca (u32 0x00) _BIGLEN};
+    y = {bigval = B.alloca (u32 0x00) _BIGLEN};
     infinity = B.alloca (u32 0x00) 1ul
   } in
-
-  let deviceIDPriv: riot_ecc_privatekey = {
-    r = {data = B.alloca (u32 0x00) _BIGLEN};
-    s = {data = B.alloca (u32 0x00) _BIGLEN}
+  let deviceIDPriv: riot_ecc_privatekey
+    = {bigval = B.alloca (u32 0x00) _BIGLEN} in
+  let aliasKeyPub: riot_ecc_publickey = {
+    x = {bigval = B.alloca (u32 0x00) _BIGLEN};
+    y = {bigval = B.alloca (u32 0x00) _BIGLEN};
+    infinity = B.alloca (u32 0x00) 1ul
   } in
+  let aliasKeyPriv: riot_ecc_privatekey
+    = {bigval = B.alloca (u32 0x00) _BIGLEN} in
+  let label_id = B.alloca (u8 0x00) _BIGLEN in
+  let label_alias = B.alloca (u8 0x00) _BIGLEN in
 
-  let data = B.alloca (u8 0x00) _BIGLEN in
+/// Hash CDI to cDigest
+  riotCrypt_Hash
+    _RIOT_DIGEST_LENGTH cDigest
+    cdiLen cdi;
 
+/// Derive DeviceID Key pair
   riotCrypt_DeriveEccKey
     deviceIDPub
     deviceIDPriv
-    SHA2_256 cDigest
-    _BIGLEN data;
+    _RIOT_ALG cDigest
+    _BIGLEN label_id;
+
+/// Combine CDI and FWID into cDigest
+  riotCrypt_Hash2
+    _RIOT_DIGEST_LENGTH cDigest
+    _RIOT_DIGEST_LENGTH cDigest
+    _RIOT_DIGEST_LENGTH fwid;
+
+/// Derive aliaskey Key pair
+  riotCrypt_DeriveEccKey
+    aliasKeyPub
+    aliasKeyPriv
+    _RIOT_ALG cDigest
+    _BIGLEN label_alias;
 
   HST.pop_frame()
+
+let main ()
+: HST.Stack C.exit_code
+  (requires fun _ -> True)
+  (ensures  fun _ _ _ -> True)
+=
+  C.EXIT_SUCCESS
