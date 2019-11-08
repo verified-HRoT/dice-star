@@ -706,8 +706,60 @@ let commonNameOID:HI.int32 = [HI.i32 2; HI.i32 5; HI.i32 4; HI.i32 3; HI.i32 (-1
 let countryNameOID:HI.int32 = [HI.i32 2; HI.i32 5; HI.i32 4; HI.i32 6; HI.i32 (-1)]
 let orgNameOID:HI.int32 = [HI.i32 2; HI.i32 5; HI.i32 4; HI.i32 10; HI.i32 (-1)]
 let basicConstraintsOID:HI.int32 = [HI.i32 2; HI.i32 5; HI.i32 29; HI.i32 19; HI.i32 (-1)]
+*)
 
+noeq
+type derBuilderContext = {
+     ctxLen : uint_32;
+     ctxBuf : B.lbuffer uint_8 (v ctxLen);
+     ctxPos : B.pointer uint_32
+}
 
+let bufList_of_ctx
+  (ctx: derBuilderContext)
+: GTot (list B.buf_t)
+= [ B.buf ctx.ctxBuf
+  ; B.buf ctx.ctxPos]
+
+let locList_of_ctx
+  (ctx: derBuilderContext)
+: GTot (list B.loc)
+= [ B.loc_buffer ctx.ctxBuf
+  ; B.loc_buffer ctx.ctxPos]
+
+let well_formed_ctx
+  (h: HS.mem)
+  (ctx: derBuilderContext)
+: Type0
+=
+    B.all_live h (bufList_of_ctx ctx)
+  /\ B.all_disjoint (locList_of_ctx ctx)
+  /\ B.get h ctx.ctxPos 0 < ctx.ctxLen
+
+// // Const x509 "to be signed" data
+// typedef struct
+// {
+//     uint8_t SerialNum[RIOT_X509_SNUM_LEN];
+//     const char *IssuerCommon;
+//     const char *IssuerOrg;
+//     const char *IssuerCountry;
+//     const char *ValidFrom;
+//     const char *ValidTo;
+//     const char *SubjectCommon;
+//     const char *SubjectOrg;
+//     const char *SubjectCountry;
+// } RIOT_X509_TBS_DATA;
+
+// type riot_x509_tbs_data = {
+//     serialNum: B.lbuffer HI.uint8 _RIOT_X509_SNUM_LEN;
+//     issuerCommon : B.buffer HI.uint8;
+//     issuerOrg    : B.buffer HI.uint8;
+//     issuerCountry: B.buffer HI.uint8;
+//     validFrom    : B.buffer HI.uint8;
+//     validTo      : B.buffer HI.uint8;
+// }
+
+type riot_x509_tbs_data = B.buffer HI.uint8
 
 ///
 /// REF: int
@@ -719,12 +771,16 @@ let basicConstraintsOID:HI.int32 = [HI.i32 2; HI.i32 5; HI.i32 29; HI.i32 19; HI
 ///          uint8_t             *Fwid,
 ///          uint32_t             FwidLen
 ///      )
-// assume val x509GetAliasCertTBS
-//   (tbs: derBuilderContext)
-//   (tbsData: riot_x509_tbs_data)
-// : HST.Stack unit
-//   (requires fun h -> True)
-//   (ensures  fun h0 _ h1 -> True)
+assume val x509GetAliasCertTBS
+  (tbs: derBuilderContext)
+  (tbsData: riot_x509_tbs_data)
+  (aliasKeyPub: riot_ecc_publickey)
+  (deviceIDPub: riot_ecc_publickey)
+  (fwidLen: I.uint_32)
+  (fwid: B.lbuffer HI.uint8 (v fwidLen))
+: HST.Stack unit
+  (requires fun h -> True)
+  (ensures  fun h0 _ h1 -> True)
 ///      {...}
 ///
 
@@ -776,4 +832,3 @@ assume val firmwareEntry
 : HST.Stack unit
   (requires fun h -> True)
   (ensures  fun h0 _ h1 -> True)
-*)

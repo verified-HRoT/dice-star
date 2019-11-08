@@ -31,6 +31,20 @@ module HST = FStar.HyperStack.ST
 
 /// <><><><><><><><<><><><><><> Stubs <><><><><><><><><><><><><><>
 let _RIOT_ALG = SHA2_256
+
+assume val signAliasCert
+  (aliasKeyPub: riot_ecc_publickey)
+  (deviceIDPub: riot_ecc_publickey)
+  (fwidLen: I.uint_32)
+  (fwid: B.lbuffer HI.uint8 (v fwidLen))
+  (privKey: riot_ecc_privatekey)
+: B.buffer HI.uint8
+
+assume val signDeviceCert
+  (deviceIDPub: riot_ecc_publickey)
+  (rootKeyPub : option riot_ecc_publickey)
+  (privKey: riot_ecc_privatekey)
+: B.buffer HI.uint8
 /// <><><><><><><><<><><><><><><><><><><><><><><><><><><><><><><><>
 //#reset-options "--z3rlimit 100"
 let riotStart
@@ -90,6 +104,20 @@ let riotStart
     aliasKeyPriv
     _RIOT_ALG cDigest
     _BIGLEN label_alias;
+
+  let aliasCert =
+    signAliasCert
+      aliasKeyPub              // <-- AliasKey public key
+      deviceIDPub              // <-- deviceID public key
+      _RIOT_DIGEST_LENGTH fwid // <-- EXTENSION
+      deviceIDPriv             // <-- SIGN
+  in
+  let deviceIDSelfCert =
+    signDeviceCert
+      deviceIDPub              // <-- deviceID public key
+      None                     // <-- root public key
+      deviceIDPriv             // <-- SIGN
+  in
 
   HST.pop_frame()
 
