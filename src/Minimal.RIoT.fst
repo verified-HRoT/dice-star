@@ -19,10 +19,10 @@ module M   = LowStar.Modifies
 module HS  = FStar.HyperStack
 module HST = FStar.HyperStack.ST
 
-/// <><><><><><><><<><><><><><> Stubs <><><><><><><><><><><><><><>
+/// <><><><><><><><<><><><> RIoT Stubs <><><><><><><><><><><><>
 let _RIOT_ALG = SHA2_256
-let _RIOT_DIGEST_LENGTH : I.uint_32 = hash_len _RIOT_ALG
-let _BIGLEN = 9ul
+let _RIOT_DIGEST_LENGTH: I.uint_32 = hash_len _RIOT_ALG
+let _BIGLEN: I.uint_32 = 9ul
 noeq
 type bigval_t = {
      bigval : B.lbuffer HI.uint32 (v _BIGLEN)
@@ -94,12 +94,12 @@ assume val get_FWID
 : HST.St (B.lbuffer uint8 (v _RIOT_DIGEST_LENGTH))
 
 ///
-/// <><><><><><><><<><><><><><><><><><><><><><><><><><><><><><><><>
+/// <><><><><><><><<><><><> RIoT Start <><><><><><><><><><><><>
 ///
 
 let riotStart
-  (cdiLen: uint_32)
-  (cdi : B.buffer uint8 {B.length cdi = v cdiLen})
+  (cdiLen: I.uint_32)
+  (cdi : B.buffer HI.uint8 {B.length cdi = v cdiLen})
 : HST.Stack unit
   (requires (fun h ->
       B.all_live h [B.buf cdi]
@@ -109,24 +109,25 @@ let riotStart
 =
   HST.push_frame();
 
+/// allocation
   let fwid = get_FWID () in
-  let cDigest : hash_t SHA2_256 = B.alloca (u8 0x00) _RIOT_DIGEST_LENGTH in
+  let cDigest : hash_t SHA2_256 = B.alloca (HI.u8 0x00) _RIOT_DIGEST_LENGTH in
   let deviceIDPub: riot_ecc_publickey = {
-    x = {bigval = B.alloca (u32 0x00) _BIGLEN};
-    y = {bigval = B.alloca (u32 0x00) _BIGLEN};
-    infinity = B.alloca (u32 0x00) 1ul
+    x = {bigval = B.alloca (HI.u32 0x00) _BIGLEN};
+    y = {bigval = B.alloca (HI.u32 0x00) _BIGLEN};
+    infinity = B.alloca (HI.u32 0x00) 1ul
   } in
   let deviceIDPriv: riot_ecc_privatekey
-    = {bigval = B.alloca (u32 0x00) _BIGLEN} in
+    = {bigval = B.alloca (HI.u32 0x00) _BIGLEN} in
   let aliasKeyPub: riot_ecc_publickey = {
-    x = {bigval = B.alloca (u32 0x00) _BIGLEN};
-    y = {bigval = B.alloca (u32 0x00) _BIGLEN};
-    infinity = B.alloca (u32 0x00) 1ul
+    x = {bigval = B.alloca (HI.u32 0x00) _BIGLEN};
+    y = {bigval = B.alloca (HI.u32 0x00) _BIGLEN};
+    infinity = B.alloca (HI.u32 0x00) 1ul
   } in
   let aliasKeyPriv: riot_ecc_privatekey
-    = {bigval = B.alloca (u32 0x00) _BIGLEN} in
-  let label_id = B.alloca (u8 0x00) _BIGLEN in
-  let label_alias = B.alloca (u8 0x00) _BIGLEN in
+    = {bigval = B.alloca (HI.u32 0x00) _BIGLEN} in
+  let label_id = B.alloca (HI.u8 0x00) _BIGLEN in
+  let label_alias = B.alloca (HI.u8 0x00) _BIGLEN in
 
 /// Hash CDI to cDigest
   riotCrypt_Hash
@@ -153,6 +154,7 @@ let riotStart
     _RIOT_ALG cDigest
     _BIGLEN label_alias;
 
+/// Generate `alias Cert`
   let aliasCert =
     signAliasCert
       aliasKeyPub              // <-- AliasKey public key
@@ -160,6 +162,8 @@ let riotStart
       _RIOT_DIGEST_LENGTH fwid // <-- EXTENSION
       deviceIDPriv             // <-- SIGN
   in
+
+/// Generate self signed `deviceIDSelfCert`
   let deviceIDSelfCert =
     signDeviceCert
       deviceIDPub              // <-- deviceID public key

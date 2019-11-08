@@ -19,10 +19,10 @@ module HS  = FStar.HyperStack
 module HST = FStar.HyperStack.ST
 
 let _DICE_ALG = SHA2_256
-let _DICE_UDS_LENGTH    = 0x20
-let _DICE_DIGEST_LENGTH: uint_32 = hash_len _DICE_ALG
+let _DICE_UDS_LENGTH   : I.uint_32 = 0x20
+let _DICE_DIGEST_LENGTH: I.uint_32 = hash_len _DICE_ALG
 
-/// <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+/// <><><><><><><><><><><><><> DICE Stubs <><><><><><><><><><><><><><><><>
 
 assume val get_UDS
   (size: nat)
@@ -31,6 +31,12 @@ assume val get_UDS
 assume val get_measurement
   (alg: hash_alg)
 : HST.St (hash_t alg)
+
+assume val diceSHA256
+  (size : nat)
+  (data: B.lbuffer HI.uint8 size)
+  (digest: hash_t _DICE_ALG)
+: HST.St unit
 
 assume val diceSHA256_2
   (size1 : nat)
@@ -44,38 +50,42 @@ assume val diceSHA256_2
 
 #reset-options "--z3rlimit 10"
 let diceStart ()
-: HST.Stack (B.lbuffer uint8 (v _DICE_DIGEST_LENGTH))
+: HST.Stack (B.lbuffer HI.uint8 (v _DICE_DIGEST_LENGTH))
   (requires fun _ -> True)
   (ensures  fun _ _ _ -> True)
 =
   HST.push_frame();
 
 /// NOTE: compute digest `uDigest` of `uds`
-  let uds : B.lbuffer uint8 _DICE_UDS_LENGTH = get_UDS _DICE_UDS_LENGTH in
+  let uds : B.lbuffer HI.uint8 _DICE_UDS_LENGTH = get_UDS (v _DICE_UDS_LENGTH) in
   let uDigest :hash_t _DICE_ALG = B.alloca (HI.u8 0x00) _DICE_DIGEST_LENGTH in
     SHA2.hash_256
       uds
-      (u _DICE_UDS_LENGTH)
+      _DICE_UDS_LENGTH
       uDigest;
 
 /// NOTE: compute digest `rDigest` of `measurement`
   let measurement: hash_t _DICE_ALG = get_measurement _DICE_ALG in
   let rDigest :hash_t _DICE_ALG = B.alloca (HI.u8 0x00) _DICE_DIGEST_LENGTH in
-    SHA2.hash_256
-      measurement
-      _DICE_DIGEST_LENGTH
+    diceSHA256
+      (v _DICE_DIGEST_LENGTH) measurement
       rDigest;
 
+// NOTE: allocate cdi
     let cdi: hash_t _DICE_ALG
       = B.alloca (HI.u8 0x00) _DICE_DIGEST_LENGTH in
 
+// NOTE: compute `cdi` from `uDigest` and `rDigest`
     diceSHA256_2
      (v _DICE_DIGEST_LENGTH) uDigest
      (v _DICE_DIGEST_LENGTH) rDigest
      cdi;
 
+// NOTE: Zero-out `uDigest` and `rDigest`
     B.fill uDigest (HI.u8 0x00) _DICE_DIGEST_LENGTH;
     B.fill rDigest (HI.u8 0x00) _DICE_DIGEST_LENGTH;
 
   HST.pop_frame();
+
+// NOTE: return `cdi`
   cdi
