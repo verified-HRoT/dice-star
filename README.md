@@ -5,7 +5,16 @@ VerifiedHardware
 Introduction
 ------------
 
-Hardware verification using F*
+This project intends to build a verified version of [microsoft/RIoT](https://github.com/microsoft/RIoT) using 
+- [F*](https://github.com/FStarLang/FStar): verification system for effectful programs
+- [KreMLin](https://github.com/FStarLang/kremlin): a tool for extracting low-level F* programs to readable C code
+- [HACL*](https://github.com/project-everest/hacl-star): a formally verified cryptographic library written in F*
+
+Current Status
+--------------
+[x] Minimal abstraction of DICE and RIoT
+
+[ ] Using global variables to protect secrets 
 
 Build C files
 --------------
@@ -33,15 +42,19 @@ Build C files
 └── README.md
 ```
 
+### Dependencies
+- F*: [master](https://github.com/FStarLang/FStar) branch
+- KreMLin: [master](https://github.com/FStarLang/kremlin) branch
+- HACL*: [fstar-master](https://github.com/project-everest/hacl-star/tree/fstar-master) branch
 ### (*optional*) Build and use docker image
 ```
-sudo docker build -t verifiedhardware:minimal -f .docker/Dockerfile .
-sudo docker run -itd --name vhw --rm verifiedhardware:minimal bash
+$ sudo docker build -t verifiedhardware:minimal -f .docker/base/Dockerfile .
+$ sudo docker run -it --rm verifiedhardware:minimal bash
 ```
+Run the commands above and you will be in the project root directory. This Dockerfile depends on the official F* build packaged with Emacs : [fstarlang/fstar-emacs:latest](https://hub.docker.com/r/fstarlang/fstar-emacs/tags).
 
 ### Build C file
-Enter F* source file directory `./src` and run `Makefile` to build C files into `./out`
+Run `Makefile` under the project root directory to build C files into `./out`.
 ```
-$ cd ./src
 $ make
 ```

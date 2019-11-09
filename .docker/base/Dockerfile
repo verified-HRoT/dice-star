@@ -34,3 +34,6 @@ RUN sudo ln -s ${KREMLIN_HOME}/krml /usr/local/bin/krml
 
 # Copy VerifiedHardware
 COPY --chown=build . /home/build/VerifiedHardware
+
+# Switch to the project root directory
+WORKDIR /home/build/VerifiedHardware
