@@ -1,10 +1,16 @@
+VHW_HOME = ..
+SRC_DIR = $(VHW_HOME)/src
+SRC_MAIN = "Minimal.Main.fst"
+OUT_DIR = $(VHW_HOME)/out
+OUT_NAME = "Minimal.Main"
+
 minimal:
 	krml \
   -no-prefix \
-  Minimal.Main \
-  Minimal.Main.fst \
+  $(OUT_NAME) \
+  $(SRC_DIR)/$(SRC_MAIN) \
   -skip-compilation \
-  -tmpdir out \
+  -tmpdir $(OUT_DIR) \
   -I $(HACL_HOME)/specs \
   -I $(HACL_HOME)/specs/lemmas \
   -I $(HACL_HOME)/code/hash \
