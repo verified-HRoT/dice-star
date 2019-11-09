@@ -19,9 +19,13 @@ module M   = LowStar.Modifies
 module HS  = FStar.HyperStack
 module HST = FStar.HyperStack.ST
 
-/// <><><><><><><><<><><><> RIoT Stubs <><><><><><><><><><><><>
+/// Hash algorithm for RIoT
 let _RIOT_ALG = SHA2_256
+
+/// Digest length for RIoT
 let _RIOT_DIGEST_LENGTH: I.uint_32 = hash_len _RIOT_ALG
+
+/// Definitions of ECC key pair
 let _BIGLEN: I.uint_32 = 9ul
 noeq
 type bigval_t = {
@@ -50,6 +54,8 @@ type riot_ecc_signature  = ecc_signature
 type riot_ecc_publickey  = ecc_publickey
 type riot_ecc_privatekey = ecc_privatekey
 
+/// <><><><><><><><<><><><> RIoT Stubs <><><><><><><><><><><><>
+/// Abstract hash API for RIoT
 assume val riotCrypt_Hash
   (resultSize: I.uint_32)
   (result: B.lbuffer HI.uint8 (I.v resultSize))
@@ -57,6 +63,7 @@ assume val riotCrypt_Hash
   (data: B.lbuffer HI.uint8 (I.v dataSize))
 : HST.St unit
 
+/// Abstract hash API for RIoT, which takes two input datas
 assume val riotCrypt_Hash2
   (resultSize: I.uint_32)
   (result: B.lbuffer HI.uint8 (I.v resultSize))
@@ -66,6 +73,7 @@ assume val riotCrypt_Hash2
   (data2: B.lbuffer HI.uint8 (I.v data2Size))
 : HST.St unit
 
+/// Abstract ECC key pair generation API for RIoT
 assume val riotCrypt_DeriveEccKey
   (public_key : riot_ecc_publickey)
   (private_key: riot_ecc_privatekey)
@@ -75,6 +83,7 @@ assume val riotCrypt_DeriveEccKey
   (label: B.lbuffer HI.uint8 (I.v label_size))
 : HST.St unit
 
+/// Abstract AliasKey certificate generation API for RIoT
 assume val signAliasCert
   (aliasKeyPub: riot_ecc_publickey)
   (deviceIDPub: riot_ecc_publickey)
@@ -83,12 +92,14 @@ assume val signAliasCert
   (privKey: riot_ecc_privatekey)
 : HST.St (B.buffer HI.uint8)
 
+/// Abstract DeviceID certificate generation API for RIoT
 assume val signDeviceCert
   (deviceIDPub: riot_ecc_publickey)
   (rootKeyPub : option riot_ecc_publickey)
   (privKey: riot_ecc_privatekey)
 : HST.St (B.buffer HI.uint8)
 
+/// Abstract API to get `FWID`, which is the measurement of the next layer
 assume val get_FWID
   (u: unit)
 : HST.St (B.lbuffer uint8 (v _RIOT_DIGEST_LENGTH))
@@ -96,16 +107,18 @@ assume val get_FWID
 ///
 /// <><><><><><><><<><><><> RIoT Start <><><><><><><><><><><><>
 ///
-
+/// RIoT main function, which
+/// 1. receives `CDI` from DICE
+/// 2. gets `measurement` of the next layer using `API`
+/// 3. generates DeviceID key pair
+/// 4. generates AliasKey key pair
+/// 5. generates certificates
+///
+#reset-options "--z3rlimit 20"
 let riotStart
   (cdiLen: I.uint_32)
-  (cdi : B.buffer HI.uint8 {B.length cdi = v cdiLen})
-: HST.Stack unit
-  (requires (fun h ->
-      B.all_live h [B.buf cdi]
-    /\ B.all_disjoint [B.loc_buffer cdi]
-    /\ B.length cdi <= max_input_length _RIOT_ALG))
-  (ensures  fun _ _ _ -> True)
+  (cdi : B.lbuffer HI.uint8 (v cdiLen))
+: HST.St unit
 =
   HST.push_frame();
 

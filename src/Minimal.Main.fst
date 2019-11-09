@@ -6,12 +6,10 @@ open Minimal.RIoT
 module HST = FStar.HyperStack.ST
 
 let main ()
-: HST.Stack C.exit_code
-  (requires fun _ -> True)
-  (ensures  fun _ _ _ -> True)
+: HST.St C.exit_code
 =
   riotStart
-    Minimal.DICE._DICE_DIGEST_LENGTH
-    (diceStart ());
+    Minimal.DICE._DICE_DIGEST_LENGTH  // <-- length of CDI
+    (diceStart ());                   // <-- compute CDI
 
   C.EXIT_SUCCESS

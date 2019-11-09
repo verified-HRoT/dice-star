@@ -1,8 +1,8 @@
 VHW_HOME = ..
 SRC_DIR = $(VHW_HOME)/src
-SRC_MAIN = "Minimal.Main.fst"
+SRC_MAIN = Minimal.Main.fst
 OUT_DIR = $(VHW_HOME)/out
-OUT_NAME = "Minimal.Main"
+OUT_NAME = Minimal.Main
 
 minimal:
 	krml \
@@ -21,3 +21,6 @@ minimal:
   -I $(HACL_HOME)/lib \
   -I $(HACL_HOME)/providers/evercrypt \
   -warn-error +11
+
+clean:
+	rm ./*.checked.lax ../out/*

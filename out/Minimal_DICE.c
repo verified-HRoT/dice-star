@@ -17,23 +17,23 @@ Lib_IntTypes_sec_int_t____ *Minimal_DICE_diceStart()
 {
   Lib_IntTypes_sec_int_t____
   *uds = Minimal_DICE_get_UDS(FStar_UInt32_v(Minimal_DICE__DICE_UDS_LENGTH));
+  Lib_IntTypes_sec_int_t____ *measurement = Minimal_DICE_get_measurement(Minimal_DICE__DICE_ALG);
   KRML_CHECK_SIZE(sizeof (Lib_IntTypes_sec_int_t____), Minimal_DICE__DICE_DIGEST_LENGTH);
   Lib_IntTypes_sec_int_t____ uDigest[Minimal_DICE__DICE_DIGEST_LENGTH];
   for (uint32_t _i = 0U; _i < Minimal_DICE__DICE_DIGEST_LENGTH; ++_i)
     uDigest[_i] = Lib_IntTypes_mk_int(Lib_IntTypes_U8, Lib_IntTypes_SEC, (krml_checked_int_t)0x00);
-  Hacl_Hash_SHA2_hash_256(uds, Minimal_DICE__DICE_UDS_LENGTH, uDigest);
-  Lib_IntTypes_sec_int_t____ *measurement = Minimal_DICE_get_measurement(Minimal_DICE__DICE_ALG);
   KRML_CHECK_SIZE(sizeof (Lib_IntTypes_sec_int_t____), Minimal_DICE__DICE_DIGEST_LENGTH);
   Lib_IntTypes_sec_int_t____ rDigest[Minimal_DICE__DICE_DIGEST_LENGTH];
   for (uint32_t _i = 0U; _i < Minimal_DICE__DICE_DIGEST_LENGTH; ++_i)
     rDigest[_i] = Lib_IntTypes_mk_int(Lib_IntTypes_U8, Lib_IntTypes_SEC, (krml_checked_int_t)0x00);
-  Minimal_DICE_diceSHA256(FStar_UInt32_v(Minimal_DICE__DICE_DIGEST_LENGTH),
-    measurement,
-    rDigest);
   KRML_CHECK_SIZE(sizeof (Lib_IntTypes_sec_int_t____), Minimal_DICE__DICE_DIGEST_LENGTH);
   Lib_IntTypes_sec_int_t____ cdi[Minimal_DICE__DICE_DIGEST_LENGTH];
   for (uint32_t _i = 0U; _i < Minimal_DICE__DICE_DIGEST_LENGTH; ++_i)
     cdi[_i] = Lib_IntTypes_mk_int(Lib_IntTypes_U8, Lib_IntTypes_SEC, (krml_checked_int_t)0x00);
+  Hacl_Hash_SHA2_hash_256(uds, Minimal_DICE__DICE_UDS_LENGTH, uDigest);
+  Minimal_DICE_diceSHA256(FStar_UInt32_v(Minimal_DICE__DICE_DIGEST_LENGTH),
+    measurement,
+    rDigest);
   Minimal_DICE_diceSHA256_2(FStar_UInt32_v(Minimal_DICE__DICE_DIGEST_LENGTH),
     uDigest,
     FStar_UInt32_v(Minimal_DICE__DICE_DIGEST_LENGTH),

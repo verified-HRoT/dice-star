@@ -20,69 +20,69 @@ extern Lib_IntTypes_sec_int_t____ *Hacl_Hash_Core_SHA2_alloca_384();
 
 extern Lib_IntTypes_sec_int_t____ *Hacl_Hash_Core_SHA2_alloca_512();
 
-extern void Hacl_Hash_Core_SHA2_init_224(Lib_IntTypes_sec_int_t____ *uu____205);
+extern void Hacl_Hash_Core_SHA2_init_224(Lib_IntTypes_sec_int_t____ *uu____265);
 
-extern void Hacl_Hash_Core_SHA2_init_256(Lib_IntTypes_sec_int_t____ *uu____250);
+extern void Hacl_Hash_Core_SHA2_init_256(Lib_IntTypes_sec_int_t____ *uu____310);
 
-extern void Hacl_Hash_Core_SHA2_init_384(Lib_IntTypes_sec_int_t____ *uu____295);
+extern void Hacl_Hash_Core_SHA2_init_384(Lib_IntTypes_sec_int_t____ *uu____355);
 
-extern void Hacl_Hash_Core_SHA2_init_512(Lib_IntTypes_sec_int_t____ *uu____340);
+extern void Hacl_Hash_Core_SHA2_init_512(Lib_IntTypes_sec_int_t____ *uu____400);
 
 extern void
 Hacl_Hash_Core_SHA2_update_224(
-  Lib_IntTypes_sec_int_t____ *uu____396,
+  Lib_IntTypes_sec_int_t____ *uu____456,
   Lib_IntTypes_sec_int_t____ *x0
 );
 
 extern void
 Hacl_Hash_Core_SHA2_update_256(
-  Lib_IntTypes_sec_int_t____ *uu____465,
+  Lib_IntTypes_sec_int_t____ *uu____525,
   Lib_IntTypes_sec_int_t____ *x0
 );
 
 extern void
 Hacl_Hash_Core_SHA2_update_384(
-  Lib_IntTypes_sec_int_t____ *uu____534,
+  Lib_IntTypes_sec_int_t____ *uu____594,
   Lib_IntTypes_sec_int_t____ *x0
 );
 
 extern void
 Hacl_Hash_Core_SHA2_update_512(
-  Lib_IntTypes_sec_int_t____ *uu____603,
+  Lib_IntTypes_sec_int_t____ *uu____663,
   Lib_IntTypes_sec_int_t____ *x0
 );
 
-extern void Hacl_Hash_Core_SHA2_pad_224(uint64_t uu____668, Lib_IntTypes_sec_int_t____ *x0);
+extern void Hacl_Hash_Core_SHA2_pad_224(uint64_t uu____728, Lib_IntTypes_sec_int_t____ *x0);
 
-extern void Hacl_Hash_Core_SHA2_pad_256(uint64_t uu____725, Lib_IntTypes_sec_int_t____ *x0);
-
-extern void
-Hacl_Hash_Core_SHA2_pad_384(FStar_UInt128_uint128 uu____783, Lib_IntTypes_sec_int_t____ *x0);
+extern void Hacl_Hash_Core_SHA2_pad_256(uint64_t uu____785, Lib_IntTypes_sec_int_t____ *x0);
 
 extern void
-Hacl_Hash_Core_SHA2_pad_512(FStar_UInt128_uint128 uu____843, Lib_IntTypes_sec_int_t____ *x0);
+Hacl_Hash_Core_SHA2_pad_384(FStar_UInt128_uint128 uu____843, Lib_IntTypes_sec_int_t____ *x0);
+
+extern void
+Hacl_Hash_Core_SHA2_pad_512(FStar_UInt128_uint128 uu____903, Lib_IntTypes_sec_int_t____ *x0);
 
 extern void
 Hacl_Hash_Core_SHA2_finish_224(
-  Lib_IntTypes_sec_int_t____ *uu____904,
+  Lib_IntTypes_sec_int_t____ *uu____964,
   Lib_IntTypes_sec_int_t____ *x0
 );
 
 extern void
 Hacl_Hash_Core_SHA2_finish_256(
-  Lib_IntTypes_sec_int_t____ *uu____967,
+  Lib_IntTypes_sec_int_t____ *uu____1027,
   Lib_IntTypes_sec_int_t____ *x0
 );
 
 extern void
 Hacl_Hash_Core_SHA2_finish_384(
-  Lib_IntTypes_sec_int_t____ *uu____1030,
+  Lib_IntTypes_sec_int_t____ *uu____1090,
   Lib_IntTypes_sec_int_t____ *x0
 );
 
 extern void
 Hacl_Hash_Core_SHA2_finish_512(
-  Lib_IntTypes_sec_int_t____ *uu____1093,
+  Lib_IntTypes_sec_int_t____ *uu____1153,
   Lib_IntTypes_sec_int_t____ *x0
 );
 
