@@ -6,21 +6,27 @@
  */
 
 #include "kremlib.h"
-#ifndef __WasmSupport_H
-#define __WasmSupport_H
+#ifndef __EverCrypt_Helpers_H
+#define __EverCrypt_Helpers_H
 
 
 
 
-extern void WasmSupport_trap();
+typedef uint8_t EverCrypt_Helpers_uint8_t;
 
-uint32_t WasmSupport_align_64(uint32_t x);
+typedef uint16_t EverCrypt_Helpers_uint16_t;
 
-void WasmSupport_check_buffer_size(uint32_t s);
+typedef uint32_t EverCrypt_Helpers_uint32_t;
 
-uint32_t WasmSupport_betole32(uint32_t x);
+typedef uint64_t EverCrypt_Helpers_uint64_t;
 
-uint64_t WasmSupport_betole64(uint64_t x);
+typedef uint8_t *EverCrypt_Helpers_uint8_p;
 
-#define __WasmSupport_H_DEFINED
+typedef uint16_t *EverCrypt_Helpers_uint16_p;
+
+typedef uint32_t *EverCrypt_Helpers_uint32_p;
+
+typedef uint64_t *EverCrypt_Helpers_uint64_p;
+
+#define __EverCrypt_Helpers_H_DEFINED
 #endif

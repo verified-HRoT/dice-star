@@ -6,21 +6,17 @@
  */
 
 #include "kremlib.h"
-#ifndef __WasmSupport_H
-#define __WasmSupport_H
+#ifndef __C_String_H
+#define __C_String_H
 
 
 
 
-extern void WasmSupport_trap();
+extern void C_String_print(C_String_t uu____120);
 
-uint32_t WasmSupport_align_64(uint32_t x);
+extern uint32_t C_String_strlen(C_String_t s);
 
-void WasmSupport_check_buffer_size(uint32_t s);
+extern void C_String_memcpy(uint8_t *dst, C_String_t src, uint32_t n1);
 
-uint32_t WasmSupport_betole32(uint32_t x);
-
-uint64_t WasmSupport_betole64(uint64_t x);
-
-#define __WasmSupport_H_DEFINED
+#define __C_String_H_DEFINED
 #endif

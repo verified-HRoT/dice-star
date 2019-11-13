@@ -5,22 +5,32 @@
   KreMLin version: e324b7e6
  */
 
-#include "kremlib.h"
-#ifndef __WasmSupport_H
-#define __WasmSupport_H
+#include "Spec_Agile_HMAC.h"
 
+bool Spec_Agile_HMAC_is_supported_alg(Spec_Hash_Definitions_hash_alg uu___0_7)
+{
+  switch (uu___0_7)
+  {
+    case Spec_Hash_Definitions_SHA1:
+      {
+        return true;
+      }
+    case Spec_Hash_Definitions_SHA2_256:
+      {
+        return true;
+      }
+    case Spec_Hash_Definitions_SHA2_384:
+      {
+        return true;
+      }
+    case Spec_Hash_Definitions_SHA2_512:
+      {
+        return true;
+      }
+    default:
+      {
+        return false;
+      }
+  }
+}
 
-
-
-extern void WasmSupport_trap();
-
-uint32_t WasmSupport_align_64(uint32_t x);
-
-void WasmSupport_check_buffer_size(uint32_t s);
-
-uint32_t WasmSupport_betole32(uint32_t x);
-
-uint64_t WasmSupport_betole64(uint64_t x);
-
-#define __WasmSupport_H_DEFINED
-#endif

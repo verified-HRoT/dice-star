@@ -6,21 +6,21 @@
  */
 
 #include "kremlib.h"
-#ifndef __WasmSupport_H
-#define __WasmSupport_H
+#ifndef __Spec_Agile_HMAC_H
+#define __Spec_Agile_HMAC_H
+
+#include "Spec_Hash_Definitions.h"
+#include "Lib_ByteSequence.h"
 
 
+bool Spec_Agile_HMAC_is_supported_alg(Spec_Hash_Definitions_hash_alg uu___0_7);
 
+extern Prims_list__Lib_IntTypes_sec_int_t____
+*Spec_Agile_HMAC_hmac(
+  Spec_Hash_Definitions_hash_alg a,
+  Prims_list__Lib_IntTypes_sec_int_t____ *key,
+  Prims_list__Lib_IntTypes_sec_int_t____ *data
+);
 
-extern void WasmSupport_trap();
-
-uint32_t WasmSupport_align_64(uint32_t x);
-
-void WasmSupport_check_buffer_size(uint32_t s);
-
-uint32_t WasmSupport_betole32(uint32_t x);
-
-uint64_t WasmSupport_betole64(uint64_t x);
-
-#define __WasmSupport_H_DEFINED
+#define __Spec_Agile_HMAC_H_DEFINED
 #endif
