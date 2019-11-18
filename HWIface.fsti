@@ -15,6 +15,9 @@ module HWIface
 ///   to make sure that the following model is realizable
 ///
 /// The implementation (a) allocates UDS and CDI as new buffers and (b) initialized UDS itself
+///
+/// For concretely running this code, we will provide a hand-written C-implementation of it
+///   which will be hardware specific
 
 
 open FStar.Integers
