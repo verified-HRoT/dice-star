@@ -193,10 +193,12 @@ let compute_cdi
 
 /// <><><><><><><><><><><><> DICE main funtion <><><><><><><><><><><>
 
+val a: B.buffer 'a
+
 let dice_main
   (riot_size: uint_32)
   (riot_binary: B.buffer uint8 {B.len riot_binary = riot_size})
-: HST.Stack unit
+: HST.ST unit
   (requires fun h ->
     (* all buffers live in `h` *)
       B.all_live h [B.buf riot_binary]
@@ -215,6 +217,8 @@ let dice_main
   B.recall uds;
   B.recall measurement;
   B.recall cdi;
+
+  let a = B.gcmalloc HS.root 0 1ul in
 
   (* initialize `uds` *)
   init_uds ();
