@@ -42,6 +42,8 @@ val cdi_length : uint_32
 ///
 /// The state is a reference to an erased (ghost) value,
 ///   and so, we can be sure that it doesn't impact the concrete executions
+///
+/// This type can be left out of the native C implementation of this interface
 
 
 val local_state : ( a:Type0 & pre:P.preorder (G.erased a) & ST.mref (G.erased a) pre)
@@ -56,6 +58,8 @@ val local_state : ( a:Type0 & pre:P.preorder (G.erased a) & ST.mref (G.erased a)
 ///   And this is a PURE, state independent predicate, once initialized UDS remains so
 ///
 /// Then at some point UDS will be disabled, again once disabled remains disabled
+///
+/// These are just for spec purposes, can be left out of the native implementation
 
 val uds_is_uninitialized (h:HS.mem) : Type0
 
@@ -65,6 +69,9 @@ val uds_is_disabled : Type0
 
 
 /// Now the state of the interface, again as an abstract type
+///
+/// The state provides getters for UDS and CDI (see below)
+///   so the native implementation can implement it simply as a record of two pointers (uds and cdi)
 
 val state : Type0
 
