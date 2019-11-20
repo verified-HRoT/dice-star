@@ -19,8 +19,6 @@ let alg = SHA2_256
 
 let uds_length = 0x20ul
 
-let cdi_length = hash_len alg
-
 type t =
   | Uninitialized
   | Enabled
@@ -56,15 +54,17 @@ noeq
 type state = {
   uds     : B.buffer uint8;
   cdi     : B.buffer uint8;
+  riot    : riot_t;
   uds_val : s:G.erased (Seq.seq uint8){
     B.length uds == v uds_length /\
     B.length cdi == v cdi_length /\
     Seq.length (G.reveal s) == v uds_length /\
     B.freeable uds /\
     B.freeable cdi /\
-    B.disjoint uds cdi /\
-    B.(loc_disjoint (loc_buffer uds) (loc_mreference local_state_ref)) /\
-    B.(loc_disjoint (loc_buffer cdi) (loc_mreference local_state_ref))
+    B.all_disjoint [ B.loc_buffer uds
+                   ; B.loc_buffer cdi
+                   ; B.loc_buffer riot.binary
+                   ; B.loc_mreference local_state_ref]
   }
 }
 
@@ -72,21 +72,27 @@ let get_uds st = st.uds
 
 let get_cdi st = st.cdi
 
+let get_riot st = st.riot
+
 let get_uds_value st = G.reveal st.uds_val
 
-let initialize () =
+let initialize riot_size =
   ST.recall local_state_ref;
   local_state_ref := Enabled;
   ST.witness_p local_state_ref uds_is_initialized_predicate;
 
   let uds = B.malloc HS.root (u8 0x00) uds_length in
   let cdi = B.malloc HS.root (u8 0x00) uds_length in
+  let riot = {
+    size = riot_size;
+    binary = B.malloc HS.root (u8 0x00) riot_size
+  } in
 
   let uds_seq =
     let h = ST.get () in
     G.hide (B.as_seq h uds) in
 
-  { uds = uds; cdi = cdi; uds_val = uds_seq }
+  { uds = uds; cdi = cdi; riot = riot; uds_val = uds_seq }
 
 let unset_uds st = admit() //B.fill (get_uds st) (u8 0x00) uds_length
 
