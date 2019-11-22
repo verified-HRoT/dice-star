@@ -84,10 +84,13 @@ val uds_is_disabled : Type0
 /// The state provides getters for UDS and CDI (see below)
 ///   so the native implementation can implement it simply as a record of two pointers (uds and cdi)
 
+let riot_fp: Type0 = unit -> ST.ST unit (requires fun h -> True) (ensures fun h0 _ h1 -> True)
+
 noeq
 type riot_t = {
   size  : riot_size_t;
-  binary: b: B.buffer uint8{B.length b == v size /\ B.freeable b}
+  binary: b: B.buffer uint8{B.length b == v size /\ B.freeable b};
+  entry : riot_fp
 }
 
 val state : Type0

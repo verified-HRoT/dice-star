@@ -111,6 +111,7 @@ let compute_cdi
 ///
 /// DICE procedure on a stack
 /// It has `Stack` effect, which can only do local stack allocations.
+/// FIXME: Will stack be "clean"? Can I select all buffers on a stack frame?
 #reset-options "--z3rlimit 30"
 let dice_on_stack
   (st: state)

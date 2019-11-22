@@ -20,5 +20,5 @@ minimal:
   -I $(HACL_HOME)/code/curve25519 \
   -I $(HACL_HOME)/code/ed25519 \
   -I $(HACL_HOME)/lib \
-  -I $(HACL_HOME)/providers/evercrypt \
+  -I $(HACL_HOME)/providers/evercrypt\
   -warn-error +11

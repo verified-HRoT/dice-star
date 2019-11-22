@@ -79,6 +79,8 @@ let get_uds_value st = G.reveal st.uds_val
 let initialize riot_size =
   ST.recall local_state_ref;
   local_state_ref := Enabled;
+  local_state_ref := Uninitialized;
+  local_state_ref := Enabled;
   ST.witness_p local_state_ref uds_is_initialized_predicate;
 
   let uds = B.malloc HS.root (u8 0x00) uds_length in
