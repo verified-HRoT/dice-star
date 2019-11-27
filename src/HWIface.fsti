@@ -39,8 +39,7 @@ module B = LowStar.Buffer
 
 let dice_alg = a:hash_alg{a <> MD5 /\ a <> SHA2_224}
 
-val alg : dice_alg
-
+let alg : dice_alg = SHA2_256
 let digest_length = hash_len alg
 
 val uds_length : l: uint_32 {0 < v l /\ v l <= max_input_length alg}

@@ -24,7 +24,7 @@ module HS  = FStar.HyperStack
 module HST = FStar.HyperStack.ST
 module IB  = LowStar.ImmutableBuffer
 
-inline_for_extraction
+inline_for_extraction noextract
 let dice_hash (alg: dice_alg): hash_st alg =
   match alg with
   | SHA2_256 -> SHA2.hash_256
@@ -32,7 +32,7 @@ let dice_hash (alg: dice_alg): hash_st alg =
   | SHA2_512 -> SHA2.hash_512
   | SHA1     -> SHA1.legacy_hash
 
-inline_for_extraction
+inline_for_extraction noextract
 let dice_hmac (alg: dice_alg): HMAC.compute_st alg =
   match alg with
   | SHA2_256 -> HMAC.compute_sha2_256
@@ -99,8 +99,8 @@ let compute_cdi
                      ;B.loc_buffer uDigest
                      ;B.loc_buffer rDigest])
   (ensures  fun h0 _ h1 ->
-      B.modifies (B.loc_union_l [B.loc_buffer cdi]) h0 h1
-    /\ B.as_seq h1 cdi
+    B.modifies (B.loc_buffer cdi) h0 h1 /\
+    B.as_seq h1 cdi
       == Spec.Agile.HMAC.hmac alg (B.as_seq h0 uDigest) (B.as_seq h0 rDigest))
 =
   (**)let h = HST.get() in

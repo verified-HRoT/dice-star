@@ -15,8 +15,6 @@ module ST = FStar.HyperStack.ST
 
 module B = LowStar.Buffer
 
-let alg = SHA2_256
-
 let uds_length = 0x20ul
 
 type t =

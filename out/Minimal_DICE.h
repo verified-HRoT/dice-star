@@ -12,30 +12,14 @@
 #include "Hacl_Hash_SHA1.h"
 #include "Hacl_HMAC.h"
 #include "HWIface.h"
-#include "Lib_IntTypes.h"
 #include "Spec_Hash_Definitions.h"
+#include "Lib_IntTypes.h"
 #include "Hacl_Hash_SHA2.h"
 #include "kremlinit.h"
 #include "Prims.h"
 #include "C.h"
 #include "FStar.h"
 
-
-void
-(*dice_hash(Spec_Hash_Definitions_hash_alg alg1))(
-  Lib_IntTypes_sec_int_t____ *x0,
-  uint32_t x1,
-  Lib_IntTypes_sec_int_t____ *x2
-);
-
-void
-(*dice_hmac(Spec_Hash_Definitions_hash_alg alg1))(
-  Lib_IntTypes_sec_int_t____ *x0,
-  Lib_IntTypes_sec_int_t____ *x1,
-  uint32_t x2,
-  Lib_IntTypes_sec_int_t____ *x3,
-  uint32_t x4
-);
 
 void
 dice_on_stack(HWIface_state st, uint32_t riot_size, Lib_IntTypes_sec_int_t____ *riot_binary);
