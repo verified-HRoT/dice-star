@@ -41,18 +41,19 @@ let dice_hmac (alg: dice_alg): HMAC.compute_st alg =
   | SHA1     -> HMAC.legacy_compute_sha1
 
 /// compute digest of `uds`
+inline_for_extraction
 let compute_uDigest
   (uDigest: B.buffer uint8{B.length uDigest == hash_length alg})
   (uds: B.buffer uint8{B.length uds == v uds_length})
 : HST.StackInline unit
   (requires fun h ->
-      B.all_live h [B.buf uDigest
-                   ;B.buf uds]
-    /\ B.all_disjoint [B.loc_buffer uDigest
-                     ;B.loc_buffer uds])
+    B.all_live h [B.buf uDigest
+                 ;B.buf uds] /\
+    B.all_disjoint [B.loc_buffer uDigest
+                   ;B.loc_buffer uds])
   (ensures  fun h0 _ h1 ->
-      B.modifies (B.loc_buffer uDigest) h0 h1
-    /\ B.as_seq h1 uDigest
+    B.modifies (B.loc_buffer uDigest) h0 h1 /\
+    B.as_seq h1 uDigest
       == Spec.Agile.Hash.hash alg (B.as_seq h0 uds))
 =
   dice_hash alg
@@ -61,19 +62,21 @@ let compute_uDigest
     uDigest
 
 /// compute measurement of RIoT firmware
+inline_for_extraction
 let compute_rDigest
   (rDigest: B.buffer uint8{B.length rDigest == hash_length alg})
   (riot_size: riot_size_t)
   (riot_binary: B.buffer uint8 {B.length riot_binary == v riot_size})
 : HST.StackInline unit
   (requires fun h ->
-      B.all_live h [B.buf riot_binary
-                   ;B.buf rDigest]
-    /\ B.all_disjoint [B.loc_buffer riot_binary
-                     ;B.loc_buffer rDigest])
+    B.all_live h [B.buf riot_binary
+                 ;B.buf rDigest] /\
+    B.all_disjoint [B.loc_buffer riot_binary
+                   ;B.loc_buffer rDigest])
   (ensures  fun h0 _ h1 ->
-      B.modifies (B.loc_buffer rDigest) h0 h1
-    /\ B.as_seq h1 rDigest
+    B.live h1 riot_binary /\
+    B.modifies (B.loc_buffer rDigest) h0 h1 /\
+    B.as_seq h1 rDigest
       == Spec.Agile.Hash.hash alg (B.as_seq h0 riot_binary))
 =
   dice_hash alg
@@ -81,8 +84,8 @@ let compute_rDigest
     riot_size
     rDigest
 
-
 /// Compute `cdi`
+inline_for_extraction
 let compute_cdi
   (cdi: B.buffer uint8{B.length cdi == v cdi_length /\ B.freeable cdi})
   (uDigest: B.buffer uint8{B.length uDigest == hash_length alg})
@@ -126,12 +129,13 @@ let dice_on_stack
     h `B.live` riot_binary /\
     B.all_disjoint ((get_loc_l st)@[B.loc_buffer riot_binary]))
   (ensures  fun h0 _ h1 ->
-    let uds, cdi = get_uds st, get_cdi st in
-      B.modifies (B.loc_buffer cdi) h0 h1 /\
-      B.as_seq h1 cdi
-        == Spec.Agile.HMAC.hmac alg
-             (Spec.Agile.Hash.hash alg (B.as_seq h0 uds))
-             (Spec.Agile.Hash.hash alg (B.as_seq h0 riot_binary)))
+    B.live h1 riot_binary /\
+    (let uds, cdi = get_uds st, get_cdi st in
+       B.modifies (B.loc_buffer cdi) h0 h1 /\
+       B.as_seq h1 cdi
+         == Spec.Agile.HMAC.hmac alg
+              (Spec.Agile.Hash.hash alg (B.as_seq h0 uds))
+              (Spec.Agile.Hash.hash alg (B.as_seq h0 riot_binary))))
 =
   HST.push_frame();
   let uds, cdi = get_uds st, get_cdi st in
@@ -162,17 +166,17 @@ let dice_on_stack
 let dice_main
   (riot_size: riot_size_t)
   (riot_binary: B.buffer uint8 {B.length riot_binary == v riot_size})
-: HST.ST unit
+: HST.ST (st:state{B.all_disjoint ((get_loc_l st)@[B.loc_buffer riot_binary])})
   (requires fun h ->
     uds_is_uninitialized h /\
-    h `B.live` riot_binary)
-  (ensures  fun h0 _ h1 -> uds_is_disabled)
+    h `B.live` riot_binary /\
+    (let (| _, _, local_st |) = local_state in
+      B.loc_disjoint (B.loc_buffer riot_binary) (B.loc_mreference local_st)))
+  (ensures  fun h0 _ h1 ->
+    uds_is_disabled)
 =
   (* allocating in the heap *)
-  let st = initialize () in
-  let h = HST.get () in
-  assert (B.disjoint (get_uds st) riot_binary);
-  st
+  let st = initialize riot_binary in
 
   (* only allocating on the stack *)
   dice_on_stack st riot_size riot_binary;
@@ -181,18 +185,36 @@ let dice_main
   unset_uds st;
   disable_uds st;
 
+  (* FIXME: I failed to prove the liveness of `riot_binary` after freeing `uds` in `disable_uds`*)
+  (**)//let h = HST.get () in
+  (**)assert (B.disjoint riot_binary (get_uds st));
+  (**)//assert (B.live h riot_binary);
+
   st
 
 /// <><><><><><><><><><><><> C main funtion <><><><><><><><><><><>
 
-let riot_size = 255ul
+assume val riot_size: riot_size_t
+
+assume val riot_binary:
+  b:B.buffer uint8
+    {B.length b == v riot_size /\
+    (let (| _, _, local_st |) = local_state in
+      B.loc_disjoint (B.loc_buffer b) (B.loc_mreference local_st))}
 
 let main ()
 : HST.ST C.exit_code
   (requires fun h ->
-      uds_is_uninitialized h)
+    uds_is_uninitialized h /\
+    B.live h riot_binary)
   (ensures  fun h0 _ h1 ->
-      uds_is_disabled)
+    uds_is_disabled)
 =
-  dice_main riot_size;
-  C.EXIT_SUCCESS
+  (* Added a dynamic check, since we might assume `riot_size` in F*
+     and computation relevant refinements on `riot_size` won't
+     reach C code. Do we need it? *)
+  if (0 < v riot_size && v riot_size <= max_input_length alg) then
+    let st = dice_main riot_size riot_binary in
+    C.EXIT_SUCCESS
+  else
+    C.EXIT_FAILURE
