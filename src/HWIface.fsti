@@ -43,11 +43,11 @@ val alg : dice_alg
 
 let digest_length = hash_len alg
 
-val uds_length : l: uint_32 {v l <= max_input_length alg /\ v l > 0}
+val uds_length : l: uint_32 {0 < v l /\ v l <= max_input_length alg}
 
 let cdi_length = digest_length
 
-let riot_size_t = i: uint_32{v i <= max_input_length alg /\ v i > 0}
+let riot_size_t = l: uint_32{0 < v l /\ v l <= max_input_length alg}
 
 /// The model maintains some abstract local state
 ///
@@ -84,15 +84,6 @@ val uds_is_disabled : Type0
 /// The state provides getters for UDS and CDI (see below)
 ///   so the native implementation can implement it simply as a record of two pointers (uds and cdi)
 
-let riot_fp: Type0 = unit -> ST.ST unit (requires fun h -> True) (ensures fun h0 _ h1 -> True)
-
-noeq
-type riot_t = {
-  size  : riot_size_t;
-  binary: b: B.buffer uint8{B.length b == v size /\ B.freeable b};
-  entry : riot_fp
-}
-
 val state : Type0
 
 /// Clients can get the uds and the cdi buffer from the state
@@ -104,35 +95,19 @@ val get_uds (st:state)
 val get_cdi (st:state)
 : Tot (b:B.buffer uint8{B.length b == v cdi_length /\ B.freeable b})
 
-val get_riot (st:state)
-: Tot (r:riot_t)
-
 val get_uds_value (st:state)
 : GTot (s:Seq.seq uint8{Seq.length s == v uds_length})
 
 /// Helper
 
 unfold
-let get_buf_t_l st = [ B.buf (get_uds st)
-                     ; B.buf (get_cdi st)
-                     ; B.buf (get_riot st).binary ]
-
-unfold
 let get_loc_l st = [ B.loc_buffer (get_uds st)
-                   ; B.loc_buffer (get_cdi st)
-                   ; B.loc_buffer (get_riot st).binary ]
-
-unfold
-let get_buf_l st = [ get_uds st
-                   ; get_cdi st
-                   ; (get_riot st).binary ]
+                   ; B.loc_buffer (get_cdi st) ]
 
 unfold
 let contains (h:HS.mem) (st:state) =
   B.live h (get_uds st) /\
-  B.live h (get_cdi st) /\
-  B.live h (get_riot st).binary
-
+  B.live h (get_cdi st)
 
 /// The initialization routine
 ///
@@ -150,20 +125,24 @@ let contains (h:HS.mem) (st:state) =
 ///       e.g. this function is currently allowed to allocate two uds buffers and copy UDS into them
 
 val initialize
-  (riot_size: riot_size_t)
-: ST state
-  (requires fun h -> uds_is_uninitialized h)
+  (riot_binary: B.buffer uint8)
+: ST (st:state{B.all_disjoint ((get_loc_l st)@[B.loc_buffer riot_binary])})
+  (requires fun h ->
+    uds_is_uninitialized h /\
+    B.live h riot_binary /\
+    (let (| _, _, local_st |) = local_state in
+      B.loc_disjoint (B.loc_buffer riot_binary) (B.loc_mreference local_st)))
   (ensures fun h0 st h1 ->
     uds_is_initialized /\  //uds has been initialized
     (let (| _, _, local_st |) = local_state in
      let uds  = get_uds st in
      let cdi  = get_cdi st in
-     let riot = get_riot st in
      HS.contains h1 local_st /\
      B.(modifies (loc_mreference local_st) h0 h1) /\
      h1 `contains` st /\
-     B.all_disjoint (get_loc_l st `FStar.List.Tot.append` [B.loc_mreference local_st]) /\
-     riot.size == riot_size /\
+     B.all_disjoint ((get_loc_l st)
+                    @[B.loc_mreference local_st
+                    ; B.loc_buffer riot_binary]) /\
      B.as_seq h1 uds == get_uds_value st))
 
 
