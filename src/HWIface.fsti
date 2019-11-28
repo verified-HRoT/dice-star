@@ -179,5 +179,4 @@ val disable_uds (st:state)
     (let (| _, _, local_st |) = local_state in
      let uds = get_uds st in
      B.(modifies (loc_union (loc_addr_of_buffer uds)
-                            (loc_mreference local_st)) h0 h1) /\
-     (forall (b:B.buffer uint8). ((B.live h0 b) /\ (B.disjoint b uds) ==> (B.live h1 b)))))
+                            (loc_mreference local_st)) h0 h1)))
