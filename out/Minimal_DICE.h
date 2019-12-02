@@ -9,10 +9,8 @@
 #ifndef __Minimal_DICE_H
 #define __Minimal_DICE_H
 
-#include "Hacl_Hash_SHA1.h"
 #include "Hacl_HMAC.h"
 #include "HWIface.h"
-#include "Spec_Hash_Definitions.h"
 #include "Lib_IntTypes.h"
 #include "Hacl_Hash_SHA2.h"
 #include "kremlinit.h"
@@ -29,6 +27,9 @@ HWIface_state dice_main(uint32_t riot_size, Lib_IntTypes_sec_int_t____ *riot_bin
 extern uint32_t riot_size;
 
 extern Lib_IntTypes_sec_int_t____ *riot_binary;
+
+extern void
+safe_load(uint32_t riot_size1, Lib_IntTypes_sec_int_t____ *riot_binary1, uint8_t *base_address);
 
 exit_code main();
 

@@ -16,185 +16,17 @@ dice_on_stack(HWIface_state st, uint32_t riot_size, Lib_IntTypes_sec_int_t____ *
   Lib_IntTypes_sec_int_t____ uDigest[HWIface_digest_length];
   for (uint32_t _i = 0U; _i < HWIface_digest_length; ++_i)
     uDigest[_i] = Lib_IntTypes_mk_int(Lib_IntTypes_U8, Lib_IntTypes_SEC, (krml_checked_int_t)0x00);
-  void (*sw0)(Lib_IntTypes_sec_int_t____ *x0, uint32_t x1, Lib_IntTypes_sec_int_t____ *x2);
-  switch (HWIface_alg)
-  {
-    case Spec_Hash_Definitions_SHA2_256:
-      {
-        sw0 = Hacl_Hash_SHA2_hash_256;
-        break;
-      }
-    case Spec_Hash_Definitions_SHA2_384:
-      {
-        sw0 = Hacl_Hash_SHA2_hash_384;
-        break;
-      }
-    case Spec_Hash_Definitions_SHA2_512:
-      {
-        sw0 = Hacl_Hash_SHA2_hash_512;
-        break;
-      }
-    case Spec_Hash_Definitions_SHA1:
-      {
-        sw0 = Hacl_Hash_SHA1_legacy_hash;
-        break;
-      }
-    default:
-      {
-        KRML_HOST_EPRINTF("KreMLin incomplete match at %s:%d\n", __FILE__, __LINE__);
-        KRML_HOST_EXIT(253U);
-      }
-  }
-  sw0(uds, HWIface_uds_length, uDigest);
+  Hacl_Hash_SHA2_hash_256(uds, HWIface_uds_length, uDigest);
   KRML_CHECK_SIZE(sizeof (Lib_IntTypes_sec_int_t____), HWIface_digest_length);
   Lib_IntTypes_sec_int_t____ rDigest[HWIface_digest_length];
   for (uint32_t _i = 0U; _i < HWIface_digest_length; ++_i)
     rDigest[_i] = Lib_IntTypes_mk_int(Lib_IntTypes_U8, Lib_IntTypes_SEC, (krml_checked_int_t)0x00);
-  void (*sw1)(Lib_IntTypes_sec_int_t____ *x0, uint32_t x1, Lib_IntTypes_sec_int_t____ *x2);
-  switch (HWIface_alg)
-  {
-    case Spec_Hash_Definitions_SHA2_256:
-      {
-        sw1 = Hacl_Hash_SHA2_hash_256;
-        break;
-      }
-    case Spec_Hash_Definitions_SHA2_384:
-      {
-        sw1 = Hacl_Hash_SHA2_hash_384;
-        break;
-      }
-    case Spec_Hash_Definitions_SHA2_512:
-      {
-        sw1 = Hacl_Hash_SHA2_hash_512;
-        break;
-      }
-    case Spec_Hash_Definitions_SHA1:
-      {
-        sw1 = Hacl_Hash_SHA1_legacy_hash;
-        break;
-      }
-    default:
-      {
-        KRML_HOST_EPRINTF("KreMLin incomplete match at %s:%d\n", __FILE__, __LINE__);
-        KRML_HOST_EXIT(253U);
-      }
-  }
-  sw1(riot_binary, riot_size, rDigest);
-  void
-  (*sw2)(
-    Lib_IntTypes_sec_int_t____ *x0,
-    Lib_IntTypes_sec_int_t____ *x1,
-    uint32_t x2,
-    Lib_IntTypes_sec_int_t____ *x3,
-    uint32_t x4
-  );
-  switch (HWIface_alg)
-  {
-    case Spec_Hash_Definitions_SHA2_256:
-      {
-        sw2 = Hacl_HMAC_compute_sha2_256;
-        break;
-      }
-    case Spec_Hash_Definitions_SHA2_384:
-      {
-        sw2 = Hacl_HMAC_compute_sha2_384;
-        break;
-      }
-    case Spec_Hash_Definitions_SHA2_512:
-      {
-        sw2 = Hacl_HMAC_compute_sha2_512;
-        break;
-      }
-    case Spec_Hash_Definitions_SHA1:
-      {
-        sw2 = Hacl_HMAC_legacy_compute_sha1;
-        break;
-      }
-    default:
-      {
-        KRML_HOST_EPRINTF("KreMLin incomplete match at %s:%d\n", __FILE__, __LINE__);
-        KRML_HOST_EXIT(253U);
-      }
-  }
-  uint32_t sw3;
-  switch (HWIface_alg)
-  {
-    case Spec_Hash_Definitions_MD5:
-      {
-        sw3 = (uint32_t)16U;
-        break;
-      }
-    case Spec_Hash_Definitions_SHA1:
-      {
-        sw3 = (uint32_t)20U;
-        break;
-      }
-    case Spec_Hash_Definitions_SHA2_224:
-      {
-        sw3 = (uint32_t)28U;
-        break;
-      }
-    case Spec_Hash_Definitions_SHA2_256:
-      {
-        sw3 = (uint32_t)32U;
-        break;
-      }
-    case Spec_Hash_Definitions_SHA2_384:
-      {
-        sw3 = (uint32_t)48U;
-        break;
-      }
-    case Spec_Hash_Definitions_SHA2_512:
-      {
-        sw3 = (uint32_t)64U;
-        break;
-      }
-    default:
-      {
-        KRML_HOST_EPRINTF("KreMLin incomplete match at %s:%d\n", __FILE__, __LINE__);
-        KRML_HOST_EXIT(253U);
-      }
-  }
-  uint32_t sw;
-  switch (HWIface_alg)
-  {
-    case Spec_Hash_Definitions_MD5:
-      {
-        sw = (uint32_t)16U;
-        break;
-      }
-    case Spec_Hash_Definitions_SHA1:
-      {
-        sw = (uint32_t)20U;
-        break;
-      }
-    case Spec_Hash_Definitions_SHA2_224:
-      {
-        sw = (uint32_t)28U;
-        break;
-      }
-    case Spec_Hash_Definitions_SHA2_256:
-      {
-        sw = (uint32_t)32U;
-        break;
-      }
-    case Spec_Hash_Definitions_SHA2_384:
-      {
-        sw = (uint32_t)48U;
-        break;
-      }
-    case Spec_Hash_Definitions_SHA2_512:
-      {
-        sw = (uint32_t)64U;
-        break;
-      }
-    default:
-      {
-        KRML_HOST_EPRINTF("KreMLin incomplete match at %s:%d\n", __FILE__, __LINE__);
-        KRML_HOST_EXIT(253U);
-      }
-  }
-  sw2(cdi, uDigest, sw3, rDigest, sw);
+  Hacl_Hash_SHA2_hash_256(riot_binary, riot_size, rDigest);
+  Hacl_HMAC_compute_sha2_256(cdi,
+    uDigest,
+    HWIface_digest_length,
+    rDigest,
+    HWIface_digest_length);
 }
 
 HWIface_state dice_main(uint32_t riot_size, Lib_IntTypes_sec_int_t____ *riot_binary)
@@ -209,7 +41,14 @@ HWIface_state dice_main(uint32_t riot_size, Lib_IntTypes_sec_int_t____ *riot_bin
 exit_code main()
 {
   kremlinit_globals();
-  if ((void *)0U)
+  if
+  (
+    Prims_op_LessThan((krml_checked_int_t)0,
+      FStar_UInt32_v(riot_size))
+    &&
+      Prims_op_LessThanOrEqual(FStar_UInt32_v(riot_size),
+        Prims_op_Subtraction(Prims_pow2((krml_checked_int_t)61), (krml_checked_int_t)1))
+  )
   {
     HWIface_state st = dice_main(riot_size, riot_binary);
     return EXIT_SUCCESS;

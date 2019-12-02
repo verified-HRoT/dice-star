@@ -9,7 +9,7 @@
 
 Spec_Hash_Definitions_hash_alg HWIface_alg = Spec_Hash_Definitions_SHA2_256;
 
-uint32_t HWIface_digest_length;
+uint32_t HWIface_digest_length = (uint32_t)32U;
 
 uint32_t HWIface_cdi_length;
 
