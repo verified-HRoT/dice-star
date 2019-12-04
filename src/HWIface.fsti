@@ -21,7 +21,11 @@ module HWIface
 
 
 open FStar.Integers
+open Lib.IntTypes
 open FStar.HyperStack.ST
+
+open Spec.Hash.Definitions
+open Hacl.Hash.Definitions
 
 module P = FStar.Preorder
 module G = FStar.Ghost
@@ -33,10 +37,17 @@ module B = LowStar.Buffer
 
 /// Lengths of UDS and CDI
 
-val uds_length : uint_32
+let dice_alg = a:hash_alg{a <> MD5 /\ a <> SHA2_224}
 
-val cdi_length : uint_32
+unfold
+let alg : dice_alg = SHA2_256
+let digest_length = hash_len alg
 
+val uds_length : l: uint_32 {0 < v l /\ v l <= max_input_length alg}
+
+let cdi_length = digest_length
+
+let riot_size_t = l: uint_32{0 < v l /\ v l <= max_input_length alg}
 
 /// The model maintains some abstract local state
 ///
@@ -75,27 +86,28 @@ val uds_is_disabled : Type0
 
 val state : Type0
 
-
 /// Clients can get the uds and the cdi buffer from the state
 ///   And also value of the UDS for the purposed of the spec
 
 val get_uds (st:state)
-: Tot (b:B.buffer uint_8{B.length b == v uds_length /\ B.freeable b})
+: Tot (b:B.buffer uint8{B.length b == v uds_length /\ B.freeable b})
 
 val get_cdi (st:state)
-: Tot (b:B.buffer uint_8{B.length b == v cdi_length /\ B.freeable b})
+: Tot (b:B.buffer uint8{B.length b == v cdi_length /\ B.freeable b})
 
 val get_uds_value (st:state)
-: GTot (s:Seq.seq uint_8{Seq.length s == v uds_length})
-
+: GTot (s:Seq.seq uint8{Seq.length s == v uds_length})
 
 /// Helper
+
+unfold
+let get_loc_l st = [ B.loc_buffer (get_uds st)
+                   ; B.loc_buffer (get_cdi st) ]
 
 unfold
 let contains (h:HS.mem) (st:state) =
   B.live h (get_uds st) /\
   B.live h (get_cdi st)
-
 
 /// The initialization routine
 ///
@@ -112,20 +124,25 @@ let contains (h:HS.mem) (st:state) =
 /// TODO: this currently does not say anything about the allocations it does
 ///       e.g. this function is currently allowed to allocate two uds buffers and copy UDS into them
 
-val initialize (_:unit)
-: ST state
-  (requires fun h -> uds_is_uninitialized h)
+val initialize
+  (riot_binary: B.buffer pub_uint8)
+: ST (st:state{B.all_disjoint ((get_loc_l st)@[B.loc_buffer riot_binary])})
+  (requires fun h ->
+    uds_is_uninitialized h /\
+    B.live h riot_binary /\
+    (let (| _, _, local_st |) = local_state in
+      B.loc_disjoint (B.loc_buffer riot_binary) (B.loc_mreference local_st)))
   (ensures fun h0 st h1 ->
     uds_is_initialized /\  //uds has been initialized
     (let (| _, _, local_st |) = local_state in
-     let uds = get_uds st in
-     let cdi = get_cdi st in
+     let uds  = get_uds st in
+     let cdi  = get_cdi st in
      HS.contains h1 local_st /\
      B.(modifies (loc_mreference local_st) h0 h1) /\
      h1 `contains` st /\
-     B.disjoint uds cdi /\
-     B.(loc_disjoint (loc_buffer uds) (loc_mreference local_st)) /\
-     B.(loc_disjoint (loc_buffer cdi) (loc_mreference local_st)) /\
+     B.all_disjoint ((get_loc_l st)
+                    @[B.loc_mreference local_st
+                    ; B.loc_buffer riot_binary]) /\
      B.as_seq h1 uds == get_uds_value st))
 
 
@@ -142,7 +159,7 @@ val unset_uds (st:state)
     let uds = get_uds st in
     equal_domains h0 h1 /\
     B.(modifies (loc_buffer uds) h0 h1) /\
-    B.as_seq h1 uds == Seq.create (v uds_length) 0uy)
+    B.as_seq h1 uds == Seq.create (v uds_length) (u8 0x00))
 
 
 /// Disable UDS
@@ -157,7 +174,7 @@ val disable_uds (st:state)
   (requires fun h ->
     uds_is_initialized /\
     h `contains` st /\
-    Seq.equal (B.as_seq h (get_uds st)) (Seq.create (v uds_length) 0uy))
+    Seq.equal (B.as_seq h (get_uds st)) (Seq.create (v uds_length) (u8 0x00)))
   (ensures fun h0 _ h1 ->
     uds_is_disabled /\  //uds has been disabled
     (let (| _, _, local_st |) = local_state in
