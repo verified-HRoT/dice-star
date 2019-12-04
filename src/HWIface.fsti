@@ -125,7 +125,7 @@ let contains (h:HS.mem) (st:state) =
 ///       e.g. this function is currently allowed to allocate two uds buffers and copy UDS into them
 
 val initialize
-  (riot_binary: B.buffer uint8)
+  (riot_binary: B.buffer pub_uint8)
 : ST (st:state{B.all_disjoint ((get_loc_l st)@[B.loc_buffer riot_binary])})
   (requires fun h ->
     uds_is_uninitialized h /\
