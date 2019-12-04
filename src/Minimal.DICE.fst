@@ -2,8 +2,9 @@
 module Minimal.DICE
 
 open LowStar.BufferOps
-open Lib.IntTypes
-open FStar.Integers
+(* since there will be confusions about `cast` in both modules, I closed them for now *)
+// open Lib.IntTypes
+// open FStar.Integers
 
 open Spec.Hash.Definitions
 open Hacl.Hash.Definitions
@@ -42,40 +43,50 @@ let dice_hmac (alg: dice_alg): HMAC.compute_st alg =
   | SHA2_512 -> HMAC.compute_sha2_512
   | SHA1     -> HMAC.legacy_compute_sha1
 
-// let pub_seq_to_sec_l_of_pos_size
-//   (size: I.uint_32{I.v size > 0})
-//   (#t: HI.inttype)
-//   (seq_pub: Seq.seq (HI.int_t t HI.PUB){Seq.length seq_pub == I.v size})
-// =
-//   let seq_of_size_pub = Seq.slice seq_pub 0 (I.v size - 1) in
-//   let l_of_size_pub = Seq.seq_to_list seq_of_size_pub in
-//   let l_of_size_sec = List.mapT HI.(fun (s:int_t t PUB) -> cast t SEC s) l_of_size_pub in
-//   l_of_size_sec
+(* draft spec of public sequence to secret list conversion *)
+let pub_to_sec_spec
+  (size: I.uint_32{I.v size > 0})
+  (#t: HI.inttype)
+  (seq_pub: Seq.seq HI.(int_t t PUB){Seq.length seq_pub == I.v size})
+  (seq_sec: Seq.seq HI.(int_t t SEC){Seq.length seq_sec == I.v size})
+=
+  let seq_of_size_pub = Seq.slice seq_pub 0 (I.v size - 1) in
+  let l_of_size_pub = Seq.seq_to_list seq_of_size_pub in
+  let l_of_size_sec = List.mapT HI.(fun (s:int_t t PUB) -> cast t SEC s) l_of_size_pub in
+  Seq.seq_of_list l_of_size_sec == seq_sec
 
-// let rec pub_buffer_to_sec_l
-//   (size: I.uint_32)
-//   (#t: HI.inttype)
-//   (b_pub: B.buffer (HI.int_t t HI.PUB){B.length b_pub >= I.v size})
-// : HST.Stack (l_sec: list (HI.int_t t HI.SEC))
-//   (requires fun h ->
-//     B.live h b_pub)
-//   (ensures  fun h0 l_sec h1 ->
-//     B.modifies B.loc_none h0 h1 /\
-//     List.length l_sec == I.v size /\
-//     I.v size == 0 ==> l_sec == Nil /\
-//     I.v size <> 0 ==>
-//     (let b_seq_pub = B.as_seq h0 b_pub in
-//      let b_of_size_l_sec = pub_seq_to_sec_l_of_pos_size size b_seq_pub in
-//      b_of_size_l_sec == l_sec))
-// =
-//   match size with
-//   | 0ul -> Nil
-//   |  _  -> let iterator = I.(size - 1ul) in
-//           let hd_pub = (B.index b_pub iterator) in
-//           let hd_sec = HI.cast t HI.SEC hd_pub in
-//           let tl_sec = pub_buffer_to_sec_l iterator b_pub in
-//           hd_sec :: tl_sec
+(* NEWLY defined mapping function without list *)
+(* This seems fine, haven't tried in `dice_main` *)
+(* NOTE: casting function for sec u8 to pub u8 is
+   NOTE: `HI.(cast #U8 #PUB U8 SEC)` *)
+let rec buffer_map_without_list
+  (size: I.uint_32)
+  (#t1 #t2: Type)
+  (f: t1 -> t2)
+  (b1: B.buffer t1{B.length b1 >= I.v size})
+  (b2: B.buffer t2{B.length b2 >= I.v size})
+: HST.Stack unit
+  (requires fun h ->
+    B.live h b1 /\
+    B.live h b2
+    (* no disjointness because it's ok to do something inplace *))
+  (ensures  fun h0 _ h1 ->
+    I.v size == 0 ==>
+      B.modifies B.loc_none h0 h1 /\
+    I.v size =!= 0 ==>
+     (B.modifies (B.loc_buffer b2) h0 h1 /\
+      List.mapT f (Seq.seq_to_list (Seq.slice (B.as_seq h0 b1) 0 (I.v size - 1)))
+               == (Seq.seq_to_list (Seq.slice (B.as_seq h1 b2) 0 (I.v size - 1)))))
+=
+  match size with
+  | 0ul -> ()
+  |  _  -> let iterator = I.(size - 1ul) in
+          let hd1 = B.index b1 iterator in
+          B.upd b2 iterator (f hd1);
+          buffer_map_without_list iterator f b1 b2
 
+(* mapping function for the first `size` elements of a buffer, which returns a list as result *)
+(* to avoid list and seq in computational code, I could rewrite it  *)
 let rec buffer_map_l
   (size: I.uint_32)
   (#t1 #t2: Type)
@@ -99,34 +110,30 @@ let rec buffer_map_l
           let tl2 = buffer_map_l iterator f b1 in
           hd2 :: tl2
 
-let f (_:unit) : HST.St unit =
-HST.push_frame ();
-  (**)let h  = HST.get () in
-  let b = B.alloca 0 1ul in
-  (**)let h' = HST.get () in
-  (**)assert (B.modifies B.loc_none h h');
-HST.pop_frame ()
-
-// #reset-options "--z3rlimit 50 --max_fuel 100 --max_ifuel 100 --query_stats"
-// let buffer_map
-//   (size: I.uint_32{I.v size > 0})
-//   (#t1 #t2: Type)
-//   (f: t1 -> t2)
-//   (b1: B.buffer t1{B.length b1 >= I.v size})
-// : HST.StackInline (b2: B.buffer t2{B.length b2 == I.v size})
-//   (requires fun h ->
-//     B.live h b1)
-//   (ensures  fun h0 b2 h1 ->
-//     B.modifies B.loc_none h0 h1 /\
-//     B.live h1 b2 /\
-//     List.mapT f (Seq.seq_to_list (Seq.slice (B.as_seq h0 b1) 0 (I.v size - 1))) == Seq.seq_to_list (Seq.slice (B.as_seq h1 b2) 0 (I.v size - 1)))
-// =
-//   let l2: list _ = buffer_map_l size f b1 in
-//   let b2 = B.alloca_of_list l2 in
-//   b2
+(* mapping function for the first `size` elements of a buffer, which uses `buffer_map_l` and returns a newly allocated buffer on caller's stack *)
+(*
+let buffer_map
+  (size: I.uint_32{I.v size > 0})
+  (#t1 #t2: Type)
+  (f: t1 -> t2)
+  (b1: B.buffer t1{B.length b1 >= I.v size})
+: HST.StackInline (b2: B.buffer t2{B.length b2 == I.v size})
+  (requires fun h ->
+    B.live h b1)
+  (ensures  fun h0 b2 h1 ->
+    B.modifies B.loc_none h0 h1 /\
+    B.live h1 b2 /\
+    List.mapT f (Seq.seq_to_list (Seq.slice (B.as_seq h0 b1) 0 (I.v size - 1))) == Seq.seq_to_list (Seq.slice (B.as_seq h1 b2) 0 (I.v size - 1)))
+=
+  let l2: list _ = buffer_map_l size f b1 in
+  let b2 = B.alloca_of_list l2 in
+  b2
+*)
 
 /// <><><><><><><><><><><><> DICE main funtion <><><><><><><><><><><>
 
+(* This old version `dice_on_stack` is for reference purpose, not what we want finally *)
+(* F* warns when set `--query_stats` *)
 #reset-options "--z3rlimit 30 --query_stats"
 let dice_on_stack
   (st: state)
@@ -182,9 +189,15 @@ let dice_on_stack
 
   HST.pop_frame()
 
+(* This function is under working *)
+(* I tried to use pub_uint8 buffer here and encountered many problems *)
+(* I believe lots of these problems come from `Spec.Agile.HMAC.hmac` (used in our assertions and HACL functions), which used `pow2` in its precondition `keysized` *)
+(* As we discussed, I should use `assert_norm` or some normalize ways to reduce `pow2` in F* *)
+(* Now it is a mess *)
 let dice_main
   (st: state)
   (riot_size: riot_size_t)
+  (* here should be HI.pub_uint8 *)
   (riot_binary: B.buffer HI.uint8{B.length riot_binary == I.v riot_size})
 : HST.Stack unit
   (requires fun h ->
@@ -193,7 +206,7 @@ let dice_main
     B.all_disjoint ((get_loc_l st)@[B.loc_buffer riot_binary]))
   (ensures  fun h0 _ h1 ->
     (let uds, cdi = get_uds st, get_cdi st in
-     // let riot_binary_sec_l = pub_seq_to_sec_l_of_pos_size riot_size (B.as_seq h0 riot_binary) in
+     // let riot_binary_sec_l = pub_seq_to_sec_l_of_pos_size_spec riot_size (B.as_seq h0 riot_binary) in
        B.modifies (B.loc_buffer cdi) h0 h1 /\
        B.as_seq h1 cdi
          == Spec.Agile.HMAC.hmac alg
@@ -209,7 +222,9 @@ let dice_main
   // (**)let h1 = HST.get () in
   // (**)assert (B.modifies (B.loc_buffer uDigest) h0 h1 /\
   // (**)        B.as_seq h1 uDigest == Spec.Agile.Hash.hash alg (B.as_seq h0 uds));
-  // let riot_binary_sec = buffer_map_alloca riot_size HI.(cast #U8 #PUB U8 SEC) riot_binary in
+
+     (* here should allocate a secret riot_binary buffer *)
+  // let riot_binary_sec = buffer_map riot_size HI.(cast #U8 #PUB U8 SEC) riot_binary in
   // (**)let h1 = HST.get () in
   let rDigest: b:B.buffer HI.uint8{B.length b == I.v digest_length} = B.alloca (HI.u8 0x00) digest_length
   in dice_hash alg riot_binary riot_size rDigest;
@@ -232,44 +247,6 @@ assume val riot_binary:
     {B.length b == I.v riot_size /\
     (let (| _, _, local_st |) = local_state in
       B.loc_disjoint (B.loc_buffer b) (B.loc_mreference local_st))}
-
-assume val safe_load
-  (riot_size: riot_size_t)
-  (riot_binary: B.buffer HI.uint8{B.length riot_binary == I.v riot_size})
-  (base_address: B.buffer pub_HI.uint8)
-: HST.Stack unit
-  (requires fun h ->
-    B.live h riot_binary /\
-    B.live h base_address)
-  (ensures  fun h0 _ h1 ->
-    B.modifies (B.loc_buffer riot_binary) h0 h1)
-
-// let riot_main_t =
-//   (cdi: cdi_t)
-// -> HST.Stack state
-//   (requires fun h ->
-//     B.live h cdi /\
-//     uds_is_disabled)
-//   (ensures  fun h0 _ h1 ->
-//     let cdi = get_cdi st in
-//       B.as_seq h1 cdi == Seq.create (v cdi_length) (HI.u8 0x00))
-
-// assume val riot_main: riot_main_t
-
-// val safe_call
-//     (riot_main: riot_main_t)
-//     (st: state)
-// : HST.Stack (st:state{B.all_disjoint ((get_loc_l st)@[B.loc_buffer riot_binary])})
-//   (requires fun h ->
-//     uds_is_disabled /\
-//     h `B.live` riot_binary /\
-//     (let (| _, _, local_st |) = local_state in
-//       B.loc_disjoint (B.loc_buffer riot_binary) (B.loc_mreference local_st)))
-//   (ensures  fun h0 _ h1 ->
-//     B.live h1 riot_binary /\
-//     uds_is_disabled)
-
-// let safe_call riot_main st = riot_main st
 
 let main ()
 : HST.ST C.exit_code
@@ -294,5 +271,3 @@ let main ()
     C.EXIT_SUCCESS
   else
     C.EXIT_FAILURE
-
-//  LocalWords:  uDigest
