@@ -4,6 +4,19 @@ SRC_MAIN = Minimal.DICE.fst
 OUT_DIR = $(VHW_HOME)/out
 OUT_NAME = Minimal.DICE
 
+INCLUDE_PATHS = \
+  $(HACL_HOME)/specs \
+  $(HACL_HOME)/specs/lemmas \
+  $(HACL_HOME)/code/hash \
+  $(HACL_HOME)/code/hkdf \
+  $(HACL_HOME)/code/hmac\
+  $(HACL_HOME)/code/curve25519 \
+  $(HACL_HOME)/code/ed25519 \
+  $(HACL_HOME)/lib \
+  $(HACL_HOME)/providers/evercrypt \
+  $(KREMLIN_HOME)/kremlib
+
+
 minimal:
 	krml \
   -no-prefix \
@@ -12,13 +25,8 @@ minimal:
   -skip-compilation \
   -tmpdir $(OUT_DIR) \
   -I $(SRC_DIR) \
-  -I $(HACL_HOME)/specs \
-  -I $(HACL_HOME)/specs/lemmas \
-  -I $(HACL_HOME)/code/hash \
-  -I $(HACL_HOME)/code/hkdf \
-  -I $(HACL_HOME)/code/hmac \
-  -I $(HACL_HOME)/code/curve25519 \
-  -I $(HACL_HOME)/code/ed25519 \
-  -I $(HACL_HOME)/lib \
-  -I $(HACL_HOME)/providers/evercrypt\
+  $(addprefix -I , $(INCLUDE_PATHS)) \
   -warn-error +11
+
+%.fst-in %.fsti-in: 
+	@echo $(addprefix --include , $(INCLUDE_PATHS))
