@@ -20,7 +20,7 @@ module HWIface
 ///   which will be hardware specific
 
 
-open FStar.Integers
+// open FStar.Integers
 open Lib.IntTypes
 open FStar.HyperStack.ST
 
@@ -41,13 +41,15 @@ let dice_alg = a:hash_alg{a <> MD5 /\ a <> SHA2_224}
 
 unfold
 let alg : dice_alg = SHA2_256
-let digest_length = hash_len alg
+let digest_len = hash_len alg
 
-val uds_length : l: uint_32 {0 < v l /\ v l <= max_input_length alg}
+let digest_t = hash_t alg
 
-let cdi_length = digest_length
+val uds_len : l: size_t {0 < v l /\ v l <= max_input_length alg}
 
-let riot_size_t = l: uint_32{0 < v l /\ v l <= max_input_length alg}
+let cdi_len = digest_len
+
+let riot_size_t = l: size_t{0 < v l /\ v l <= max_input_length alg}
 
 /// The model maintains some abstract local state
 ///
@@ -90,13 +92,13 @@ val state : Type0
 ///   And also value of the UDS for the purposed of the spec
 
 val get_uds (st:state)
-: Tot (b:B.buffer uint8{B.length b == v uds_length /\ B.freeable b})
+: Tot (b:B.buffer uint8{B.length b == v uds_len /\ B.freeable b})
 
 val get_cdi (st:state)
-: Tot (b:B.buffer uint8{B.length b == v cdi_length /\ B.freeable b})
+: Tot (b:B.buffer uint8{B.length b == v cdi_len /\ B.freeable b})
 
 val get_uds_value (st:state)
-: GTot (s:Seq.seq uint8{Seq.length s == v uds_length})
+: GTot (s:Seq.seq uint8{Seq.length s == v uds_len})
 
 /// Helper
 
@@ -125,7 +127,7 @@ let contains (h:HS.mem) (st:state) =
 ///       e.g. this function is currently allowed to allocate two uds buffers and copy UDS into them
 
 val initialize
-  (riot_binary: B.buffer pub_uint8)
+  (riot_binary: B.buffer uint8)
 : ST (st:state{B.all_disjoint ((get_loc_l st)@[B.loc_buffer riot_binary])})
   (requires fun h ->
     uds_is_uninitialized h /\
@@ -159,7 +161,7 @@ val unset_uds (st:state)
     let uds = get_uds st in
     equal_domains h0 h1 /\
     B.(modifies (loc_buffer uds) h0 h1) /\
-    B.as_seq h1 uds == Seq.create (v uds_length) (u8 0x00))
+    B.as_seq h1 uds == Seq.create (v uds_len) (u8 0x00))
 
 
 /// Disable UDS
@@ -174,7 +176,7 @@ val disable_uds (st:state)
   (requires fun h ->
     uds_is_initialized /\
     h `contains` st /\
-    Seq.equal (B.as_seq h (get_uds st)) (Seq.create (v uds_length) (u8 0x00)))
+    Seq.equal (B.as_seq h (get_uds st)) (Seq.create (v uds_len) (u8 0x00)))
   (ensures fun h0 _ h1 ->
     uds_is_disabled /\  //uds has been disabled
     (let (| _, _, local_st |) = local_state in

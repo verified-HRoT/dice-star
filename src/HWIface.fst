@@ -1,6 +1,6 @@
 module HWIface
 
-open FStar.Integers
+// open FStar.Integers
 open Lib.IntTypes
 open FStar.HyperStack.ST
 
@@ -15,7 +15,7 @@ module ST = FStar.HyperStack.ST
 
 module B = LowStar.Buffer
 
-let uds_length = 0x20ul
+let uds_len = 0x20ul
 
 type t =
   | Uninitialized
@@ -53,9 +53,9 @@ type state = {
   uds     : B.buffer uint8;
   cdi     : B.buffer uint8;
   uds_val : s:G.erased (Seq.seq uint8){
-    B.length uds == v uds_length /\
-    B.length cdi == v cdi_length /\
-    Seq.length (G.reveal s) == v uds_length /\
+    B.length uds == v uds_len /\
+    B.length cdi == v cdi_len /\
+    Seq.length (G.reveal s) == v uds_len /\
     B.freeable uds /\
     B.freeable cdi /\
     B.all_disjoint [ B.loc_buffer uds
@@ -75,8 +75,8 @@ let initialize riot_binary =
   local_state_ref := Enabled;
   ST.witness_p local_state_ref uds_is_initialized_predicate;
 
-  let uds = B.malloc HS.root (u8 0x00) uds_length in
-  let cdi = B.malloc HS.root (u8 0x00) uds_length in
+  let uds = B.malloc HS.root (u8 0x00) uds_len in
+  let cdi = B.malloc HS.root (u8 0x00) uds_len in
 
   let uds_seq =
     let h = ST.get () in
@@ -86,9 +86,9 @@ let initialize riot_binary =
 
 let unset_uds st =
   let uds = get_uds st in
-  B.fill uds (u8 0x00) uds_length;
+  B.fill uds (u8 0x00) uds_len;
   let h = ST.get () in
-  assert (Seq.equal (B.as_seq h uds) (Seq.create (v uds_length) (u8 0x00)))
+  assert (Seq.equal (B.as_seq h uds) (Seq.create (v uds_len) (u8 0x00)))
 
 let disable_uds st =
   ST.recall_p local_state_ref uds_is_initialized_predicate;
