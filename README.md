@@ -12,9 +12,10 @@ This project intends to build a verified version of [microsoft/RIoT](https://git
 
 Current Status
 --------------
-[x] Minimal abstraction of DICE and RIoT
 
-[ ] Using global variables to protect secrets 
+[x] Loader interface of the DICE layer (in **[master](https://github.com/95616ARG/VerifiedHardware/tree/master)** branch) 
+
+[x] RIoT prototype (in **[zt-riot-minimal](https://github.com/95616ARG/VerifiedHardware/tree/zt-riot-minimal)** branch)
 
 Build C files
 --------------
@@ -24,17 +25,11 @@ Build C files
 ```
 .
 ├── src                   # F* source codes directory
-│   ├── Minimal.Main.fst      # main module
 │   ├── Minimal.DICE.fst      # `Minimal.DICE` module
-│   ├── Minimal.RIoT.fst      # `Minimal.RIoT` module
 │   └── Makefile              # compile F* source codes to C
 ├── out                   # generated C codes dicevtory
-│   ├── Minimal_Main.h        # `Minimal` header file
-│   ├── Minimal_Main.c        # `Minimal` main file
 │   ├── Minimal_DICE.h        # `Minimal` DICE header file
 │   ├── Minimal_DICE.c        # `Minimal` DICE code
-│   ├── Minimal_RIoT.h        # `Minimal` RIoT header file
-│   ├── Minimal_RIoT.c        # `Minimal` RIoT file
 │   └── ...                   # auto-generated third-party C files
 ├── .docker               # docker file 
 │   ├── Dockerfile 
