@@ -15,13 +15,16 @@ module ST = FStar.HyperStack.ST
 
 module B = LowStar.Buffer
 
+unfold
 let uds_len = 0x20ul
 
+noextract
 type t =
   | Uninitialized
   | Enabled
   | Disabled
 
+noextract
 let t_rel : P.preorder (G.erased t) =
   fun x1 x2 ->
   match (G.reveal x1, G.reveal x2) with
@@ -29,23 +32,30 @@ let t_rel : P.preorder (G.erased t) =
   | Enabled, Disabled -> True
   | _, _ -> x1 == x2
 
+noextract
 let local_state_ref : ST.mref (G.erased t) t_rel = ST.ralloc HS.root (G.hide Uninitialized)
 
+noextract
 let local_state = (| t, t_rel,  local_state_ref |)
 
+noextract
 let uds_is_uninitialized h =
   G.reveal (HS.sel h local_state_ref) == Uninitialized
 
+noextract
 let uds_is_initialized_predicate : mem_predicate =
   fun h ->
   let x = G.reveal (HS.sel h local_state_ref) in
   x == Enabled \/ x == Disabled
 
+noextract
 let uds_is_initialized = token_p local_state_ref uds_is_initialized_predicate
 
+noextract
 let uds_is_disabled_predicate : mem_predicate =
   fun h -> G.reveal (HS.sel h local_state_ref) == Disabled
 
+noextract
 let uds_is_disabled = token_p local_state_ref uds_is_disabled_predicate
 
 noeq
@@ -63,7 +73,6 @@ type state = {
                    ; B.loc_mreference local_state_ref]
   }
 }
-
 let get_uds st = st.uds
 
 let get_cdi st = st.cdi

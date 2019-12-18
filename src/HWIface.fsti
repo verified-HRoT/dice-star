@@ -37,18 +37,24 @@ module B = LowStar.Buffer
 
 /// Lengths of UDS and CDI
 
+unfold
 let dice_alg = a:hash_alg{a <> MD5 /\ a <> SHA2_224}
 
 unfold
 let alg : dice_alg = SHA2_256
+
+unfold
 let digest_len = hash_len alg
 
+unfold
 let digest_t = hash_t alg
 
 val uds_len : l: size_t {0 < v l /\ v l <= max_input_length alg}
 
+unfold
 let cdi_len = digest_len
 
+unfold
 let riot_size_t = l: size_t{0 < v l /\ v l <= max_input_length alg}
 
 /// The model maintains some abstract local state
@@ -57,7 +63,6 @@ let riot_size_t = l: size_t{0 < v l /\ v l <= max_input_length alg}
 ///   and so, we can be sure that it doesn't impact the concrete executions
 ///
 /// This type can be left out of the native C implementation of this interface
-
 
 val local_state : ( a:Type0 & pre:P.preorder (G.erased a) & ST.mref (G.erased a) pre)
 

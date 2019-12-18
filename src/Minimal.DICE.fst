@@ -20,7 +20,7 @@ module SHA2       = Hacl.Hash.SHA2
 module SHA1       = Hacl.Hash.SHA1
 module MD5        = Hacl.Hash.MD5
 module HMAC       = Hacl.HMAC
-module Ed25519    = Hacl.Ed25519
+// module Ed25519    = Hacl.Ed25519
 // module Curve25519 = Hacl.Curve25519
 
 (* NOTE: Hash and HMAC are using LowStar.Buffer, while Ed25519 is using Lib.Buffer *)
@@ -29,109 +29,109 @@ module LB  = Lib.Buffer
 module M   = LowStar.Modifies
 module HS  = FStar.HyperStack
 module HST = FStar.HyperStack.ST
-module IB  = LowStar.ImmutableBuffer
+module CString = C.String
 // module Seq = Lib.Sequence
 
-/// <><><><><><><><><><><><> RIoT Loader Interface <><><><><><><><><><><><><>
-let version_number_t = pub_uint32
-(* NOTE: `Hacl.Ed25519` uses their own `Lib.Sequence`, `Lib.Buffer`, etc., but `Hacl.Hash.*` doesn't *)
-let signature_t = LB.lbuffer uint8 64ul
-let publickey_t = LB.lbuffer uint8 32ul
-let secretkey_t = LB.lbuffer uint8 32ul
-let msg_len_t = a:size_t{v a + 64 <= max_size_t}
-assume val riot_header_len: a:size_t{0 < v a /\ v a <= max_input_length SHA2_512}
-let raw_rheader_t = LB.lbuffer uint8 riot_header_len
+// /// <><><><><><><><><><><><> RIoT Loader Interface <><><><><><><><><><><><><>
+// let version_number_t = pub_uint32
+// (* NOTE: `Hacl.Ed25519` uses their own `Lib.Sequence`, `Lib.Buffer`, etc., but `Hacl.Hash.*` doesn't *)
+// let signature_t = LB.lbuffer uint8 64ul
+// let publickey_t = LB.lbuffer uint8 32ul
+// let secretkey_t = LB.lbuffer uint8 32ul
+// let msg_len_t = a:size_t{v a + 64 <= max_size_t}
+// assume val riot_header_len: a:size_t{0 < v a /\ v a <= max_input_length SHA2_512}
+// let raw_rheader_t = LB.lbuffer uint8 riot_header_len
 
-(* EXTENDED riot header
-   prefix `rh` for "RIoT Header" and
-   prefix `rb` for "RIoT Binary" *)
-noeq
-type riot_exheader_t = {
-     (* actual entries in headers*)
-     rversion  : version_number_t;
-     rbsize    : riot_size_t;
-     rbhash    : digest_t;
-     rhsig     : signature_t;
-     (* extra entries for convenience *)
-     rhraw     : raw_rheader_t
-  }
+// (* EXTENDED riot header
+//    prefix `rh` for "RIoT Header" and
+//    prefix `rb` for "RIoT Binary" *)
+// noeq
+// type riot_exheader_t = {
+//      (* actual entries in headers*)
+//      rversion  : version_number_t;
+//      rbsize    : riot_size_t;
+//      rbhash    : digest_t;
+//      rhsig     : signature_t;
+//      (* extra entries for convenience *)
+//      rhraw     : raw_rheader_t
+//   }
 
-noeq
-type riot_t = {
-  rsize   : riot_size_t;
-  rbinary : b:B.buffer uint8{B.length b == v rsize \/ b == B.null}
-  }
+// noeq
+// type riot_t = {
+//   rsize   : riot_size_t;
+//   rbinary : b:B.buffer uint8{B.length b == v rsize \/ b == B.null}
+//   }
 
-let rcontains (h:HS.mem) (rheader: riot_exheader_t) =
-  B.live h rheader.rbhash /\
-  LB.live h rheader.rhsig /\
-  LB.live h rheader.rhraw
+// let rcontains (h:HS.mem) (rheader: riot_exheader_t) =
+//   B.live h rheader.rbhash /\
+//   LB.live h rheader.rhsig /\
+//   LB.live h rheader.rhraw
 
-let get_rheader_loc_l rheader = [B.loc_buffer rheader.rbhash
-                                ;LB.loc rheader.rhsig
-                                ;LB.loc rheader.rhraw]
+// let get_rheader_loc_l rheader = [B.loc_buffer rheader.rbhash
+//                                 ;LB.loc rheader.rhsig
+//                                 ;LB.loc rheader.rhraw]
 
-let load_rheader (_:unit)
-  (* NOTE: allocate on caller's stack *)
-: HST.StackInline (rheader: riot_exheader_t)
-  (requires fun h ->
-    (* FIXME: maintain disjointness is troublesome since I allocated different
-              buffers in different functions.
-              I didn't pass other buffers in and maintain disjointness for now.
-              I'll come back and find a better way. *)
-    True)
-  (ensures fun h0 rheader h1 ->
-    B.modifies B.loc_none h0 h1 /\
-    h1 `rcontains` rheader /\
-    B.all_disjoint (get_rheader_loc_l rheader))
-=
-  let rversion = uint #U32 #PUB 1 in
-  let rbsize   = 100ul in
-  let rbhash   = B.alloca (u8 0x00) digest_len in
-  let rhsig    = LB.create 64ul (u8 0x00) in
-  let rhraw    = LB.create riot_header_len (u8 0x00) in
-  {rversion = rversion; rbsize = rbsize; rbhash = rbhash; rhsig = rhsig; rhraw = rhraw}
+// let load_rheader (_:unit)
+//   (* NOTE: allocate on caller's stack *)
+// : HST.StackInline (rheader: riot_exheader_t)
+//   (requires fun h ->
+//     (* FIXME: maintain disjointness is troublesome since I allocated different
+//               buffers in different functions.
+//               I didn't pass other buffers in and maintain disjointness for now.
+//               I'll come back and find a better way. *)
+//     True)
+//   (ensures fun h0 rheader h1 ->
+//     B.modifies B.loc_none h0 h1 /\
+//     h1 `rcontains` rheader /\
+//     B.all_disjoint (get_rheader_loc_l rheader))
+// =
+//   let rversion = uint #U32 #PUB 1 in
+//   let rbsize   = 100ul in
+//   let rbhash   = B.alloca (u8 0x00) digest_len in
+//   let rhsig    = LB.create 64ul (u8 0x00) in
+//   let rhraw    = LB.create riot_header_len (u8 0x00) in
+//   {rversion = rversion; rbsize = rbsize; rbhash = rbhash; rhsig = rhsig; rhraw = rhraw}
 
-let verify_header
-  (rheader: riot_exheader_t)
-  (rhpubkey: publickey_t)
-: HST.StackInline bool
-  (requires fun h ->
-    h `rcontains` rheader /\
-    LB.live h rhpubkey
-    (* FIXME: maintain disjointness is troublesome since I allocated different buffers in different functions.
-              I just forget it for now. I'll come back and find a better way. *)
-    // B.all_disjoint ((get_rheader_loc_l rheader)@[LB.loc rhpubkey])
-    )
-  (ensures  fun h0 b h1 -> True)
-    (* FIXME: I haven't find the compatible SHA2 512 hash spec for Ed25519,
-              since hash uses Seq and Ed25519 uses Lib.Sequence in HALC*.
-              I believe there is a way and I will fix this tomorrow *)
-    // let rheader_hash = Spec.Agile.Hash.hash alg (LB.as_seq h0 rheader.rhraw) in
-    // b == Spec.Ed25519.verify (LB.as_seq h0 rhpubkey) rheader_hash (LB.as_seq h0 rheader.rhsig))
-=
-  let rheader_hash = LB.create 64ul (u8 0x00) in
-  SHA2.hash_512_lib riot_header_len rheader.rhraw rheader_hash;
-  Ed25519.verify rhpubkey 64ul rheader_hash rheader.rhsig
+// let verify_header
+//   (rheader: riot_exheader_t)
+//   (rhpubkey: publickey_t)
+// : HST.StackInline bool
+//   (requires fun h ->
+//     h `rcontains` rheader /\
+//     LB.live h rhpubkey
+//     (* FIXME: maintain disjointness is troublesome since I allocated different buffers in different functions.
+//               I just forget it for now. I'll come back and find a better way. *)
+//     // B.all_disjoint ((get_rheader_loc_l rheader)@[LB.loc rhpubkey])
+//     )
+//   (ensures  fun h0 b h1 -> True)
+//     (* FIXME: I haven't find the compatible SHA2 512 hash spec for Ed25519,
+//               since hash uses Seq and Ed25519 uses Lib.Sequence in HALC*.
+//               I believe there is a way and I will fix this tomorrow *)
+//     // let rheader_hash = Spec.Agile.Hash.hash alg (LB.as_seq h0 rheader.rhraw) in
+//     // b == Spec.Ed25519.verify (LB.as_seq h0 rhpubkey) rheader_hash (LB.as_seq h0 rheader.rhsig))
+// =
+//   let rheader_hash = LB.create 64ul (u8 0x00) in
+//   SHA2.hash_512_lib riot_header_len rheader.rhraw rheader_hash;
+//   Ed25519.verify rhpubkey 64ul rheader_hash rheader.rhsig
 
-(* Duties:
-   1. load RIoT header
-   2. authenticate RIoT header
-   3. load RIoT binary *)
-let load_riot
-  (rhpubkey: publickey_t)
-: HST.StackInline (riot: riot_t)
-  (requires fun h ->
-    LB.live h rhpubkey)
-  (ensures  fun h0 riot h1 ->
-    B.live h1 riot.rbinary)
-=
-  let rheader = load_rheader () in
-  if (verify_header rheader rhpubkey)
-  then (* succeed *)
-    {rsize = rheader.rbsize; rbinary = B.alloca (u8 0x00) rheader.rbsize}
-  else (* failed *)
-    {rsize = rheader.rbsize; rbinary = B.null}
+// (* Duties:
+//    1. load RIoT header
+//    2. authenticate RIoT header
+//    3. load RIoT binary *)
+// let load_riot
+//   (rhpubkey: publickey_t)
+// : HST.StackInline (riot: riot_t)
+//   (requires fun h ->
+//     LB.live h rhpubkey)
+//   (ensures  fun h0 riot h1 ->
+//     B.live h1 riot.rbinary)
+// =
+//   let rheader = load_rheader () in
+//   if (verify_header rheader rhpubkey)
+//   then (* succeed *)
+//     {rsize = rheader.rbsize; rbinary = B.alloca (u8 0x00) rheader.rbsize}
+//   else (* failed *)
+//     {rsize = rheader.rbsize; rbinary = B.null}
 
 /// <><><><><><><><><><><><> DICE helpers <><><><><><><><><><><><><>
 
@@ -213,35 +213,48 @@ let dice_main
 
 /// <><><><><><><><><><><><> C main funtion <><><><><><><><><><><>
 
-assume val riot_size: riot_size_t
+let riot_size: riot_size_t = 1ul
 
-assume val riot_binary:
-  b:B.buffer uint8
-    {B.length b == v riot_size /\
-    (let (| _, _, local_st |) = local_state in
-      B.loc_disjoint (B.loc_buffer b) (B.loc_mreference local_st))}
+// assume val riot_binary:
+//   b:B.buffer uint8
+//     {B.length b == v riot_size /\
+//     (let (| _, _, local_st |) = local_state in
+//       B.loc_disjoint (B.loc_buffer b) (B.loc_mreference local_st))}
 
 
 let main ()
 : HST.ST C.exit_code
   (requires fun h ->
-    uds_is_uninitialized h /\
-    B.live h riot_binary)
+    uds_is_uninitialized h)
+    // B.live h riot_binary)
   (ensures  fun h0 _ h1 ->
     uds_is_disabled)
 =
   (* Added a dynamic check, since we might assume `riot_size` in F*
      and computation relevant refinements on `riot_size` won't
      reach C code. Do we need it? *)
+  let riot_binary = B.malloc HS.root (u8 0) riot_size in
+  (***)C.String.print (C.String.of_literal "allocated rb");
+  (**)let h = HST.get() in
+  (**)assume (uds_is_uninitialized h);
+  (**)assume (let (| _, _, local_st |) = local_state in
+                  B.loc_disjoint (B.loc_buffer riot_binary) (B.loc_mreference local_st));
   if (0 < I.v riot_size && I.v riot_size <= max_input_length alg) then
+  ((***)C.String.print (C.String.of_literal "valid riot_size");
     let st: st:state{B.all_disjoint ((get_loc_l st)@[B.loc_buffer riot_binary])}
       = initialize riot_binary in
     (* only allocating on the stack *)
+
+  (***)C.String.print (C.String.of_literal "Entering DICE main");
     dice_main st riot_size riot_binary;
+  (***)C.String.print (C.String.of_literal "DICE main ended");
 
     (* wipe and disable uds *)
     unset_uds st;
+  (***)C.String.print (C.String.of_literal "unset uds");
     disable_uds st;
-    C.EXIT_SUCCESS
+  (***)C.String.print (C.String.of_literal "disable uds");
+  (***)C.String.print (C.String.of_literal "exiting...");
+    C.EXIT_SUCCESS)
   else
     C.EXIT_FAILURE
