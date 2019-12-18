@@ -2,13 +2,8 @@
 module Minimal.DICE
 
 open LowStar.BufferOps
-(* since there will be confusions about `cast` in both modules, I closed them for now *)
-// open Lib.IntTypes
-// open FStar.Integers
-
 open Spec.Hash.Definitions
 open Hacl.Hash.Definitions
-
 open Lib.IntTypes
 
 open HWIface
@@ -20,7 +15,7 @@ module SHA2       = Hacl.Hash.SHA2
 module SHA1       = Hacl.Hash.SHA1
 module MD5        = Hacl.Hash.MD5
 module HMAC       = Hacl.HMAC
-// module Ed25519    = Hacl.Ed25519
+module Ed25519    = Hacl.Ed25519
 // module Curve25519 = Hacl.Curve25519
 
 (* NOTE: Hash and HMAC are using LowStar.Buffer, while Ed25519 is using Lib.Buffer *)
@@ -32,106 +27,110 @@ module HST = FStar.HyperStack.ST
 module CString = C.String
 // module Seq = Lib.Sequence
 
-// /// <><><><><><><><><><><><> RIoT Loader Interface <><><><><><><><><><><><><>
-// let version_number_t = pub_uint32
-// (* NOTE: `Hacl.Ed25519` uses their own `Lib.Sequence`, `Lib.Buffer`, etc., but `Hacl.Hash.*` doesn't *)
-// let signature_t = LB.lbuffer uint8 64ul
-// let publickey_t = LB.lbuffer uint8 32ul
-// let secretkey_t = LB.lbuffer uint8 32ul
-// let msg_len_t = a:size_t{v a + 64 <= max_size_t}
-// assume val riot_header_len: a:size_t{0 < v a /\ v a <= max_input_length SHA2_512}
-// let raw_rheader_t = LB.lbuffer uint8 riot_header_len
+/// <><><><><><><><><><><><> Generic Loader Interface <><><><><><><><><><><><><>
 
-// (* EXTENDED riot header
+
+
+/// <><><><><><><><><><><><> RIoT Loader Interface <><><><><><><><><><><><><>
+let version_number_t = pub_uint32
+(* NOTE: `Hacl.Ed25519` uses their own `Lib.Sequence`, `Lib.Buffer`, etc., but `Hacl.Hash.*` doesn't *)
+let signature_t = LB.lbuffer uint8 64ul
+let publickey_t = LB.lbuffer uint8 32ul
+let secretkey_t = LB.lbuffer uint8 32ul
+let msg_len_t = a:size_t{v a + 64 <= max_size_t}
+assume val riot_header_len: a:size_t{0 < v a /\ v a <= max_input_length SHA2_512}
+let raw_rheader_t = LB.lbuffer uint8 riot_header_len
+
+(* EXTENDED riot header
 //    prefix `rh` for "RIoT Header" and
 //    prefix `rb` for "RIoT Binary" *)
-// noeq
-// type riot_exheader_t = {
-//      (* actual entries in headers*)
-//      rversion  : version_number_t;
-//      rbsize    : riot_size_t;
-//      rbhash    : digest_t;
-//      rhsig     : signature_t;
-//      (* extra entries for convenience *)
-//      rhraw     : raw_rheader_t
-//   }
+noeq
+type riot_exheader_t = {
+     (* actual entries in headers*)
+     rversion  : version_number_t;
+     rbsize    : riot_size_t;
+     rbhash    : digest_t;
+     rhsig     : signature_t;
+     (* extra entries for convenience *)
+     rhraw     : raw_rheader_t
+  }
 
-// noeq
-// type riot_t = {
-//   rsize   : riot_size_t;
-//   rbinary : b:B.buffer uint8{B.length b == v rsize \/ b == B.null}
-//   }
+noeq
+type riot_t = {
+  rsize   : riot_size_t;
+  rbinary : b:B.buffer uint8{B.length b == v rsize \/ b == B.null}
+  }
 
-// let rcontains (h:HS.mem) (rheader: riot_exheader_t) =
-//   B.live h rheader.rbhash /\
-//   LB.live h rheader.rhsig /\
-//   LB.live h rheader.rhraw
+let rcontains (h:HS.mem) (rheader: riot_exheader_t) =
+  B.live h rheader.rbhash /\
+  LB.live h rheader.rhsig /\
+  LB.live h rheader.rhraw
 
-// let get_rheader_loc_l rheader = [B.loc_buffer rheader.rbhash
-//                                 ;LB.loc rheader.rhsig
-//                                 ;LB.loc rheader.rhraw]
+let get_rheader_loc_l rheader = [B.loc_buffer rheader.rbhash
+                                ;LB.loc rheader.rhsig
+                                ;LB.loc rheader.rhraw]
 
-// let load_rheader (_:unit)
-//   (* NOTE: allocate on caller's stack *)
-// : HST.StackInline (rheader: riot_exheader_t)
-//   (requires fun h ->
-//     (* FIXME: maintain disjointness is troublesome since I allocated different
+let load_rheader (_:unit)
+  (* NOTE: allocate on caller's stack *)
+: HST.StackInline (rheader: riot_exheader_t)
+  (requires fun h ->
+    (* FIXME: maintain disjointness is troublesome since I allocated different
 //               buffers in different functions.
 //               I didn't pass other buffers in and maintain disjointness for now.
 //               I'll come back and find a better way. *)
-//     True)
-//   (ensures fun h0 rheader h1 ->
-//     B.modifies B.loc_none h0 h1 /\
-//     h1 `rcontains` rheader /\
-//     B.all_disjoint (get_rheader_loc_l rheader))
-// =
-//   let rversion = uint #U32 #PUB 1 in
-//   let rbsize   = 100ul in
-//   let rbhash   = B.alloca (u8 0x00) digest_len in
-//   let rhsig    = LB.create 64ul (u8 0x00) in
-//   let rhraw    = LB.create riot_header_len (u8 0x00) in
-//   {rversion = rversion; rbsize = rbsize; rbhash = rbhash; rhsig = rhsig; rhraw = rhraw}
+    True)
+  (ensures fun h0 rheader h1 ->
+    B.modifies B.loc_none h0 h1 /\
+    h1 `rcontains` rheader /\
+    B.all_disjoint (get_rheader_loc_l rheader))
+=
+  let rversion = uint #U32 #PUB 1 in
+  let rbsize   = 100ul in
+  let rbhash   = B.alloca (u8 0x00) digest_len in
+  let rhsig    = LB.create 64ul (u8 0x00) in
+  let rhraw    = LB.create riot_header_len (u8 0x00) in
+  {rversion = rversion; rbsize = rbsize; rbhash = rbhash; rhsig = rhsig; rhraw = rhraw}
 
-// let verify_header
-//   (rheader: riot_exheader_t)
-//   (rhpubkey: publickey_t)
-// : HST.StackInline bool
-//   (requires fun h ->
-//     h `rcontains` rheader /\
-//     LB.live h rhpubkey
-//     (* FIXME: maintain disjointness is troublesome since I allocated different buffers in different functions.
+let verify_header
+  (rheader: riot_exheader_t)
+  (rhpubkey: publickey_t)
+: HST.StackInline bool
+  (requires fun h ->
+    h `rcontains` rheader /\
+    LB.live h rhpubkey
+    (* FIXME: maintain disjointness is troublesome since I allocated different buffers in different functions.
 //               I just forget it for now. I'll come back and find a better way. *)
-//     // B.all_disjoint ((get_rheader_loc_l rheader)@[LB.loc rhpubkey])
-//     )
-//   (ensures  fun h0 b h1 -> True)
-//     (* FIXME: I haven't find the compatible SHA2 512 hash spec for Ed25519,
+    // B.all_disjoint ((get_rheader_loc_l rheader)@[LB.loc rhpubkey])
+    )
+  (ensures  fun h0 b h1 -> True)
+    (* FIXME: I haven't find the compatible SHA2 512 hash spec for Ed25519,
 //               since hash uses Seq and Ed25519 uses Lib.Sequence in HALC*.
 //               I believe there is a way and I will fix this tomorrow *)
-//     // let rheader_hash = Spec.Agile.Hash.hash alg (LB.as_seq h0 rheader.rhraw) in
-//     // b == Spec.Ed25519.verify (LB.as_seq h0 rhpubkey) rheader_hash (LB.as_seq h0 rheader.rhsig))
-// =
-//   let rheader_hash = LB.create 64ul (u8 0x00) in
-//   SHA2.hash_512_lib riot_header_len rheader.rhraw rheader_hash;
-//   Ed25519.verify rhpubkey 64ul rheader_hash rheader.rhsig
+    // let rheader_hash = Spec.Agile.Hash.hash alg (LB.as_seq h0 rheader.rhraw) in
+    // b == Spec.Ed25519.verify (LB.as_seq h0 rhpubkey) rheader_hash (LB.as_seq h0 rheader.rhsig))
+=
+  let rheader_hash = LB.create 64ul (u8 0x00) in
+  SHA2.hash_512_lib riot_header_len rheader.rhraw rheader_hash;
+  Ed25519.verify rhpubkey 64ul rheader_hash rheader.rhsig
 
-// (* Duties:
+(* Duties:
 //    1. load RIoT header
 //    2. authenticate RIoT header
 //    3. load RIoT binary *)
-// let load_riot
-//   (rhpubkey: publickey_t)
-// : HST.StackInline (riot: riot_t)
-//   (requires fun h ->
-//     LB.live h rhpubkey)
-//   (ensures  fun h0 riot h1 ->
-//     B.live h1 riot.rbinary)
-// =
-//   let rheader = load_rheader () in
-//   if (verify_header rheader rhpubkey)
-//   then (* succeed *)
-//     {rsize = rheader.rbsize; rbinary = B.alloca (u8 0x00) rheader.rbsize}
-//   else (* failed *)
-//     {rsize = rheader.rbsize; rbinary = B.null}
+let load_riot
+  (rhpubkey: publickey_t)
+: HST.StackInline (riot: riot_t)
+  (requires fun h ->
+    LB.live h rhpubkey)
+  (ensures  fun h0 riot h1 ->
+    B.live h1 riot.rbinary)
+=
+  let rheader = load_rheader () in
+  if (verify_header rheader rhpubkey)
+  then (* succeed *)
+    {rsize = rheader.rbsize; rbinary = B.alloca (u8 0x00) rheader.rbsize}
+  else (* failed *)
+    {rsize = rheader.rbsize; rbinary = B.null}
 
 /// <><><><><><><><><><><><> DICE helpers <><><><><><><><><><><><><>
 

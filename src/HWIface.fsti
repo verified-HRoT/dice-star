@@ -43,6 +43,22 @@ let dice_alg = a:hash_alg{a <> MD5 /\ a <> SHA2_224}
 unfold
 let alg : dice_alg = SHA2_256
 
+unfold inline_for_extraction noextract
+let dice_hash (alg: dice_alg): hash_st alg =
+  match alg with
+  | SHA2_256 -> Hacl.Hash.SHA2.hash_256
+  | SHA2_384 -> Hacl.Hash.SHA2.hash_384
+  | SHA2_512 -> Hacl.Hash.SHA2.hash_512
+  | SHA1     -> Hacl.Hash.SHA1.legacy_hash
+
+unfold inline_for_extraction noextract
+let dice_hmac (alg: dice_alg): Hacl.HMAC.compute_st alg =
+  match alg with
+  | SHA2_256 -> Hacl.HMAC.compute_sha2_256
+  | SHA2_384 -> Hacl.HMAC.compute_sha2_384
+  | SHA2_512 -> Hacl.HMAC.compute_sha2_512
+  | SHA1     -> Hacl.HMAC.legacy_compute_sha1
+
 unfold
 let digest_len = hash_len alg
 
