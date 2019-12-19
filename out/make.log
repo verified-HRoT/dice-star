@@ -1,0 +1,336 @@
+krml \
+  ./src/Minimal.DICE.fst \
+  -cc clang \
+  -no-prefix 'Hacl.Frodo.Random' -bundle Hacl.Spec.*,Spec.*[rename=Hacl_Spec] -bundle Lib.*[rename=Hacl_Lib] -drop Lib.IntVector.Intrinsics -fparentheses -fno-shadow -fcurly-braces -bundle LowStar.* -bundle Prims,C.Failure,C,C.String,C.Loops,Spec.Loops,C.Endianness,FStar.*[rename=Hacl_Kremlib] -bundle 'Meta.*' -minimal -add-include '"kremlin/internal/types.h"' -add-include '"kremlin/lowstar_endianness.h"' -add-include '<string.h>' \
+  -drop WasmSupport \
+  -tmpdir ./out \
+  -I ./src \
+  -add-include '"kremlin/internal/compat.h"' \
+  -I /home/zhetao/Sources/kremlin/include -I /home/zhetao/Sources/kremlin/kremlib/dist/generic -I /home/zhetao/Sources/hacl-star/specs -I /home/zhetao/Sources/hacl-star/specs/lemmas -I /home/zhetao/Sources/hacl-star/code/hash -I /home/zhetao/Sources/hacl-star/code/hkdf -I /home/zhetao/Sources/hacl-star/code/hmac -I /home/zhetao/Sources/hacl-star/code/curve25519 -I /home/zhetao/Sources/hacl-star/code/ed25519 -I /home/zhetao/Sources/hacl-star/lib -I /home/zhetao/Sources/hacl-star/providers/evercrypt -I /home/zhetao/Sources/kremlin/kremlib \
+  -o dice.exe
+[38;5;81m⚙ KreMLin auto-detecting tools.[0m Here's what we found:
+[4mreadlink is:[0m readlink
+[4mKreMLin called via:[0m krml
+[4mKreMLin home is:[0m /home/zhetao/Sources/kremlin
+[38;5;81m⚙ KreMLin will drive F*.[0m Here's what we found:
+read FSTAR_HOME via the environment
+fstar is on [38;5;119mbranch master[0m
+[4mfstar is:[0m /home/zhetao/Sources/FStar/bin/fstar.exe /home/zhetao/Sources/kremlin/runtime/WasmSupport.fst /home/zhetao/Sources/FStar/ulib/FStar.UInt128.fst --trace_error --cache_checked_modules --expose_interfaces --include /home/zhetao/Sources/kremlin/kremlib --include ./src --include /home/zhetao/Sources/kremlin/include --include /home/zhetao/Sources/kremlin/kremlib/dist/generic --include /home/zhetao/Sources/hacl-star/specs --include /home/zhetao/Sources/hacl-star/specs/lemmas --include /home/zhetao/Sources/hacl-star/code/hash --include /home/zhetao/Sources/hacl-star/code/hkdf --include /home/zhetao/Sources/hacl-star/code/hmac --include /home/zhetao/Sources/hacl-star/code/curve25519 --include /home/zhetao/Sources/hacl-star/code/ed25519 --include /home/zhetao/Sources/hacl-star/lib --include /home/zhetao/Sources/hacl-star/providers/evercrypt --include /home/zhetao/Sources/kremlin/kremlib --include /home/zhetao/Sources/kremlin/include
+[38;5;81m⚡ Calling F* (use -verbose to see the output)[0m
+Warning 10: : -drop is deprecated
+  use a combination of -bundle and -d reachability to make sure the functions are eliminated as you wish
+[38;5;119m✔[0m [F*,extract] (use -verbose to see the output)
+/home/zhetao/Sources/hacl-star/code/curve25519/Hacl.Impl.Curve25519.Fields.Core.fsti(133,20-133,34): (Warning 285) Module not found: Vale.X64.CPU_Features_s
+/home/zhetao/Sources/hacl-star/code/curve25519/Hacl.Impl.Curve25519.Finv.fst(27,20-27,34): (Warning 285) Module not found: Vale.X64.CPU_Features_s
+/home/zhetao/Sources/hacl-star/code/curve25519/Hacl.Impl.Curve25519.Fields.fst(59,28-59,42): (Warning 285) Module not found: Vale.X64.CPU_Features_s
+/home/zhetao/Sources/hacl-star/code/curve25519/Hacl.Impl.Curve25519.Field64.fst(99,15-99,29): (Warning 285) Module not found: Vale.X64.CPU_Features_s
+/home/zhetao/Sources/hacl-star/code/curve25519/Hacl.Impl.Curve25519.Generic.fst(91,28-91,42): (Warning 285) Module not found: Vale.X64.CPU_Features_s
+/home/zhetao/Sources/hacl-star/code/curve25519/Hacl.Impl.Curve25519.AddAndDouble.fst(60,28-60,42): (Warning 285) Module not found: Vale.X64.CPU_Features_s
+/home/zhetao/Sources/hacl-star/code/curve25519/Hacl.Impl.Curve25519.Generic.fsti(19,28-19,42): (Warning 285) Module not found: Vale.X64.CPU_Features_s
+./src/Minimal.DICE.fst(0,0-0,0): (Warning 241) Unable to load ./src/Minimal.DICE.fst.checked.lax since checked file ./src/Minimal.DICE.fst.checked.lax has incorrect version; will recheck ./src/Minimal.DICE.fst (suppressing this warning for further modules)
+Not extracting FStar.FunctionalExtensionality.on_domain to KreMLin (polymorphic assumes are not supported)
+Not extracting type definition FStar.Set.set to KreMLin (assumed type)
+Not extracting type definition FStar.Set.equal to KreMLin (assumed type)
+Not extracting FStar.Set.mem to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.Set.empty to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.Set.singleton to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.Set.union to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.Set.intersect to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.Set.complement to KreMLin (polymorphic assumes are not supported)
+Not extracting type definition FStar.Monotonic.Heap.heap to KreMLin (assumed type)
+Not extracting type definition FStar.Monotonic.Heap.equal to KreMLin (assumed type)
+Not extracting type definition FStar.Monotonic.Heap.mref to KreMLin (assumed type)
+Not extracting type definition FStar.Monotonic.Heap.contains to KreMLin (assumed type)
+Not extracting type definition FStar.Monotonic.Heap.addr_unused_in to KreMLin (assumed type)
+Not extracting type definition FStar.Monotonic.Heap.unused_in to KreMLin (assumed type)
+Not extracting FStar.Monotonic.Heap.sel_tot to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.Monotonic.Heap.upd_tot to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.Monotonic.Heap.alloc to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.Monotonic.Heap.free_mm to KreMLin (polymorphic assumes are not supported)
+Not extracting type definition FStar.Monotonic.Heap.aref to KreMLin (assumed type)
+Not extracting FStar.Monotonic.Heap.aref_of to KreMLin (polymorphic assumes are not supported)
+Not extracting type definition FStar.Monotonic.Heap.aref_unused_in to KreMLin (assumed type)
+Not extracting type definition FStar.Monotonic.Heap.aref_live_at to KreMLin (assumed type)
+Not extracting type definition FStar.Map.t to KreMLin (assumed type)
+Not extracting FStar.Map.sel to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.Map.upd to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.Map.const to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.Map.domain to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.Map.contains to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.Map.concat to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.Map.map_val to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.Map.restrict to KreMLin (polymorphic assumes are not supported)
+Not extracting type definition FStar.Map.equal to KreMLin (assumed type)
+Not extracting type definition FStar.Monotonic.Witnessed.witnessed to KreMLin (assumed type)
+Not extracting type definition FStar.Ghost.erased to KreMLin (assumed type)
+Not extracting type definition FStar.Monotonic.HyperHeap.rid to KreMLin (assumed type)
+Not extracting type definition FStar.Monotonic.HyperStack.map_invariant to KreMLin (assumed type)
+Not extracting type definition FStar.Monotonic.HyperStack.downward_closed to KreMLin (assumed type)
+Not extracting type definition FStar.Monotonic.HyperStack.tip_top to KreMLin (assumed type)
+Not extracting type definition FStar.Monotonic.HyperStack.rid_ctr_pred to KreMLin (assumed type)
+Not extracting type definition FStar.Monotonic.HyperStack.mem' to KreMLin (assumed type)
+Not extracting FStar.Monotonic.HyperStack.as_ref to KreMLin (polymorphic assumes are not supported)
+Not extracting type definition FStar.Monotonic.HyperStack.aref to KreMLin (assumed type)
+Not extracting FStar.Monotonic.HyperStack.aref_of to KreMLin (polymorphic assumes are not supported)
+Not extracting type definition FStar.Monotonic.HyperStack.aref_unused_in to KreMLin (assumed type)
+Not extracting type definition FStar.Monotonic.HyperStack.aref_live_at to KreMLin (assumed type)
+Not extracting type definition FStar.HyperStack.ST.mem_rel to KreMLin (assumed type)
+Not extracting type definition FStar.HyperStack.ST.region_contains_pred to KreMLin (assumed type)
+Not extracting type definition FStar.HyperStack.ST.ref_contains_pred to KreMLin (assumed type)
+Not extracting type definition FStar.HyperStack.ST.stable to KreMLin (assumed type)
+Not extracting type definition FStar.HyperStack.ST.witnessed to KreMLin (assumed type)
+Not extracting FStar.HyperStack.ST.gst_witness to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.HyperStack.ST.gst_recall to KreMLin (polymorphic assumes are not supported)
+Not extracting type definition FStar.HyperStack.ST.same_refs_in_all_regions to KreMLin (assumed type)
+Not extracting type definition FStar.HyperStack.ST.same_refs_in_stack_regions to KreMLin (assumed type)
+Not extracting type definition FStar.HyperStack.ST.same_refs_in_non_tip_regions to KreMLin (assumed type)
+Not extracting type definition FStar.HyperStack.ST.same_refs_in_non_tip_stack_regions to KreMLin (assumed type)
+Not extracting FStar.HyperStack.ST.salloc to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.HyperStack.ST.salloc_mm to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.HyperStack.ST.sfree to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.HyperStack.ST.ralloc to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.HyperStack.ST.ralloc_mm to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.HyperStack.ST.rfree to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.HyperStack.ST.op_Colon_Equals to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.HyperStack.ST.op_Bang to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.HyperStack.ST.recall to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.HyperStack.ST.witness_hsref to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.HyperStack.ST.testify to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.HyperStack.ST.testify_forall to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.HyperStack.ST.testify_forall_region_contains_pred to KreMLin (polymorphic assumes are not supported)
+Not extracting type definition FStar.HyperStack.ST.token_p to KreMLin (assumed type)
+Not extracting FStar.HyperStack.ST.witness_p to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.HyperStack.ST.recall_p to KreMLin (polymorphic assumes are not supported)
+Not extracting type definition FStar.HyperStack.ST.drgn to KreMLin (assumed type)
+Not extracting FStar.HyperStack.ST.ralloc_drgn to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.HyperStack.ST.ralloc_drgn_mm to KreMLin (polymorphic assumes are not supported)
+Not extracting type definition FStar.ModifiesGen.loc to KreMLin (assumed type)
+Not extracting FStar.ModifiesGen.loc_none to KreMLin (polymorphic assumes are not supported)
+Not extracting type definition FStar.ModifiesGen.loc_includes to KreMLin (assumed type)
+Not extracting type definition FStar.ModifiesGen.loc_disjoint to KreMLin (assumed type)
+Not extracting FStar.ModifiesGen.address_liveness_insensitive_locs to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.ModifiesGen.region_liveness_insensitive_locs to KreMLin (polymorphic assumes are not supported)
+Not extracting type definition FStar.ModifiesGen.modifies to KreMLin (assumed type)
+Not extracting type definition FStar.ModifiesGen.does_not_contain_addr to KreMLin (assumed type)
+Not extracting type definition FStar.ModifiesGen.aloc_union to KreMLin (assumed type)
+Not extracting FStar.ModifiesGen.cls_union to KreMLin (polymorphic assumes are not supported)
+Not extracting type definition FStar.ModifiesGen.raise_aloc to KreMLin (assumed type)
+Not extracting FStar.ModifiesGen.raise_cls to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.ModifiesGen.raise_loc to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.ModifiesGen.lower_loc to KreMLin (polymorphic assumes are not supported)
+Not extracting type definition LowStar.Monotonic.Buffer.mbuffer to KreMLin (assumed type)
+Not extracting LowStar.Monotonic.Buffer.mnull to KreMLin (polymorphic assumes are not supported)
+Not extracting type definition LowStar.Monotonic.Buffer.unused_in to KreMLin (assumed type)
+Not extracting type definition LowStar.Monotonic.Buffer.live to KreMLin (assumed type)
+Not extracting type definition LowStar.Monotonic.Buffer.loc to KreMLin (assumed type)
+Not extracting type definition LowStar.Monotonic.Buffer.loc_includes to KreMLin (assumed type)
+Not extracting type definition LowStar.Monotonic.Buffer.loc_disjoint to KreMLin (assumed type)
+Not extracting type definition LowStar.Monotonic.Buffer.modifies to KreMLin (assumed type)
+Not extracting type definition LowStar.Monotonic.Buffer.does_not_contain_addr to KreMLin (assumed type)
+Not extracting LowStar.Monotonic.Buffer.is_null to KreMLin (polymorphic assumes are not supported)
+Not extracting LowStar.Monotonic.Buffer.msub to KreMLin (polymorphic assumes are not supported)
+Not extracting LowStar.Monotonic.Buffer.moffset to KreMLin (polymorphic assumes are not supported)
+Not extracting LowStar.Monotonic.Buffer.index to KreMLin (polymorphic assumes are not supported)
+Not extracting LowStar.Monotonic.Buffer.upd' to KreMLin (polymorphic assumes are not supported)
+Not extracting type definition LowStar.Monotonic.Buffer.recallable to KreMLin (assumed type)
+Not extracting type definition LowStar.Monotonic.Buffer.region_lifetime_buf to KreMLin (assumed type)
+Not extracting LowStar.Monotonic.Buffer.recall to KreMLin (polymorphic assumes are not supported)
+Not extracting type definition LowStar.Monotonic.Buffer.witnessed to KreMLin (assumed type)
+Not extracting LowStar.Monotonic.Buffer.witness_p to KreMLin (polymorphic assumes are not supported)
+Not extracting LowStar.Monotonic.Buffer.recall_p to KreMLin (polymorphic assumes are not supported)
+Not extracting LowStar.Monotonic.Buffer.witnessed_functorial_st to KreMLin (polymorphic assumes are not supported)
+Not extracting type definition LowStar.Monotonic.Buffer.freeable to KreMLin (assumed type)
+Not extracting LowStar.Monotonic.Buffer.free to KreMLin (polymorphic assumes are not supported)
+Not extracting LowStar.Monotonic.Buffer.mgcmalloc to KreMLin (polymorphic assumes are not supported)
+Not extracting LowStar.Monotonic.Buffer.mgcmalloc_and_blit to KreMLin (polymorphic assumes are not supported)
+Not extracting LowStar.Monotonic.Buffer.mmalloc to KreMLin (polymorphic assumes are not supported)
+Not extracting LowStar.Monotonic.Buffer.mmalloc_and_blit to KreMLin (polymorphic assumes are not supported)
+Not extracting LowStar.Monotonic.Buffer.malloca to KreMLin (polymorphic assumes are not supported)
+Not extracting LowStar.Monotonic.Buffer.malloca_and_blit to KreMLin (polymorphic assumes are not supported)
+Not extracting LowStar.Monotonic.Buffer.malloca_of_list to KreMLin (polymorphic assumes are not supported)
+Not extracting LowStar.Monotonic.Buffer.mgcmalloc_of_list to KreMLin (polymorphic assumes are not supported)
+(Warning 250) Error while extracting LowStar.Monotonic.Buffer.mgcmalloc_of_list_partial to KreMLin (Failure("Argument of FStar.Buffer.createL is not a list literal!"))
+
+Not extracting LowStar.Monotonic.Buffer.mmalloc_drgn to KreMLin (polymorphic assumes are not supported)
+Not extracting LowStar.Monotonic.Buffer.mmalloc_drgn_mm to KreMLin (polymorphic assumes are not supported)
+Not extracting LowStar.Monotonic.Buffer.mmalloc_drgn_and_blit to KreMLin (polymorphic assumes are not supported)
+Not extracting LowStar.Monotonic.Buffer.blit to KreMLin (polymorphic assumes are not supported)
+Not extracting LowStar.Monotonic.Buffer.fill to KreMLin (polymorphic assumes are not supported)
+Not extracting type definition LowStar.Monotonic.Buffer.abuffer' to KreMLin (assumed type)
+Not extracting type definition C.channel to KreMLin (assumed type)
+Not extracting type definition C.char to KreMLin (assumed type)
+Not extracting type definition C.int to KreMLin (assumed type)
+Not extracting type definition C.clock_t to KreMLin (assumed type)
+Not extracting FStar.Exn.raise to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.ST.gst_witness to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.ST.gst_recall to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.All.exit to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.All.try_with to KreMLin (polymorphic assumes are not supported)
+Not extracting exception Failure to KreMLin (exceptions unsupported)
+Not extracting FStar.All.failwith to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.LoopCombinators.repeati to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.LoopCombinators.repeati_all_ml to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.LoopCombinators.repeat to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.LoopCombinators.repeat_range to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.LoopCombinators.repeat_range_all_ml to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.LoopCombinators.repeat_range_inductive to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.LoopCombinators.repeati_inductive to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.LoopCombinators.repeati_inductive' to KreMLin (polymorphic assumes are not supported)
+Not extracting type definition Lib.IntTypes.sec_int_t to KreMLin (assumed type)
+Not extracting Lib.Sequence.index to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Sequence.create to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Sequence.concat to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Sequence.to_list to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Sequence.of_list to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Sequence.upd to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Sequence.member to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Sequence.sub to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Sequence.update_sub to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Sequence.createi to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Sequence.mapi to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Sequence.map to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Sequence.map2i to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Sequence.map2 to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Sequence.for_all to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Sequence.for_all2 to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Sequence.repeati_blocks to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Sequence.repeat_blocks to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Sequence.repeat_blocks_multi to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Sequence.generate_blocks to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Sequence.generate_blocks_simple to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Sequence.map_blocks_multi to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Sequence.map_blocks to KreMLin (polymorphic assumes are not supported)
+(Warning 250) Error while extracting FStar.List.filter_map to KreMLin (Failure("Internal error: name not found filter_map_acc\n"))
+
+(Warning 250) Error while extracting FStar.List.index to KreMLin (Failure("Internal error: name not found index1\n"))
+
+Not extracting type definition FStar.Char.char to KreMLin (assumed type)
+(Warning 250) Error while extracting LowStar.ImmutableBuffer.ialloca_of_list to KreMLin (Failure("Argument of FStar.Buffer.createL is not a list literal!"))
+
+(Warning 250) Error while extracting LowStar.ImmutableBuffer.igcmalloc_of_list to KreMLin (Failure("Argument of FStar.Buffer.createL is not a list literal!"))
+
+(Warning 250) Error while extracting LowStar.ImmutableBuffer.igcmalloc_of_list_partial to KreMLin (Failure("Argument of FStar.Buffer.createL is not a list literal!"))
+
+Not extracting Lib.Buffer.upd to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Buffer.create to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Buffer.createL to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Buffer.createL_global to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Buffer.recall_contents to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Buffer.memset to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Buffer.update_sub_f to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Buffer.loop1 to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Buffer.loop2 to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Buffer.salloc1_with_inv to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Buffer.salloc1 to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Buffer.salloc_nospec to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Buffer.loopi_blocks to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Buffer.loopi_blocks_nospec to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Buffer.loop_blocks to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Buffer.fill_blocks to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Buffer.fill_blocks_simple to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Buffer.fillT to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Buffer.fill to KreMLin (polymorphic assumes are not supported)
+Not extracting Lib.Buffer.mapi to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.HyperStack.All.pipe_right to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.HyperStack.All.pipe_left to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.HyperStack.All.failwith to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.HyperStack.All.exit to KreMLin (polymorphic assumes are not supported)
+Not extracting FStar.HyperStack.All.try_with to KreMLin (polymorphic assumes are not supported)
+Not extracting type definition Minimal.Hardware.uds_is_uninitialized to KreMLin (assumed type)
+Not extracting type definition Minimal.Hardware.uds_is_initialized to KreMLin (assumed type)
+Not extracting type definition Minimal.Hardware.uds_is_disabled to KreMLin (assumed type)
+Not extracting type definition Minimal.Hardware.state to KreMLin (assumed type)
+Not extracting type definition Minimal.Loader.entry_t to KreMLin (assumed type)
+
+[38;5;119m✔[0m [F*] ⏱️ 1s and 828ms
+[38;5;119m✔[0m [Monomorphization] ⏱️ 36ms
+[38;5;119m✔[0m [Inlining] ⏱️ 4ms
+[38;5;119m✔[0m [Pattern matches compilation] ⏱️ 4ms
+[38;5;119m✔[0m [Structs + Simplify 2] ⏱️ 4ms
+[38;5;119m✔[0m [Drop] ⏱️ <1ms
+Warning 15: : Minimal.DICE.main is not Low*; it uses mathematical integers and runtime checks may fail; rewrite your code to use machine integers, or if you must, use -add-include '"kremlin/internal/compat.h"'; if this declaration is for specification purposes only, consider marking it noextract or using -bundle <name-of-the-module> to only keep reachable definitions.
+Warning 15: : Minimal.DICE.dice_main is not Low*; it uses mathematical integers and runtime checks may fail; rewrite your code to use machine integers, or if you must, use -add-include '"kremlin/internal/compat.h"'; if this declaration is for specification purposes only, consider marking it noextract or using -bundle <name-of-the-module> to only keep reachable definitions.
+Warning 15: : Minimal.Loader.load_layer is not Low*; it uses mathematical integers and runtime checks may fail; rewrite your code to use machine integers, or if you must, use -add-include '"kremlin/internal/compat.h"'; if this declaration is for specification purposes only, consider marking it noextract or using -bundle <name-of-the-module> to only keep reachable definitions.
+Warning 15: : Minimal.Loader.verify_header is not Low*; it uses mathematical integers and runtime checks may fail; rewrite your code to use machine integers, or if you must, use -add-include '"kremlin/internal/compat.h"'; if this declaration is for specification purposes only, consider marking it noextract or using -bundle <name-of-the-module> to only keep reachable definitions.
+Warning 15: : Prims.pow2 is not Low*; it uses mathematical integers and runtime checks may fail; rewrite your code to use machine integers, or if you must, use -add-include '"kremlin/internal/compat.h"'; if this declaration is for specification purposes only, consider marking it noextract or using -bundle <name-of-the-module> to only keep reachable definitions.
+Warning 15: : Prims.op_LessThan is not Low*; it uses mathematical integers and runtime checks may fail; rewrite your code to use machine integers, or if you must, use -add-include '"kremlin/internal/compat.h"'; if this declaration is for specification purposes only, consider marking it noextract or using -bundle <name-of-the-module> to only keep reachable definitions.
+Warning 15: : Prims.op_LessThanOrEqual is not Low*; it uses mathematical integers and runtime checks may fail; rewrite your code to use machine integers, or if you must, use -add-include '"kremlin/internal/compat.h"'; if this declaration is for specification purposes only, consider marking it noextract or using -bundle <name-of-the-module> to only keep reachable definitions.
+Warning 15: : Prims.op_Subtraction is not Low*; it uses mathematical integers and runtime checks may fail; rewrite your code to use machine integers, or if you must, use -add-include '"kremlin/internal/compat.h"'; if this declaration is for specification purposes only, consider marking it noextract or using -bundle <name-of-the-module> to only keep reachable definitions.
+[38;5;119m✔[0m [AstToCStar] ⏱️ 4ms
+[38;5;119m✔[0m [CStarToC] ⏱️ <1ms
+[38;5;119m✔[0m [PrettyPrinting] ⏱️ 4ms
+KreMLin: wrote out .c files for Hacl_Hash_Definitions, Minimal_Loader, Minimal_Hardware, Minimal_DICE
+KreMLin: wrote out .h files for Hacl_Spec, Hacl_Lib, Hacl_Kremlib, EverCrypt_Helpers, Hacl_Hash_Definitions, Hacl_Hash_Core_MD5, Hacl_Hash_MD5, Hacl_Hash_Core_SHA1, Hacl_Hash_SHA1, Hacl_Hash_Core_SHA2, Hacl_HMAC, Hacl_Hash_SHA2, Hacl_Ed25519, Minimal_Loader, Minimal_Hardware, Minimal_DICE
+[38;5;81m⚙ KreMLin will drive the C compiler.[0m Here's what we found:
+[4mgcc is:[0m clang
+[4mclang options are:[0m -I /home/zhetao/Sources/kremlin/kremlib/dist/minimal -I /home/zhetao/Sources/kremlin/kremlib -I ./src -I /home/zhetao/Sources/kremlin/include -I /home/zhetao/Sources/kremlin/kremlib/dist/generic -I /home/zhetao/Sources/hacl-star/specs -I /home/zhetao/Sources/hacl-star/specs/lemmas -I /home/zhetao/Sources/hacl-star/code/hash -I /home/zhetao/Sources/hacl-star/code/hkdf -I /home/zhetao/Sources/hacl-star/code/hmac -I /home/zhetao/Sources/hacl-star/code/curve25519 -I /home/zhetao/Sources/hacl-star/code/ed25519 -I /home/zhetao/Sources/hacl-star/lib -I /home/zhetao/Sources/hacl-star/providers/evercrypt -I /home/zhetao/Sources/kremlin/kremlib -I /home/zhetao/Sources/kremlin/include -I ./out -Wall -Werror -Wno-unused-variable -Wno-unknown-warning-option -Wno-unused-but-set-variable -g -fwrapv -fstack-check -D_BSD_SOURCE -D_DEFAULT_SOURCE -std=c11
+[38;5;81m⚡ Generating object files[0m
+[38;5;119m✔[0m [CC,./out/Hacl_Hash_Definitions.c] (use -verbose to see the output)
+[38;5;203m✘[0m [CC,./out/Minimal_Loader.c] (use -verbose to see the output)
+In file included from ./out/Minimal_Loader.c:8:
+In file included from ./out/Minimal_Loader.h:16:
+./out/Hacl_Hash_SHA2.h:20:3: error: unknown type name 'Lib_IntTypes_sec_int_t____'
+  Lib_IntTypes_sec_int_t____ *uu____43,
+  ^
+./out/Hacl_Hash_SHA2.h:21:3: error: unknown type name 'Lib_IntTypes_sec_int_t____'
+  Lib_IntTypes_sec_int_t____ *x0,
+  ^
+./out/Hacl_Hash_SHA2.h:27:3: error: unknown type name 'Lib_IntTypes_sec_int_t____'
+  Lib_IntTypes_sec_int_t____ *uu____124,
+  ^
+./out/Hacl_Hash_SHA2.h:28:3: error: unknown type name 'Lib_IntTypes_sec_int_t____'
+  Lib_IntTypes_sec_int_t____ *x0,
+  ^
+./out/Hacl_Hash_SHA2.h:34:3: error: unknown type name 'Lib_IntTypes_sec_int_t____'
+  Lib_IntTypes_sec_int_t____ *uu____205,
+  ^
+./out/Hacl_Hash_SHA2.h:35:3: error: unknown type name 'Lib_IntTypes_sec_int_t____'
+  Lib_IntTypes_sec_int_t____ *x0,
+  ^
+./out/Hacl_Hash_SHA2.h:41:3: error: unknown type name 'Lib_IntTypes_sec_int_t____'
+  Lib_IntTypes_sec_int_t____ *uu____286,
+  ^
+./out/Hacl_Hash_SHA2.h:42:3: error: unknown type name 'Lib_IntTypes_sec_int_t____'
+  Lib_IntTypes_sec_int_t____ *x0,
+  ^
+./out/Hacl_Hash_SHA2.h:48:3: error: unknown type name 'Lib_IntTypes_sec_int_t____'
+  Lib_IntTypes_sec_int_t____ *uu____374,
+  ^
+./out/Hacl_Hash_SHA2.h:50:3: error: unknown type name 'Lib_IntTypes_sec_int_t____'
+  Lib_IntTypes_sec_int_t____ *x1,
+  ^
+./out/Hacl_Hash_SHA2.h:56:3: error: unknown type name 'Lib_IntTypes_sec_int_t____'
+  Lib_IntTypes_sec_int_t____ *uu____467,
+  ^
+./out/Hacl_Hash_SHA2.h:58:3: error: unknown type name 'Lib_IntTypes_sec_int_t____'
+  Lib_IntTypes_sec_int_t____ *x1,
+  ^
+./out/Hacl_Hash_SHA2.h:64:3: error: unknown type name 'Lib_IntTypes_sec_int_t____'
+  Lib_IntTypes_sec_int_t____ *uu____561,
+  ^
+./out/Hacl_Hash_SHA2.h:66:3: error: unknown type name 'Lib_IntTypes_sec_int_t____'
+  Lib_IntTypes_sec_int_t____ *x1,
+  ^
+./out/Hacl_Hash_SHA2.h:72:3: error: unknown type name 'Lib_IntTypes_sec_int_t____'
+  Lib_IntTypes_sec_int_t____ *uu____657,
+  ^
+./out/Hacl_Hash_SHA2.h:74:3: error: unknown type name 'Lib_IntTypes_sec_int_t____'
+  Lib_IntTypes_sec_int_t____ *x1,
+  ^
+./out/Hacl_Hash_SHA2.h:80:3: error: unknown type name 'Lib_IntTypes_sec_int_t____'
+  Lib_IntTypes_sec_int_t____ *uu____743,
+  ^
+./out/Hacl_Hash_SHA2.h:82:3: error: unknown type name 'Lib_IntTypes_sec_int_t____'
+  Lib_IntTypes_sec_int_t____ *x1
+  ^
+./out/Hacl_Hash_SHA2.h:87:3: error: unknown type name 'Lib_IntTypes_sec_int_t____'
+  Lib_IntTypes_sec_int_t____ *uu____818,
+  ^
+fatal error: too many errors emitted, stopping now [-ferror-limit=]
+20 errors generated.
+
+Warning 3: run_or_warn: the following command failed:
+clang -I /home/zhetao/Sources/kremlin/kremlib/dist/minimal -I /home/zhetao/Sources/kremlin/kremlib -I ./src -I /home/zhetao/Sources/kremlin/include -I /home/zhetao/Sources/kremlin/kremlib/dist/generic -I /home/zhetao/Sources/hacl-star/specs -I /home/zhetao/Sources/hacl-star/specs/lemmas -I /home/zhetao/Sources/hacl-star/code/hash -I /home/zhetao/Sources/hacl-star/code/hkdf -I /home/zhetao/Sources/hacl-star/code/hmac -I /home/zhetao/Sources/hacl-star/code/curve25519 -I /home/zhetao/Sources/hacl-star/code/ed25519 -I /home/zhetao/Sources/hacl-star/lib -I /home/zhetao/Sources/hacl-star/providers/evercrypt -I /home/zhetao/Sources/kremlin/kremlib -I /home/zhetao/Sources/kremlin/include -I ./out -Wall -Werror -Wno-unused-variable -Wno-unknown-warning-option -Wno-unused-but-set-variable -g -fwrapv -fstack-check -D_BSD_SOURCE -D_DEFAULT_SOURCE -std=c11 -c ./out/Minimal_Loader.c -o ./out/Minimal_Loader.o
+Warning 3 is fatal, exiting.
+src/Makefile:47: recipe for target 'compile' failed
+make: *** [compile] Error 255
