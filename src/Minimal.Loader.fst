@@ -5,7 +5,7 @@ open Spec.Hash.Definitions
 open Hacl.Hash.Definitions
 open Lib.IntTypes
 
-open HWIface
+open Minimal.Hardware
 
 module I  = FStar.Integers
 module HI  = Lib.IntTypes
@@ -25,6 +25,9 @@ module HST = FStar.HyperStack.ST
 module CString = C.String
 
 let header_len = 1ul
+
+let entry_t = unit -> HST.St unit
+let entry = fun () -> ()
 
 let load_header
   (_: unit)

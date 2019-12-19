@@ -5,7 +5,7 @@ open Spec.Hash.Definitions
 open Hacl.Hash.Definitions
 open Lib.IntTypes
 
-open HWIface
+open Minimal.Hardware
 
 module I  = FStar.Integers
 module HI  = Lib.IntTypes
@@ -15,7 +15,6 @@ module SHA1       = Hacl.Hash.SHA1
 module MD5        = Hacl.Hash.MD5
 module HMAC       = Hacl.HMAC
 module Ed25519    = Hacl.Ed25519
-// module Curve25519 = Hacl.Curve25519
 
 module B   = LowStar.Buffer
 module LB  = Lib.Buffer
@@ -23,7 +22,6 @@ module M   = LowStar.Modifies
 module HS  = FStar.HyperStack
 module HST = FStar.HyperStack.ST
 module CString = C.String
-// module Seq = Lib.Sequence
 
 let binary_len_t = a:size_t{0 < v a /\ v a <= max_input_length alg}
 
@@ -65,8 +63,8 @@ let get_header_loc_l header = [B.loc_buffer header.binary_hash
                                ;B.loc_buffer header.header_pubkey]
 
 (* ZT: plan to revise this definition *)
-let entry_t = unit -> HST.St unit
-let entry: entry_t = fun () -> ()
+val entry_t: Type0
+val entry: entry_t
 
 noeq
 type layer_t = {
