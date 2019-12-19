@@ -113,7 +113,8 @@ let main ()
 
   C.String.print (C.String.of_literal "Test");
 
-  if (0 < I.v riot.size && I.v riot.size <= max_input_length alg) then
+  (**)assert_norm ((max_input_length alg) <= maxint (len_int_type alg));
+  if (0ul <. riot.size) then// && riot.size <=. (nat_to_len alg (max_input_length alg))) then
   (
     let st: st:state{B.all_disjoint ((get_loc_l st)@[B.loc_buffer riot.binary])}
       = initialize riot.binary in
