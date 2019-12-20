@@ -154,7 +154,9 @@ val get_cdi (st:state)
 : Tot (b:B.buffer uint8{B.length b == v cdi_len /\ B.freeable b})
 
 val get_header (st: state)
-: Tot (h: header_t{B.all_disjoint (get_header_loc_l h)})
+: Tot (h: header_t{
+          B.all_disjoint (get_header_loc_l h) /\
+          B.length (get_binary h) == v (get_binary_size h)})
 
 val get_uds_value (st:state)
 : GTot (s:Seq.seq uint8{Seq.length s == v uds_len})

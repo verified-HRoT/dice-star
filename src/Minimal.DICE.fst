@@ -5,6 +5,7 @@ open LowStar.BufferOps
 open Spec.Hash.Definitions
 open Hacl.Hash.Definitions
 open Lib.IntTypes
+open LowStar.Failure
 
 open Minimal.Hardware
 open Minimal.Loader
@@ -101,14 +102,16 @@ let main ()
   let st = initialize () in
   let header = get_header st in
   let riot_size = get_binary_size header in
-  let verify_result = verify_header header in
-  if (verify_result) then
+  let verify_succeed = verify_header header in
+  if (verify_succeed) then
   ( if ( (0ul <. riot_size) ) then
     ( dice_main st
     ; unset_uds st
-    ; disable_uds st
-    ; C.EXIT_SUCCESS )
+    ; disable_uds st )
     else
-    ( C.EXIT_FAILURE ))
+    ( failwith "RIoT size less than or equal 0" ) )
   else
-  ( C.EXIT_FAILURE )
+  ( failwith "RIoT header verification failed" );
+
+  C.EXIT_SUCCESS
+

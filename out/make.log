@@ -1,13 +1,5 @@
 krml \
-  ./src/Minimal.DICE.fst \
-  -cc clang \
-  -no-prefix 'Hacl.Frodo.Random' -bundle Hacl.Spec.*,Spec.*[rename=Hacl_Spec] -bundle Lib.*[rename=Hacl_Lib] -drop Lib.IntVector.Intrinsics -fparentheses -fno-shadow -fcurly-braces -bundle LowStar.* -bundle Prims,C.Failure,C,C.String,C.Loops,Spec.Loops,C.Endianness,FStar.*[rename=Hacl_Kremlib] -bundle 'Meta.*' -minimal -add-include '"kremlin/internal/types.h"' -add-include '"kremlin/lowstar_endianness.h"' -add-include '<string.h>' \
-  -drop WasmSupport \
-  -tmpdir ./out \
-  -I ./src \
-  -add-include '"kremlin/internal/compat.h"' \
-  -I /home/zhetao/Sources/kremlin/include -I /home/zhetao/Sources/kremlin/kremlib/dist/generic -I /home/zhetao/Sources/hacl-star/specs -I /home/zhetao/Sources/hacl-star/specs/lemmas -I /home/zhetao/Sources/hacl-star/code/hash -I /home/zhetao/Sources/hacl-star/code/hkdf -I /home/zhetao/Sources/hacl-star/code/hmac -I /home/zhetao/Sources/hacl-star/code/curve25519 -I /home/zhetao/Sources/hacl-star/code/ed25519 -I /home/zhetao/Sources/hacl-star/lib -I /home/zhetao/Sources/hacl-star/providers/evercrypt -I /home/zhetao/Sources/kremlin/kremlib \
-  -o dice.exe
+  ./src/Minimal.DICE.fst -no-prefix 'Hacl.Frodo.Random' -bundle Hacl.Spec.*,Spec.*[rename=Hacl_Spec] -bundle Lib.*[rename=Hacl_Lib] -drop Lib.IntVector.Intrinsics -fparentheses -fno-shadow -fcurly-braces -bundle LowStar.* -bundle Prims,C.Failure,C,C.String,C.Loops,Spec.Loops,C.Endianness,FStar.*[rename=Hacl_Kremlib] -bundle 'Meta.*' -minimal -add-include '"kremlin/internal/types.h"' -add-include '"kremlin/lowstar_endianness.h"' -add-include '<string.h>' -drop WasmSupport -tmpdir ./out -I ./src -add-include '"kremlin/internal/compat.h"' -I /home/zhetao/Sources/kremlin/include -I /home/zhetao/Sources/kremlin/kremlib/dist/generic -I /home/zhetao/Sources/hacl-star/specs -I /home/zhetao/Sources/hacl-star/specs/lemmas -I /home/zhetao/Sources/hacl-star/code/hash -I /home/zhetao/Sources/hacl-star/code/hkdf -I /home/zhetao/Sources/hacl-star/code/hmac -I /home/zhetao/Sources/hacl-star/code/curve25519 -I /home/zhetao/Sources/hacl-star/code/ed25519 -I /home/zhetao/Sources/hacl-star/lib -I /home/zhetao/Sources/hacl-star/providers/evercrypt -I /home/zhetao/Sources/kremlin/kremlib -o ./out/dice.exe
 [38;5;81m⚙ KreMLin auto-detecting tools.[0m Here's what we found:
 [4mreadlink is:[0m readlink
 [4mKreMLin called via:[0m krml
@@ -27,17 +19,9 @@ Warning 10: : -drop is deprecated
 /home/zhetao/Sources/hacl-star/code/curve25519/Hacl.Impl.Curve25519.Generic.fst(91,28-91,42): (Warning 285) Module not found: Vale.X64.CPU_Features_s
 /home/zhetao/Sources/hacl-star/code/curve25519/Hacl.Impl.Curve25519.AddAndDouble.fst(60,28-60,42): (Warning 285) Module not found: Vale.X64.CPU_Features_s
 /home/zhetao/Sources/hacl-star/code/curve25519/Hacl.Impl.Curve25519.Generic.fsti(19,28-19,42): (Warning 285) Module not found: Vale.X64.CPU_Features_s
-/home/zhetao/Sources/FStar/ulib/FStar.Mul.fst(0,0-0,0): (Warning 241) Unable to load /home/zhetao/Sources/FStar/ulib/FStar.Mul.fst.checked.lax since checked file /home/zhetao/Sources/FStar/ulib/FStar.Mul.fst.checked.lax does not exist; will recheck /home/zhetao/Sources/FStar/ulib/FStar.Mul.fst (suppressing this warning for further modules)
-/home/zhetao/Sources/FStar/ulib/FStar.Calc.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.Calc.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Preorder.fst.checked.lax does not exist
-/home/zhetao/Sources/FStar/ulib/FStar.List.Tot.Base.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.List.Tot.Base.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Classical.fsti.checked.lax does not exist
-/home/zhetao/Sources/FStar/ulib/FStar.List.Tot.Properties.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.List.Tot.Properties.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Classical.fsti.checked.lax does not exist
-/home/zhetao/Sources/FStar/ulib/FStar.List.Tot.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.List.Tot.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.List.Tot.Base.fst.checked.lax does not exist
-/home/zhetao/Sources/FStar/ulib/FStar.Seq.Base.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.Seq.Base.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.List.Tot.fst.checked.lax does not exist
-/home/zhetao/Sources/FStar/ulib/FStar.Seq.Properties.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.Seq.Properties.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Classical.fsti.checked.lax does not exist
-/home/zhetao/Sources/FStar/ulib/FStar.Seq.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.Seq.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Seq.Base.fst.checked.lax does not exist
-/home/zhetao/Sources/FStar/ulib/FStar.Math.Lib.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.Math.Lib.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Mul.fst.checked.lax does not exist
-/home/zhetao/Sources/FStar/ulib/FStar.Math.Lemmas.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.Math.Lemmas.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Math.Lib.fst.checked.lax does not exist
-/home/zhetao/Sources/FStar/ulib/FStar.BitVector.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.BitVector.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Mul.fst.checked.lax does not exist
+/home/zhetao/Sources/FStar/ulib/FStar.Seq.Properties.fst(0,0-0,0): (Warning 241) Unable to load /home/zhetao/Sources/FStar/ulib/FStar.Seq.Properties.fst.checked.lax since checked file /home/zhetao/Sources/FStar/ulib/FStar.Seq.Properties.fst.checked.lax does not exist; will recheck /home/zhetao/Sources/FStar/ulib/FStar.Seq.Properties.fst (suppressing this warning for further modules)
+/home/zhetao/Sources/FStar/ulib/FStar.Seq.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.Seq.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Seq.Properties.fst.checked.lax does not exist
+/home/zhetao/Sources/FStar/ulib/FStar.BitVector.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.BitVector.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Seq.fst.checked.lax does not exist
 /home/zhetao/Sources/FStar/ulib/FStar.UInt.fst(632,8-632,66): (Warning 271) Pattern uses these theory symbols or terms that should not be in an smt pattern:  Prims.eq2 Prims.op_Modulus 0
 /home/zhetao/Sources/FStar/ulib/FStar.UInt.fst(633,8-633,23): (Warning 271) Pattern uses these theory symbols or terms that should not be in an smt pattern:  Prims.eq2 Prims.op_Modulus 0 (see also /home/zhetao/Sources/FStar/ulib/FStar.UInt.fst(632,8-632,66))
 /home/zhetao/Sources/FStar/ulib/FStar.UInt.fst(651,8-651,61): (Warning 271) Pattern uses these theory symbols or terms that should not be in an smt pattern:  Prims.op_LessThan
@@ -45,72 +29,60 @@ Warning 10: : -drop is deprecated
 /home/zhetao/Sources/FStar/ulib/FStar.UInt.fst(671,8-671,51): (Warning 271) Pattern uses these theory symbols or terms that should not be in an smt pattern:  Prims.op_Subtraction 1
 /home/zhetao/Sources/FStar/ulib/FStar.UInt.fst(672,8-672,25): (Warning 271) Pattern uses these theory symbols or terms that should not be in an smt pattern:  Prims.op_Subtraction 1 (see also /home/zhetao/Sources/FStar/ulib/FStar.UInt.fst(671,8-671,51))
 /home/zhetao/Sources/FStar/ulib/FStar.UInt.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.UInt.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.BitVector.fst.checked.lax does not exist
-/home/zhetao/Sources/FStar/ulib/FStar.UInt32.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.UInt32.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Mul.fst.checked.lax does not exist
-/home/zhetao/Sources/FStar/ulib/FStar.UInt64.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.UInt64.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Mul.fst.checked.lax does not exist
+/home/zhetao/Sources/FStar/ulib/FStar.UInt32.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.UInt32.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.UInt.fst.checked.lax does not exist
+/home/zhetao/Sources/FStar/ulib/FStar.UInt64.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.UInt64.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.UInt.fst.checked.lax does not exist
 /home/zhetao/Sources/FStar/ulib/FStar.Int.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.Int.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.BitVector.fst.checked.lax does not exist
 /home/zhetao/Sources/FStar/ulib/FStar.Int64.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.Int64.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Int.fst.checked.lax does not exist
 /home/zhetao/Sources/FStar/ulib/FStar.Int63.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.Int63.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Int.fst.checked.lax does not exist
 /home/zhetao/Sources/FStar/ulib/FStar.Int32.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.Int32.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Int.fst.checked.lax does not exist
 /home/zhetao/Sources/FStar/ulib/FStar.Int16.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.Int16.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Int.fst.checked.lax does not exist
 /home/zhetao/Sources/FStar/ulib/FStar.Int8.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.Int8.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Int.fst.checked.lax does not exist
-/home/zhetao/Sources/FStar/ulib/FStar.UInt63.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.UInt63.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Mul.fst.checked.lax does not exist
-/home/zhetao/Sources/FStar/ulib/FStar.UInt16.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.UInt16.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Mul.fst.checked.lax does not exist
-/home/zhetao/Sources/FStar/ulib/FStar.UInt8.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.UInt8.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Mul.fst.checked.lax does not exist
+/home/zhetao/Sources/FStar/ulib/FStar.UInt63.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.UInt63.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.UInt.fst.checked.lax does not exist
+/home/zhetao/Sources/FStar/ulib/FStar.UInt16.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.UInt16.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.UInt.fst.checked.lax does not exist
+/home/zhetao/Sources/FStar/ulib/FStar.UInt8.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.UInt8.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.UInt.fst.checked.lax does not exist
 /home/zhetao/Sources/FStar/ulib/FStar.Int.Cast.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.Int.Cast.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Int.fst.checked.lax does not exist
-/home/zhetao/Sources/FStar/ulib/FStar.PredicateExtensionality.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.PredicateExtensionality.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.FunctionalExtensionality.fsti.checked.lax does not exist
-/home/zhetao/Sources/FStar/ulib/FStar.TSet.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.TSet.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.FunctionalExtensionality.fsti.checked.lax does not exist
-/home/zhetao/Sources/FStar/ulib/FStar.Monotonic.Heap.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.Monotonic.Heap.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Preorder.fst.checked.lax does not exist
-/home/zhetao/Sources/FStar/ulib/FStar.Heap.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.Heap.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Monotonic.Heap.fsti.checked.lax does not exist
-/home/zhetao/Sources/FStar/ulib/FStar.Map.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.Map.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Set.fsti.checked.lax does not exist
-/home/zhetao/Sources/FStar/ulib/FStar.Monotonic.Witnessed.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.Monotonic.Witnessed.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Preorder.fst.checked.lax does not exist
-/home/zhetao/Sources/FStar/ulib/FStar.Monotonic.HyperHeap.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.Monotonic.HyperHeap.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Ghost.fsti.checked.lax does not exist
-/home/zhetao/Sources/FStar/ulib/FStar.Monotonic.HyperStack.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.Monotonic.HyperStack.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.List.Tot.fst.checked.lax does not exist
-/home/zhetao/Sources/FStar/ulib/FStar.HyperStack.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.HyperStack.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Heap.fst.checked.lax does not exist
+/home/zhetao/Sources/FStar/ulib/FStar.HyperStack.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.HyperStack.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Monotonic.HyperStack.fsti.checked.lax does not exist
 /home/zhetao/Sources/FStar/ulib/FStar.HyperStack.ST.fsti(485,47-485,58): (Warning 288) FStar.HyperStack.ST.stable_on_t is deprecated, use FStar.HyperStack.ST.stable_on instead
-/home/zhetao/Sources/FStar/ulib/FStar.HyperStack.ST.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.HyperStack.ST.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Heap.fst.checked.lax does not exist
+/home/zhetao/Sources/FStar/ulib/FStar.HyperStack.ST.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.HyperStack.ST.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.HyperStack.fst.checked.lax does not exist
 /home/zhetao/Sources/kremlin/runtime/WasmSupport.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/kremlin/runtime/WasmSupport.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.HyperStack.ST.fsti.checked.lax does not exist
 /home/zhetao/Sources/FStar/ulib/FStar.UInt128.fst(146,2-146,26): (Warning 271) Pattern uses these theory symbols or terms that should not be in an smt pattern:  Prims.op_Modulus
 /home/zhetao/Sources/FStar/ulib/FStar.UInt128.fst(152,4-152,27): (Warning 271) Pattern uses these theory symbols or terms that should not be in an smt pattern:  Prims.op_Modulus Prims.op_Modulus
 /home/zhetao/Sources/FStar/ulib/FStar.UInt128.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.UInt128.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.BitVector.fst.checked.lax does not exist
-/home/zhetao/Sources/FStar/ulib/FStar.ModifiesGen.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.ModifiesGen.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Heap.fst.checked.lax does not exist
-/home/zhetao/Sources/FStar/ulib/FStar.BigOps.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.BigOps.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.List.Tot.fst.checked.lax does not exist
+/home/zhetao/Sources/FStar/ulib/FStar.ModifiesGen.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.ModifiesGen.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.HyperStack.fst.checked.lax does not exist
 /home/zhetao/Sources/FStar/ulib/LowStar.Monotonic.Buffer.fsti(1679,51-1679,68): (Warning 288) FStar.Monotonic.HyperStack.is_eternal_region is deprecated, use FStar.HyperStack.ST.is_eternal_region instead
 /home/zhetao/Sources/FStar/ulib/LowStar.Monotonic.Buffer.fsti(1133,2-1133,86): (Warning 271) Pattern uses these theory symbols or terms that should not be in an smt pattern:  true
 /home/zhetao/Sources/FStar/ulib/LowStar.Monotonic.Buffer.fsti(1145,2-1145,82): (Warning 271) Pattern uses these theory symbols or terms that should not be in an smt pattern:  true
-/home/zhetao/Sources/FStar/ulib/LowStar.Monotonic.Buffer.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/LowStar.Monotonic.Buffer.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.BigOps.fsti.checked.lax does not exist
-/home/zhetao/Sources/FStar/ulib/LowStar.Buffer.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/LowStar.Buffer.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Ghost.fsti.checked.lax does not exist
+/home/zhetao/Sources/FStar/ulib/LowStar.Monotonic.Buffer.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/LowStar.Monotonic.Buffer.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.HyperStack.fst.checked.lax does not exist
+/home/zhetao/Sources/FStar/ulib/LowStar.Buffer.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/LowStar.Buffer.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.HyperStack.fst.checked.lax does not exist
 /home/zhetao/Sources/kremlin/kremlib/C.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/kremlin/kremlib/C.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.HyperStack.fst.checked.lax does not exist
-/home/zhetao/Sources/FStar/ulib/FStar.ST.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.ST.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Heap.fst.checked.lax does not exist
-/home/zhetao/Sources/FStar/ulib/FStar.All.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.All.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Exn.fst.checked.lax does not exist
+/home/zhetao/Sources/FStar/ulib/FStar.All.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.All.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.ST.fst.checked.lax does not exist
 /home/zhetao/Sources/hacl-star/lib/Lib.LoopCombinators.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/hacl-star/lib/Lib.LoopCombinators.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.All.fst.checked.lax does not exist
 /home/zhetao/Sources/FStar/ulib/FStar.Int128.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.Int128.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Int.fst.checked.lax does not exist
 /home/zhetao/Sources/hacl-star/lib/Lib.IntTypes.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/hacl-star/lib/Lib.IntTypes.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Int.fst.checked.lax does not exist
-/home/zhetao/Sources/hacl-star/lib/Lib.Sequence.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/hacl-star/lib/Lib.Sequence.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.List.Tot.fst.checked.lax does not exist
-/home/zhetao/Sources/hacl-star/lib/Lib.ByteSequence.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/hacl-star/lib/Lib.ByteSequence.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Mul.fst.checked.lax does not exist
-/home/zhetao/Sources/hacl-star/specs/Spec.Hash.Definitions.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/hacl-star/specs/Spec.Hash.Definitions.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Mul.fst.checked.lax does not exist
-/home/zhetao/Sources/hacl-star/specs/Spec.Hash.Lemmas0.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/hacl-star/specs/Spec.Hash.Lemmas0.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Math.Lemmas.fst.checked.lax does not exist
-/home/zhetao/Sources/hacl-star/specs/Spec.Hash.PadFinish.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/hacl-star/specs/Spec.Hash.PadFinish.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Mul.fst.checked.lax does not exist
-/home/zhetao/Sources/hacl-star/specs/Spec.Agile.Hash.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/hacl-star/specs/Spec.Agile.Hash.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Mul.fst.checked.lax does not exist
+/home/zhetao/Sources/hacl-star/lib/Lib.Sequence.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/hacl-star/lib/Lib.Sequence.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Seq.fst.checked.lax does not exist
+/home/zhetao/Sources/hacl-star/lib/Lib.ByteSequence.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/hacl-star/lib/Lib.ByteSequence.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Seq.fst.checked.lax does not exist
+/home/zhetao/Sources/hacl-star/specs/Spec.Hash.Definitions.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/hacl-star/specs/Spec.Hash.Definitions.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Seq.fst.checked.lax does not exist
+/home/zhetao/Sources/hacl-star/specs/Spec.Hash.Lemmas0.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/hacl-star/specs/Spec.Hash.Lemmas0.fst.checked.lax was not written since checked file /home/zhetao/Sources/hacl-star/specs/Spec.Hash.Definitions.fst.checked.lax is stale (digest mismatch for /home/zhetao/Sources/hacl-star/specs/Spec.Hash.Definitions.fst)
+/home/zhetao/Sources/hacl-star/specs/Spec.Hash.PadFinish.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/hacl-star/specs/Spec.Hash.PadFinish.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Seq.fst.checked.lax does not exist
+/home/zhetao/Sources/hacl-star/specs/Spec.Agile.Hash.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/hacl-star/specs/Spec.Agile.Hash.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Seq.fst.checked.lax does not exist
 /home/zhetao/Sources/hacl-star/specs/Spec.Agile.HMAC.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/hacl-star/specs/Spec.Agile.HMAC.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Seq.fst.checked.lax does not exist
 /home/zhetao/Sources/FStar/ulib/FStar.List.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.List.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.All.fst.checked.lax does not exist
 /home/zhetao/Sources/FStar/ulib/FStar.Char.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.Char.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.UInt32.fst.checked.lax does not exist
 /home/zhetao/Sources/FStar/ulib/FStar.String.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.String.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.All.fst.checked.lax does not exist
 /home/zhetao/Sources/FStar/ulib/LowStar.Modifies.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/LowStar.Modifies.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/LowStar.Buffer.fst.checked.lax does not exist
 /home/zhetao/Sources/kremlin/kremlib/C.String.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/kremlin/kremlib/C.String.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.HyperStack.fst.checked.lax does not exist
-/home/zhetao/Sources/FStar/ulib/LowStar.ImmutableBuffer.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/LowStar.ImmutableBuffer.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Classical.fsti.checked.lax does not exist
+/home/zhetao/Sources/FStar/ulib/LowStar.ImmutableBuffer.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/LowStar.ImmutableBuffer.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.HyperStack.fst.checked.lax does not exist
 /home/zhetao/Sources/hacl-star/lib/Lib.RawIntTypes.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/hacl-star/lib/Lib.RawIntTypes.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.UInt128.fst.checked.lax does not exist
-/home/zhetao/Sources/hacl-star/lib/Lib.Buffer.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/hacl-star/lib/Lib.Buffer.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Ghost.fsti.checked.lax does not exist
-/home/zhetao/Sources/hacl-star/specs/lemmas/Spec.Curve25519.Lemmas.fst(6,2-6,24): (Warning 271) Pattern uses these theory symbols or terms that should not be in an smt pattern:  Prims.op_Subtraction 19
-/home/zhetao/Sources/hacl-star/specs/lemmas/Spec.Curve25519.Lemmas.fst(12,2-12,18): (Warning 271) Pattern uses these theory symbols or terms that should not be in an smt pattern:  Prims.op_Division 2
-/home/zhetao/Sources/hacl-star/specs/Spec.Curve25519.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/hacl-star/specs/Spec.Curve25519.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.List.Tot.fst.checked.lax does not exist
-/home/zhetao/Sources/hacl-star/specs/Spec.Ed25519.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/hacl-star/specs/Spec.Ed25519.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Mul.fst.checked.lax does not exist
+/home/zhetao/Sources/hacl-star/lib/Lib.Buffer.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/hacl-star/lib/Lib.Buffer.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.HyperStack.fst.checked.lax does not exist
+/home/zhetao/Sources/hacl-star/specs/Spec.Curve25519.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/hacl-star/specs/Spec.Curve25519.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.UInt8.fst.checked.lax does not exist
+/home/zhetao/Sources/hacl-star/specs/Spec.Ed25519.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/hacl-star/specs/Spec.Ed25519.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Seq.fst.checked.lax does not exist
 /home/zhetao/Sources/FStar/ulib/FStar.HyperStack.All.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.HyperStack.All.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.HyperStack.fst.checked.lax does not exist
 /home/zhetao/Sources/hacl-star/code/ed25519/Hacl.Ed25519.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/hacl-star/code/ed25519/Hacl.Ed25519.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.HyperStack.All.fst.checked.lax does not exist
 /home/zhetao/Sources/FStar/ulib/FStar.Int31.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.Int31.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Int.fst.checked.lax does not exist
-/home/zhetao/Sources/FStar/ulib/FStar.UInt31.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.UInt31.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Mul.fst.checked.lax does not exist
+/home/zhetao/Sources/FStar/ulib/FStar.UInt31.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.UInt31.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.UInt.fst.checked.lax does not exist
 /home/zhetao/Sources/FStar/ulib/FStar.Integers.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/FStar.Integers.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Int.fst.checked.lax does not exist
 /home/zhetao/Sources/hacl-star/providers/evercrypt/EverCrypt.Helpers.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/hacl-star/providers/evercrypt/EverCrypt.Helpers.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.HyperStack.fst.checked.lax does not exist
-/home/zhetao/Sources/hacl-star/specs/lemmas/Spec.Hash.Incremental.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/hacl-star/specs/lemmas/Spec.Hash.Incremental.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Mul.fst.checked.lax does not exist
+/home/zhetao/Sources/hacl-star/specs/lemmas/Spec.Hash.Incremental.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/hacl-star/specs/lemmas/Spec.Hash.Incremental.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Seq.fst.checked.lax does not exist
 /home/zhetao/Sources/hacl-star/code/hash/Hacl.Hash.Definitions.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/hacl-star/code/hash/Hacl.Hash.Definitions.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.HyperStack.fst.checked.lax does not exist
 /home/zhetao/Sources/hacl-star/code/hmac/Hacl.HMAC.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/hacl-star/code/hmac/Hacl.HMAC.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.HyperStack.fst.checked.lax does not exist
 /home/zhetao/Sources/hacl-star/code/hash/Hacl.Hash.Core.MD5.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/hacl-star/code/hash/Hacl.Hash.Core.MD5.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.HyperStack.fst.checked.lax does not exist
@@ -119,9 +91,10 @@ Warning 10: : -drop is deprecated
 /home/zhetao/Sources/hacl-star/code/hash/Hacl.Hash.SHA1.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/hacl-star/code/hash/Hacl.Hash.SHA1.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.HyperStack.fst.checked.lax does not exist
 /home/zhetao/Sources/hacl-star/code/hash/Hacl.Hash.Core.SHA2.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/hacl-star/code/hash/Hacl.Hash.Core.SHA2.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.HyperStack.fst.checked.lax does not exist
 /home/zhetao/Sources/hacl-star/code/hash/Hacl.Hash.SHA2.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/hacl-star/code/hash/Hacl.Hash.SHA2.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.HyperStack.ST.fsti.checked.lax does not exist
-/home/zhetao/Sources/VerifiedHardware/src/Minimal.Hardware.fsti(0,0-0,0): (Warning 247) ./src/Minimal.Hardware.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Ghost.fsti.checked.lax does not exist
-/home/zhetao/Sources/FStar/ulib/LowStar.BufferOps.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/LowStar.BufferOps.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.Ghost.fsti.checked.lax does not exist
+/home/zhetao/Sources/VerifiedHardware/src/Minimal.Hardware.fsti(0,0-0,0): (Warning 247) ./src/Minimal.Hardware.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.HyperStack.fst.checked.lax does not exist
+/home/zhetao/Sources/FStar/ulib/LowStar.BufferOps.fst(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/LowStar.BufferOps.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.HyperStack.fst.checked.lax does not exist
 /home/zhetao/Sources/VerifiedHardware/src/Minimal.Loader.fsti(0,0-0,0): (Warning 247) ./src/Minimal.Loader.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.HyperStack.fst.checked.lax does not exist
+/home/zhetao/Sources/FStar/ulib/LowStar.Failure.fsti(0,0-0,0): (Warning 247) /home/zhetao/Sources/FStar/ulib/LowStar.Failure.fsti.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.HyperStack.ST.fsti.checked.lax does not exist
 ./src/Minimal.DICE.fst(0,0-0,0): (Warning 247) ./src/Minimal.DICE.fst.checked.lax was not written since checked file /home/zhetao/Sources/FStar/ulib/FStar.HyperStack.fst.checked.lax does not exist
 Not extracting FStar.FunctionalExtensionality.on_domain to KreMLin (polymorphic assumes are not supported)
 Not extracting type definition FStar.Set.set to KreMLin (assumed type)
@@ -337,125 +310,129 @@ Not extracting type definition Minimal.Hardware.uds_is_uninitialized to KreMLin 
 Not extracting type definition Minimal.Hardware.uds_is_initialized to KreMLin (assumed type)
 Not extracting type definition Minimal.Hardware.uds_is_disabled to KreMLin (assumed type)
 Not extracting type definition Minimal.Hardware.state to KreMLin (assumed type)
+Not extracting LowStar.Failure.failwith to KreMLin (polymorphic assumes are not supported)
 
-[38;5;119m✔[0m [F*] ⏱️ 11s and 768ms
-[38;5;119m✔[0m [Monomorphization] ⏱️ 24ms
-[38;5;119m✔[0m [Inlining] ⏱️ 4ms
-[38;5;119m✔[0m [Pattern matches compilation] ⏱️ <1ms
+[38;5;119m✔[0m [F*] ⏱️ 8s and 936ms
+[38;5;119m✔[0m [Monomorphization] ⏱️ 36ms
+[38;5;119m✔[0m [Inlining] ⏱️ <1ms
+[38;5;119m✔[0m [Pattern matches compilation] ⏱️ 4ms
 [38;5;119m✔[0m [Structs + Simplify 2] ⏱️ 4ms
 [38;5;119m✔[0m [Drop] ⏱️ 4ms
 Warning 15: : Minimal.DICE.dice_main is not Low*; it uses mathematical integers and runtime checks may fail; rewrite your code to use machine integers, or if you must, use -add-include '"kremlin/internal/compat.h"'; if this declaration is for specification purposes only, consider marking it noextract or using -bundle <name-of-the-module> to only keep reachable definitions.
 Warning 15: : Minimal.Loader.verify_header is not Low*; it uses mathematical integers and runtime checks may fail; rewrite your code to use machine integers, or if you must, use -add-include '"kremlin/internal/compat.h"'; if this declaration is for specification purposes only, consider marking it noextract or using -bundle <name-of-the-module> to only keep reachable definitions.
-[38;5;119m✔[0m [AstToCStar] ⏱️ <1ms
-[38;5;119m✔[0m [CStarToC] ⏱️ 4ms
-[38;5;119m✔[0m [PrettyPrinting] ⏱️ <1ms
+[38;5;119m✔[0m [AstToCStar] ⏱️ 4ms
+[38;5;119m✔[0m [CStarToC] ⏱️ <1ms
+[38;5;119m✔[0m [PrettyPrinting] ⏱️ 4ms
 KreMLin: wrote out .c files for Hacl_Hash_Definitions, Minimal_Hardware, Minimal_Loader, Minimal_DICE
 KreMLin: wrote out .h files for Hacl_Spec, Hacl_Lib, Hacl_Kremlib, EverCrypt_Helpers, Hacl_Hash_Definitions, Hacl_Hash_Core_MD5, Hacl_Hash_MD5, Hacl_Hash_Core_SHA1, Hacl_Hash_SHA1, Hacl_Hash_Core_SHA2, Hacl_HMAC, Minimal_Hardware, Hacl_Hash_SHA2, Hacl_Ed25519, Minimal_Loader, Minimal_DICE
 [38;5;81m⚙ KreMLin will drive the C compiler.[0m Here's what we found:
-[4mgcc is:[0m clang
-[4mclang options are:[0m -I /home/zhetao/Sources/kremlin/kremlib/dist/minimal -I /home/zhetao/Sources/kremlin/kremlib -I ./src -I /home/zhetao/Sources/kremlin/include -I /home/zhetao/Sources/kremlin/kremlib/dist/generic -I /home/zhetao/Sources/hacl-star/specs -I /home/zhetao/Sources/hacl-star/specs/lemmas -I /home/zhetao/Sources/hacl-star/code/hash -I /home/zhetao/Sources/hacl-star/code/hkdf -I /home/zhetao/Sources/hacl-star/code/hmac -I /home/zhetao/Sources/hacl-star/code/curve25519 -I /home/zhetao/Sources/hacl-star/code/ed25519 -I /home/zhetao/Sources/hacl-star/lib -I /home/zhetao/Sources/hacl-star/providers/evercrypt -I /home/zhetao/Sources/kremlin/kremlib -I /home/zhetao/Sources/kremlin/include -I ./out -Wall -Werror -Wno-unused-variable -Wno-unknown-warning-option -Wno-unused-but-set-variable -g -fwrapv -fstack-check -D_BSD_SOURCE -D_DEFAULT_SOURCE -std=c11
+[4mgcc is:[0m gcc-7
+[4mgcc-7 options are:[0m -I /home/zhetao/Sources/kremlin/kremlib/dist/minimal -I /home/zhetao/Sources/kremlin/kremlib -I ./src -I /home/zhetao/Sources/kremlin/include -I /home/zhetao/Sources/kremlin/kremlib/dist/generic -I /home/zhetao/Sources/hacl-star/specs -I /home/zhetao/Sources/hacl-star/specs/lemmas -I /home/zhetao/Sources/hacl-star/code/hash -I /home/zhetao/Sources/hacl-star/code/hkdf -I /home/zhetao/Sources/hacl-star/code/hmac -I /home/zhetao/Sources/hacl-star/code/curve25519 -I /home/zhetao/Sources/hacl-star/code/ed25519 -I /home/zhetao/Sources/hacl-star/lib -I /home/zhetao/Sources/hacl-star/providers/evercrypt -I /home/zhetao/Sources/kremlin/kremlib -I /home/zhetao/Sources/kremlin/include -I ./out -Wall -Werror -Wno-unused-variable -Wno-unknown-warning-option -Wno-unused-but-set-variable -g -fwrapv -fstack-check -D_BSD_SOURCE -D_DEFAULT_SOURCE -std=c11
 [38;5;81m⚡ Generating object files[0m
 [38;5;119m✔[0m [CC,./out/Hacl_Hash_Definitions.c] (use -verbose to see the output)
 [38;5;203m✘[0m [CC,./out/Minimal_Hardware.c] (use -verbose to see the output)
-In file included from ./out/Minimal_Hardware.c:8:
-./out/Minimal_Hardware.h:24:9: error: unknown type name 'Lib_IntTypes_sec_int_t____'
-typedef Lib_IntTypes_sec_int_t____ *Minimal_Hardware_digest_t;
-        ^
-./out/Minimal_Hardware.h:34:9: error: unknown type name 'Lib_IntTypes_sec_int_t____'
-typedef Lib_IntTypes_sec_int_t____ *Minimal_Hardware_signature_t;
-        ^
-./out/Minimal_Hardware.h:36:9: error: unknown type name 'Lib_IntTypes_sec_int_t____'
-typedef Lib_IntTypes_sec_int_t____ *Minimal_Hardware_publickey_t;
-        ^
-./out/Minimal_Hardware.h:38:9: error: unknown type name 'Lib_IntTypes_sec_int_t____'
-typedef Lib_IntTypes_sec_int_t____ *Minimal_Hardware_secretkey_t;
-        ^
-./out/Minimal_Hardware.h:42:9: error: unknown type name 'Lib_IntTypes_sec_int_t____'
-typedef Lib_IntTypes_sec_int_t____ *Minimal_Hardware_header_raw_t;
-        ^
-./out/Minimal_Hardware.h:44:8: error: unknown type name 'Minimal_Hardware_entry_t'; did you mean 'Minimal_Hardware_msg_len_t'?
-extern Minimal_Hardware_entry_t Minimal_Hardware_entry;
-       ^~~~~~~~~~~~~~~~~~~~~~~~
-       Minimal_Hardware_msg_len_t
-./out/Minimal_Hardware.h:40:18: note: 'Minimal_Hardware_msg_len_t' declared here
-typedef uint32_t Minimal_Hardware_msg_len_t;
-                 ^
-./out/Minimal_Hardware.h:46:50: error: unknown type name 'Minimal_Hardware_header_t'; did you mean 'Minimal_Hardware_msg_len_t'?
-extern uint32_t Minimal_Hardware_get_binary_size(Minimal_Hardware_header_t header);
-                                                 ^~~~~~~~~~~~~~~~~~~~~~~~~
-                                                 Minimal_Hardware_msg_len_t
-./out/Minimal_Hardware.h:40:18: note: 'Minimal_Hardware_msg_len_t' declared here
-typedef uint32_t Minimal_Hardware_msg_len_t;
-                 ^
-./out/Minimal_Hardware.h:48:8: error: unknown type name 'Lib_IntTypes_sec_int_t____'
-extern Lib_IntTypes_sec_int_t____
-       ^
-./out/Minimal_Hardware.h:49:35: error: unknown type name 'Minimal_Hardware_header_t'; did you mean 'Minimal_Hardware_msg_len_t'?
-*Minimal_Hardware_get_binary_hash(Minimal_Hardware_header_t header);
+In file included from ./out/Minimal_Hardware.c:8:0:
+./out/Minimal_Hardware.h:24:9: error: unknown type name ‘Lib_IntTypes_sec_int_t____’
+ typedef Lib_IntTypes_sec_int_t____ *Minimal_Hardware_digest_t;
+         ^~~~~~~~~~~~~~~~~~~~~~~~~~
+./out/Minimal_Hardware.h:34:9: error: unknown type name ‘Lib_IntTypes_sec_int_t____’
+ typedef Lib_IntTypes_sec_int_t____ *Minimal_Hardware_signature_t;
+         ^~~~~~~~~~~~~~~~~~~~~~~~~~
+./out/Minimal_Hardware.h:36:9: error: unknown type name ‘Lib_IntTypes_sec_int_t____’
+ typedef Lib_IntTypes_sec_int_t____ *Minimal_Hardware_publickey_t;
+         ^~~~~~~~~~~~~~~~~~~~~~~~~~
+./out/Minimal_Hardware.h:38:9: error: unknown type name ‘Lib_IntTypes_sec_int_t____’
+ typedef Lib_IntTypes_sec_int_t____ *Minimal_Hardware_secretkey_t;
+         ^~~~~~~~~~~~~~~~~~~~~~~~~~
+./out/Minimal_Hardware.h:42:9: error: unknown type name ‘Lib_IntTypes_sec_int_t____’
+ typedef Lib_IntTypes_sec_int_t____ *Minimal_Hardware_header_raw_t;
+         ^~~~~~~~~~~~~~~~~~~~~~~~~~
+./out/Minimal_Hardware.h:44:8: error: unknown type name ‘Minimal_Hardware_entry_t’
+ extern Minimal_Hardware_entry_t Minimal_Hardware_entry;
+        ^~~~~~~~~~~~~~~~~~~~~~~~
+./out/Minimal_Hardware.h:46:50: error: unknown type name ‘Minimal_Hardware_header_t’; did you mean ‘Minimal_Hardware_header_raw_t’?
+ extern uint32_t Minimal_Hardware_get_binary_size(Minimal_Hardware_header_t header);
+                                                  ^~~~~~~~~~~~~~~~~~~~~~~~~
+                                                  Minimal_Hardware_header_raw_t
+./out/Minimal_Hardware.h:48:8: error: unknown type name ‘Lib_IntTypes_sec_int_t____’
+ extern Lib_IntTypes_sec_int_t____
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~
+./out/Minimal_Hardware.h:49:35: error: unknown type name ‘Minimal_Hardware_header_t’; did you mean ‘Minimal_Hardware_header_raw_t’?
+ *Minimal_Hardware_get_binary_hash(Minimal_Hardware_header_t header);
+                                   ^~~~~~~~~~~~~~~~~~~~~~~~~
+                                   Minimal_Hardware_header_raw_t
+./out/Minimal_Hardware.h:51:8: error: unknown type name ‘Lib_IntTypes_sec_int_t____’
+ extern Lib_IntTypes_sec_int_t____
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~
+./out/Minimal_Hardware.h:52:34: error: unknown type name ‘Minimal_Hardware_header_t’; did you mean ‘Minimal_Hardware_header_raw_t’?
+ *Minimal_Hardware_get_header_sig(Minimal_Hardware_header_t header);
                                   ^~~~~~~~~~~~~~~~~~~~~~~~~
-                                  Minimal_Hardware_msg_len_t
-./out/Minimal_Hardware.h:40:18: note: 'Minimal_Hardware_msg_len_t' declared here
-typedef uint32_t Minimal_Hardware_msg_len_t;
-                 ^
-./out/Minimal_Hardware.h:51:8: error: unknown type name 'Lib_IntTypes_sec_int_t____'
-extern Lib_IntTypes_sec_int_t____
-       ^
-./out/Minimal_Hardware.h:52:34: error: unknown type name 'Minimal_Hardware_header_t'; did you mean 'Minimal_Hardware_msg_len_t'?
-*Minimal_Hardware_get_header_sig(Minimal_Hardware_header_t header);
-                                 ^~~~~~~~~~~~~~~~~~~~~~~~~
-                                 Minimal_Hardware_msg_len_t
-./out/Minimal_Hardware.h:40:18: note: 'Minimal_Hardware_msg_len_t' declared here
-typedef uint32_t Minimal_Hardware_msg_len_t;
-                 ^
-./out/Minimal_Hardware.h:54:8: error: unknown type name 'Lib_IntTypes_sec_int_t____'
-extern Lib_IntTypes_sec_int_t____
-       ^
-./out/Minimal_Hardware.h:55:30: error: unknown type name 'Minimal_Hardware_header_t'; did you mean 'Minimal_Hardware_msg_len_t'?
-*Minimal_Hardware_get_binary(Minimal_Hardware_header_t header);
-                             ^~~~~~~~~~~~~~~~~~~~~~~~~
-                             Minimal_Hardware_msg_len_t
-./out/Minimal_Hardware.h:40:18: note: 'Minimal_Hardware_msg_len_t' declared here
-typedef uint32_t Minimal_Hardware_msg_len_t;
-                 ^
-./out/Minimal_Hardware.h:57:8: error: unknown type name 'Lib_IntTypes_sec_int_t____'
-extern Lib_IntTypes_sec_int_t____
-       ^
-./out/Minimal_Hardware.h:58:34: error: unknown type name 'Minimal_Hardware_header_t'; did you mean 'Minimal_Hardware_msg_len_t'?
-*Minimal_Hardware_get_header_raw(Minimal_Hardware_header_t header);
-                                 ^~~~~~~~~~~~~~~~~~~~~~~~~
-                                 Minimal_Hardware_msg_len_t
-./out/Minimal_Hardware.h:40:18: note: 'Minimal_Hardware_msg_len_t' declared here
-typedef uint32_t Minimal_Hardware_msg_len_t;
-                 ^
-./out/Minimal_Hardware.h:60:8: error: unknown type name 'Lib_IntTypes_sec_int_t____'
-extern Lib_IntTypes_sec_int_t____
-       ^
-./out/Minimal_Hardware.h:61:37: error: unknown type name 'Minimal_Hardware_header_t'; did you mean 'Minimal_Hardware_msg_len_t'?
-*Minimal_Hardware_get_header_pubkey(Minimal_Hardware_header_t header);
-                                    ^~~~~~~~~~~~~~~~~~~~~~~~~
-                                    Minimal_Hardware_msg_len_t
-./out/Minimal_Hardware.h:40:18: note: 'Minimal_Hardware_msg_len_t' declared here
-typedef uint32_t Minimal_Hardware_msg_len_t;
-                 ^
-./out/Minimal_Hardware.h:63:8: error: unknown type name 'Minimal_Hardware_entry_t'; did you mean 'Minimal_Hardware_msg_len_t'?
-extern Minimal_Hardware_entry_t Minimal_Hardware_get_entry(Minimal_Hardware_header_t header);
-       ^~~~~~~~~~~~~~~~~~~~~~~~
-       Minimal_Hardware_msg_len_t
-./out/Minimal_Hardware.h:40:18: note: 'Minimal_Hardware_msg_len_t' declared here
-typedef uint32_t Minimal_Hardware_msg_len_t;
-                 ^
-./out/Minimal_Hardware.h:63:60: error: unknown type name 'Minimal_Hardware_header_t'; did you mean 'Minimal_Hardware_msg_len_t'?
-extern Minimal_Hardware_entry_t Minimal_Hardware_get_entry(Minimal_Hardware_header_t header);
-                                                           ^~~~~~~~~~~~~~~~~~~~~~~~~
-                                                           Minimal_Hardware_msg_len_t
-./out/Minimal_Hardware.h:40:18: note: 'Minimal_Hardware_msg_len_t' declared here
-typedef uint32_t Minimal_Hardware_msg_len_t;
-                 ^
-fatal error: too many errors emitted, stopping now [-ferror-limit=]
-20 errors generated.
+                                  Minimal_Hardware_header_raw_t
+./out/Minimal_Hardware.h:54:8: error: unknown type name ‘Lib_IntTypes_sec_int_t____’
+ extern Lib_IntTypes_sec_int_t____
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~
+./out/Minimal_Hardware.h:55:30: error: unknown type name ‘Minimal_Hardware_header_t’; did you mean ‘Minimal_Hardware_header_raw_t’?
+ *Minimal_Hardware_get_binary(Minimal_Hardware_header_t header);
+                              ^~~~~~~~~~~~~~~~~~~~~~~~~
+                              Minimal_Hardware_header_raw_t
+./out/Minimal_Hardware.h:57:8: error: unknown type name ‘Lib_IntTypes_sec_int_t____’
+ extern Lib_IntTypes_sec_int_t____
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~
+./out/Minimal_Hardware.h:58:34: error: unknown type name ‘Minimal_Hardware_header_t’; did you mean ‘Minimal_Hardware_header_raw_t’?
+ *Minimal_Hardware_get_header_raw(Minimal_Hardware_header_t header);
+                                  ^~~~~~~~~~~~~~~~~~~~~~~~~
+                                  Minimal_Hardware_header_raw_t
+./out/Minimal_Hardware.h:60:8: error: unknown type name ‘Lib_IntTypes_sec_int_t____’
+ extern Lib_IntTypes_sec_int_t____
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~
+./out/Minimal_Hardware.h:61:37: error: unknown type name ‘Minimal_Hardware_header_t’; did you mean ‘Minimal_Hardware_header_raw_t’?
+ *Minimal_Hardware_get_header_pubkey(Minimal_Hardware_header_t header);
+                                     ^~~~~~~~~~~~~~~~~~~~~~~~~
+                                     Minimal_Hardware_header_raw_t
+./out/Minimal_Hardware.h:63:8: error: unknown type name ‘Minimal_Hardware_entry_t’
+ extern Minimal_Hardware_entry_t Minimal_Hardware_get_entry(Minimal_Hardware_header_t header);
+        ^~~~~~~~~~~~~~~~~~~~~~~~
+./out/Minimal_Hardware.h:63:60: error: unknown type name ‘Minimal_Hardware_header_t’; did you mean ‘Minimal_Hardware_header_raw_t’?
+ extern Minimal_Hardware_entry_t Minimal_Hardware_get_entry(Minimal_Hardware_header_t header);
+                                                            ^~~~~~~~~~~~~~~~~~~~~~~~~
+                                                            Minimal_Hardware_header_raw_t
+./out/Minimal_Hardware.h:67:8: error: unknown type name ‘Lib_IntTypes_sec_int_t____’
+ extern Lib_IntTypes_sec_int_t____ *Minimal_Hardware_get_uds(Minimal_Hardware_state st);
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~
+./out/Minimal_Hardware.h:67:61: error: unknown type name ‘Minimal_Hardware_state’; did you mean ‘Minimal_Hardware_digest_t’?
+ extern Lib_IntTypes_sec_int_t____ *Minimal_Hardware_get_uds(Minimal_Hardware_state st);
+                                                             ^~~~~~~~~~~~~~~~~~~~~~
+                                                             Minimal_Hardware_digest_t
+./out/Minimal_Hardware.h:69:8: error: unknown type name ‘Lib_IntTypes_sec_int_t____’
+ extern Lib_IntTypes_sec_int_t____ *Minimal_Hardware_get_cdi(Minimal_Hardware_state st);
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~
+./out/Minimal_Hardware.h:69:61: error: unknown type name ‘Minimal_Hardware_state’; did you mean ‘Minimal_Hardware_digest_t’?
+ extern Lib_IntTypes_sec_int_t____ *Minimal_Hardware_get_cdi(Minimal_Hardware_state st);
+                                                             ^~~~~~~~~~~~~~~~~~~~~~
+                                                             Minimal_Hardware_digest_t
+./out/Minimal_Hardware.h:71:8: error: unknown type name ‘Minimal_Hardware_header_t’
+ extern Minimal_Hardware_header_t Minimal_Hardware_get_header(Minimal_Hardware_state st);
+        ^~~~~~~~~~~~~~~~~~~~~~~~~
+./out/Minimal_Hardware.h:71:62: error: unknown type name ‘Minimal_Hardware_state’; did you mean ‘Minimal_Hardware_digest_t’?
+ extern Minimal_Hardware_header_t Minimal_Hardware_get_header(Minimal_Hardware_state st);
+                                                              ^~~~~~~~~~~~~~~~~~~~~~
+                                                              Minimal_Hardware_digest_t
+./out/Minimal_Hardware.h:73:8: error: unknown type name ‘Minimal_Hardware_state’
+ extern Minimal_Hardware_state Minimal_Hardware_initialize();
+        ^~~~~~~~~~~~~~~~~~~~~~
+./out/Minimal_Hardware.h:75:40: error: unknown type name ‘Minimal_Hardware_state’; did you mean ‘Minimal_Hardware_digest_t’?
+ extern void Minimal_Hardware_unset_uds(Minimal_Hardware_state st);
+                                        ^~~~~~~~~~~~~~~~~~~~~~
+                                        Minimal_Hardware_digest_t
+./out/Minimal_Hardware.h:77:42: error: unknown type name ‘Minimal_Hardware_state’; did you mean ‘Minimal_Hardware_digest_t’?
+ extern void Minimal_Hardware_disable_uds(Minimal_Hardware_state st);
+                                          ^~~~~~~~~~~~~~~~~~~~~~
+                                          Minimal_Hardware_digest_t
+cc1: error: unrecognized command line option ‘-Wno-unknown-warning-option’ [-Werror]
+cc1: all warnings being treated as errors
 
 Warning 3: run_or_warn: the following command failed:
-clang -I /home/zhetao/Sources/kremlin/kremlib/dist/minimal -I /home/zhetao/Sources/kremlin/kremlib -I ./src -I /home/zhetao/Sources/kremlin/include -I /home/zhetao/Sources/kremlin/kremlib/dist/generic -I /home/zhetao/Sources/hacl-star/specs -I /home/zhetao/Sources/hacl-star/specs/lemmas -I /home/zhetao/Sources/hacl-star/code/hash -I /home/zhetao/Sources/hacl-star/code/hkdf -I /home/zhetao/Sources/hacl-star/code/hmac -I /home/zhetao/Sources/hacl-star/code/curve25519 -I /home/zhetao/Sources/hacl-star/code/ed25519 -I /home/zhetao/Sources/hacl-star/lib -I /home/zhetao/Sources/hacl-star/providers/evercrypt -I /home/zhetao/Sources/kremlin/kremlib -I /home/zhetao/Sources/kremlin/include -I ./out -Wall -Werror -Wno-unused-variable -Wno-unknown-warning-option -Wno-unused-but-set-variable -g -fwrapv -fstack-check -D_BSD_SOURCE -D_DEFAULT_SOURCE -std=c11 -c ./out/Minimal_Hardware.c -o ./out/Minimal_Hardware.o
+gcc-7 -I /home/zhetao/Sources/kremlin/kremlib/dist/minimal -I /home/zhetao/Sources/kremlin/kremlib -I ./src -I /home/zhetao/Sources/kremlin/include -I /home/zhetao/Sources/kremlin/kremlib/dist/generic -I /home/zhetao/Sources/hacl-star/specs -I /home/zhetao/Sources/hacl-star/specs/lemmas -I /home/zhetao/Sources/hacl-star/code/hash -I /home/zhetao/Sources/hacl-star/code/hkdf -I /home/zhetao/Sources/hacl-star/code/hmac -I /home/zhetao/Sources/hacl-star/code/curve25519 -I /home/zhetao/Sources/hacl-star/code/ed25519 -I /home/zhetao/Sources/hacl-star/lib -I /home/zhetao/Sources/hacl-star/providers/evercrypt -I /home/zhetao/Sources/kremlin/kremlib -I /home/zhetao/Sources/kremlin/include -I ./out -Wall -Werror -Wno-unused-variable -Wno-unknown-warning-option -Wno-unused-but-set-variable -g -fwrapv -fstack-check -D_BSD_SOURCE -D_DEFAULT_SOURCE -std=c11 -c ./out/Minimal_Hardware.c -o ./out/Minimal_Hardware.o
 Warning 3 is fatal, exiting.
-src/Makefile:47: recipe for target 'compile' failed
+src/Makefile:51: recipe for target 'compile' failed
 make: *** [compile] Error 255

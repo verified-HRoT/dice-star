@@ -4,7 +4,7 @@ SRC_MAIN = Minimal.DICE.fst
 OUT_DIR = $(VHW_HOME)/out
 OUT_NAME = Minimal.DICE
 
-BASE_FLAGS = \
+HACL_BASE_FLAGS = \
   -no-prefix 'Hacl.Frodo.Random' \
   -bundle Hacl.Spec.*,Spec.*[rename=Hacl_Spec] \
   -bundle Lib.*[rename=Hacl_Lib] \
@@ -32,41 +32,24 @@ INCLUDE_PATHS = \
   $(HACL_HOME)/providers/evercrypt \
   $(KREMLIN_HOME)/kremlib
 
-minimal:
-	krml \
-  -no-prefix \
-  $(OUT_NAME) \
+COMPILE_COMMAND = \
   $(SRC_DIR)/$(SRC_MAIN) \
-  -skip-compilation \
-  -tmpdir $(OUT_DIR) \
-  -I $(SRC_DIR) \
-  $(addprefix -I , $(INCLUDE_PATHS)) \
-  -warn-error +11
-
-compile:
-	krml \
-  $(SRC_DIR)/$(SRC_MAIN) \
-  -cc clang \
-  $(BASE_FLAGS) \
+  $(HACL_BASE_FLAGS) \
   -drop WasmSupport \
   -tmpdir $(OUT_DIR) \
   -I $(SRC_DIR) \
   -add-include '"kremlin/internal/compat.h"' \
   $(addprefix -I , $(INCLUDE_PATHS)) \
-  -o dice.exe
+  -o $(OUT_DIR)/dice.exe
 
-test:
+extract:
 	krml \
-  -no-prefix \
-  Test \
-  $(SRC_DIR)/Test.fst \
-  -drop WasmSupport \
-  -tmpdir $(OUT_DIR) \
-  -I $(SRC_DIR) \
-  $(addprefix -I , $(INCLUDE_PATHS)) \
-  -warn-error +11 \
-  -o test.exe
+  -skip-compilation \
+  $(COMPILE_COMMAND)
 
+compile:
+	krml \
+  $(COMPILE_COMMAND)
 
 %.fst-in %.fsti-in: 
 	@echo $(addprefix --include , $(INCLUDE_PATHS))

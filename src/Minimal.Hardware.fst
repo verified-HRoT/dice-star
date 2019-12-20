@@ -34,8 +34,8 @@ type header_t = {
                        ; loc_buffer header_sig
                        ; loc_buffer binary
                        ; loc_buffer header_raw
-                       ; loc_buffer header_pubkey
-       ])
+                       ; loc_buffer header_pubkey ] /\
+       length binary == v binary_size)
      }
 }
 
