@@ -20,12 +20,7 @@
 #include "Hacl_Lib.h"
 
 
-void
-Minimal_DICE_dice_main(
-  Minimal_Hardware_state st,
-  uint32_t riot_size,
-  Lib_IntTypes_sec_int_t____ *riot_binary
-);
+void Minimal_DICE_dice_main(Minimal_Hardware_state st);
 
 exit_code Minimal_DICE_main();
 

@@ -23,33 +23,3 @@ module M   = LowStar.Modifies
 module HS  = FStar.HyperStack
 module HST = FStar.HyperStack.ST
 module CString = C.String
-
-let header_len = 1ul
-
-let entry_t = unit -> HST.St unit
-let entry = fun () -> ()
-
-let load_header
-  (_: unit)
-: HST.ST (header: header_t)
-  (requires fun h -> True)
-  (ensures fun h0 header h1 -> B.(
-    all_disjoint (get_header_loc_l header) /\
-    modifies loc_none h0 h1 /\
-    h1 `contains_header` header))
-=
-  let version = uint #U32 #PUB 1 in
-  let binary_size   = 100ul in
-  let binary_hash   = B.malloc HS.root (u8 0x00) digest_len in
-  let header_sig    = B.malloc HS.root (u8 0x00) 64ul in
-  let binary        = B.malloc HS.root (u8 0x00) binary_size in
-  let header_raw    = B.malloc HS.root (u8 0x00) header_len in
-  let header_pubkey = B.malloc HS.root (u8 0x00) 32ul in
-  { version     = version
-  ; binary_size = binary_size
-  ; binary_hash = binary_hash
-  ; header_sig  = header_sig
-  ; binary      = binary
-  ; header_raw  = header_raw
-  ; header_pubkey = header_pubkey}
-

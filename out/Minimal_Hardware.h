@@ -27,7 +27,40 @@ extern uint32_t Minimal_Hardware_uds_len;
 
 extern uint32_t Minimal_Hardware_cdi_len;
 
-typedef uint32_t Minimal_Hardware_riot_size_t;
+typedef uint32_t Minimal_Hardware_binary_size_t;
+
+extern uint32_t Minimal_Hardware_header_len;
+
+typedef Lib_IntTypes_sec_int_t____ *Minimal_Hardware_signature_t;
+
+typedef Lib_IntTypes_sec_int_t____ *Minimal_Hardware_publickey_t;
+
+typedef Lib_IntTypes_sec_int_t____ *Minimal_Hardware_secretkey_t;
+
+typedef uint32_t Minimal_Hardware_msg_len_t;
+
+typedef Lib_IntTypes_sec_int_t____ *Minimal_Hardware_header_raw_t;
+
+extern Minimal_Hardware_entry_t Minimal_Hardware_entry;
+
+extern uint32_t Minimal_Hardware_get_binary_size(Minimal_Hardware_header_t header);
+
+extern Lib_IntTypes_sec_int_t____
+*Minimal_Hardware_get_binary_hash(Minimal_Hardware_header_t header);
+
+extern Lib_IntTypes_sec_int_t____
+*Minimal_Hardware_get_header_sig(Minimal_Hardware_header_t header);
+
+extern Lib_IntTypes_sec_int_t____
+*Minimal_Hardware_get_binary(Minimal_Hardware_header_t header);
+
+extern Lib_IntTypes_sec_int_t____
+*Minimal_Hardware_get_header_raw(Minimal_Hardware_header_t header);
+
+extern Lib_IntTypes_sec_int_t____
+*Minimal_Hardware_get_header_pubkey(Minimal_Hardware_header_t header);
+
+extern Minimal_Hardware_entry_t Minimal_Hardware_get_entry(Minimal_Hardware_header_t header);
 
 extern void **Minimal_Hardware_local_state;
 
@@ -35,8 +68,9 @@ extern Lib_IntTypes_sec_int_t____ *Minimal_Hardware_get_uds(Minimal_Hardware_sta
 
 extern Lib_IntTypes_sec_int_t____ *Minimal_Hardware_get_cdi(Minimal_Hardware_state st);
 
-extern Minimal_Hardware_state
-Minimal_Hardware_initialize(Lib_IntTypes_sec_int_t____ *riot_binary);
+extern Minimal_Hardware_header_t Minimal_Hardware_get_header(Minimal_Hardware_state st);
+
+extern Minimal_Hardware_state Minimal_Hardware_initialize();
 
 extern void Minimal_Hardware_unset_uds(Minimal_Hardware_state st);
 

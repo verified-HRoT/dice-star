@@ -7,15 +7,13 @@
 
 #include "Minimal_DICE.h"
 
-void
-Minimal_DICE_dice_main(
-  Minimal_Hardware_state st,
-  uint32_t riot_size,
-  Lib_IntTypes_sec_int_t____ *riot_binary
-)
+void Minimal_DICE_dice_main(Minimal_Hardware_state st)
 {
   Lib_IntTypes_sec_int_t____ *uds = Minimal_Hardware_get_uds(st);
   Lib_IntTypes_sec_int_t____ *cdi = Minimal_Hardware_get_cdi(st);
+  uint32_t riot_size = Minimal_Hardware_get_binary_size(Minimal_Hardware_get_header(st));
+  Lib_IntTypes_sec_int_t____
+  *riot_binary = Minimal_Hardware_get_binary(Minimal_Hardware_get_header(st));
   KRML_CHECK_SIZE(sizeof (Lib_IntTypes_sec_int_t____), (uint32_t)32U);
   Lib_IntTypes_sec_int_t____ uDigest[32U];
   for (uint32_t _i = 0U; _i < (uint32_t)32U; ++_i)
@@ -31,15 +29,23 @@ Minimal_DICE_dice_main(
 
 exit_code Minimal_DICE_main()
 {
-  Minimal_Loader_layer_t riot = Minimal_Loader_load_layer();
-  C_String_print("Test");
-  if (Lib_IntTypes_lt(Lib_IntTypes_U32, (void *)(uint32_t)0U, (void *)riot.size))
+  Minimal_Hardware_state st = Minimal_Hardware_initialize();
+  Minimal_Hardware_header_t header = Minimal_Hardware_get_header(st);
+  uint32_t riot_size = Minimal_Hardware_get_binary_size(header);
+  bool verify_result = Minimal_Loader_verify_header(header);
+  if (verify_result)
   {
-    Minimal_Hardware_state st = Minimal_Hardware_initialize(riot.binary);
-    Minimal_DICE_dice_main(st, riot.size, riot.binary);
-    Minimal_Hardware_unset_uds(st);
-    Minimal_Hardware_disable_uds(st);
-    return EXIT_SUCCESS;
+    if (Lib_IntTypes_lt(Lib_IntTypes_U32, (void *)(uint32_t)0U, (void *)riot_size))
+    {
+      Minimal_DICE_dice_main(st);
+      Minimal_Hardware_unset_uds(st);
+      Minimal_Hardware_disable_uds(st);
+      return EXIT_SUCCESS;
+    }
+    else
+    {
+      return EXIT_FAILURE;
+    }
   }
   else
   {

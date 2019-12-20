@@ -12,83 +12,13 @@
 #ifndef __Minimal_Loader_H
 #define __Minimal_Loader_H
 
-#include "Hacl_Kremlib.h"
+#include "Minimal_Hardware.h"
 #include "Hacl_Hash_SHA2.h"
 #include "Hacl_Ed25519.h"
 #include "Hacl_Lib.h"
 
 
-typedef uint32_t Minimal_Loader_binary_len_t;
-
-extern uint32_t Minimal_Loader_header_len;
-
-typedef uint32_t Minimal_Loader_version_number_t;
-
-typedef Lib_IntTypes_sec_int_t____ *Minimal_Loader_signature_t;
-
-typedef Lib_IntTypes_sec_int_t____ *Minimal_Loader_publickey_t;
-
-typedef Lib_IntTypes_sec_int_t____ *Minimal_Loader_secretkey_t;
-
-typedef uint32_t Minimal_Loader_msg_len_t;
-
-typedef Lib_IntTypes_sec_int_t____ *Minimal_Loader_header_raw_t;
-
-typedef struct Minimal_Loader_header_t_s
-{
-  uint32_t version;
-  uint32_t binary_size;
-  Lib_IntTypes_sec_int_t____ *binary_hash;
-  Lib_IntTypes_sec_int_t____ *header_sig;
-  Lib_IntTypes_sec_int_t____ *binary;
-  Lib_IntTypes_sec_int_t____ *header_raw;
-  Lib_IntTypes_sec_int_t____ *header_pubkey;
-}
-Minimal_Loader_header_t;
-
-uint32_t Minimal_Loader___proj__Mkheader_t__item__version(Minimal_Loader_header_t projectee);
-
-uint32_t
-Minimal_Loader___proj__Mkheader_t__item__binary_size(Minimal_Loader_header_t projectee);
-
-Lib_IntTypes_sec_int_t____
-*Minimal_Loader___proj__Mkheader_t__item__binary_hash(Minimal_Loader_header_t projectee);
-
-Lib_IntTypes_sec_int_t____
-*Minimal_Loader___proj__Mkheader_t__item__header_sig(Minimal_Loader_header_t projectee);
-
-Lib_IntTypes_sec_int_t____
-*Minimal_Loader___proj__Mkheader_t__item__binary(Minimal_Loader_header_t projectee);
-
-Lib_IntTypes_sec_int_t____
-*Minimal_Loader___proj__Mkheader_t__item__header_raw(Minimal_Loader_header_t projectee);
-
-Lib_IntTypes_sec_int_t____
-*Minimal_Loader___proj__Mkheader_t__item__header_pubkey(Minimal_Loader_header_t projectee);
-
-extern Minimal_Loader_entry_t Minimal_Loader_entry;
-
-typedef struct Minimal_Loader_layer_t_s
-{
-  uint32_t size;
-  Lib_IntTypes_sec_int_t____ *binary;
-  Minimal_Loader_entry_t entry;
-}
-Minimal_Loader_layer_t;
-
-uint32_t Minimal_Loader___proj__Mklayer_t__item__size(Minimal_Loader_layer_t projectee);
-
-Lib_IntTypes_sec_int_t____
-*Minimal_Loader___proj__Mklayer_t__item__binary(Minimal_Loader_layer_t projectee);
-
-Minimal_Loader_entry_t
-Minimal_Loader___proj__Mklayer_t__item__entry(Minimal_Loader_layer_t projectee);
-
-extern Minimal_Loader_header_t Minimal_Loader_load_header();
-
-bool Minimal_Loader_verify_header(Minimal_Loader_header_t header);
-
-Minimal_Loader_layer_t Minimal_Loader_load_layer();
+bool Minimal_Loader_verify_header(Minimal_Hardware_header_t header);
 
 #define __Minimal_Loader_H_DEFINED
 #endif

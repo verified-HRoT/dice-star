@@ -32,7 +32,7 @@ module HST = FStar.HyperStack.ST
 
 module B = LowStar.Buffer
 
-/// Lengths of UDS and CDI
+/// <><><><><><><><><><><><> Common Definitions <><><><><><><><><><><><>
 
 unfold
 let dice_alg = a:hash_alg{a <> MD5 /\ a <> SHA2_224}
@@ -67,8 +67,45 @@ val uds_len : l: size_t {0 < v l /\ v l <= max_input_length alg}
 unfold
 let cdi_len = digest_len
 
-unfold
-let riot_size_t = l: size_t{0 < v l /\ v l <= max_input_length alg}
+let binary_size_t = a:size_t{0 < v a /\ v a <= max_input_length alg}
+
+val header_len: binary_size_t
+
+let signature_t = B.lbuffer uint8 64
+let publickey_t = B.lbuffer uint8 32
+let secretkey_t = B.lbuffer uint8 32
+let msg_len_t = a:size_t{v a + 64 <= max_size_t}
+
+let header_raw_t = B.lbuffer uint8 (v header_len)
+
+val entry_t: Type0
+val entry: entry_t
+
+val header_t: Type0
+val get_binary_size (header: header_t): binary_size_t
+val get_binary_hash (header: header_t): digest_t
+val get_header_sig  (header: header_t): signature_t
+val get_binary      (header: header_t): B.lbuffer uint8 (v (get_binary_size header))
+val get_header_raw  (header: header_t): header_raw_t
+val get_header_pubkey (header: header_t): publickey_t
+val get_entry       (header: header_t): entry_t
+
+unfold noextract
+let contains_header (h:HS.mem) (header: header_t) =
+  B.live h (get_binary_hash header) /\
+  B.live h (get_header_sig header) /\
+  B.live h (get_header_raw header) /\
+  B.live h (get_header_pubkey header) /\
+  B.live h (get_binary header)
+
+unfold noextract
+let get_header_loc_l header = [B.loc_buffer (get_binary_hash header)
+                              ;B.loc_buffer (get_header_sig header)
+                              ;B.loc_buffer (get_header_raw header)
+                              ;B.loc_buffer (get_header_pubkey header)
+                              ;B.loc_buffer (get_binary header)]
+
+/// <><><><><><><><><><> Monotonic Predicates <><><><><><><><><><><>
 
 /// The model maintains some abstract local state
 ///
@@ -77,6 +114,7 @@ let riot_size_t = l: size_t{0 < v l /\ v l <= max_input_length alg}
 ///
 /// This type can be left out of the native C implementation of this interface
 
+noextract
 val local_state : ( a:Type0 & pre:P.preorder (G.erased a) & HST.mref (G.erased a) pre)
 
 
@@ -115,6 +153,9 @@ val get_uds (st:state)
 val get_cdi (st:state)
 : Tot (b:B.buffer uint8{B.length b == v cdi_len /\ B.freeable b})
 
+val get_header (st: state)
+: Tot (h: header_t{B.all_disjoint (get_header_loc_l h)})
+
 val get_uds_value (st:state)
 : GTot (s:Seq.seq uint8{Seq.length s == v uds_len})
 
@@ -122,12 +163,16 @@ val get_uds_value (st:state)
 
 unfold
 let get_loc_l st = [ B.loc_buffer (get_uds st)
-                   ; B.loc_buffer (get_cdi st) ]
+                   ; B.loc_buffer (get_cdi st) ] @
+                   (get_header_loc_l (get_header st))
 
 unfold
 let contains (h:HS.mem) (st:state) =
   B.live h (get_uds st) /\
-  B.live h (get_cdi st)
+  B.live h (get_cdi st) /\
+  h `contains_header` (get_header st)
+
+/// <><><><><><><><><><><><><><> Interfaces <><><><><><><><><><><><><><><><><><>
 
 /// The initialization routine
 ///
@@ -144,25 +189,19 @@ let contains (h:HS.mem) (st:state) =
 /// TODO: this currently does not say anything about the allocations it does
 ///       e.g. this function is currently allowed to allocate two uds buffers and copy UDS into them
 
-val initialize
-  (riot_binary: B.buffer uint8)
-: HST.ST (st:state{B.all_disjoint ((get_loc_l st)@[B.loc_buffer riot_binary])})
+val initialize (_: unit)
+: HST.ST (st:state{B.all_disjoint (get_loc_l st)})
   (requires fun h ->
-    uds_is_uninitialized h /\
-    B.live h riot_binary /\
-    (let (| _, _, local_st |) = local_state in
-      B.loc_disjoint (B.loc_buffer riot_binary) (B.loc_mreference local_st)))
+    uds_is_uninitialized h)
   (ensures fun h0 st h1 ->
     uds_is_initialized /\  //uds has been initialized
     (let (| _, _, local_st |) = local_state in
      let uds  = get_uds st in
-     let cdi  = get_cdi st in
      HS.contains h1 local_st /\
      B.(modifies (loc_mreference local_st) h0 h1) /\
      h1 `contains` st /\
      B.all_disjoint ((get_loc_l st)
-                    @[B.loc_mreference local_st
-                    ; B.loc_buffer riot_binary]) /\
+                    @[B.loc_mreference local_st]) /\
      B.as_seq h1 uds == get_uds_value st))
 
 

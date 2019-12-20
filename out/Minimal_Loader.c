@@ -7,91 +7,22 @@
 
 #include "Minimal_Loader.h"
 
-uint32_t Minimal_Loader___proj__Mkheader_t__item__version(Minimal_Loader_header_t projectee)
-{
-  return projectee.version;
-}
-
-uint32_t
-Minimal_Loader___proj__Mkheader_t__item__binary_size(Minimal_Loader_header_t projectee)
-{
-  return projectee.binary_size;
-}
-
-Lib_IntTypes_sec_int_t____
-*Minimal_Loader___proj__Mkheader_t__item__binary_hash(Minimal_Loader_header_t projectee)
-{
-  return projectee.binary_hash;
-}
-
-Lib_IntTypes_sec_int_t____
-*Minimal_Loader___proj__Mkheader_t__item__header_sig(Minimal_Loader_header_t projectee)
-{
-  return projectee.header_sig;
-}
-
-Lib_IntTypes_sec_int_t____
-*Minimal_Loader___proj__Mkheader_t__item__binary(Minimal_Loader_header_t projectee)
-{
-  return projectee.binary;
-}
-
-Lib_IntTypes_sec_int_t____
-*Minimal_Loader___proj__Mkheader_t__item__header_raw(Minimal_Loader_header_t projectee)
-{
-  return projectee.header_raw;
-}
-
-Lib_IntTypes_sec_int_t____
-*Minimal_Loader___proj__Mkheader_t__item__header_pubkey(Minimal_Loader_header_t projectee)
-{
-  return projectee.header_pubkey;
-}
-
-uint32_t Minimal_Loader___proj__Mklayer_t__item__size(Minimal_Loader_layer_t projectee)
-{
-  return projectee.size;
-}
-
-Lib_IntTypes_sec_int_t____
-*Minimal_Loader___proj__Mklayer_t__item__binary(Minimal_Loader_layer_t projectee)
-{
-  return projectee.binary;
-}
-
-Minimal_Loader_entry_t
-Minimal_Loader___proj__Mklayer_t__item__entry(Minimal_Loader_layer_t projectee)
-{
-  return projectee.entry;
-}
-
-bool Minimal_Loader_verify_header(Minimal_Loader_header_t header)
+bool Minimal_Loader_verify_header(Minimal_Hardware_header_t header)
 {
   KRML_CHECK_SIZE(sizeof (Lib_IntTypes_sec_int_t____), (uint32_t)32U);
   Lib_IntTypes_sec_int_t____ rhDigest[32U];
   for (uint32_t _i = 0U; _i < (uint32_t)32U; ++_i)
     rhDigest[_i]
     = Lib_IntTypes_mk_int(Lib_IntTypes_U8, Lib_IntTypes_SEC, (krml_checked_int_t)0x00);
-  Hacl_Hash_SHA2_hash_256(header.header_raw, Minimal_Loader_header_len, rhDigest);
-  bool b = Hacl_Ed25519_verify(header.header_pubkey, (uint32_t)32U, rhDigest, header.header_sig);
+  Hacl_Hash_SHA2_hash_256(Minimal_Hardware_get_header_raw(header),
+    Minimal_Hardware_header_len,
+    rhDigest);
+  bool
+  b =
+    Hacl_Ed25519_verify(Minimal_Hardware_get_header_pubkey(header),
+      (uint32_t)32U,
+      rhDigest,
+      Minimal_Hardware_get_header_sig(header));
   return b;
-}
-
-Minimal_Loader_layer_t Minimal_Loader_load_layer()
-{
-  Minimal_Loader_header_t header = Minimal_Loader_load_header();
-  KRML_CHECK_SIZE(sizeof (Lib_IntTypes_sec_int_t____), header.binary_size);
-  Lib_IntTypes_sec_int_t____
-  *buf = KRML_HOST_MALLOC(sizeof (Lib_IntTypes_sec_int_t____) * header.binary_size);
-  for (uint32_t _i = 0U; _i < header.binary_size; ++_i)
-    buf[_i] = Lib_IntTypes_mk_int(Lib_IntTypes_U8, Lib_IntTypes_SEC, (krml_checked_int_t)0x00);
-  Minimal_Loader_layer_t
-  layer = { .size = header.binary_size, .binary = buf, .entry = Minimal_Loader_entry };
-  bool verify_result = Minimal_Loader_verify_header(header);
-  if (!verify_result)
-  {
-    exit((int32_t)-1);
-  }
-  return layer;
 }
 

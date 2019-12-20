@@ -15,7 +15,7 @@
 
 
 
-extern void C_String_print(C_String_t uu____1293);
+
 
 #define __Hacl_Kremlib_H_DEFINED
 #endif

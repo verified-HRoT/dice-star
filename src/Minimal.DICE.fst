@@ -30,16 +30,12 @@ module CString = C.String
 #reset-options "--z3rlimit 30 --query_stats"
 let dice_main
   (st: state)
-  (riot_size: riot_size_t)
-  (riot_binary: B.buffer uint8{B.length riot_binary == v riot_size})
 : HST.Stack unit
   (requires fun h ->
-    h `contains` st /\
-    h `B.live` riot_binary /\
-    B.all_disjoint ((get_loc_l st)@[B.loc_buffer riot_binary]))
+    h `contains` st)
   (ensures  fun h0 _ h1 ->
-    B.live h1 riot_binary /\
     (let uds, cdi = get_uds st, get_cdi st in
+     let riot_binary = get_binary (get_header st) in
     (**)assert_norm (Spec.Agile.HMAC.keysized alg (v digest_len));
     (**)assert_norm ((v digest_len) + block_length alg <= max_input_length alg);
        B.modifies (B.loc_buffer cdi) h0 h1 /\
@@ -51,6 +47,14 @@ let dice_main
   HST.push_frame();
 
   let uds, cdi = get_uds st, get_cdi st in
+  let riot_size = get_binary_size (get_header st) in
+  let riot_binary = get_binary (get_header st) in
+  //   dice_main st riot.size riot.binary;
+
+  //   (* wipe and disable uds *)
+  //   unset_uds st;
+  //   disable_uds st;
+  //   C.EXIT_SUCCESS
 
   (**)let h0 = HST.get () in
 
@@ -87,44 +91,24 @@ let dice_main
 
 /// <><><><><><><><><><><><> C main funtion <><><><><><><><><><><>
 
-// let riot_size: riot_size_t = 1ul
-
-// assume val riot_binary:
-//   b:B.buffer uint8
-//     {B.length b == v riot_size /\
-//     (let (| _, _, local_st |) = local_state in
-//       B.loc_disjoint (B.loc_buffer b) (B.loc_mreference local_st))}
-
-
 let main ()
 : HST.ST C.exit_code
   (requires fun h ->
     uds_is_uninitialized h)
-    // B.live h riot_binary)
   (ensures  fun h0 _ h1 -> True \/
     uds_is_disabled)
 =
-  let riot = Loader.load_layer () in
-  (* ZT: do this for convenience now *)
-  (**)let h = HST.get() in
-  (**)assume (uds_is_uninitialized h);
-  (**)assume (let (| _, _, local_st |) = local_state in
-                  B.loc_disjoint (B.loc_buffer riot.binary) (B.loc_mreference local_st));
-
-  C.String.print (C.String.of_literal "Test");
-
-  (**)assert_norm ((max_input_length alg) <= maxint (len_int_type alg));
-  if (0ul <. riot.size) then// && riot.size <=. (nat_to_len alg (max_input_length alg))) then
-  (
-    let st: st:state{B.all_disjoint ((get_loc_l st)@[B.loc_buffer riot.binary])}
-      = initialize riot.binary in
-    (* only allocating on the stack *)
-
-    dice_main st riot.size riot.binary;
-
-    (* wipe and disable uds *)
-    unset_uds st;
-    disable_uds st;
-    C.EXIT_SUCCESS)
+  let st = initialize () in
+  let header = get_header st in
+  let riot_size = get_binary_size header in
+  let verify_result = verify_header header in
+  if (verify_result) then
+  ( if ( (0ul <. riot_size) ) then
+    ( dice_main st
+    ; unset_uds st
+    ; disable_uds st
+    ; C.EXIT_SUCCESS )
+    else
+    ( C.EXIT_FAILURE ))
   else
-    C.EXIT_FAILURE
+  ( C.EXIT_FAILURE )
