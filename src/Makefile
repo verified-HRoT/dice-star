@@ -30,7 +30,9 @@ INCLUDE_PATHS = \
   $(HACL_HOME)/code/ed25519 \
   $(HACL_HOME)/lib \
   $(HACL_HOME)/providers/evercrypt \
-  $(KREMLIN_HOME)/kremlib
+  $(KREMLIN_HOME)/kremlib \
+  $(HACL_HOME)/obj
+
 
 COMPILE_COMMAND = \
   $(SRC_DIR)/$(SRC_MAIN) \

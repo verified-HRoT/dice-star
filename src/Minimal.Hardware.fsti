@@ -21,9 +21,6 @@ module Minimal.Hardware
 
 open Lib.IntTypes
 
-open Spec.Hash.Definitions
-open Hacl.Hash.Definitions
-
 module P = FStar.Preorder
 module G = FStar.Ghost
 
@@ -32,80 +29,11 @@ module HST = FStar.HyperStack.ST
 
 module B = LowStar.Buffer
 
-/// <><><><><><><><><><><><> Common Definitions <><><><><><><><><><><><>
+open DICE.Definitions
 
-unfold
-let dice_alg = a:hash_alg{a <> MD5 /\ a <> SHA2_224}
 
-unfold
-let alg : dice_alg = SHA2_256
+val uds_len : hashable_len
 
-unfold inline_for_extraction noextract
-let dice_hash (alg: dice_alg): hash_st alg =
-  match alg with
-  | SHA2_256 -> Hacl.Hash.SHA2.hash_256
-  | SHA2_384 -> Hacl.Hash.SHA2.hash_384
-  | SHA2_512 -> Hacl.Hash.SHA2.hash_512
-  | SHA1     -> Hacl.Hash.SHA1.legacy_hash
-
-unfold inline_for_extraction noextract
-let dice_hmac (alg: dice_alg): Hacl.HMAC.compute_st alg =
-  match alg with
-  | SHA2_256 -> Hacl.HMAC.compute_sha2_256
-  | SHA2_384 -> Hacl.HMAC.compute_sha2_384
-  | SHA2_512 -> Hacl.HMAC.compute_sha2_512
-  | SHA1     -> Hacl.HMAC.legacy_compute_sha1
-
-unfold
-let digest_len = hash_len alg
-
-unfold
-let digest_t = hash_t alg
-
-val uds_len : l: size_t {0 < v l /\ v l <= max_input_length alg}
-
-unfold
-let cdi_len = digest_len
-
-let binary_size_t = a:size_t{0 < v a /\ v a <= max_input_length alg}
-
-val header_len: binary_size_t
-
-let signature_t = B.lbuffer uint8 64
-let publickey_t = B.lbuffer uint8 32
-let secretkey_t = B.lbuffer uint8 32
-let msg_len_t = a:size_t{v a + 64 <= max_size_t}
-
-let header_raw_t = B.lbuffer uint8 (v header_len)
-
-val entry_t: Type0
-val entry: entry_t
-
-val header_t: Type0
-val get_binary_size (header: header_t): binary_size_t
-val get_binary_hash (header: header_t): digest_t
-val get_header_sig  (header: header_t): signature_t
-val get_binary      (header: header_t): B.lbuffer uint8 (v (get_binary_size header))
-val get_header_raw  (header: header_t): header_raw_t
-val get_header_pubkey (header: header_t): publickey_t
-val get_entry       (header: header_t): entry_t
-
-unfold noextract
-let contains_header (h:HS.mem) (header: header_t) =
-  B.live h (get_binary_hash header) /\
-  B.live h (get_header_sig header) /\
-  B.live h (get_header_raw header) /\
-  B.live h (get_header_pubkey header) /\
-  B.live h (get_binary header)
-
-unfold noextract
-let get_header_loc_l header = [B.loc_buffer (get_binary_hash header)
-                              ;B.loc_buffer (get_header_sig header)
-                              ;B.loc_buffer (get_header_raw header)
-                              ;B.loc_buffer (get_header_pubkey header)
-                              ;B.loc_buffer (get_binary header)]
-
-/// <><><><><><><><><><> Monotonic Predicates <><><><><><><><><><><>
 
 /// The model maintains some abstract local state
 ///
@@ -114,8 +42,9 @@ let get_header_loc_l header = [B.loc_buffer (get_binary_hash header)
 ///
 /// This type can be left out of the native C implementation of this interface
 
+
 noextract
-val local_state : ( a:Type0 & pre:P.preorder (G.erased a) & HST.mref (G.erased a) pre)
+val local_state : (a:Type0 & pre:P.preorder (G.erased a) & HST.mref (G.erased a) pre)
 
 
 /// Following predicates define the state machine for UDS
@@ -129,6 +58,7 @@ val local_state : ( a:Type0 & pre:P.preorder (G.erased a) & HST.mref (G.erased a
 /// Then at some point UDS will be disabled, again once disabled remains disabled
 ///
 /// These are just for spec purposes, can be left out of the native implementation
+
 
 val uds_is_uninitialized (h:HS.mem) : Type0
 
@@ -148,33 +78,39 @@ val state : Type0
 ///   And also value of the UDS for the purposed of the spec
 
 val get_uds (st:state)
-: Tot (b:B.buffer uint8{B.length b == v uds_len /\ B.freeable b})
+: (b:B.buffer uint8{B.length b == v uds_len /\ B.freeable b})
 
 val get_cdi (st:state)
-: Tot (b:B.buffer uint8{B.length b == v cdi_len /\ B.freeable b})
-
-val get_header (st: state)
-: Tot (h: header_t{
-          B.all_disjoint (get_header_loc_l h) /\
-          B.length (get_binary h) == v (get_binary_size h)})
+: (b:B.buffer uint8{B.length b == v cdi_len /\ B.freeable b})
 
 val get_uds_value (st:state)
 : GTot (s:Seq.seq uint8{Seq.length s == v uds_len})
 
-/// Helper
+val get_riot_header (st:state)
+: riot_header_t
 
-unfold
-let get_loc_l st = [ B.loc_buffer (get_uds st)
-                   ; B.loc_buffer (get_cdi st) ] @
-                   (get_header_loc_l (get_header st))
+
+/// Helper
 
 unfold
 let contains (h:HS.mem) (st:state) =
   B.live h (get_uds st) /\
   B.live h (get_cdi st) /\
-  h `contains_header` (get_header st)
+  h `contains_riot_header` (get_riot_header st)
 
-/// <><><><><><><><><><><><><><> Interfaces <><><><><><><><><><><><><><><><><><>
+unfold
+let disjointness (st:state) =
+  let (| _, _, local_st |) = local_state in
+  let rh = get_riot_header st in
+  B.all_disjoint ([
+    B.loc_buffer (get_uds st);
+    B.loc_buffer (get_cdi st);
+    B.loc_mreference local_st;
+    B.loc_buffer rh.binary_hash;
+    B.loc_buffer rh.header_sig;
+    B.loc_buffer rh.binary;
+    B.loc_buffer rh.pubkey])
+
 
 /// The initialization routine
 ///
@@ -192,18 +128,17 @@ let contains (h:HS.mem) (st:state) =
 ///       e.g. this function is currently allowed to allocate two uds buffers and copy UDS into them
 
 val initialize (_: unit)
-: HST.ST (st:state{B.all_disjoint (get_loc_l st)})
+: HST.ST state
   (requires fun h ->
     uds_is_uninitialized h)
   (ensures fun h0 st h1 ->
     uds_is_initialized /\  //uds has been initialized
     (let (| _, _, local_st |) = local_state in
      let uds  = get_uds st in
-     HS.contains h1 local_st /\
-     B.(modifies (loc_mreference local_st) h0 h1) /\
+     h1 `HS.contains` local_st /\
      h1 `contains` st /\
-     B.all_disjoint ((get_loc_l st)
-                    @[B.loc_mreference local_st]) /\
+     B.(modifies (loc_mreference local_st) h0 h1) /\
+     disjointness st /\
      B.as_seq h1 uds == get_uds_value st))
 
 
