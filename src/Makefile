@@ -1,8 +1,8 @@
 VHW_HOME = .
 SRC_DIR = $(VHW_HOME)/src
-SRC_MAIN = Minimal.DICE.fst
+SRC_MAIN = DICE.Core
 OUT_DIR = $(VHW_HOME)/out
-OUT_NAME = Minimal.DICE
+OUT_NAME = Dice.Core
 
 HACL_BASE_FLAGS = \
   -no-prefix 'Hacl.Frodo.Random' \
