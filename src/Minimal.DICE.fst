@@ -1,138 +1,103 @@
 /// Reference: https://github.com/microsoft/RIoT/blob/master/Reference/DICE/DiceCore.cpp
+
 module Minimal.DICE
 
-open LowStar.BufferOps
-open Spec.Hash.Definitions
-open Hacl.Hash.Definitions
-open Lib.IntTypes
-open LowStar.Failure
-
-open Minimal.Hardware
-//open Minimal.Loader
-
-module I  = FStar.Integers
-module HI  = Lib.IntTypes
-
-module SHA2       = Hacl.Hash.SHA2
-module SHA1       = Hacl.Hash.SHA1
-module MD5        = Hacl.Hash.MD5
-module HMAC       = Hacl.HMAC
-module Ed25519    = Hacl.Ed25519
-
-module B   = LowStar.Buffer
-module LB  = Lib.Buffer
-module M   = LowStar.Modifies
+module Fail = LowStar.Failure
+module B = LowStar.Buffer
 module HS  = FStar.HyperStack
 module HST = FStar.HyperStack.ST
-module CString = C.String
 
+open Lib.IntTypes
+module S = Spec.Hash.Definitions
+module Ed25519 = Hacl.Ed25519
 
 module HW = Minimal.Hardware
 
-// /// <><><><><><><><><><><><> DICE main funtion <><><><><><><><><><><>
+open DICE.Definitions
 
-// #reset-options "--z3rlimit 30 --query_stats"
-// let dice_main
-//   (st: state)
-// : HST.Stack unit
-//   (requires fun h ->
-//     h `contains` st)
-//   (ensures  fun h0 _ h1 ->
-//     (let uds, cdi = get_uds st, get_cdi st in
-//      let riot_binary = get_binary (get_header st) in
-//     (**)assert_norm (Spec.Agile.HMAC.keysized alg (v digest_len));
-//     (**)assert_norm ((v digest_len) + block_length alg <= max_input_length alg);
-//        B.modifies (B.loc_buffer cdi) h0 h1 /\
-//        B.as_seq h1 cdi
-//          == Spec.Agile.HMAC.hmac alg
-//               (Spec.Agile.Hash.hash alg (B.as_seq h0 uds))
-//               (Spec.Agile.Hash.hash alg (B.as_seq h0 riot_binary))))
-// =
-//   HST.push_frame();
+#set-options "--max_fuel 0 --max_ifuel 0 --z3rlimit 20"
 
-//   let uds, cdi = get_uds st, get_cdi st in
-//   let riot_size = get_binary_size (get_header st) in
-//   let riot_binary = get_binary (get_header st) in
-//   //   dice_main st riot.size riot.binary;
+let hmac_preconditions ()
+: Lemma 
+  (Spec.Agile.HMAC.keysized alg (v digest_len) /\
+   v digest_len + S.block_length alg <= S.max_input_length alg)
+= assert_norm (Spec.Agile.HMAC.keysized alg (v digest_len) /\
+               v digest_len + S.block_length alg <= S.max_input_length alg)
 
-//   //   (* wipe and disable uds *)
-//   //   unset_uds st;
-//   //   disable_uds st;
-//   //   C.EXIT_SUCCESS
+let riot_signature_matches (riot_header:riot_header_t) (h:HS.mem) =
+  let digest = Spec.Agile.Hash.hash alg (B.as_seq h riot_header.binary) in  
+  Spec.Ed25519.verify (B.as_seq h riot_header.pubkey) digest (B.as_seq h riot_header.header_sig)
 
-//   (**)let h0 = HST.get () in
+let cdi_is_hmac (state:HW.state) (h:HS.mem) =
+  let cdi = HW.get_cdi state in
+  let uds = HW.get_uds state in
+  hmac_preconditions ();
+  B.as_seq h cdi ==
+    Spec.Agile.HMAC.hmac alg
+      (Spec.Agile.Hash.hash alg (HW.get_uds_value state))
+      (Spec.Agile.Hash.hash alg (B.as_seq h (HW.get_riot_header state).binary))
 
-//   (* compute uDigest *)
-//   let uDigest: b:B.buffer HI.uint8{B.length b == hash_length alg}
-//     = B.alloca (HI.u8 0x00) digest_len in
-//   dice_hash alg
-//     uds uds_len
-//     uDigest;
+unfold
+let dice_core_pre (state:HW.state)
+: HS.mem -> Type0
+= fun h ->
+  h `HW.contains` state /\
+  HW.disjointness state /\
+  B.as_seq h (HW.get_uds state) == HW.get_uds_value state
 
-//   (**)let h1 = HST.get () in
-//   (**)assert (B.modifies (B.loc_buffer uDigest) h0 h1 /\
-//   (**)        B.as_seq h1 uDigest == Spec.Agile.Hash.hash alg (B.as_seq h0 uds));
+unfold let dice_core_post (state:HW.state)
+: HS.mem -> unit -> HS.mem -> Type0
+= fun h0 r h1 ->
+  B.(modifies (loc_buffer (HW.get_cdi state)) h0 h1) /\
+  riot_signature_matches (HW.get_riot_header state) h1 /\
+  cdi_is_hmac state h1
 
-//   (* compute rDigest *)
-//   let rDigest: b:B.buffer HI.uint8{B.length b == hash_length alg}
-//     = B.alloca (HI.u8 0x00) digest_len in
-//   dice_hash alg
-//     riot_binary riot_size
-//     rDigest;
+inline_for_extraction
+let dice_core_aux (state:HW.state)
+: HST.StackInline unit
+  (requires dice_core_pre state)
+  (ensures dice_core_post state)
+= let h1 = HST.get () in
 
-//   (**)let h2 = HST.get () in
-//   (**)assert (B.modifies (B.loc_buffer rDigest) h1 h2 /\
-//   (**)        B.as_seq h2 rDigest == Spec.Agile.Hash.hash alg (B.as_seq h1 riot_binary));
+  let riot_binary_digest = B.alloca (u8 0x00) digest_len in
+  let uds_digest = B.alloca (u8 0x00) digest_len in
 
-//   (* compute cdi *)
-//   (**)assert_norm (Spec.Agile.HMAC.keysized alg (v digest_len));
-//   dice_hmac alg
-//     cdi
-//     uDigest digest_len
-//     rDigest digest_len;
+  let h2 = HST.get () in
 
-//   HST.pop_frame()
+  let riot_header = HW.get_riot_header state in
+  dice_hash alg riot_header.binary riot_header.binary_size riot_binary_digest;
+  let b = Ed25519.verify riot_header.pubkey digest_len riot_binary_digest riot_header.header_sig in
 
-// /// <><><><><><><><><><><><> C main funtion <><><><><><><><><><><>
+  if not b then Fail.failwith "RIoT signature verification failed"
+  else
+    let uds = HW.get_uds state in
+    let cdi = HW.get_cdi state in
+    dice_hash alg uds HW.uds_len uds_digest;
+    hmac_preconditions ();
+    dice_hmac alg cdi uds_digest digest_len riot_binary_digest digest_len;
 
-// let main ()
-// : HST.ST C.exit_code
-//   (requires fun h ->
-//     uds_is_uninitialized h)
-//   (ensures  fun h0 _ h1 -> True \/
-//     uds_is_disabled)
-// =
-//   let st = initialize () in
-//   let header = get_header st in
-//   let riot_size = get_binary_size header in
-//   let verify_succeed = verify_header header in
-//   if (verify_succeed) then
-//   ( if ( (0ul <. riot_size) ) then
-//     ( dice_main st
-//     ; unset_uds st
-//     ; disable_uds st )
-//     else
-//     ( failwith "RIoT size less than or equal 0" ) )
-//   else
-//   ( failwith "RIoT header verification failed" );
+    let h3 = HST.get () in
+    B.modifies_remove_new_locs
+      (B.(loc_union (loc_buffer riot_binary_digest) (loc_buffer uds_digest)))
+      B.loc_none
+      (B.loc_buffer cdi)
+      h1 h2 h3
 
-//   C.EXIT_SUCCESS
-
-let compute_cdi (state:HW.state)
-: HST.Stack C.exit_code
-  (requires fun h ->
-    h `HW.contains` state /\
-    disjointness state /\
-    B.as_seq h (HW.get_uds state) == HW.get_uds_value state)
-  (ensures fun _ _ _ -> True)
-= 
-
+let dice_core (state:HW.state)
+: HST.Stack unit
+  (requires dice_core_pre state)
+  (ensures dice_core_post state)
+= HST.push_frame ();
+  dice_core_aux state;
+  HST.pop_frame ()
 
 let dice_main ()
-: HST.ST C.exit_code
+: HST.ST unit
   (requires fun h ->
-    uds_is_uninitialized h)
-  (ensures fun h0 _ h1 -> uds_is_disabled)
+    HW.uds_is_uninitialized h)
+  (ensures fun _ _ _ -> HW.uds_is_disabled)
 = let state = HW.initialize () in
-  let _ = compute_cdi state in
-  admit ()
+  dice_core state;
+
+  HW.unset_uds state;
+  HW.disable_uds state
