@@ -1,5 +1,7 @@
 FSTAR_FILES=$(wildcard *.fst)
 
+OUTPUT_DIR=obj
+
 FSTAR_INCLUDES=$(FSTAR_HOME)/ulib/.cache \
   $(KREMLIN_HOME)/include \
   $(KREMLIN_HOME)/kremlib/dist/generic \
@@ -16,19 +18,22 @@ FSTAR_INCLUDES=$(FSTAR_HOME)/ulib/.cache \
   $(HACL_HOME)/lib \
   $(HACL_HOME)/providers/evercrypt \
   $(KREMLIN_HOME)/kremlib \
-  $(HACL_HOME)/obj
+  $(HACL_HOME)/obj \
+  $(OUTPUT_DIR)
 
 FSTAR_FLAGS=--cache_checked_modules \
   $(addprefix --include ,$(FSTAR_INCLUDES)) \
+  --odir $(OUTPUT_DIR) \
+  --cache_dir $(OUTPUT_DIR) \
   --already_cached 'Prims FStar LowStar Hacl Spec Lib EverCrypt Vale C Meta'
 
 FSTAR=$(FSTAR_HOME)/bin/fstar.exe $(FSTAR_FLAGS) $(OTHERFLAGS)
 
-%.checked: %
+$(OUTPUT_DIR)/%.checked: %
 	$(FSTAR) $*
 	touch $@
 
-%.krml:
+$(OUTPUT_DIR)/%.krml:
 	$(FSTAR) \
 	  --codegen Kremlin \
 	  --cmi \
@@ -45,6 +50,8 @@ include .depend
 verify-all: $(ALL_CHECKED_FILES)
 
 extract-all: $(ALL_KRML_FILES)
+
+#AR: TODO: Figure what's up with error 9
 
 KREMLIN_FLAGS = \
   -no-prefix 'DICE.Definitions' \
@@ -66,8 +73,8 @@ KREMLIN_FLAGS = \
   $(addprefix -I , $(FSTAR_INCLUDES)) \
   -drop WasmSupport \
   -skip-compilation \
-  -warn-error -9
-
+  -warn-error -9 \
+  -tmpdir $(OUTPUT_DIR)
 
 KRML=$(KREMLIN_HOME)/krml
 
@@ -78,66 +85,4 @@ compile-all:
 	  $(ALL_KRML_FILES)
 
 clean:
-	rm -f .depend *.checked *.krml
-
-
-# VHW_HOME = .
-# SRC_DIR = $(VHW_HOME)/src
-# SRC_MAIN = DICE.Core.fst
-# OUT_DIR = $(VHW_HOME)/out
-# OUT_NAME = Dice.Core
-
-# HACL_BASE_FLAGS = \
-#   -no-prefix 'DICE.Definitions' \
-#   -no-prefix 'DICE.Core' \
-#   -no-prefix 'HWAbstraction' \
-#   -bundle Hacl.Spec.*,Spec.*[rename=Hacl_Spec] \
-#   -bundle Lib.*[rename=Hacl_Lib] \
-#   -drop Lib.IntVector.Intrinsics \
-#   -fparentheses -fno-shadow -fcurly-braces \
-#   -bundle LowStar.* \
-#   -bundle Prims,C.Failure,C,C.String,C.Loops,Spec.Loops,C.Endianness,FStar.*[rename=Hacl_Kremlib] \
-#   -bundle 'Meta.*' \
-#   -minimal \
-#   -fnoreturn-else \
-#   -add-include '"kremlin/internal/types.h"' \
-#   -add-include '"kremlin/lowstar_endianness.h"' \
-#   -add-include '<string.h>'
-
-# INCLUDE_PATHS = \
-#   $(KREMLIN_HOME)/include \
-#   $(KREMLIN_HOME)/kremlib/dist/generic \
-#   $(HACL_HOME)/specs \
-#   $(HACL_HOME)/specs/lemmas \
-#   $(HACL_HOME)/code/hash \
-#   $(HACL_HOME)/code/hkdf \
-#   $(HACL_HOME)/code/hmac\
-#   $(HACL_HOME)/code/curve25519 \
-#   $(HACL_HOME)/code/ed25519 \
-#   $(HACL_HOME)/lib \
-#   $(HACL_HOME)/providers/evercrypt \
-#   $(KREMLIN_HOME)/kremlib \
-#   $(HACL_HOME)/obj
-
-
-# COMPILE_COMMAND = \
-#   $(SRC_DIR)/$(SRC_MAIN) \
-#   $(HACL_BASE_FLAGS) \
-#   -drop WasmSupport \
-#   -tmpdir $(OUT_DIR) \
-#   -I $(SRC_DIR) \
-#   -add-include '"kremlin/internal/compat.h"' \
-#   $(addprefix -I , $(INCLUDE_PATHS)) \
-#   -o $(OUT_DIR)/dice.exe
-
-# extract:
-# 	krml \
-#   -skip-compilation \
-#   $(COMPILE_COMMAND)
-
-# compile:
-# 	krml \
-#   $(COMPILE_COMMAND)
-
-# %.fst-in %.fsti-in: 
-# 	@echo $(addprefix --include , $(INCLUDE_PATHS))
+	rm -rf .depend obj
