@@ -2,6 +2,8 @@
 
 module DICE.Core
 
+open LowStar.Comment
+
 module Fail = LowStar.Failure
 module B = LowStar.Buffer
 module HS  = FStar.HyperStack
@@ -82,33 +84,35 @@ let dice_core_aux (state:HW.state)
   (ensures dice_core_post state)
 = let h1 = HST.get () in
 
-  //stack allocations
-  let riot_binary_digest = B.alloca (u8 0x00) digest_len in
-  let uds_digest = B.alloca (u8 0x00) digest_len in
+  comment "stack buffer for computing the hash of the RIoT binary";
+  let riot_binary_digest = B.alloca (u8 0) digest_len in
+
+  comment "stack buffer for computing the hash of the UDS";
+  let uds_digest = B.alloca (u8 0) digest_len in
 
   let h2 = HST.get () in
 
-  //verification of the RIoT binary signature
+  comment "signature verification for the RIoT binary";
   let riot_header = HW.get_riot_header state in
   dice_hash alg riot_header.binary riot_header.binary_size riot_binary_digest;
   let b = Ed25519.verify riot_header.pubkey digest_len riot_binary_digest riot_header.header_sig in
 
-  if not b then Fail.failwith "RIoT signature verification failed"
-  else
-    //CDI computation
-    let uds = HW.get_uds state in
-    let cdi = HW.get_cdi state in
-    dice_hash alg uds HW.uds_len uds_digest;
-    hmac_preconditions ();
-    dice_hmac alg cdi uds_digest digest_len riot_binary_digest digest_len;
+  if not b then Fail.failwith "RIoT signature verification failed";
 
-    //proof hints for `modifies` to the solver
-    let h3 = HST.get () in
-    B.modifies_remove_new_locs
-      (B.(loc_union (loc_buffer riot_binary_digest) (loc_buffer uds_digest)))
-      B.loc_none
-      (B.loc_buffer cdi)
-      h1 h2 h3
+  comment "CDI computation";
+  let uds = HW.get_uds state in
+  let cdi = HW.get_cdi state in
+  dice_hash alg uds HW.uds_len uds_digest;
+  hmac_preconditions ();
+  dice_hmac alg cdi uds_digest digest_len riot_binary_digest digest_len;
+
+  //proof hints for `modifies` to the solver
+  let h3 = HST.get () in
+  B.modifies_remove_new_locs
+    (B.(loc_union (loc_buffer riot_binary_digest) (loc_buffer uds_digest)))
+    B.loc_none
+    (B.loc_buffer cdi)
+    h1 h2 h3
 
 /// Wrapper over the dice_core_aux
 

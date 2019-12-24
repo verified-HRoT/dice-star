@@ -12,6 +12,8 @@ module H = Hacl.Hash.Definitions
  * Some common definitions used in the DICE code
  *)
 
+#set-options "--__temp_no_proj DICE.Definitions"
+
 type dice_hash_alg = a:S.hash_alg{a =!= S.MD5 /\ a =!= S.SHA2_224}
 
 inline_for_extraction
