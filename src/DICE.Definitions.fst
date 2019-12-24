@@ -37,9 +37,7 @@ unfold let digest_len = H.hash_len alg
 
 unfold type digest_t = H.hash_t alg
 
-unfold let max_input_len = S.max_input_length alg
-
-unfold type hashable_len = i:I.size_t{0 < I.v i /\ I.v i <= max_input_len}
+unfold type hashable_len = i:I.size_t{0 < I.v i /\ I.v i <= S.max_input_length alg}
 
 unfold let cdi_len = digest_len
 

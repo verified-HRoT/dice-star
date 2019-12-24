@@ -1,11 +1,13 @@
 VHW_HOME = .
 SRC_DIR = $(VHW_HOME)/src
-SRC_MAIN = DICE.Core
+SRC_MAIN = DICE.Core.fst
 OUT_DIR = $(VHW_HOME)/out
 OUT_NAME = Dice.Core
 
 HACL_BASE_FLAGS = \
-  -no-prefix 'Hacl.Frodo.Random' \
+  -no-prefix 'DICE.Definitions' \
+  -no-prefix 'DICE.Core' \
+  -no-prefix 'HWAbstraction' \
   -bundle Hacl.Spec.*,Spec.*[rename=Hacl_Spec] \
   -bundle Lib.*[rename=Hacl_Lib] \
   -drop Lib.IntVector.Intrinsics \
