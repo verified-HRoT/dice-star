@@ -83,4 +83,4 @@ compile-all:
 	  $(ALL_KRML_FILES) c/HWAbstraction.c
 
 clean:
-	rm -rf .depend obj
+	rm -rf .depend obj dice.exe
