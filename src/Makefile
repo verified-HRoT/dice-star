@@ -41,7 +41,7 @@ $(OUTPUT_DIR)/%.krml:
 	  $(notdir $(subst .checked,,$<))
 
 .depend:
-	$(FSTAR) --dep full $(FSTAR_FILES) --extract '-* +DICE +HWAbstraction' > .depend
+	$(FSTAR) --dep full $(FSTAR_FILES) > .depend
 
 depend: .depend
 
@@ -57,14 +57,10 @@ KREMLIN_FLAGS = \
   -no-prefix 'DICE.Definitions' \
   -no-prefix 'DICE.Core' \
   -no-prefix 'HWAbstraction' \
-  -bundle Hacl.Spec.*,Spec.*[rename=Hacl_Spec] \
-  -bundle Lib.*[rename=Hacl_Lib] \
   -drop Lib.IntVector.Intrinsics \
   -fparentheses -fno-shadow -fcurly-braces \
-  -bundle LowStar.* \
-  -bundle Prims,C.Failure,C,C.String,C.Loops,Spec.Loops,C.Endianness,FStar.*[rename=Hacl_Kremlib] \
-  -bundle 'Meta.*' \
-  -bundle 'Vale.*' \
+  -library HWAbstraction \
+  -bundle Prims,C.Failure,C,C.String,C.Loops,Spec.Loops,C.Endianness,FStar.*,Hacl.*,Spec.*,Vale.*,Lib.*,LowStar.*,Meta.*[rename=Hacl_Lib] \
   -minimal \
   -fnoreturn-else \
   -add-include '"kremlin/internal/types.h"' \
@@ -72,7 +68,7 @@ KREMLIN_FLAGS = \
   -add-include '<string.h>' \
   $(addprefix -I , $(FSTAR_INCLUDES)) \
   -drop WasmSupport \
-  -skip-compilation \
+  -skip-linking \
   -warn-error -9 \
   -tmpdir $(OUTPUT_DIR)
 

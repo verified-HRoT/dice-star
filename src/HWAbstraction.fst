@@ -10,8 +10,9 @@ module B = LowStar.Buffer
 
 let uds_len = 0x20ul
 
-#set-options "--max_fuel 0 --ifuel 2"
+#set-options "--max_fuel 0 --ifuel 2 --__temp_no_proj HWAbstraction"
 
+noextract
 type t =
   | Uninitialized
   | Enabled

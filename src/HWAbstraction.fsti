@@ -31,6 +31,7 @@ module B = LowStar.Buffer
 
 open DICE.Definitions
 
+#set-options "--__temp_no_proj HWAbstraction"
 
 val uds_len : hashable_len
 
@@ -60,10 +61,13 @@ val local_state : (a:Type0 & pre:P.preorder (G.erased a) & HST.mref (G.erased a)
 /// These are just for spec purposes, can be left out of the native implementation
 
 
+noextract
 val uds_is_uninitialized (h:HS.mem) : Type0
 
+noextract
 val uds_is_initialized : Type0
 
+noextract
 val uds_is_disabled : Type0
 
 
