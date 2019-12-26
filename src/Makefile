@@ -81,3 +81,6 @@ compile-all:
 
 clean:
 	rm -rf .depend obj dice.exe
+
+%.fst-in %.fsti-in: 
+	@echo $(addprefix --include , $(FSTAR_INCLUDES))
