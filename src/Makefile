@@ -51,8 +51,6 @@ verify-all: $(ALL_CHECKED_FILES)
 
 extract-all: $(ALL_KRML_FILES)
 
-#AR: TODO: Figure what's up with error 9
-
 KREMLIN_FLAGS = \
   -no-prefix 'DICE.Definitions' \
   -no-prefix 'DICE.Core' \
@@ -69,7 +67,6 @@ KREMLIN_FLAGS = \
   -add-include '<string.h>' \
   $(addprefix -I , $(FSTAR_INCLUDES)) \
   -drop WasmSupport \
-  -warn-error -9 \
   -tmpdir $(OUTPUT_DIR) \
   -verbose \
   -o dice.exe
