@@ -124,8 +124,8 @@ let dice_core (state:HW.state)
   dice_core_aux state;
   HST.pop_frame ()
 
-let dice_main ()
-: HST.ST unit
+let main ()
+: HST.ST C.exit_code
   (requires fun h ->
     HW.uds_is_uninitialized h)
   (ensures fun _ _ _ -> HW.uds_is_disabled)
@@ -133,4 +133,6 @@ let dice_main ()
   dice_core state;
 
   HW.unset_uds state;
-  HW.disable_uds state
+  HW.disable_uds state;
+
+  C.EXIT_SUCCESS

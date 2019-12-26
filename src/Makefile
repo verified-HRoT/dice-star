@@ -69,9 +69,10 @@ KREMLIN_FLAGS = \
   -add-include '<string.h>' \
   $(addprefix -I , $(FSTAR_INCLUDES)) \
   -drop WasmSupport \
-  -skip-linking \
   -warn-error -9 \
-  -tmpdir $(OUTPUT_DIR)
+  -tmpdir $(OUTPUT_DIR) \
+  -verbose \
+  -o dice.exe
 
 KRML=$(KREMLIN_HOME)/krml
 
@@ -79,7 +80,7 @@ KRML=$(KREMLIN_HOME)/krml
 compile-all:
 	$(KRML) \
 	  $(KREMLIN_FLAGS) \
-	  $(ALL_KRML_FILES)
+	  $(ALL_KRML_FILES) c/HWAbstraction.c
 
 clean:
 	rm -rf .depend obj
