@@ -56,13 +56,6 @@ let bound_of_asn1_type
 type asn1_value: Type =
 | BOOLEAN_VALUE: b: bool -> asn1_value
 | NULL_VALUE: n:unit -> asn1_value
-| OCTET_STRING_VALUE: s: Bytes.bytes{true == asn1_length_inbound (Seq.length s) (min_of_asn1_type OCTET_STRING) (max_of_asn1_type OCTET_STRING)} -> asn1_value
-
-// let asn1_proper_TL
-//   (a: asn1_type)
-//   (l: asn1_length_t)
-// : Type0
-// = let min, max = asn1_proper_length_of_tag a in
-//   asn1_length_inbound l min max == true
-
-// let asn1_TL = (a: asn1_type & l: asn1_length_t {asn1_proper_TL a l})
+| OCTET_STRING_VALUE: l: asn1_length_t (* NOTE: Carrying length here for low-level operations. *)
+                   -> s: Bytes.bytes{l == Seq.length s}
+                   -> asn1_value
