@@ -9,7 +9,7 @@ include ASN1.Base
 /// ASN.1 DER Tag Encoder
 val asn1_tag_of_type: asn1_type -> Tot byte
 
-val encode_asn1_tag: asn1_type -> Tot bytes
+val encode_asn1_tag: asn1_type -> Tot byte
 
 /// Exposing ASN.1 DER Tag kind
 let parse_asn1_tag_kind: parser_kind = constant_size_parser_kind 1
@@ -17,7 +17,7 @@ let parse_asn1_tag_kind: parser_kind = constant_size_parser_kind 1
 
 /// Generic ASN.1 DER Tag Decoder and Parser/Serializer
 ///
-val decode_asn1_tag: b: bytes{Seq.length b == 1} -> Tot (option asn1_type)
+val decode_asn1_tag: s: bytes{Seq.length s == 1} -> Tot (option asn1_type)
 
 val decode_asn1_tag_injective: unit -> Lemma (
   forall (s1: bytes {Seq.length s1 == 1})

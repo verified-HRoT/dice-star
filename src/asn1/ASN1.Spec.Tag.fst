@@ -18,25 +18,25 @@ let asn1_tag_of_type
   // | INTEGER      -> 0x02uy
   // | BIT_STRING   -> 0x03uy
   | OCTET_STRING -> 0x04uy
-  // | NULL         -> 0x05uy
+  | NULL         -> 0x05uy
   // | OID          -> 0x06uy
   // | SEQUENCE     -> 0x30uy
 
 let encode_asn1_tag
-= fun (a: asn1_type) -> Seq.create 1 (asn1_tag_of_type a)
+= fun (a: asn1_type) -> asn1_tag_of_type a
 
 /// Generic ASN.1 DER Tag Parser
 ///
 
 let decode_asn1_tag
-  (b: bytes {Seq.length b == 1})
+  (s: bytes {Seq.length s == 1})
 : Tot (option (asn1_type))
-= match b.[0] with
+= match s.[0] with
   | 0x01uy -> Some BOOLEAN
   // | 0x02uy -> Some INTEGER
   // | 0x03uy -> Some BIT_STRING
   | 0x04uy -> Some OCTET_STRING
-  // | 0x05uy -> Some NULL
+  | 0x05uy -> Some NULL
   // | 0x06uy -> Some OID
   // | 0x30uy -> Some SEQUENCE
   | _      -> None
@@ -70,7 +70,7 @@ let parse_asn1_tag_unfold
 
 let serialize_asn1_tag ()
 : Tot (serializer parse_asn1_tag)
-= encode_asn1_tag
+= fun (a: asn1_type) -> Seq.create 1 (encode_asn1_tag a)
 
 /// Specialized ASN.1 DER Tag Parser
 ///
@@ -78,14 +78,14 @@ let serialize_asn1_tag ()
 /// Specialized decoder
 let decode_the_asn1_tag
   (a: asn1_type)
-  (b: bytes {Seq.length b == 1})
+  (s: bytes {Seq.length s == 1})
 : Tot (option (the_asn1_type a))
-= match a, b.[0] with
+= match a, s.[0] with
   | BOOLEAN      , 0x01uy -> Some BOOLEAN
   // | INTEGER      , 0x02uy -> Some INTEGER
   // | BIT_STRING   , 0x03uy -> Some BIT_STRING
   | OCTET_STRING , 0x04uy -> Some OCTET_STRING
-  // | NULL         , 0x05uy -> Some NULL
+  | NULL         , 0x05uy -> Some NULL
   // | OID          , 0x06uy -> Some OID
   // | SEQUENCE     , 0x30uy -> Some SEQUENCE
   | _                     -> None
@@ -125,4 +125,4 @@ let parse_the_asn1_tag_unfold
 let serialize_the_asn1_tag
   (a: asn1_type)
 : Tot (serializer (parse_the_asn1_tag a))
-= fun (a': the_asn1_type a) -> encode_asn1_tag a'
+= fun (a': the_asn1_type a) -> Seq.create 1 (encode_asn1_tag a')
