@@ -81,7 +81,8 @@ let serializer32_backwards
     B.live h b /\
     (U32.v pos - U32.v len) <= (U32.v pos) /\
     (U32.v pos) <= Seq.length (B.as_seq h' b) /\
-    Seq.slice (B.as_seq h' b) (U32.v pos - U32.v len) (U32.v pos) `Seq.equal` serialize s x
+    Seq.slice (B.as_seq h' b) (U32.v pos - U32.v len) (U32.v pos) `Seq.equal` serialize s x /\
+    writable b (U32.v pos - U32.v len) (U32.v pos) h'
   )))
 
 inline_for_extraction
