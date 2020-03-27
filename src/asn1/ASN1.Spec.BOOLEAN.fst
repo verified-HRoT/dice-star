@@ -3,46 +3,86 @@ module ASN1.Spec.BOOLEAN
 include LowParse.Spec.Base
 include LowParse.Spec.Combinators
 include LowParse.Spec.Int
-friend  LowParse.Spec.Int
 
 include ASN1.Base
 
 (* BOOLEAN primitive *)
-let encode_asn1_boolean
+let filter_asn1_boolean
+  (b: byte)
+: GTot bool
+= b = 0xFFuy || b = 0x00uy
+
+let synth_asn1_boolean
+  (b: parse_filter_refine filter_asn1_boolean)
+: GTot bool
+= match b with
+  | 0xFFuy -> true
+  | 0x00uy -> false
+
+let synth_asn1_boolean_inverse
   (b: bool)
-: Tot byte
+: GTot (r: parse_filter_refine filter_asn1_boolean{synth_asn1_boolean r == b})
 = match b with
   | true  -> 0xFFuy
   | false -> 0x00uy
 
-let decode_asn1_boolean
-  (bs: bytes{Seq.length bs == 1})
-: Tot (option bool)
-= match bs.[0] with
-  | 0xFFuy -> Some true
-  | 0x00uy -> Some false
-  | _      -> None
-
-let decode_asn1_boolean_injective ()
-: Lemma (
-  make_constant_size_parser_precond 1 bool decode_asn1_boolean
-) = ()
-
 let parse_asn1_boolean
 : parser parse_asn1_boolean_kind bool
-= decode_asn1_boolean_injective ();
-  make_constant_size_parser 1 bool decode_asn1_boolean
+= parse_u8
+  `parse_filter`
+  filter_asn1_boolean
+  `parse_synth`
+  synth_asn1_boolean
 
 let parse_asn1_boolean_unfold
   (input: bytes)
 : Lemma (
   parse parse_asn1_boolean input ==
  (match parse parse_u8 input with
-  | Some (0xFFuy, 1) -> Some (true,  1)
-  | Some (0x00uy, 1) -> Some (false, 1)
-  | _                -> None)
-) = ()
+  | Some (x, consumed) -> if filter_asn1_boolean x then
+                          ( Some (synth_asn1_boolean x, consumed) )
+                          else
+                          ( None )
+  | None -> None))
+= parser_kind_prop_equiv parse_asn1_boolean_kind parse_asn1_boolean;
+  parse_filter_eq
+  (* p  *) (parse_u8)
+  (* f  *) (filter_asn1_boolean)
+  (* in *) (input);
+  parse_synth_eq
+  (* p1 *) (parse_u8
+            `parse_filter`
+            filter_asn1_boolean)
+  (* f2 *) (synth_asn1_boolean)
+  (* in *) (input)
 
 let serialize_asn1_boolean
 : serializer parse_asn1_boolean
-= fun (b: bool) -> Seq.create 1 (encode_asn1_boolean b)
+= serialize_synth
+  (* p1 *) (parse_u8
+            `parse_filter`
+            filter_asn1_boolean)
+  (* f2 *) (synth_asn1_boolean)
+  (* s1 *) (serialize_u8
+            `serialize_filter`
+            filter_asn1_boolean)
+  (* g1 *) (synth_asn1_boolean_inverse)
+  (* prf*) ()
+
+let serialize_asn1_boolean_unfold
+  (b: bool)
+: Lemma (
+  serialize serialize_asn1_boolean b
+  `Seq.equal`
+  serialize serialize_u8 (synth_asn1_boolean_inverse b))
+= serialize_synth_eq
+  (* p1 *) (parse_u8
+            `parse_filter`
+            filter_asn1_boolean)
+  (* f2 *) (synth_asn1_boolean)
+  (* s1 *) (serialize_u8
+            `serialize_filter`
+            filter_asn1_boolean)
+  (* g1 *) (synth_asn1_boolean_inverse)
+  (* prf*) ()
+  (* in *) (b)

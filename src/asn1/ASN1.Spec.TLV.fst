@@ -18,7 +18,7 @@ module U32 = FStar.UInt32
 /// Parser filter for valid ASN.1 DER `Tag`, `Length` pair
 let filter_TL
   (x: asn1_type * bounded_int32 asn1_length_min asn1_length_max)
-: bool
+: GTot bool
 = let a, len = x in
   let min, max = bound_of_asn1_type a in
   asn1_length_inbound (U32.v len) min max
@@ -64,7 +64,7 @@ let parse_TL_unfold
 ///
 let serialize_TL
 : serializer parse_TL
-= serialize_asn1_tag ()
+= serialize_asn1_tag
   `serialize_nondep_then`
   serialize_bounded_der_length32 asn1_length_min asn1_length_max
   `serialize_filter`
@@ -75,11 +75,11 @@ let serialize_TL_unfold
 : Lemma (
   let sx = serialize serialize_TL x in
   let a, len = x in
-  sx == (serialize (serialize_asn1_tag ()) a)
+  sx == (serialize serialize_asn1_tag a)
         `Seq.append`
         (serialize (serialize_bounded_der_length32 asn1_length_min asn1_length_max) len))
 = serialize_nondep_then_eq
-  (* s1 *) (serialize_asn1_tag ())
+  (* s1 *) (serialize_asn1_tag)
   (* s2 *) (serialize_bounded_der_length32 asn1_length_min asn1_length_max)
   (* in *) x
 
@@ -109,25 +109,25 @@ let asn1_value_of_TL = refine_with_tag parser_tag_of_asn1_value
 let synth_asn1_boolean_value
   (x: parse_filter_refine filter_TL{x == (BOOLEAN, 1ul)})
   (b: bool)
-: refine_with_tag parser_tag_of_asn1_value x
+: GTot (refine_with_tag parser_tag_of_asn1_value x)
 = BOOLEAN_VALUE b
 
 let synth_asn1_boolean_value_inverse
   (x: parse_filter_refine filter_TL{x == (BOOLEAN, 1ul)})
   (value: refine_with_tag parser_tag_of_asn1_value x)
-: bool
+: GTot bool
 = BOOLEAN_VALUE?.b value
 
 let synth_asn1_null_value
   (x: parse_filter_refine filter_TL{x == (NULL, 0ul)})
   (n: unit)
-: refine_with_tag parser_tag_of_asn1_value x
+: GTot (refine_with_tag parser_tag_of_asn1_value x)
 = NULL_VALUE n
 
 let synth_asn1_null_value_inverse
   (x: parse_filter_refine filter_TL{x == (NULL, 0ul)})
   (value: refine_with_tag parser_tag_of_asn1_value x)
-: unit
+: GTot unit
 = NULL_VALUE?.n value
 
 let lbytes = Seq.Properties.lseq byte
@@ -136,14 +136,14 @@ let synth_asn1_octet_string_value
   (l: asn1_length_t)
   (x: parse_filter_refine filter_TL{x == (OCTET_STRING, U32.uint_to_t l)})
   (s: lbytes l)
-: refine_with_tag parser_tag_of_asn1_value x
+: GTot (refine_with_tag parser_tag_of_asn1_value x)
 = OCTET_STRING_VALUE l s
 
 let synth_asn1_octet_string_value_inverse
   (l: asn1_length_t)
   (x: parse_filter_refine filter_TL{x == (OCTET_STRING, U32.uint_to_t l)})
   (value: refine_with_tag parser_tag_of_asn1_value x)
-: (s: lbytes l)
+: GTot (s: lbytes l)
 = OCTET_STRING_VALUE?.s value
 
 /// Strong parser kind for ASN.1 DER `Value` parser
@@ -186,7 +186,7 @@ let parse_asn1_value
                     // (fun (s: lbytes len) -> OCTET_STRING_VALUE s len <: refine_with_tag parser_tag_of_asn1_value x)
                     (synth_asn1_octet_string_value l x)))
 
-// #push-options "--query_stats --z3rlimit 32 --max_fuel 16 --max_ifuel 16"
+#push-options "--query_stats --z3rlimit 32 --max_fuel 16 --max_ifuel 16"
 let parse_asn1_value_unfold
   (x: parse_filter_refine filter_TL)
   (input: bytes)
@@ -219,6 +219,7 @@ let parse_asn1_value_unfold
   let l = U32.v len in
   match a with
   | BOOLEAN      -> (parse_asn1_boolean_unfold input;
+                     parser_kind_prop_equiv (get_parser_kind parse_asn1_boolean) parse_asn1_boolean;
                      parse_synth_eq
                      (* p1 *) (parse_asn1_boolean)
                      (* f2 *) (synth_asn1_boolean_value x)
