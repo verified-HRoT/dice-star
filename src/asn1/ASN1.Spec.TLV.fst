@@ -2,11 +2,12 @@ module ASN1.Spec.TLV
 
 open ASN1.Base
 open ASN1.Spec.Tag
+open ASN1.Spec.Length
 open ASN1.Spec.BOOLEAN
 open ASN1.Spec.NULL
-include LowParse.Bytes
-include LowParse.Spec.DER
-include LowParse.Spec.SeqBytes.Base
+open ASN1.Spec.OCTET_STRING
+open LowParse.Bytes
+
 module U32 = FStar.UInt32
 
 /// Generic ASN.1 DER (Primitive) TLV Parser
@@ -17,7 +18,7 @@ module U32 = FStar.UInt32
 
 /// Parser filter for valid ASN.1 DER `Tag`, `Length` pair
 let filter_TL
-  (x: asn1_type * bounded_int32 asn1_length_min asn1_length_max)
+  (x: asn1_type * asn1_int32)
 : GTot bool
 = let a, len = x in
   let min, max = bound_of_asn1_type a in
@@ -30,7 +31,7 @@ let valid_asn1_TL = parse_filter_refine filter_TL
 let parse_TL =
   parse_asn1_tag
   `nondep_then`
-  parse_bounded_der_length32 asn1_length_min asn1_length_max
+  parse_asn1_length
   `parse_filter`
   filter_TL
 
@@ -42,7 +43,7 @@ let parse_TL_unfold
   | None -> res == None
   | Some (a, consumed_a) ->
     (let input_len = Seq.slice input consumed_a (Seq.length input) in
-     match parse (parse_bounded_der_length32 asn1_length_min asn1_length_max) input_len with
+     match parse parse_asn1_length input_len with
      | None -> res == None
      | Some (len, consumed_len) ->
        (if filter_TL (a, len) then
@@ -51,12 +52,12 @@ let parse_TL_unfold
         ( res == None ))))
 = nondep_then_eq
   (* p1 *) (parse_asn1_tag)
-  (* p2 *) (parse_bounded_der_length32 asn1_length_min asn1_length_max)
+  (* p2 *) (parse_asn1_length)
   (* in *) (input);
   parse_filter_eq
   (* p  *) (parse_asn1_tag
            `nondep_then`
-            parse_bounded_der_length32 asn1_length_min asn1_length_max)
+            parse_asn1_length)
   (* f  *) (filter_TL)
   (* in *) (input)
 
@@ -66,7 +67,7 @@ let serialize_TL
 : serializer parse_TL
 = serialize_asn1_tag
   `serialize_nondep_then`
-  serialize_bounded_der_length32 asn1_length_min asn1_length_max
+  serialize_asn1_length
   `serialize_filter`
   filter_TL
 
@@ -77,10 +78,10 @@ let serialize_TL_unfold
   let a, len = x in
   sx == (serialize serialize_asn1_tag a)
         `Seq.append`
-        (serialize (serialize_bounded_der_length32 asn1_length_min asn1_length_max) len))
+        (serialize serialize_asn1_length len))
 = serialize_nondep_then_eq
   (* s1 *) (serialize_asn1_tag)
-  (* s2 *) (serialize_bounded_der_length32 asn1_length_min asn1_length_max)
+  (* s2 *) (serialize_asn1_length)
   (* in *) x
 
 /// EverParse tagged union tag of asn1_value
@@ -181,7 +182,7 @@ let parse_asn1_value
 
   | OCTET_STRING -> (parse_asn1_value_kind x
                      `weaken`
-                    (parse_seq_flbytes l
+                    (parse_asn1_octet_string l
                      `parse_synth`
                     // (fun (s: lbytes len) -> OCTET_STRING_VALUE s len <: refine_with_tag parser_tag_of_asn1_value x)
                     (synth_asn1_octet_string_value l x)))
@@ -209,7 +210,7 @@ let parse_asn1_value_unfold
                             consumed == l /\
                             value == Some (NULL_VALUE null, consumed))
 
-  | OCTET_STRING -> (match parse (parse_seq_flbytes l) input with
+  | OCTET_STRING -> (match parse (parse_asn1_octet_string l) input with
                      | None -> value == None
                      | Some (s, consumed) -> True \/
                             parser_tag_of_asn1_value (OCTET_STRING_VALUE l s) == x /\
@@ -233,7 +234,7 @@ let parse_asn1_value_unfold
                      (* in *) input)
 
   | OCTET_STRING -> (parse_synth_eq
-                     (* p1 *) (parse_seq_flbytes l)
+                     (* p1 *) (parse_asn1_octet_string l)
                      (* f2 *) (synth_asn1_octet_string_value l x)
                            // (fun (s: lbytes len) -> OCTET_STRING_VALUE s len <: refine_with_tag parser_tag_of_asn1_value x)
                      (* in *) input)
@@ -271,9 +272,9 @@ let serialize_asn1_value
   | OCTET_STRING -> (parse_asn1_value_kind x
                      `serialize_weaken`
                     (serialize_synth
-                     (* p1 *) (parse_seq_flbytes l)
+                     (* p1 *) (parse_asn1_octet_string l)
                      (* f2 *) (synth_asn1_octet_string_value l x)
-                     (* s1 *) (serialize_seq_flbytes l)
+                     (* s1 *) (serialize_asn1_octet_string l)
                      (* g1 *) (synth_asn1_octet_string_value_inverse l x)
                      (* prf*) ()))
 
@@ -289,7 +290,7 @@ let serialize_asn1_value_unfold
                      l == Seq.length sx)
   | NULL         -> (sx == serialize serialize_asn1_null         (NULL_VALUE?.n value)         /\
                      l == Seq.length sx)
-  | OCTET_STRING -> (sx == serialize (serialize_seq_flbytes l) (OCTET_STRING_VALUE?.s value) /\
+  | OCTET_STRING -> (sx == serialize (serialize_asn1_octet_string l) (OCTET_STRING_VALUE?.s value) /\
                      l == Seq.length sx))
 = let a, len = x in
   let l = U32.v len in
@@ -315,9 +316,9 @@ let serialize_asn1_value_unfold
                      (* x  *) (value))
 
   | OCTET_STRING -> (serialize_synth_eq
-                     (* p1 *) (parse_seq_flbytes l)
+                     (* p1 *) (parse_asn1_octet_string l)
                      (* f2 *) (synth_asn1_octet_string_value l x)
-                     (* s1 *) (serialize_seq_flbytes l)
+                     (* s1 *) (serialize_asn1_octet_string l)
                      (* g1 *) (synth_asn1_octet_string_value_inverse l x)
                      (* prf*) ()
                      (* x  *) (value))

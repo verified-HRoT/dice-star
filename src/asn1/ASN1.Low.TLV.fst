@@ -1,13 +1,20 @@
 module ASN1.Low.TLV
 
 open ASN1.Base
+
 open ASN1.Spec.Tag
+open ASN1.Spec.Length
 open ASN1.Spec.BOOLEAN
 open ASN1.Spec.NULL
+open ASN1.Spec.OCTET_STRING
 open ASN1.Spec.TLV
+
 open ASN1.Low.Base
 open ASN1.Low.Tag
+open ASN1.Low.Length
 open ASN1.Low.BOOLEAN
+open ASN1.Low.NULL
+open ASN1.Low.OCTET_STRING
 
 open LowParse.Low.Base
 open LowParse.Low.Combinators
@@ -24,51 +31,7 @@ module Cast = FStar.Int.Cast
 
 open FStar.Integers
 
-// /// NOTE: Inlining all low-level serializers for now
-// inline_for_extraction
-// let serialize32_asn1_value_backwards'
-//   (x: valid_asn1_TL)
-// : serializer32_backwards (serialize_asn1_value x)
-// = fun (value: asn1_value_of_TL x)
-//     (#rrel #rel: _)
-//     (b: B.mbuffer byte_t rrel rel)
-//     (pos: size_t)
-// ->  let a, offset = x in
-//     (* Prf *) serialize_asn1_value_unfold x value;
-//     (* Prf *)
-//     (* Prf *) assert (v offset == Seq.length (serialize (serialize_asn1_value x) value));
-//     [@inline_let] let gstart = Ghost.hide (v (pos - offset)) in
-//     [@inline_let] let gend   = Ghost.hide (v pos) in
-//     let i = pos - offset in
-//     let h0 = HST.get () in
-//     let offset = match a with
-//     | BOOLEAN      -> ( serialize_asn1_boolean_unfold
-//                         mbuffer_upd
-//                         (* buf *) b
-//                         (*start*) gstart
-//                         (* end *) gend
-//                         (* pos *) i
-//                         (*  v  *) (encode_asn1_boolean (BOOLEAN_VALUE?.b value))
-//                       ; (* return *) offset )
-
-//     | NULL         -> ( (* return *) offset )
-
-//     | OCTET_STRING -> admit(); ( store_seqbytes
-//                         (* src *) (OCTET_STRING_VALUE?.s value)
-//                         (* from*) 0ul
-//                         (* to  *) offset
-//                         (* dst *) b
-//                         (* pos *) i
-//                       ; (* return *) offset ) in
-//     let h1 = HST.get () in
-//     (* Prf *) writable_modifies
-//               (* buf *) b
-//               (* new *) (v (pos - offset)) (v (pos))
-//               (* mem *) h0
-//               (* loc *) B.loc_none
-//               (* mem'*) h1;
-
-// (*return*) offset
+#reset-options "--max_fuel 0 --max_ifuel 0"
 
 let offset_of_asn1_value
   (value: asn1_value)
@@ -79,7 +42,9 @@ let offset_of_asn1_value
   | NULL_VALUE _           -> 0ul
   | OCTET_STRING_VALUE l s -> u l (* <-- FIXME!*)
 
-#push-options "--query_stats --z3rlimit 32"
+#push-options "--query_stats"
+
+#push-options "--z3rlimit 32"
 inline_for_extraction
 let serialize32_asn1_value_backwards
   (#value_: asn1_value)
@@ -88,86 +53,26 @@ let serialize32_asn1_value_backwards
     (#rrel #rel: _)
     (b: B.mbuffer byte_t rrel rel)
     (pos: size_t)
-->  let offset = offset_of_asn1_value value in
-    (* Prf *) serialize_asn1_value_unfold (parser_tag_of_asn1_value value) value;
-    (* Prf *) assert (v offset == Seq.length (serialize (serialize_asn1_value (parser_tag_of_asn1_value value)) value));
-    [@inline_let] let gstart = Ghost.hide (v (pos - offset)) in
-    [@inline_let] let gend   = Ghost.hide (v pos) in
-    let i      = pos - offset in
-    // (* Prf *) assert (Ghost.reveal gstart <= v i);
+->  (* Prf *) serialize_asn1_value_unfold (parser_tag_of_asn1_value value) value;
     match value with
     | BOOLEAN_VALUE x        -> ( serialize32_asn1_boolean_backwards ()
                                   (*  x  *) x
                                   (* buf *) b
                                   (* pos *) pos )
-                                // ( serialize_asn1_boolean_unfold x;
-                                //   serialize_u8_spec (encode_asn1_boolean x);
-                                //   mbuffer_upd
-                                //   (* buf *) b
-                                //   (*start*) gstart
-                                //   (* end *) gend
-                                //   (* pos *) i
-                                //   (*  v  *) (encode_asn1_boolean x)
-                                // ; (* return *) offset )
 
-    | NULL_VALUE n           -> ( (* return *) offset )
+    | NULL_VALUE n           -> ( serialize32_asn1_null_backwards ()
+                                  (*  x  *) n
+                                  (* buf *) b
+                                  (* pos *) pos )
 
-    | OCTET_STRING_VALUE l s -> ( admit(); store_seqbytes
-                                  (* src *) s
-                                  (* from*) 0ul
-                                  (* to  *) offset
-                                  (* dst *) b
-                                  (* pos *) i
-                                ; (* return *) offset )
-
-/// NOTE: A simple workaround to get the length of a der `len` before serializing it, then just use
-///       the exist forward serializer, instead of re-impl a backward serializer.
-let offset_of_bounded_der_length32
-  (min: der_length_t)
-  (max: der_length_t { min <= max /\ max < 4294967296 } )
-  (y' : bounded_int32 (min) (max))
-: Pure (l: size_t{U32.v l == Seq.length (serialize (serialize_bounded_der_length32 (min) (max)) y')})
-  (requires True)
-  (ensures fun l -> U32.v l == Seq.length (serialize (serialize_bounded_der_length32 (min) (max)) y'))
-= serialize_bounded_der_length32_unfold (min) (max) y';
-  let x = tag_of_der_length32_impl y' in
-  if x `U8.lt` 128uy then
-  ( 1ul )
-  else if x = 129uy then
-  ( 2ul )
-  else if x = 130uy then
-  ( 3ul )
-  else if x = 131uy then
-  ( 4ul )
-  else
-  ( 5ul )
-
-/// NOTE: Backward version of `LowParse.Low.DER.serialize32_bounded_der_length32`
-let serialize32_bounded_der_length32_backwards
-  (min: der_length_t)
-  (max: der_length_t { min <= max /\ max < 4294967296 } )
-: Tot (serializer32_backwards (serialize_bounded_der_length32 min max))
-= fun (y' : bounded_int32 (min) (max))
-    (#rrel #rel: _)
-    (b: B.mbuffer byte_t rrel rel)
-    (pos: size_t)
--> let offset = offset_of_bounded_der_length32 min max y' in
-   serialize32_bounded_der_length32' min max y' b (pos - offset)
-
-let serialize32_asn1_tag_backwards ()
-: Tot (serializer32_backwards (serialize_asn1_tag ()))
-= fun (a: asn1_type)
-    (#rrel #rel: _)
-    (b: B.mbuffer byte_t rrel rel)
-    (pos: size_t)
-->  let offset = offset_of_asn1_tag a in
-    let content: byte_t = encode_asn1_tag a in
-    mbuffer_upd b (Ghost.hide (v (pos - offset))) (Ghost.hide (v pos)) (pos - offset) content;
-    offset
+    | OCTET_STRING_VALUE l s -> ( serialize32_asn1_octet_string_backwards (u l) (* TODO: `l` should be a machine integer. *)
+                                  (*  x  *) s
+                                  (* buf *) b
+                                  (* pos *) pos)
 
 #restart-solver
 // #push-options "--query_stats --z3rlimit 32 --max_fuel 0 --max_ifuel 0"
-let serialize_TL_backwards ()
+let serialize_asn1_TL_backwards ()
 : Tot (serializer32_backwards (serialize_TL))
 = fun (x: parse_filter_refine filter_TL) (* <-- TODO: Check what's the counterpart of pair in Low*/C. *)
     (#rrel #rel: _)
@@ -176,14 +81,14 @@ let serialize_TL_backwards ()
 ->  let a, len = x in (* <-- TODO: Check KreMLin compat. *)
 
     (* Prf *) serialize_TL_unfold x;
-    (* Prf *) serialize_bounded_der_length32_unfold asn1_length_min asn1_length_max len;
+    (* Prf *) serialize_asn1_length_unfold len;
 
     let offset_T = offset_of_asn1_tag a in
-    let offset_L = offset_of_bounded_der_length32 asn1_length_min asn1_length_max len in
+    let offset_L = offset_of_asn1_length len in
 
 /// serialize ASN.1 DER "Length" `len` backwards into `b[pos - offset_L, pos - 1]`
     let offset_T = offset_of_asn1_tag a in
-    let offset_L = offset_of_bounded_der_length32 asn1_length_min asn1_length_max len in
+    let offset_L = offset_of_asn1_length len in
 
     (* Prf *) let h0 = HST.get () in
     (* Prf *) writable_weaken
@@ -192,9 +97,7 @@ let serialize_TL_backwards ()
               (* mem *) h0
               (* from*) (v (pos - offset_L))
               (* to  *) (v pos);
-    let _ = serialize32_bounded_der_length32_backwards
-            (* min *) asn1_length_min
-            (* max *) asn1_length_max
+    let _ = serialize32_asn1_length_backwards ()
             (* len *) len
             (* buf *) b
             (* pos *) pos in
@@ -227,9 +130,49 @@ let serialize_TL_backwards ()
                          (* buf *) b
                          (*range*) (pos - offset_L - offset_T) (pos - offset_L))
               (* mem *) h1 h2;
+    (* Prf *) B.modifies_buffer_from_to_elim
+              (* buf *) b
+              (*frame*) 0ul (pos - offset_L - offset_T)
+              (* new *) (B.loc_buffer_from_to
+                         (* buf *) b
+                         (*range*) (pos - offset_L - offset_T) (pos))
+              (* mem *) h0 h2;
+    (* Prf *) B.modifies_buffer_from_to_elim
+              (* buf *) b
+              (*frame*) pos (u (B.length b))
+              (* new *) (B.loc_buffer_from_to
+                         (* buf *) b
+                         (*range*) (pos - offset_L - offset_T) (pos))
+              (* mem *) h0 h2;
+   (* Prf *) writable_modifies
+             (* buf *) b
+             (* new *) (v (pos - offset_L - offset_T)) (v (pos))
+             (* mem *) h0
+             (* loc *) B.loc_none
+             (* mem'*) h2;
 
 /// return offset
 (*return*) (offset_L + offset_T)
+
+let serialize32_asn1_TLV_backwards
+  (value: asn1_value)
+: Tot (serializer32 serialize_TLV)
+= fun (value: asn1_value)
+    (#rrel #rel: _)
+    (b: B.mbuffer byte_t rrel rel)
+    (pos: size_t)
+->  let x = parser_tag_of_asn1_value value in
+    (* Prf *) serialize_TL_unfold x;
+    (* Prf *) serialize_asn1_value_unfold x value;
+    let offset_TL = serialize_asn1_TL_backwards ()
+                    (*  x  *) x
+                    (* buf *) b
+                    (* pos *) pos in
+    let offset_V = serialize32_asn1_value_backwards #value
+                    (*  x  *) value
+                    (* buf *) b
+                    (* pos *) pos in
+(* return *) (offset_TL + offset_V)
 
 (*)
 /// NOTE: The key is: when should we actually compute the length of value? For primitives,

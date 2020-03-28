@@ -17,6 +17,7 @@ open FStar.Integers
 
 let size_t = U32.t
 let byte_t = U8.t
+let lbytes_t =  Seq.Properties.lseq byte_t
 
 #push-options "--z3rlimit 32"
 /// NOTE: Adapted from `LowParse.Low.Bytes.store_bytes
@@ -35,18 +36,24 @@ let store_seqbytes
     writable dst (v dst_pos) (v dst_pos + (v src_to - v src_from)) h
   ))
   (ensures (fun h _ h' ->
+    let s  = B.as_seq h  dst in
+    let s' = B.as_seq h' dst in
+    let pos = dst_pos in
+    let offset = src_to - src_from in
     B.modifies (B.loc_buffer_from_to dst dst_pos (dst_pos + (src_to - src_from))) h h' /\
     writable dst (v dst_pos) (v dst_pos + (v src_to - v src_from)) h' /\
+    Seq.slice s 0 (v pos) `Seq.equal` Seq.slice s' 0 (v pos) /\
+    Seq.slice s (v (pos + offset)) (B.length dst) `Seq.equal` Seq.slice s' (v (pos + offset)) (B.length dst) /\
     Seq.slice (B.as_seq h' dst) (v dst_pos) (v dst_pos + (v src_to - v src_from))
     `Seq.equal`
     Seq.slice (src) (v src_from) (v src_to)
   ))
-= let h0 = HST.get () in
-  HST.push_frame ();
-  let h1 = HST.get () in
-  let bi = B.alloca 0ul 1ul in
-  let h2 = HST.get () in
+= (* Prf *) let h0 = HST.get () in
   let len = src_to - src_from in
+  HST.push_frame ();
+  (* Prf *) let h1 = HST.get () in
+  let bi = B.alloca 0ul 1ul in
+  (* Prf *) let h2 = HST.get () in
   C.Loops.do_while
     (fun h stop ->
       B.modifies (B.loc_union (B.loc_region_only true (HS.get_tip h1))
@@ -60,8 +67,7 @@ let store_seqbytes
       Seq.slice (B.as_seq h dst) (v dst_pos) (v dst_pos + v i)
       `Seq.equal`
       Seq.slice (src) (v src_from) (v src_from + v i) /\
-      (stop == true ==> i == len)
-    ))
+      (stop == true ==> i == len)))
     (fun _ ->
       let i = B.index bi 0ul in
       if i = len then
@@ -74,9 +80,29 @@ let store_seqbytes
       ; (* Prf *) let h' = HST.get () in
         (* Prf *) Seq.lemma_split (Seq.slice (B.as_seq h' dst) (v dst_pos) (v dst_pos + v i')) (v i)
       ; i' = len )
-    )
-    ;
-  HST.pop_frame ()
+    );
+  (* Prf *) HST.pop_frame ();
+  let h3 = HST.get () in
+  (* Prf *) B.modifies_buffer_from_to_elim
+            (* buf *) dst
+            (*frame*) 0ul dst_pos
+            (* new *) (B.loc_buffer_from_to
+                       (* buf *) dst
+                       (*range*) dst_pos (dst_pos + len))
+            (* mem *) h0 h3;
+  (* Prf *) B.modifies_buffer_from_to_elim
+            (* buf *) dst
+            (*frame*) (dst_pos + len) (u (B.length dst))
+            (* new *) (B.loc_buffer_from_to
+                       (* buf *) dst
+                       (*range*) dst_pos (dst_pos + len))
+            (* mem *) h0 h3;
+  (* Prf *) writable_modifies
+            (* buf *) dst
+            (* new *) (v dst_pos) (v (dst_pos + len))
+            (* mem *) h0
+            (* loc *) B.loc_none
+            (* mem'*) h3
 
 [@unifier_hint_injective]
 inline_for_extraction
@@ -103,12 +129,8 @@ let serializer32_backwards
     let s' = B.as_seq h' b in
     Seq.length sx == v offset /\
     B.modifies (B.loc_buffer_from_to b (pos - offset) (pos)) h h' /\
-    Seq.slice s 0 (v (pos - offset)) == Seq.slice s' 0 (v (pos - offset)) /\
-    Seq.slice s (v pos) (B.length b) == Seq.slice s' (v pos) (B.length b) /\
-    // (forall (i:nat{0 <= i /\ i < B.length b /\ (i < v (pos - offset) \/ v pos <= i)}).
-    //   let s0 = B.as_seq h b in
-    //   let s1 = B.as_seq h' b in
-    //   s0.[i] == s1.[i]) /\
+    Seq.slice s 0 (v (pos - offset)) `Seq.equal` Seq.slice s' 0 (v (pos - offset)) /\
+    Seq.slice s (v pos) (B.length b) `Seq.equal` Seq.slice s' (v pos) (B.length b) /\
     writable b (v (pos - offset)) (v pos) h' /\
     B.live h' b /\
     Seq.slice (B.as_seq h' b) (v pos - v offset) (v pos) `Seq.equal` sx)
