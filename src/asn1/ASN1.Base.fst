@@ -11,15 +11,18 @@ type asn1_type: Type =
 | OCTET_STRING
 // | BIT_STRING
 // | OID
-// | SEQUENCE
+| SEQUENCE
 
 // let asn1_primitive_type = a: asn1_type{a <> SEQUENCE}
 
 let the_asn1_type (a: asn1_type)
-: Tot Type0
+: Tot Type
 = (a': asn1_type{a == a'})
 
-let datatype_of_asn1_type (a: asn1_type): Type
+let asn1_primitive_type
+= (a: asn1_type{a =!= SEQUENCE})
+
+let datatype_of_asn1_type (a: asn1_primitive_type): Type
 = match a with
   | BOOLEAN -> bool
   // | INTEGER -> HI.pub_uint32
@@ -41,6 +44,7 @@ let min_of_asn1_type
   | BOOLEAN   -> 1
   | NULL -> 0
   | OCTET_STRING -> asn1_length_min
+  | SEQUENCE -> asn1_length_min
 
 let max_of_asn1_type
   (a: asn1_type)
@@ -49,6 +53,7 @@ let max_of_asn1_type
   | BOOLEAN   -> 1
   | NULL -> 0
   | OCTET_STRING -> asn1_length_max
+  | SEQUENCE -> asn1_length_max
 
 let bound_of_asn1_type
   (a: asn1_type)
@@ -61,6 +66,12 @@ type asn1_value: Type =
 | OCTET_STRING_VALUE: len: asn1_int32 (* NOTE: Carrying length here for low-level operations. *)
                    -> s: Bytes.bytes{I.v len == Seq.length s}
                    -> asn1_value
+
+let asn1_value_of_tag (a: asn1_primitive_type): Type
+= match a with
+  | BOOLEAN      -> value: asn1_value{BOOLEAN_VALUE? value}
+  | NULL         -> value: asn1_value{NULL_VALUE? value}
+  | OCTET_STRING -> value: asn1_value{OCTET_STRING_VALUE? value}
 
 let asn1_boolean = value: asn1_value{BOOLEAN_VALUE? value}
 let asn1_null = value: asn1_value{NULL_VALUE? value}

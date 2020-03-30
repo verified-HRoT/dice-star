@@ -13,3 +13,4 @@ let serialize_asn1_null
 = serialize_ret
   (* v *) ()
   (*prf*) (fun n -> ())
+

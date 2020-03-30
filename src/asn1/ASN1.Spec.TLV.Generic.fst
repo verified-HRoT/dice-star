@@ -1,4 +1,4 @@
-module ASN1.Spec.TLV
+module ASN1.Spec.TLV.Generic
 
 open ASN1.Base
 open ASN1.Spec.Tag
@@ -189,6 +189,7 @@ let parse_asn1_value
                      `parse_synth`
                     // (fun (s: lbytes len) -> OCTET_STRING_VALUE s len <: refine_with_tag parser_tag_of_asn1_value x)
                     (synth_asn1_octet_string_value len x)))
+  | SEQUENCE     -> (*TODO*) admit()
 
 #push-options "--query_stats --z3rlimit 32 --max_fuel 16 --max_ifuel 16"
 let parse_asn1_value_unfold
@@ -218,7 +219,8 @@ let parse_asn1_value_unfold
                      | Some (s, consumed) -> True \/
                             parser_tag_of_asn1_value (OCTET_STRING_VALUE len s) == x /\
                             consumed == l /\
-                            value == Some (OCTET_STRING_VALUE len s, consumed)))
+                            value == Some (OCTET_STRING_VALUE len s, consumed))
+  | SEQUENCE     -> (*TODO*) True)
 = let a, len = x in
   let l = U32.v len in
   match a with
@@ -241,6 +243,7 @@ let parse_asn1_value_unfold
                      (* f2 *) (synth_asn1_octet_string_value len x)
                            // (fun (s: lbytes len) -> OCTET_STRING_VALUE s len <: refine_with_tag parser_tag_of_asn1_value x)
                      (* in *) input)
+  | SEQUENCE     -> (*TODO*) admit()
 
 /// Serializer for ASN.1 DER `Value`
 ///
@@ -280,6 +283,7 @@ let serialize_asn1_value
                      (* s1 *) (serialize_asn1_octet_string l)
                      (* g1 *) (synth_asn1_octet_string_value_inverse len x)
                      (* prf*) ()))
+  | SEQUENCE     -> (*TODO*) admit()
 
 let serialize_asn1_value_unfold
   (x: parse_filter_refine filter_TL)
@@ -294,7 +298,8 @@ let serialize_asn1_value_unfold
   | NULL         -> (sx == serialize serialize_asn1_null         (NULL_VALUE?.n value)         /\
                      l == Seq.length sx)
   | OCTET_STRING -> (sx == serialize (serialize_asn1_octet_string l) (OCTET_STRING_VALUE?.s value) /\
-                     l == Seq.length sx))
+                     l == Seq.length sx)
+  | SEQUENCE     -> (*TODO*) True)
 = let a, len = x in
   let l = U32.v len in
   match a with
@@ -325,6 +330,7 @@ let serialize_asn1_value_unfold
                      (* g1 *) (synth_asn1_octet_string_value_inverse len x)
                      (* prf*) ()
                      (* x  *) (value))
+  | SEQUENCE     -> (*TODO*) admit()
 
 
 /// Kind for ASN.1 DER Tag, Length, Value tuple parser
@@ -393,3 +399,4 @@ let serialize_TLV_unfold
                    `serialize_weaken`
                    serialize_asn1_value x)
   (* in *) (value)
+
