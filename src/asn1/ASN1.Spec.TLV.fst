@@ -95,9 +95,9 @@ let parser_tag_of_asn1_value
   (v: asn1_value)
 : Tot (parse_filter_refine filter_TL)
 = match v with
-  | BOOLEAN_VALUE      b   -> (BOOLEAN     , 1ul)
-  | NULL_VALUE        ()   -> (NULL        , 0ul)
-  | OCTET_STRING_VALUE l s -> (OCTET_STRING, U32.uint_to_t l)
+  | BOOLEAN_VALUE      b     -> (BOOLEAN     , 1ul)
+  | NULL_VALUE        ()     -> (NULL        , 0ul)
+  | OCTET_STRING_VALUE len s -> (OCTET_STRING, len)
 
 // let parser_tag_of_asn1_value_impl
 //   (v: asn1_value)
@@ -137,17 +137,17 @@ let synth_asn1_null_value_inverse
 let lbytes = Seq.Properties.lseq byte
 
 let synth_asn1_octet_string_value
-  (l: asn1_length_t)
-  (x: parse_filter_refine filter_TL{x == (OCTET_STRING, U32.uint_to_t l)})
-  (s: lbytes l)
+  (len: asn1_int32)
+  (x: parse_filter_refine filter_TL{x == (OCTET_STRING, len)})
+  (s: lbytes (U32.v len))
 : GTot (refine_with_tag parser_tag_of_asn1_value x)
-= OCTET_STRING_VALUE l s
+= OCTET_STRING_VALUE len s
 
 let synth_asn1_octet_string_value_inverse
-  (l: asn1_length_t)
-  (x: parse_filter_refine filter_TL{x == (OCTET_STRING, U32.uint_to_t l)})
+  (len: asn1_int32)
+  (x: parse_filter_refine filter_TL{x == (OCTET_STRING, len)})
   (value: refine_with_tag parser_tag_of_asn1_value x)
-: GTot (s: lbytes l)
+: GTot (s: lbytes (U32.v len))
 = OCTET_STRING_VALUE?.s value
 
 /// Strong parser kind for ASN.1 DER `Value` parser
@@ -188,7 +188,7 @@ let parse_asn1_value
                     (parse_asn1_octet_string l
                      `parse_synth`
                     // (fun (s: lbytes len) -> OCTET_STRING_VALUE s len <: refine_with_tag parser_tag_of_asn1_value x)
-                    (synth_asn1_octet_string_value l x)))
+                    (synth_asn1_octet_string_value len x)))
 
 #push-options "--query_stats --z3rlimit 32 --max_fuel 16 --max_ifuel 16"
 let parse_asn1_value_unfold
@@ -216,9 +216,9 @@ let parse_asn1_value_unfold
   | OCTET_STRING -> (match parse (parse_asn1_octet_string l) input with
                      | None -> value == None
                      | Some (s, consumed) -> True \/
-                            parser_tag_of_asn1_value (OCTET_STRING_VALUE l s) == x /\
+                            parser_tag_of_asn1_value (OCTET_STRING_VALUE len s) == x /\
                             consumed == l /\
-                            value == Some (OCTET_STRING_VALUE l s, consumed)))
+                            value == Some (OCTET_STRING_VALUE len s, consumed)))
 = let a, len = x in
   let l = U32.v len in
   match a with
@@ -238,7 +238,7 @@ let parse_asn1_value_unfold
 
   | OCTET_STRING -> (parse_synth_eq
                      (* p1 *) (parse_asn1_octet_string l)
-                     (* f2 *) (synth_asn1_octet_string_value l x)
+                     (* f2 *) (synth_asn1_octet_string_value len x)
                            // (fun (s: lbytes len) -> OCTET_STRING_VALUE s len <: refine_with_tag parser_tag_of_asn1_value x)
                      (* in *) input)
 
@@ -276,9 +276,9 @@ let serialize_asn1_value
                      `serialize_weaken`
                     (serialize_synth
                      (* p1 *) (parse_asn1_octet_string l)
-                     (* f2 *) (synth_asn1_octet_string_value l x)
+                     (* f2 *) (synth_asn1_octet_string_value len x)
                      (* s1 *) (serialize_asn1_octet_string l)
-                     (* g1 *) (synth_asn1_octet_string_value_inverse l x)
+                     (* g1 *) (synth_asn1_octet_string_value_inverse len x)
                      (* prf*) ()))
 
 let serialize_asn1_value_unfold
@@ -320,9 +320,9 @@ let serialize_asn1_value_unfold
 
   | OCTET_STRING -> (serialize_synth_eq
                      (* p1 *) (parse_asn1_octet_string l)
-                     (* f2 *) (synth_asn1_octet_string_value l x)
+                     (* f2 *) (synth_asn1_octet_string_value len x)
                      (* s1 *) (serialize_asn1_octet_string l)
-                     (* g1 *) (synth_asn1_octet_string_value_inverse l x)
+                     (* g1 *) (synth_asn1_octet_string_value_inverse len x)
                      (* prf*) ()
                      (* x  *) (value))
 

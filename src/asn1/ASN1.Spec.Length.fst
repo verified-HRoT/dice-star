@@ -6,8 +6,6 @@ open LowParse.Spec.DER
 
 open ASN1.Base
 
-let asn1_int32 = bounded_int32 asn1_length_min asn1_length_max
-
 let parse_asn1_length_kind = parse_bounded_der_length32_kind asn1_length_min asn1_length_max
 
 let parse_asn1_length

@@ -1,6 +1,6 @@
 module ASN1.Base
 module Bytes = LowParse.Bytes
-module HI = Lib.IntTypes
+module I = FStar.Integers
 
 let (.[]) = FStar.Seq.index
 
@@ -32,6 +32,8 @@ let asn1_length_max: n: asn1_length_t {forall (n':asn1_length_t). n >= n'} = 429
 let asn1_length_inbound (x: nat) (min max: asn1_length_t): bool
 = min <= x && x <= max
 
+let asn1_int32 = LowParse.Spec.BoundedInt.bounded_int32 asn1_length_min asn1_length_max
+
 let min_of_asn1_type
   (a: asn1_type)
 : asn1_length_t
@@ -56,6 +58,6 @@ let bound_of_asn1_type
 type asn1_value: Type =
 | BOOLEAN_VALUE: b: bool -> asn1_value
 | NULL_VALUE: n:unit -> asn1_value
-| OCTET_STRING_VALUE: l: asn1_length_t (* NOTE: Carrying length here for low-level operations. *)
-                   -> s: Bytes.bytes{l == Seq.length s}
+| OCTET_STRING_VALUE: len: asn1_int32 (* NOTE: Carrying length here for low-level operations. *)
+                   -> s: Bytes.bytes{I.v len == Seq.length s}
                    -> asn1_value
