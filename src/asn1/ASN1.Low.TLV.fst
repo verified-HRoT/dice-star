@@ -38,9 +38,9 @@ let offset_of_asn1_value
 : Tot (l: size_t{v l == Seq.length (serialize (serialize_asn1_value (parser_tag_of_asn1_value value)) value)})
 = serialize_asn1_value_unfold (parser_tag_of_asn1_value value) value;
   match value with
-  | BOOLEAN_VALUE _        -> 1ul
-  | NULL_VALUE _           -> 0ul
-  | OCTET_STRING_VALUE l s -> u l (* <-- FIXME!*)
+  | BOOLEAN_VALUE _          -> 1ul
+  | NULL_VALUE _             -> 0ul
+  | OCTET_STRING_VALUE len s -> len
 
 #push-options "--query_stats"
 
@@ -55,20 +55,20 @@ let serialize32_asn1_value_backwards
     (pos: size_t)
 ->  (* Prf *) serialize_asn1_value_unfold (parser_tag_of_asn1_value value) value;
     match value with
-    | BOOLEAN_VALUE x        -> ( serialize32_asn1_boolean_backwards ()
-                                  (*  x  *) x
-                                  (* buf *) b
-                                  (* pos *) pos )
+    | BOOLEAN_VALUE x          -> ( serialize32_asn1_boolean_backwards ()
+                                    (*  x  *) x
+                                    (* buf *) b
+                                    (* pos *) pos )
 
-    | NULL_VALUE n           -> ( serialize32_asn1_null_backwards ()
-                                  (*  x  *) n
-                                  (* buf *) b
-                                  (* pos *) pos )
+    | NULL_VALUE n             -> ( serialize32_asn1_null_backwards ()
+                                    (*  x  *) n
+                                    (* buf *) b
+                                    (* pos *) pos )
 
-    | OCTET_STRING_VALUE l s -> ( serialize32_asn1_octet_string_backwards (u l) (* TODO: `l` should be a machine integer. *)
-                                  (*  x  *) s
-                                  (* buf *) b
-                                  (* pos *) pos)
+    | OCTET_STRING_VALUE len s -> ( serialize32_asn1_octet_string_backwards len
+                                    (*  x  *) s
+                                    (* buf *) b
+                                    (* pos *) pos )
 
 let serialize32_asn1_TL_backwards ()
 : Tot (serializer32_backwards (serialize_TL))
