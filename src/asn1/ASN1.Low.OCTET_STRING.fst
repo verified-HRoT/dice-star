@@ -44,26 +44,4 @@ let serialize32_asn1_octet_string_backwards
     (* dst *) b
     (* pos *) (pos - len);
 
-    (* Prf *) let h1 = HST.get () in
-    (* Prf *) B.modifies_buffer_from_to_elim
-              (* buf *) b
-              (*frame*) 0ul (pos - len)
-              (* new *) (B.loc_buffer_from_to
-                         (* buf *) b
-                         (*range*) (pos - len) (pos))
-              (* mem *) h0 h1;
-    (* Prf *) B.modifies_buffer_from_to_elim
-              (* buf *) b
-              (*frame*) pos (u (B.length b))
-              (* new *) (B.loc_buffer_from_to
-                         (* buf *) b
-                         (*range*) (pos - len) (pos))
-              (* mem *) h0 h1;
-    (* Prf *) writable_modifies
-              (* buf *) b
-              (* new *) (v (pos - len)) (v (pos))
-              (* mem *) h0
-              (* loc *) B.loc_none
-              (* mem'*) h1;
-
 (* retuen *) len

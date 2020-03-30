@@ -61,3 +61,7 @@ type asn1_value: Type =
 | OCTET_STRING_VALUE: len: asn1_int32 (* NOTE: Carrying length here for low-level operations. *)
                    -> s: Bytes.bytes{I.v len == Seq.length s}
                    -> asn1_value
+
+let asn1_boolean = value: asn1_value{BOOLEAN_VALUE? value}
+let asn1_null = value: asn1_value{NULL_VALUE? value}
+let asn1_octet_string = value: asn1_value{OCTET_STRING_VALUE? value}

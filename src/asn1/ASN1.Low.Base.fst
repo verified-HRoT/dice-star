@@ -62,8 +62,8 @@ let frame_serializer32_backwards
   (#rrel: _)
   (#rel: _)
   (b: B.mbuffer byte rrel rel)
-  (posl: size_t)
-  (posr: size_t)
+  (posl: Ghost.erased size_t)
+  (posr: Ghost.erased size_t)
   (pos: size_t)
 : HST.Stack U32.t
   (requires (fun h ->
@@ -86,20 +86,82 @@ let frame_serializer32_backwards
     Seq.slice s' (v (pos - offset)) (v pos) `Seq.equal` sx
   )))
 =
-  let h0 = HST.get () in
-  writable_weaken b (v posl) (v posr) h0 (v pos - Seq.length (serialize s x)) (v pos);
+  (* Prf *) let h0 = HST.get () in
+
+  (* NOTE: Prove writability of the to-be-written range of b[posl, posr]. *)
+  (* Prf *) writable_weaken b
+            (*range*) (v posl) (v posr)
+            (* mem *) h0
+            (* dst *) (v pos - Seq.length (serialize s x)) (v pos);
+
+  (* NOTE: Serialization. *)
   let offset = s32 x b pos in
-  let h1 = HST.get () in
-  let pos' = pos - offset in
-  B.loc_includes_loc_buffer_from_to b posl posr pos' pos;
-  writable_modifies b (v posl) (v posr) h0 B.loc_none h1;
-  B.loc_includes_loc_buffer_from_to b posl posr posl pos;
-  B.loc_disjoint_loc_buffer_from_to b posl pos' pos' pos;
-  B.modifies_buffer_from_to_elim b posl pos' (B.loc_buffer_from_to b pos' pos) h0 h1;
-  B.loc_includes_loc_buffer_from_to b posl posr pos posr;
-  B.loc_disjoint_loc_buffer_from_to b pos' pos pos posr;
-  B.modifies_buffer_from_to_elim b pos posr (B.loc_buffer_from_to b pos' pos) h0 h1;
-  offset
+
+  (* Prf *) let h1 = HST.get () in
+
+  (* NOTE: Retain writability of b[posl, posr]. *)
+  (* Prf *) B.loc_includes_loc_buffer_from_to b
+            (*range*) posl posr
+            (* new *) (pos - offset) pos;
+  (* Prf *) writable_modifies b
+            (*range*) (v posl) (v posr)
+            (*from *) h0
+            (*other*) B.loc_none
+            (*to   *) h1;
+
+  (* NOTE: Prove b[posl, pos - offset] is not modified from `h0` to `h1`. *)
+  (* Prf *) B.loc_includes_loc_buffer_from_to b
+            (*range*) posl posr
+            (*frame*) posl (pos - offset);
+  (* Prf *) B.loc_disjoint_loc_buffer_from_to b
+            (*frame*) posl (pos - offset)
+            (* new *) (pos - offset) pos;
+  (* Prf *) B.modifies_buffer_from_to_elim b
+            (*frame*) posl (pos - offset)
+            (* new *) (B.loc_buffer_from_to b (pos - offset) pos)
+            (* mem *) h0 h1;
+
+  (* NOTE: Prove b[pos, posr] is s not modified from `h0` to `h1`. *)
+  (* Prf *) B.loc_includes_loc_buffer_from_to b
+            (*range*) posl posr
+            (*frame*) pos posr;
+  (* Prf *) B.loc_disjoint_loc_buffer_from_to b
+            (* new *) (pos - offset) pos
+            (*frame*) pos posr;
+  (* Prf *) B.modifies_buffer_from_to_elim b
+            (*frame*) pos posr
+            (* new *) (B.loc_buffer_from_to b (pos - offset) pos)
+            (* mem *) h0 h1;
+
+(* return *) offset
+
+inline_for_extraction
+let serialize32_nondep_then_backwards
+  (#k1: parser_kind)
+  (#t1: Type0)
+  (#p1: parser k1 t1)
+  (#s1: serializer p1)
+  (ls1 : serializer32_backwards s1 { k1.parser_kind_subkind == Some ParserStrong })
+  (#k2: parser_kind)
+  (#t2: Type0)
+  (#p2: parser k2 t2)
+  (#s2: serializer p2)
+  (ls2 : serializer32_backwards s2)
+: Tot (serializer32_backwards (s1 `serialize_nondep_then` s2))
+= fun x #rrel #rel b pos ->
+  [@inline_let]
+  let (x1, x2) = x in
+  (* Prf *) serialize_nondep_then_eq s1 s2 x;
+  (* Prf *) let posl = Ghost.hide (pos - u (Seq.length (serialize (s1 `serialize_nondep_then` s2) x))) in
+  (* Prf *) let posr = Ghost.hide pos in
+
+  let offset2 = frame_serializer32_backwards ls2 x2 b posl posr pos in
+
+  let pos = pos - offset2 in
+  let offset1 = frame_serializer32_backwards ls1 x1 b posl posr pos in
+
+(* return *) offset1 + offset2
+
 
 inline_for_extraction
 let serialize32_filter_backwards
