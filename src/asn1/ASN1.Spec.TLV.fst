@@ -74,12 +74,15 @@ let serialize_TL
 let serialize_TL_unfold
   (x: parse_filter_refine filter_TL)
 : Lemma (
-  let sx = serialize serialize_TL x in
   let a, len = x in
-  sx == (serialize serialize_asn1_tag a)
-        `Seq.append`
-        (serialize serialize_asn1_length len))
-= serialize_nondep_then_eq
+  let sx = serialize serialize_TL x in
+  let sx_T = serialize serialize_asn1_tag a in
+  let sx_L = serialize serialize_asn1_length len in
+  sx == sx_T `Seq.append` sx_L /\
+  Seq.length sx == Seq.length sx_T + Seq.length sx_L)
+= parser_kind_prop_equiv (get_parser_kind parse_asn1_tag) parse_asn1_tag;
+  parser_kind_prop_equiv (get_parser_kind parse_asn1_length) parse_asn1_length;
+  serialize_nondep_then_eq
   (* s1 *) (serialize_asn1_tag)
   (* s2 *) (serialize_asn1_length)
   (* in *) x
@@ -375,11 +378,15 @@ let serialize_TLV_unfold
   (value: asn1_value)
 : Lemma (
   let x = parser_tag_of_asn1_value value in
-  serialize serialize_TLV value
-  == serialize serialize_TL x
-     `Seq.append`
-     serialize (serialize_asn1_value x) value)
-= serialize_tagged_union_eq
+  let sx = serialize serialize_TLV value in
+  let sx_TL = serialize serialize_TL x in
+  let sx_V  = serialize (serialize_asn1_value x) value in
+  sx == sx_TL `Seq.append` sx_V /\
+  Seq.length sx == Seq.length sx_TL + Seq.length sx_V)
+= let x = parser_tag_of_asn1_value value in
+  parser_kind_prop_equiv (get_parser_kind parse_TL) parse_TL;
+  parser_kind_prop_equiv (get_parser_kind (parse_asn1_value x)) (parse_asn1_value x);
+  serialize_tagged_union_eq
   (* st *) (serialize_TL)
   (* tg *) (parser_tag_of_asn1_value)
   (* s  *) (fun x -> parse_asn1_value_kind_weak
