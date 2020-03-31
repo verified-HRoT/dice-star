@@ -158,38 +158,90 @@ let parse_asn1_value_kind
   let l = U32.v len in
   strong_parser_kind l l None
 
+assume val parse_asn1_value: parser (strong_parser_kind 5 5 None) asn1_value
+
+// inline_for_extraction
+// let parse_asn1_sequence_kind =
+//   {
+//     parser_kind_low = asn1_length_min;
+//     parser_kind_high = Some asn1_length_max;
+//     parser_kind_metadata = None;
+//     parser_kind_subkind = Some ParserConsumesAll;
+//   }
+
+let rec parse_asn1_sequence_value
+  (input: bytes)
+: GTot (option (list asn1_value * (consumed_length input)))
+  (decreases (Seq.length input))
+// let rec parse_asn1_sequence_value
+// : parser parse_asn1_sequence_kind (list asn1_value)
+= fun (input: bytes) ->
+  if Seq.length input = 0 then
+  ( Some ([], (0 <: consumed_length input)) )
+  else
+  ( match parse parse_asn1_value input with
+    | None -> None
+    | Some (value, 0) -> None
+    | Some (value, l) ->
+      ( match (parse_asn1_sequence_value) (Seq.slice input l (Seq.length input)) with
+        | None -> None
+        | Some (lvalue, l') -> Some (value :: lvalue, (l + l' <: consumed_length input))))
+
+
 /// Weak Strong parser kind for ASN.1 DER `Value` parser, throw "runtime" tag, length
 let parse_asn1_value_kind_weak = strong_parser_kind asn1_length_min asn1_length_max None
 
 /// Parser for ASN.1 DER `Value`
 ///
-let parse_asn1_value
+
+// /// Kind for ASN.1 DER Tag, Length, Value tuple parser
+// let parse_TLV_kind
+// = get_parser_kind parse_TL
+//   `and_then_kind`
+//   parse_asn1_value_kind_weak
+
+/// Parser for ASN.1 DER Tag, Length, Value tuples
+///
+
+let rec parse_asn1_value
   (x: parse_filter_refine filter_TL)
-: Tot (parser (parse_asn1_value_kind x) (refine_with_tag parser_tag_of_asn1_value x))
+  (input: bytes)
+// : Tot (parser (parse_asn1_value_kind x) (refine_with_tag parser_tag_of_asn1_value x))
+: GTot (refine_with_tag parser_tag_of_asn1_value x, consumed_length input)
 = let a, len = x in
   let l: asn1_length_t = U32.v len in
   match a with
-  | BOOLEAN      -> (parse_asn1_value_kind x
+  | BOOLEAN      -> parse (parse_asn1_value_kind x
                      `weaken`
                     (parse_asn1_boolean
                      `parse_synth`
-                    // (fun b -> BOOLEAN_VALUE b <: refine_with_tag parser_tag_of_asn1_value x)
-                    (synth_asn1_boolean_value x)))
+                    (synth_asn1_boolean_value x))) input
 
-  | NULL         -> (parse_asn1_value_kind x
+  | NULL         -> admit(); parse (parse_asn1_value_kind x
                      `weaken`
                     (parse_asn1_null
                      `parse_synth`
-                    // (fun n -> NULL_VALUE n <: refine_with_tag parser_tag_of_asn1_value x)
-                    (synth_asn1_null_value x)))
+                    (synth_asn1_null_value x))) input
 
-  | OCTET_STRING -> (parse_asn1_value_kind x
+  | OCTET_STRING -> admit();parse (parse_asn1_value_kind x
                      `weaken`
                     (parse_asn1_octet_string l
                      `parse_synth`
-                    // (fun (s: lbytes len) -> OCTET_STRING_VALUE s len <: refine_with_tag parser_tag_of_asn1_value x)
-                    (synth_asn1_octet_string_value len x)))
+                    (synth_asn1_octet_string_value len x))) input
+
   | SEQUENCE     -> (*TODO*) admit()
+
+
+and parse_TLV
+= parse_tagged_union
+    parse_TL
+    parser_tag_of_asn1_value
+    (fun x -> parse_asn1_value_kind_weak
+            `weaken`
+            parse_asn1_value x)
+
+
+
 
 #push-options "--query_stats --z3rlimit 32 --max_fuel 16 --max_ifuel 16"
 let parse_asn1_value_unfold

@@ -21,13 +21,13 @@ let serialize_asn1_null
 /// Specialized TLV
 ///
 let synth_asn1_null_TLV
-  (a: (the_asn1_type NULL * asn1_length_of_tag NULL) * datatype_of_asn1_type NULL)
+  (a: (the_asn1_type NULL * asn1_len_of_tag NULL) * datatype_of_asn1_type NULL)
 : GTot (datatype_of_asn1_type NULL)
 = snd a
 
 let synth_asn1_null_TLV_inverse
   (x: datatype_of_asn1_type NULL)
-: GTot (a: ((the_asn1_type NULL * asn1_length_of_tag NULL) * datatype_of_asn1_type NULL){x == synth_asn1_null_TLV a})
+: GTot (a: ((the_asn1_type NULL * asn1_len_of_tag NULL) * datatype_of_asn1_type NULL){x == synth_asn1_null_TLV a})
 = ((NULL, len_of_asn1_data NULL x), x)
 
 let parse_asn1_null_TLV
