@@ -34,20 +34,33 @@ let filter_asn1_length_of_tag
   let min, max = min_of_asn1_type _a, max_of_asn1_type _a in
   asn1_length_inbound l min max
 
-let asn1_len_of_tag
+let asn1_int32_of_tag
   (_a: asn1_type)
-= parse_filter_refine (filter_asn1_length_of_tag _a)
+// = parse_filter_refine (filter_asn1_length_of_tag _a)
+= let min, max = min_of_asn1_type _a, max_of_asn1_type _a in
+  bounded_int32 min max
+
+let parse_asn1_length_kind_of_tag
+  (_a: asn1_type)
+: parser_kind
+= let min, max = min_of_asn1_type _a, max_of_asn1_type _a in
+  parse_bounded_der_length32_kind min max
 
 let parse_asn1_length_of_tag
   (_a: asn1_type)
-: parser parse_asn1_length_kind (parse_filter_refine (filter_asn1_length_of_tag _a))
-= parse_asn1_length
-  `parse_filter`
-  filter_asn1_length_of_tag _a
+// : parser parse_asn1_length_kind (parse_filter_refine (filter_asn1_length_of_tag _a))
+: parser (parse_asn1_length_kind_of_tag _a) (asn1_int32_of_tag _a)
+= let min, max = min_of_asn1_type _a, max_of_asn1_type _a in
+  parse_bounded_der_length32 min max
+  // parse_asn1_length
+  // `parse_filter`
+  // filter_asn1_length_of_tag _a
 
 let serialize_asn1_length_of_tag
   (_a: asn1_type)
 : serializer (parse_asn1_length_of_tag _a)
-= serialize_asn1_length
-  `serialize_filter`
-  filter_asn1_length_of_tag _a
+= let min, max = min_of_asn1_type _a, max_of_asn1_type _a in
+  serialize_bounded_der_length32 min max
+// = serialize_asn1_length
+//   `serialize_filter`
+//   filter_asn1_length_of_tag _a

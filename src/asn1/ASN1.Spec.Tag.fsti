@@ -33,7 +33,7 @@ val synth_asn1_tag_inverse
   (requires True)
   (ensures fun b -> a == synth_asn1_tag b)
 
-let parse_asn1_tag_kind = strong_parser_kind 1 1 None
+let parse_asn1_tag_kind = strong_parser_kind 1 1 (Some ParserKindMetadataTotal)
 val parse_asn1_tag
 : parser parse_asn1_tag_kind asn1_type
 

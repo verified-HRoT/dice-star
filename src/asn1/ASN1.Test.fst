@@ -7,24 +7,27 @@ open LowParse.Spec.Int
 
 module I = FStar.Integers
 
-type ty =
+type ty: Type =
 | BS
 | SQ
 
-type vl =
+type vl: Type =
 | BSV: v: list byte -> vl
 | SQV: l: list vl -> vl
 
-val foo : l:list int -> Tot int (decreases %[l;0])
-val bar : l:list int -> Tot int (decreases %[l;1])
-let rec foo l = match l with
-    | [] -> 0
-    | x :: xs -> bar xs
-and bar l = foo l
+// let tag_of_data
+//   (value: vl)
+// : GTot (tag: (byte * byte))
+// = match value with
+//   | BSV blst -> (0x00uy, I.u (List.length blst))
+//   | SQV vlst -> (0xFFuy, I.u (List.length vlst))
 
+let rec parse_v_bare
+  (x: byte * byte)
+  (b: bytes)
+: GTot (options (vl * consumed_length b))
 
-
-let rec parse_tv_bare
+and parse_tv_bare
   (b: bytes)
 : GTot (option (vl * consumed_length b))
   (decreases %[(Seq.length b); 0])
@@ -38,12 +41,13 @@ let rec parse_tv_bare
                      ( let b' = (Seq.slice b n (n+l)) in
                        assert (Seq.length b' < Seq.length b);
                        match tag with
-                       | 0x0uy -> (match (parse_list_bare parse_u8) b' with
-                                   | None -> None
-                                   | Some (s, n) -> Some (BSV s, (n <: consumed_length b')))
-                       | _     -> (match parse_sqv_bare b' with
-                                   | None -> None
-                                   | Some (lt, n) -> Some (SQV lt, (n <: consumed_length b')))) )
+                       | 0x00uy -> (match parse (parse_list parse_u8) b' with
+                                    | None -> None
+                                    | Some (s, n) -> Some (BSV s, (n <: consumed_length b')))
+                       | 0xFFuy -> (match parse_sqv_bare b' with
+                                    | None -> None
+                                    | Some (lt, n) -> Some (SQV lt, (n <: consumed_length b')))
+                       | _       -> None ))
 
 and parse_sqv_bare
   (b: bytes)

@@ -5,8 +5,6 @@ open LowParse.Spec.Combinators
 open LowParse.Spec.Int
 
 open ASN1.Base
-open ASN1.Spec.Tag
-open ASN1.Spec.Length
 
 (* BOOLEAN primitive *)
 let filter_asn1_boolean
@@ -91,18 +89,21 @@ let serialize_asn1_boolean_unfold
 
 /// Specialized TLV
 ///
+open ASN1.Spec.Tag
+open ASN1.Spec.Length
+
 let synth_asn1_boolean_TLV
-  (a: (the_asn1_type BOOLEAN * asn1_length_of_tag BOOLEAN) * datatype_of_asn1_type BOOLEAN)
+  (a: (the_asn1_type BOOLEAN * asn1_int32_of_tag BOOLEAN) * datatype_of_asn1_type BOOLEAN)
 : GTot (datatype_of_asn1_type BOOLEAN)
 = snd a
 
 let synth_asn1_boolean_TLV_inverse
   (x: datatype_of_asn1_type BOOLEAN)
-: GTot (a: ((the_asn1_type BOOLEAN * asn1_length_of_tag BOOLEAN) * datatype_of_asn1_type BOOLEAN){x == synth_asn1_boolean_TLV a})
+: GTot (a: ((the_asn1_type BOOLEAN * asn1_int32_of_tag BOOLEAN) * datatype_of_asn1_type BOOLEAN){x == synth_asn1_boolean_TLV a})
 = ((BOOLEAN, len_of_asn1_data BOOLEAN x), x)
 
 let parse_asn1_boolean_TLV
-: parser _ (datatype_of_asn1_type BOOLEAN)
+: parser parse_asn1_boolean_TLV_kind (datatype_of_asn1_type BOOLEAN)
 = parse_the_asn1_tag BOOLEAN
   `nondep_then`
   parse_asn1_length_of_tag BOOLEAN
@@ -110,6 +111,41 @@ let parse_asn1_boolean_TLV
   parse_asn1_boolean
   `parse_synth`
   synth_asn1_boolean_TLV
+
+let parse_asn1_boolean_TLV_unfold
+  (input_TLV: bytes)
+: Lemma (
+  parse parse_asn1_boolean_TLV input_TLV ==
+ (match parse (parse_the_asn1_tag BOOLEAN) input_TLV with
+  | None -> None
+  | Some (BOOLEAN, consumed_T) ->
+    (let input_LV = Seq.slice input_TLV consumed_T (Seq.length input_TLV) in
+     match parse (parse_asn1_length_of_tag BOOLEAN) input_LV with
+     | None -> None
+     | Some (1ul, consumed_L) ->
+       (let input_V = Seq.slice input_LV consumed_L (Seq.length input_LV) in
+        match parse parse_asn1_boolean input_V with
+        | None -> None
+        | Some (value, consumed_V) -> Some (value, consumed_T + consumed_L + consumed_V))))
+)
+= nondep_then_eq
+  (* p1 *) (parse_the_asn1_tag BOOLEAN)
+  (* p2 *) (parse_asn1_length_of_tag BOOLEAN)
+  (* in *) (input_TLV);
+  nondep_then_eq
+  (* p1 *) (parse_the_asn1_tag BOOLEAN
+            `nondep_then`
+            parse_asn1_length_of_tag BOOLEAN)
+  (* p2 *) (parse_asn1_boolean)
+  (* in *) (input_TLV);
+  parse_synth_eq
+  (* p1 *) (parse_the_asn1_tag BOOLEAN
+            `nondep_then`
+            parse_asn1_length_of_tag BOOLEAN
+            `nondep_then`
+            parse_asn1_boolean)
+  (* f2 *) (synth_asn1_boolean_TLV)
+  (* in *) (input_TLV)
 
 let serialize_asn1_boolean_TLV
 : serializer parse_asn1_boolean_TLV
@@ -128,4 +164,39 @@ let serialize_asn1_boolean_TLV
   (* g1 *) (synth_asn1_boolean_TLV_inverse)
   (* Prf*) ()
 
-(* TODO: interface and unfold spec *)
+let serialize_asn1_boolean_TLV_unfold
+  (value: datatype_of_asn1_type BOOLEAN)
+: Lemma (
+  serialize serialize_asn1_boolean_TLV value
+  `Seq.equal`
+ (serialize (serialize_the_asn1_tag BOOLEAN) BOOLEAN
+  `Seq.append`
+  serialize (serialize_asn1_length_of_tag BOOLEAN) 1ul
+  `Seq.append`
+  serialize serialize_asn1_boolean value)
+)
+= serialize_nondep_then_eq
+  (* s1 *) (serialize_the_asn1_tag BOOLEAN)
+  (* s2 *) (serialize_asn1_length_of_tag BOOLEAN)
+  (* in *) (BOOLEAN, 1ul);
+  serialize_nondep_then_eq
+  (* s1 *) (serialize_the_asn1_tag BOOLEAN
+            `serialize_nondep_then`
+            serialize_asn1_length_of_tag BOOLEAN)
+  (* s2 *) (serialize_asn1_boolean)
+  (* in *) ((BOOLEAN, 1ul), value);
+  serialize_synth_eq
+  (* p1 *) (parse_the_asn1_tag BOOLEAN
+            `nondep_then`
+            parse_asn1_length_of_tag BOOLEAN
+            `nondep_then`
+            parse_asn1_boolean)
+  (* f2 *) (synth_asn1_boolean_TLV)
+  (* s1 *) (serialize_the_asn1_tag BOOLEAN
+            `serialize_nondep_then`
+            serialize_asn1_length_of_tag BOOLEAN
+            `serialize_nondep_then`
+            serialize_asn1_boolean)
+  (* g1 *) (synth_asn1_boolean_TLV_inverse)
+  (* Prf*) ()
+  (* in *) (value)
