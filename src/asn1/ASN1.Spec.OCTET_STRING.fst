@@ -61,32 +61,64 @@ let serialize_asn1_octet_string_weak
 
 /// Specialized TLV
 ///
-let synth_asn1_octet_string_L
-  (x: the_asn1_type OCTET_STRING * asn1_len_of_tag OCTET_STRING)
-: GTot (asn1_len_of_tag OCTET_STRING)
-= snd x
+// let synth_asn1_octet_string_L
+//   (x: the_asn1_type OCTET_STRING * asn1_len_of_tag OCTET_STRING)
+// : GTot (asn1_len_of_tag OCTET_STRING)
+// = snd x
 
-let synth_asn1_octet_string_L_inverse
-  (len: asn1_len_of_tag OCTET_STRING)
-: GTot (x: (the_asn1_type OCTET_STRING * asn1_len_of_tag OCTET_STRING){len == synth_asn1_octet_string_L x})
-= (OCTET_STRING, len)
+// let synth_asn1_octet_string_L_inverse
+//   (len: asn1_len_of_tag OCTET_STRING)
+// : GTot (x: (the_asn1_type OCTET_STRING * asn1_len_of_tag OCTET_STRING){len == synth_asn1_octet_string_L x})
+// = (OCTET_STRING, len)
 
 let parser_tag_of_octet_string
   (x: datatype_of_asn1_type OCTET_STRING)
-: (len: asn1_len_of_tag OCTET_STRING)
-= dfst x
+: GTot (the_asn1_type OCTET_STRING * asn1_len_of_tag OCTET_STRING)
+= (OCTET_STRING, dfst x)
 
 let synth_asn1_octet_string_V
   (len: asn1_len_of_tag OCTET_STRING)
-  (x: lbytes (I.v len))
-: GTot (refine_with_tag parser_tag_of_octet_string len)
-= (|len, x|)
+  (x: the_asn1_type OCTET_STRING * asn1_len_of_tag OCTET_STRING{x == (OCTET_STRING, len)})
+  (s: lbytes (I.v len))
+: GTot (refine_with_tag parser_tag_of_octet_string x)
+= let value: datatype_of_asn1_type OCTET_STRING = (|len, s|) in
+  let y: refine_with_tag parser_tag_of_octet_string x = value in
+  y
 
 let synth_asn1_octet_string_V_inverse
   (len: asn1_len_of_tag OCTET_STRING)
-  (x: datatype_of_asn1_type OCTET_STRING)
-: GTot (x: datatype_of_asn1_type OCTET_STRING{I.v (dfst x) == I.v len})
-= x
+  (x: the_asn1_type OCTET_STRING * asn1_len_of_tag OCTET_STRING{x == (OCTET_STRING, len)})
+  (value: refine_with_tag parser_tag_of_octet_string x)
+: GTot (s: lbytes (I.v len))
+= dsnd
+    #asn1_int32
+    #(fun (len:asn1_int32) -> s:bytes{Seq.length s == I.v len})
+    value
+
+let parse_asn1_octet_string_data
+  (x: the_asn1_type OCTET_STRING * asn1_len_of_tag OCTET_STRING)
+: Tot (parser parse_asn1_octet_string_kind_weak (refine_with_tag parser_tag_of_octet_string x))
+= let OCTET_STRING, len = x in
+  let l = I.v len in
+  parse_asn1_octet_string_kind_weak
+  `weaken`
+ (parse_asn1_octet_string l
+  `parse_synth`
+  synth_asn1_octet_string_V len x)
+
+let serialize_asn1_octet_string_data
+  (x: the_asn1_type OCTET_STRING * asn1_len_of_tag OCTET_STRING)
+: Tot (serializer (parse_asn1_octet_string_data x))
+= let OCTET_STRING, len = x in
+  let l = I.v len in
+  parse_asn1_octet_string_kind_weak
+  `serialize_weaken`
+ (serialize_synth
+  (* p1 *) (parse_asn1_octet_string l)
+  (* f2 *) (synth_asn1_octet_string_V len x)
+  (* s1 *) (serialize_asn1_octet_string l)
+  (* g1 *) (synth_asn1_octet_string_V_inverse len x)
+  (* Prf*) ())
 
 // let parse_asn1_octet_string_TLV_kind
 // = parse_asn1_tag_kind
@@ -97,30 +129,19 @@ let synth_asn1_octet_string_V_inverse
 
 let parse_asn1_octet_string_TLV
 : parser _ (datatype_of_asn1_type OCTET_STRING)
-= ((parse_the_asn1_tag OCTET_STRING
-  `nondep_then`
-  parse_asn1_length_of_tag OCTET_STRING
-  `parse_synth`
-  synth_asn1_octet_string_L)
-  `and_then`
-  parse_asn1_octet_string_weak)
-  `parse_synth`
-  synth_asn1_octet_string_V
+= parse_tagged_union
+  (* pt *) (parse_the_asn1_tag OCTET_STRING
+            `nondep_then`
+            parse_asn1_length_of_tag OCTET_STRING)
+  (* tg *) (parser_tag_of_octet_string)
+  (* p  *) (parse_asn1_octet_string_data)
 
 let serialize_asn1_octet_string_TLV
 : serializer parse_asn1_octet_string_TLV
-= serialize_synth
-  (* p1 *) (parse_the_asn1_tag OCTET_STRING
-            `nondep_then`
-            parse_asn1_length_of_tag OCTET_STRING
-            `nondep_then`
-            parse_asn1_octet_string)
-  (* f2 *) (synth_asn1_octet_string_TLV)
-  (* s1 *) (serialize_the_asn1_tag OCTET_STRING
+= serialize_tagged_union
+  (* st *) (serialize_the_asn1_tag OCTET_STRING
             `serialize_nondep_then`
-            serialize_asn1_length_of_tag OCTET_STRING
-            `serialize_nondep_then`
-            serialize_asn1_octet_string)
-  (* g1 *) (synth_asn1_octet_string_TLV_inverse)
-  (* Prf*) ()
+            serialize_asn1_length_of_tag OCTET_STRING)
+  (* tg *) (parser_tag_of_octet_string)
+  (* s  *) (serialize_asn1_octet_string_data)
 

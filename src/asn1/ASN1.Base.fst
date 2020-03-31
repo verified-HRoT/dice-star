@@ -61,7 +61,7 @@ let datatype_of_asn1_type (a: asn1_primitive_type): Type
   | BOOLEAN -> bool
   // | INTEGER -> HI.pub_uint32
   | NULL -> unit
-  | OCTET_STRING -> (len: I.uint_32 & s: bytes {Seq.length s == I.v len})
+  | OCTET_STRING -> (len: asn1_int32 & s: bytes {Seq.length s == I.v len})
 
 type asn1_value: Type =
 | BOOLEAN_VALUE: b: bool -> asn1_value
