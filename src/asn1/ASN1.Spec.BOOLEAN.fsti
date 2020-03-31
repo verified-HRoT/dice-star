@@ -27,7 +27,7 @@ val synth_asn1_boolean_inverse
   (requires True)
   (ensures fun b -> synth_asn1_boolean b == x)
 
-let parse_asn1_boolean_kind = strong_parser_kind 1 1 (Some ParserKindMetadataTotal)
+let parse_asn1_boolean_kind = strong_parser_kind 1 1 None
 val parse_asn1_boolean
 : parser parse_asn1_boolean_kind bool
 
@@ -60,7 +60,7 @@ open ASN1.Spec.Length
 
 val synth_asn1_boolean_TLV
   (a: (the_asn1_type BOOLEAN * asn1_int32_of_tag BOOLEAN) * datatype_of_asn1_type BOOLEAN)
-: GTot (datatype_of_asn1_type BOOLEAN)
+: GTot (value: datatype_of_asn1_type BOOLEAN{value == snd a})
 
 val synth_asn1_boolean_TLV_inverse
   (x: datatype_of_asn1_type BOOLEAN)
@@ -74,8 +74,15 @@ let parse_asn1_boolean_TLV_kind
   `and_then_kind`
   parse_asn1_boolean_kind
 
-val parse_asn1_boolean_TLV
+let parse_asn1_boolean_TLV
 : parser parse_asn1_boolean_TLV_kind (datatype_of_asn1_type BOOLEAN)
+= parse_the_asn1_tag BOOLEAN
+  `nondep_then`
+  parse_asn1_length_of_tag BOOLEAN
+  `nondep_then`
+  parse_asn1_boolean
+  `parse_synth`
+  synth_asn1_boolean_TLV
 
 val parse_asn1_boolean_TLV_unfold
   (input_TLV: bytes)
@@ -94,8 +101,22 @@ val parse_asn1_boolean_TLV_unfold
         | Some (value, consumed_V) -> Some (value, consumed_T + consumed_L + consumed_V))))
 )
 
-val serialize_asn1_boolean_TLV
+let serialize_asn1_boolean_TLV
 : serializer parse_asn1_boolean_TLV
+= serialize_synth
+  (* p1 *) (parse_the_asn1_tag BOOLEAN
+            `nondep_then`
+            parse_asn1_length_of_tag BOOLEAN
+            `nondep_then`
+            parse_asn1_boolean)
+  (* f2 *) (synth_asn1_boolean_TLV)
+  (* s1 *) (serialize_the_asn1_tag BOOLEAN
+            `serialize_nondep_then`
+            serialize_asn1_length_of_tag BOOLEAN
+            `serialize_nondep_then`
+            serialize_asn1_boolean)
+  (* g1 *) (synth_asn1_boolean_TLV_inverse)
+  (* Prf*) ()
 
 val serialize_asn1_boolean_TLV_unfold
   (value: datatype_of_asn1_type BOOLEAN)

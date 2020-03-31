@@ -73,12 +73,12 @@ let serialize_asn1_octet_string_weak
 
 let parser_tag_of_octet_string
   (x: datatype_of_asn1_type OCTET_STRING)
-: GTot (the_asn1_type OCTET_STRING * asn1_len_of_tag OCTET_STRING)
+: GTot (the_asn1_type OCTET_STRING * asn1_int32_of_tag OCTET_STRING)
 = (OCTET_STRING, dfst x)
 
 let synth_asn1_octet_string_V
-  (len: asn1_len_of_tag OCTET_STRING)
-  (x: the_asn1_type OCTET_STRING * asn1_len_of_tag OCTET_STRING{x == (OCTET_STRING, len)})
+  (len: asn1_int32_of_tag OCTET_STRING)
+  (x: the_asn1_type OCTET_STRING * asn1_int32_of_tag OCTET_STRING{x == (OCTET_STRING, len)})
   (s: lbytes (I.v len))
 : GTot (refine_with_tag parser_tag_of_octet_string x)
 = let value: datatype_of_asn1_type OCTET_STRING = (|len, s|) in
@@ -86,8 +86,8 @@ let synth_asn1_octet_string_V
   y
 
 let synth_asn1_octet_string_V_inverse
-  (len: asn1_len_of_tag OCTET_STRING)
-  (x: the_asn1_type OCTET_STRING * asn1_len_of_tag OCTET_STRING{x == (OCTET_STRING, len)})
+  (len: asn1_int32_of_tag OCTET_STRING)
+  (x: the_asn1_type OCTET_STRING * asn1_int32_of_tag OCTET_STRING{x == (OCTET_STRING, len)})
   (value: refine_with_tag parser_tag_of_octet_string x)
 : GTot (s: lbytes (I.v len))
 = dsnd
@@ -96,7 +96,7 @@ let synth_asn1_octet_string_V_inverse
     value
 
 let parse_asn1_octet_string_data
-  (x: the_asn1_type OCTET_STRING * asn1_len_of_tag OCTET_STRING)
+  (x: the_asn1_type OCTET_STRING * asn1_int32_of_tag OCTET_STRING)
 : Tot (parser parse_asn1_octet_string_kind_weak (refine_with_tag parser_tag_of_octet_string x))
 = let OCTET_STRING, len = x in
   let l = I.v len in
@@ -107,7 +107,7 @@ let parse_asn1_octet_string_data
   synth_asn1_octet_string_V len x)
 
 let serialize_asn1_octet_string_data
-  (x: the_asn1_type OCTET_STRING * asn1_len_of_tag OCTET_STRING)
+  (x: the_asn1_type OCTET_STRING * asn1_int32_of_tag OCTET_STRING)
 : Tot (serializer (parse_asn1_octet_string_data x))
 = let OCTET_STRING, len = x in
   let l = I.v len in

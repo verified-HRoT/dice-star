@@ -89,6 +89,7 @@ let serialize_asn1_boolean_unfold
 
 /// Specialized TLV
 ///
+
 open ASN1.Spec.Tag
 open ASN1.Spec.Length
 
@@ -102,15 +103,15 @@ let synth_asn1_boolean_TLV_inverse
 : GTot (a: ((the_asn1_type BOOLEAN * asn1_int32_of_tag BOOLEAN) * datatype_of_asn1_type BOOLEAN){x == synth_asn1_boolean_TLV a})
 = ((BOOLEAN, len_of_asn1_data BOOLEAN x), x)
 
-let parse_asn1_boolean_TLV
-: parser parse_asn1_boolean_TLV_kind (datatype_of_asn1_type BOOLEAN)
-= parse_the_asn1_tag BOOLEAN
-  `nondep_then`
-  parse_asn1_length_of_tag BOOLEAN
-  `nondep_then`
-  parse_asn1_boolean
-  `parse_synth`
-  synth_asn1_boolean_TLV
+// let parse_asn1_boolean_TLV
+// : parser parse_asn1_boolean_TLV_kind (datatype_of_asn1_type BOOLEAN)
+// = parse_the_asn1_tag BOOLEAN
+//   `nondep_then`
+//   parse_asn1_length_of_tag BOOLEAN
+//   `nondep_then`
+//   parse_asn1_boolean
+//   `parse_synth`
+//   synth_asn1_boolean_TLV
 
 let parse_asn1_boolean_TLV_unfold
   (input_TLV: bytes)
@@ -147,22 +148,22 @@ let parse_asn1_boolean_TLV_unfold
   (* f2 *) (synth_asn1_boolean_TLV)
   (* in *) (input_TLV)
 
-let serialize_asn1_boolean_TLV
-: serializer parse_asn1_boolean_TLV
-= serialize_synth
-  (* p1 *) (parse_the_asn1_tag BOOLEAN
-            `nondep_then`
-            parse_asn1_length_of_tag BOOLEAN
-            `nondep_then`
-            parse_asn1_boolean)
-  (* f2 *) (synth_asn1_boolean_TLV)
-  (* s1 *) (serialize_the_asn1_tag BOOLEAN
-            `serialize_nondep_then`
-            serialize_asn1_length_of_tag BOOLEAN
-            `serialize_nondep_then`
-            serialize_asn1_boolean)
-  (* g1 *) (synth_asn1_boolean_TLV_inverse)
-  (* Prf*) ()
+// let serialize_asn1_boolean_TLV
+// : serializer parse_asn1_boolean_TLV
+// = serialize_synth
+//   (* p1 *) (parse_the_asn1_tag BOOLEAN
+//             `nondep_then`
+//             parse_asn1_length_of_tag BOOLEAN
+//             `nondep_then`
+//             parse_asn1_boolean)
+//   (* f2 *) (synth_asn1_boolean_TLV)
+//   (* s1 *) (serialize_the_asn1_tag BOOLEAN
+//             `serialize_nondep_then`
+//             serialize_asn1_length_of_tag BOOLEAN
+//             `serialize_nondep_then`
+//             serialize_asn1_boolean)
+//   (* g1 *) (synth_asn1_boolean_TLV_inverse)
+//   (* Prf*) ()
 
 let serialize_asn1_boolean_TLV_unfold
   (value: datatype_of_asn1_type BOOLEAN)

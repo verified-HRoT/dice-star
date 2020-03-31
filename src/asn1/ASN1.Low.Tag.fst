@@ -22,6 +22,7 @@ let encode_asn1_tag
   | BOOLEAN      -> 0x01uy
   | OCTET_STRING -> 0x04uy
   | NULL         -> 0x05uy
+  | SEQUENCE     -> 0x30uy
 
 let offset_of_asn1_tag
   (tag: asn1_type)
@@ -38,6 +39,21 @@ let serialize32_asn1_tag_backwards ()
 ->  let offset = offset_of_asn1_tag a in
     let content: byte_t = encode_asn1_tag a in
     (* Prf *) serialize_asn1_tag_unfold a;
+    (* Prf *) serialize_u8_spec content;
+    mbuffer_upd b (v (pos - offset)) (v pos) (pos - offset) content;
+    offset
+
+inline_for_extraction
+let serialize32_the_asn1_tag_backwards
+  (_a: asn1_type)
+: Tot (serializer32_backwards (serialize_the_asn1_tag _a))
+= fun (a: the_asn1_type _a)
+    (#rrel #rel: _)
+    (b: B.mbuffer byte_t rrel rel)
+    (pos: size_t)
+->  let offset = offset_of_asn1_tag a in
+    let content: byte_t = encode_asn1_tag a in
+    (* Prf *) serialize_the_asn1_tag_unfold _a a;
     (* Prf *) serialize_u8_spec content;
     mbuffer_upd b (v (pos - offset)) (v pos) (pos - offset) content;
     offset

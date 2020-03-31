@@ -162,6 +162,49 @@ let serialize32_nondep_then_backwards
 
 (* return *) offset1 + offset2
 
+inline_for_extraction
+let serialize32_tagged_union_backwards
+  (#kt: parser_kind{kt.parser_kind_subkind == Some ParserStrong})
+  (#tag_t: Type0)
+  (#pt: parser kt tag_t)
+  (#st: serializer pt)
+  (lst: serializer32_backwards st)
+  (#data_t: Type0)
+  (#tag_of_data: (data_t -> GTot tag_t))
+  (tag_of_data_impl: (d: data_t -> Tot (tg: tag_t{tg == tag_of_data d})))
+  (#k: parser_kind)
+  (#p: (t: tag_t) -> Tot (parser k (refine_with_tag tag_of_data t)))
+  (#s: (t: tag_t) -> Tot (serializer (p t)))
+  (ls: (t: tag_t) -> Tot (serializer32_backwards (s t)))
+: Tot (serializer32_backwards (serialize_tagged_union st tag_of_data s))
+= fun (x: data_t) #rrel #rel b pos ->
+  let tg = tag_of_data_impl x in
+  (* Prf *) serialize_tagged_union_eq
+            (* st *) (st)
+            (* tg *) (tag_of_data)
+            (* s  *) (s)
+            (* in *) (x);
+
+  (* Prf *) let posl = Ghost.hide (pos - u (Seq.length (serialize (serialize_tagged_union st tag_of_data s) x))) in
+  (* Prf *) let posr = Ghost.hide pos in
+
+  let offset_data = frame_serializer32_backwards (ls tg) x b posl posr pos in
+
+  let pos = pos - offset_data in
+  let offset_tag = frame_serializer32_backwards lst tg b posl posr pos in
+
+(* return *) offset_tag + offset_data
+
+let serialize32_weaken_backwards
+  (#k: parser_kind)
+  (#t: Type0)
+  (k' : parser_kind)
+  (#p: parser k t)
+  (#s: serializer p { k' `is_weaker_than` k })
+  (ls: serializer32_backwards s)
+: Tot (ls': serializer32_backwards (k' `serialize_weaken` s))
+= fun (x:t) #rrel #rel b pos
+-> ls x b pos
 
 inline_for_extraction
 let serialize32_filter_backwards
