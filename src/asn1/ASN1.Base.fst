@@ -1,8 +1,10 @@
 module ASN1.Base
-module Bytes = LowParse.Bytes
 module I = FStar.Integers
 
 let (.[]) = FStar.Seq.index
+let byte = I.uint_8
+let bytes = Seq.seq byte
+let lbytes = Seq.Properties.lseq byte
 
 type asn1_type: Type =
 | BOOLEAN
@@ -21,13 +23,6 @@ let the_asn1_type (a: asn1_type)
 
 let asn1_primitive_type
 = (a: asn1_type{a =!= SEQUENCE})
-
-let datatype_of_asn1_type (a: asn1_primitive_type): Type
-= match a with
-  | BOOLEAN -> bool
-  // | INTEGER -> HI.pub_uint32
-  | NULL -> unit
-  | OCTET_STRING -> Bytes.bytes
 
 let asn1_length_t = n: nat{0 <= n /\ n <= 4294967295}
 let asn1_length_min: n: asn1_length_t {forall (n':asn1_length_t). n <= n'} = 0
@@ -60,13 +55,22 @@ let bound_of_asn1_type
 : (asn1_length_t * asn1_length_t)
 = (min_of_asn1_type a, max_of_asn1_type a)
 
+unfold
+let datatype_of_asn1_type (a: asn1_primitive_type): Type
+= match a with
+  | BOOLEAN -> bool
+  // | INTEGER -> HI.pub_uint32
+  | NULL -> unit
+  | OCTET_STRING -> (len: I.uint_32 & s: bytes {Seq.length s == I.v len})
+
 type asn1_value: Type =
 | BOOLEAN_VALUE: b: bool -> asn1_value
 | NULL_VALUE: n:unit -> asn1_value
 | OCTET_STRING_VALUE: len: asn1_int32 (* NOTE: Carrying length here for low-level operations. *)
-                   -> s: Bytes.bytes{I.v len == Seq.length s}
+                   -> s: bytes{I.v len == Seq.length s}
                    -> asn1_value
 
+unfold
 let asn1_value_of_tag (a: asn1_primitive_type): Type
 = match a with
   | BOOLEAN      -> value: asn1_value{BOOLEAN_VALUE? value}
@@ -76,3 +80,20 @@ let asn1_value_of_tag (a: asn1_primitive_type): Type
 let asn1_boolean = value: asn1_value{BOOLEAN_VALUE? value}
 let asn1_null = value: asn1_value{NULL_VALUE? value}
 let asn1_octet_string = value: asn1_value{OCTET_STRING_VALUE? value}
+
+let len_of_asn1_data
+  (_a: asn1_primitive_type)
+  (x: datatype_of_asn1_type _a)
+: asn1_int32
+= match _a with
+  | BOOLEAN      -> 1ul
+  | NULL         -> 0ul
+  | OCTET_STRING -> dfst (x <: datatype_of_asn1_type OCTET_STRING)
+
+let len_of_asn1_value
+  (value: asn1_value)
+: asn1_int32
+= match value with
+  | BOOLEAN_VALUE          b -> 1ul
+  | NULL_VALUE             n -> 0ul
+  | OCTET_STRING_VALUE len s -> len

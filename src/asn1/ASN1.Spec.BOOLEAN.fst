@@ -1,10 +1,12 @@
 module ASN1.Spec.BOOLEAN
 
-include LowParse.Spec.Base
-include LowParse.Spec.Combinators
-include LowParse.Spec.Int
+open LowParse.Spec.Base
+open LowParse.Spec.Combinators
+open LowParse.Spec.Int
 
-include ASN1.Base
+open ASN1.Base
+open ASN1.Spec.Tag
+open ASN1.Spec.Length
 
 (* BOOLEAN primitive *)
 let filter_asn1_boolean
@@ -86,3 +88,44 @@ let serialize_asn1_boolean_unfold
   (* g1 *) (synth_asn1_boolean_inverse)
   (* prf*) ()
   (* in *) (b)
+
+/// Specialized TLV
+///
+let synth_asn1_boolean_TLV
+  (a: (the_asn1_type BOOLEAN * asn1_length_of_tag BOOLEAN) * datatype_of_asn1_type BOOLEAN)
+: GTot (datatype_of_asn1_type BOOLEAN)
+= snd a
+
+let synth_asn1_boolean_TLV_inverse
+  (x: datatype_of_asn1_type BOOLEAN)
+: GTot (a: ((the_asn1_type BOOLEAN * asn1_length_of_tag BOOLEAN) * datatype_of_asn1_type BOOLEAN){x == synth_asn1_boolean_TLV a})
+= ((BOOLEAN, len_of_asn1_data BOOLEAN x), x)
+
+let parse_asn1_boolean_TLV
+: parser _ (datatype_of_asn1_type BOOLEAN)
+= parse_the_asn1_tag BOOLEAN
+  `nondep_then`
+  parse_asn1_length_of_tag BOOLEAN
+  `nondep_then`
+  parse_asn1_boolean
+  `parse_synth`
+  synth_asn1_boolean_TLV
+
+let serialize_asn1_boolean_TLV
+: serializer parse_asn1_boolean_TLV
+= serialize_synth
+  (* p1 *) (parse_the_asn1_tag BOOLEAN
+            `nondep_then`
+            parse_asn1_length_of_tag BOOLEAN
+            `nondep_then`
+            parse_asn1_boolean)
+  (* f2 *) (synth_asn1_boolean_TLV)
+  (* s1 *) (serialize_the_asn1_tag BOOLEAN
+            `serialize_nondep_then`
+            serialize_asn1_length_of_tag BOOLEAN
+            `serialize_nondep_then`
+            serialize_asn1_boolean)
+  (* g1 *) (synth_asn1_boolean_TLV_inverse)
+  (* Prf*) ()
+
+(* TODO: interface and unfold spec *)
