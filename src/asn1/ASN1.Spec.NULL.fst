@@ -7,8 +7,9 @@ open ASN1.Base
 open ASN1.Spec.Tag
 open ASN1.Spec.Length
 
+let parse_asn1_null_kind = parse_ret_kind
 let parse_asn1_null
-: parser parse_ret_kind (datatype_of_asn1_type NULL)
+: parser parse_asn1_null_kind (datatype_of_asn1_type NULL)
 = parse_ret
   (* v *) ()
 
@@ -29,6 +30,14 @@ let synth_asn1_null_TLV_inverse
   (x: datatype_of_asn1_type NULL)
 : GTot (a: ((the_asn1_type NULL * asn1_int32_of_tag NULL) * datatype_of_asn1_type NULL){x == synth_asn1_null_TLV a})
 = ((NULL, len_of_asn1_data NULL x), x)
+
+let parse_asn1_null_TLV_kind
+: parser_kind
+= parse_asn1_tag_kind
+  `and_then_kind`
+  parse_asn1_length_kind_of_tag NULL
+  `and_then_kind`
+  parse_asn1_null_kind
 
 let parse_asn1_null_TLV
 : parser _ (datatype_of_asn1_type NULL)

@@ -95,30 +95,42 @@ let synth_asn1_octet_string_V_inverse
     #(fun (len:asn1_int32) -> s:bytes{Seq.length s == I.v len})
     value
 
+let parse_asn1_octet_string_kind_strong
+  (x: the_asn1_type OCTET_STRING * asn1_int32_of_tag OCTET_STRING)
+: parser_kind
+= total_constant_size_parser_kind (I.v (snd x))
+
 let parse_asn1_octet_string_data
   (x: the_asn1_type OCTET_STRING * asn1_int32_of_tag OCTET_STRING)
-: Tot (parser parse_asn1_octet_string_kind_weak (refine_with_tag parser_tag_of_octet_string x))
-= let OCTET_STRING, len = x in
-  let l = I.v len in
-  parse_asn1_octet_string_kind_weak
-  `weaken`
- (parse_asn1_octet_string l
+: Tot (parser (parse_asn1_octet_string_kind_strong x) (refine_with_tag parser_tag_of_octet_string x))
+= parse_asn1_octet_string (I.v (snd x))
   `parse_synth`
-  synth_asn1_octet_string_V len x)
+  synth_asn1_octet_string_V (snd x) x
+
 
 let serialize_asn1_octet_string_data
   (x: the_asn1_type OCTET_STRING * asn1_int32_of_tag OCTET_STRING)
 : Tot (serializer (parse_asn1_octet_string_data x))
-= let OCTET_STRING, len = x in
-  let l = I.v len in
-  parse_asn1_octet_string_kind_weak
+= serialize_synth
+  (* p1 *) (parse_asn1_octet_string (I.v (snd x)))
+  (* f2 *) (synth_asn1_octet_string_V (snd x) x)
+  (* s1 *) (serialize_asn1_octet_string (I.v (snd x)))
+  (* g1 *) (synth_asn1_octet_string_V_inverse (snd x) x)
+  (* Prf*) ()
+
+let parse_asn1_octet_string_data_weak
+  (x: the_asn1_type OCTET_STRING * asn1_int32_of_tag OCTET_STRING)
+: Tot (parser parse_asn1_octet_string_kind_weak (refine_with_tag parser_tag_of_octet_string x))
+= parse_asn1_octet_string_kind_weak
+  `weaken`
+  parse_asn1_octet_string_data x
+
+let serialize_asn1_octet_string_data_weak
+  (x: the_asn1_type OCTET_STRING * asn1_int32_of_tag OCTET_STRING)
+: Tot (serializer (parse_asn1_octet_string_data_weak x))
+= parse_asn1_octet_string_kind_weak
   `serialize_weaken`
- (serialize_synth
-  (* p1 *) (parse_asn1_octet_string l)
-  (* f2 *) (synth_asn1_octet_string_V len x)
-  (* s1 *) (serialize_asn1_octet_string l)
-  (* g1 *) (synth_asn1_octet_string_V_inverse len x)
-  (* Prf*) ())
+  serialize_asn1_octet_string_data x
 
 // let parse_asn1_octet_string_TLV_kind
 // = parse_asn1_tag_kind
@@ -127,14 +139,22 @@ let serialize_asn1_octet_string_data
 //   `and_then_kind`
 //   strong_parser_kind asn1_length_min asn1_length_max None
 
+let parse_asn1_octet_string_TLV_kind
+: parser_kind
+= parse_asn1_tag_kind
+  `and_then_kind`
+  parse_asn1_length_kind_of_tag OCTET_STRING
+  `and_then_kind`
+  parse_asn1_octet_string_kind_weak
+
 let parse_asn1_octet_string_TLV
-: parser _ (datatype_of_asn1_type OCTET_STRING)
+: parser parse_asn1_octet_string_TLV_kind (datatype_of_asn1_type OCTET_STRING)
 = parse_tagged_union
   (* pt *) (parse_the_asn1_tag OCTET_STRING
             `nondep_then`
             parse_asn1_length_of_tag OCTET_STRING)
   (* tg *) (parser_tag_of_octet_string)
-  (* p  *) (parse_asn1_octet_string_data)
+  (* p  *) (parse_asn1_octet_string_data_weak)
 
 let serialize_asn1_octet_string_TLV
 : serializer parse_asn1_octet_string_TLV
@@ -143,5 +163,5 @@ let serialize_asn1_octet_string_TLV
             `serialize_nondep_then`
             serialize_asn1_length_of_tag OCTET_STRING)
   (* tg *) (parser_tag_of_octet_string)
-  (* s  *) (serialize_asn1_octet_string_data)
+  (* s  *) (serialize_asn1_octet_string_data_weak)
 

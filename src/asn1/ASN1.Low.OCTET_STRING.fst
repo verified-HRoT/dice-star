@@ -66,8 +66,7 @@ let synth_asn1_octet_string_V_inverse_impl
     #(fun (len:asn1_int32) -> s:bytes{Seq.length s == v len})
     value
 
-let serialize32_asn1_octet_string_TLV_backwards
-  (x: datatype_of_asn1_type OCTET_STRING)
+let serialize32_asn1_octet_string_TLV_backwards ()
 : Tot (serializer32_backwards serialize_asn1_octet_string_TLV)
 = serialize32_tagged_union_backwards
   (* lst *) (serialize32_the_asn1_tag_backwards OCTET_STRING
@@ -83,4 +82,4 @@ let serialize32_asn1_octet_string_TLV_backwards
                      (* f2  *) (synth_asn1_octet_string_V len x)
                      (* g1  *) (synth_asn1_octet_string_V_inverse len x)
                      (* g1' *) (synth_asn1_octet_string_V_inverse_impl len x)
-                     (* Prf *) ())) <: serializer32_backwards (serialize_asn1_octet_string_data x))
+                     (* Prf *) ())) <: serializer32_backwards (serialize_asn1_octet_string_data_weak x))

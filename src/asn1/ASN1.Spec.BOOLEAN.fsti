@@ -17,19 +17,19 @@ let valid_asn1_boolean_byte = parse_filter_refine filter_asn1_boolean
 
 val synth_asn1_boolean
     (b: parse_filter_refine filter_asn1_boolean)
-: Ghost bool
+: Ghost (datatype_of_asn1_type BOOLEAN)
   (requires True)
   (ensures fun x -> x == (b = 0xFFuy))
 
 val synth_asn1_boolean_inverse
-  (x: bool)
+  (x: datatype_of_asn1_type BOOLEAN)
 : Ghost (b: parse_filter_refine filter_asn1_boolean{synth_asn1_boolean b == x})
   (requires True)
   (ensures fun b -> synth_asn1_boolean b == x)
 
 let parse_asn1_boolean_kind = strong_parser_kind 1 1 None
 val parse_asn1_boolean
-: parser parse_asn1_boolean_kind bool
+: parser parse_asn1_boolean_kind (datatype_of_asn1_type BOOLEAN)
 
 val parse_asn1_boolean_unfold
   (input: bytes)
@@ -47,7 +47,7 @@ val serialize_asn1_boolean
 : serializer parse_asn1_boolean
 
 val serialize_asn1_boolean_unfold
-  (b: bool)
+  (b: datatype_of_asn1_type BOOLEAN)
 : Lemma (
   serialize serialize_asn1_boolean b
   `Seq.equal`

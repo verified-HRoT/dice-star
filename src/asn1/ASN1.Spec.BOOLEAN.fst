@@ -14,20 +14,20 @@ let filter_asn1_boolean
 
 let synth_asn1_boolean
   (b: parse_filter_refine filter_asn1_boolean)
-: GTot bool
+: GTot (datatype_of_asn1_type BOOLEAN)
 = match b with
   | 0xFFuy -> true
   | 0x00uy -> false
 
 let synth_asn1_boolean_inverse
-  (b: bool)
+  (b: datatype_of_asn1_type BOOLEAN)
 : GTot (r: parse_filter_refine filter_asn1_boolean{synth_asn1_boolean r == b})
 = match b with
   | true  -> 0xFFuy
   | false -> 0x00uy
 
 let parse_asn1_boolean
-: parser parse_asn1_boolean_kind bool
+: parser parse_asn1_boolean_kind (datatype_of_asn1_type BOOLEAN)
 = parse_u8
   `parse_filter`
   filter_asn1_boolean
@@ -70,7 +70,7 @@ let serialize_asn1_boolean
   (* prf*) ()
 
 let serialize_asn1_boolean_unfold
-  (b: bool)
+  (b: datatype_of_asn1_type BOOLEAN)
 : Lemma (
   serialize serialize_asn1_boolean b
   `Seq.equal`

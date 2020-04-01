@@ -6,7 +6,7 @@ open ASN1.Spec.Length
 open ASN1.Spec.BOOLEAN
 open ASN1.Spec.NULL
 open ASN1.Spec.OCTET_STRING
-open ASN1.Spec.TLV
+// open ASN1.Spec.TLV
 
 open ASN1.Low.Base
 open ASN1.Low.Tag
@@ -14,7 +14,7 @@ open ASN1.Low.Length
 open ASN1.Low.BOOLEAN
 open ASN1.Low.NULL
 open ASN1.Low.OCTET_STRING
-open ASN1.Low.TLV
+// open ASN1.Low.TLV
 
 open LowParse.Low.Base
 open LowParse.Low.Combinators
@@ -29,6 +29,74 @@ module Cast = FStar.Int.Cast
 
 module I = FStar.Integers
 
+type ext = {
+  b: datatype_of_asn1_type BOOLEAN;
+  n: datatype_of_asn1_type NULL;
+  s: datatype_of_asn1_type OCTET_STRING
+}
+
+let ext' = ((datatype_of_asn1_type BOOLEAN * datatype_of_asn1_type NULL) * datatype_of_asn1_type OCTET_STRING)
+
+let synth_ext
+  (x': ext')
+: Tot (ext)
+= let (b, n), s = x' in
+  {b = b; n = n; s = s}
+
+let synth_ext_inverse
+  (x: ext)
+: Tot (x': ext'{x == synth_ext x'})
+= ((x.b, x.n), x.s)
+
+let p
+: parser _ ext
+=((parse_asn1_boolean_TLV
+  `nondep_then`
+  parse_asn1_null_TLV)
+  `nondep_then`
+  parse_asn1_octet_string_TLV)
+  `parse_synth`
+  synth_ext
+
+let s
+: serializer p
+= serialize_synth
+  (* p1 *) ((parse_asn1_boolean_TLV
+             `nondep_then`
+             parse_asn1_null_TLV)
+             `nondep_then`
+             parse_asn1_octet_string_TLV)
+  (* f2 *) (synth_ext)
+  (* s1 *) ((serialize_asn1_boolean_TLV
+             `serialize_nondep_then`
+             serialize_asn1_null_TLV)
+             `serialize_nondep_then`
+             serialize_asn1_octet_string_TLV)
+  (* g1 *) (synth_ext_inverse)
+  (* prf*) ()
+
+
+let synth_ext_inverse_impl
+  (x: ext)
+: Tot (x': ext'{x' == synth_ext_inverse x})
+= ((x.b, x.n), x.s)
+
+let s32
+: serializer32_backwards s
+= serialize32_synth_backwards
+  (* ls1*) (((serialize32_asn1_boolean_TLV_backwards ()
+              `serialize32_nondep_then_backwards`
+              serialize32_asn1_null_TLV_backwards ())
+              `serialize32_nondep_then_backwards`
+              serialize32_asn1_octet_string_TLV_backwards ()))
+  (* f2 *) (synth_ext)
+  (* g1 *) (synth_ext_inverse)
+  (* lg1*) (synth_ext_inverse_impl)
+  (* prf*) ()
+
+
+/// Old example
+///
 type ext_inner = {
   b1: asn1_value;
   n1: asn1_value;

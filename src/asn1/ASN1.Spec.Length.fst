@@ -23,6 +23,24 @@ let serialize_asn1_length
 
 let serialize_asn1_length_unfold = serialize_bounded_der_length32_unfold asn1_length_min asn1_length_max
 
+#push-options "--z3rlimit 16"
+let len_of_asn1_length
+  (len: asn1_int32)
+: Tot (offset: uint_32{v offset == Seq.length (serialize serialize_asn1_length len)})
+= serialize_asn1_length_unfold len;
+  let x = tag_of_der_length32_impl len in
+  if x < 128uy then
+  ( 1ul )
+  else if x = 129uy then
+  ( 2ul )
+  else if x = 130uy then
+  ( 3ul )
+  else if x = 131uy then
+  ( 4ul )
+  else
+  ( 5ul )
+#pop-options
+
 /// Specialized
 ///
 

@@ -1,8 +1,8 @@
 module ASN1.Base
-module I = FStar.Integers
+open FStar.Integers
 
 let (.[]) = FStar.Seq.index
-let byte = I.uint_8
+let byte = uint_8
 let bytes = Seq.seq byte
 let lbytes = Seq.Properties.lseq byte
 
@@ -31,6 +31,8 @@ let asn1_length_inbound (x: nat) (min max: asn1_length_t): bool
 = min <= x && x <= max
 
 let asn1_int32 = LowParse.Spec.BoundedInt.bounded_int32 asn1_length_min asn1_length_max
+let asn1_int32_min: i: asn1_int32 {forall (i': asn1_int32). i <= i'} = 0ul
+let asn1_int32_max: i: asn1_int32 {forall (i': asn1_int32). i >= i'} = 4294967295ul
 
 let min_of_asn1_type
   (a: asn1_type)
@@ -52,7 +54,7 @@ let max_of_asn1_type
 
 let bound_of_asn1_type
   (a: asn1_type)
-: (asn1_length_t * asn1_length_t)
+: (asn1_length_t & asn1_length_t)
 = (min_of_asn1_type a, max_of_asn1_type a)
 
 unfold
@@ -61,13 +63,13 @@ let datatype_of_asn1_type (a: asn1_primitive_type): Type
   | BOOLEAN -> bool
   // | INTEGER -> HI.pub_uint32
   | NULL -> unit
-  | OCTET_STRING -> (len: asn1_int32 & s: bytes {Seq.length s == I.v len})
+  | OCTET_STRING -> (len: asn1_int32 & s: bytes {Seq.length s == v len})
 
 type asn1_value: Type =
 | BOOLEAN_VALUE: b: bool -> asn1_value
 | NULL_VALUE: n:unit -> asn1_value
 | OCTET_STRING_VALUE: len: asn1_int32 (* NOTE: Carrying length here for low-level operations. *)
-                   -> s: bytes{I.v len == Seq.length s}
+                   -> s: bytes{v len == Seq.length s}
                    -> asn1_value
 
 unfold

@@ -19,11 +19,9 @@ open FStar.Integers
 #reset-options "--max_fuel 0 --max_ifuel 0"
 
 #push-options "--z3rlimit 16"
-let offset_of_asn1_length
+let offset_of_asn1_length_impl
   (len: asn1_int32)
-: Pure (offset: size_t{v offset == Seq.length (serialize serialize_asn1_length len)})
-  (requires True)
-  (ensures fun offset -> v offset == Seq.length (serialize serialize_asn1_length len))
+: Tot (offset: size_t{v offset == Seq.length (serialize serialize_asn1_length len)})
 = serialize_asn1_length_unfold len;
   let x = SDER.tag_of_der_length32_impl len in
   if x < 128uy then
@@ -49,7 +47,7 @@ let serialize32_asn1_length_backwards ()
     (#rrel #rel: _)
     (b: B.mbuffer byte_t rrel rel)
     (pos: size_t)
--> let offset = offset_of_asn1_length len in
+-> let offset = offset_of_asn1_length_impl len in
    (* Prf *) let h0 = HST.get () in
    let offset = serialize32_asn1_length () len b (pos - offset) in
    (* Prf *) let h1 = HST.get () in
@@ -88,7 +86,7 @@ let serialize32_asn1_length_of_tag_backwards
     (#rrel #rel: _)
     (b: B.mbuffer byte_t rrel rel)
     (pos: size_t)
--> let offset = offset_of_asn1_length len in
+-> let offset = offset_of_asn1_length_impl len in
    (* Prf *) let h0 = HST.get () in
    let offset = serialize32_asn1_length_of_tag _a len b (pos - offset) in
    (* Prf *) let h1 = HST.get () in
