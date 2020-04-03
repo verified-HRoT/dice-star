@@ -52,12 +52,6 @@ let filter_asn1_length_of_tag
   let min, max = min_of_asn1_type _a, max_of_asn1_type _a in
   asn1_length_inbound l min max
 
-let asn1_int32_of_tag
-  (_a: asn1_type)
-// = parse_filter_refine (filter_asn1_length_of_tag _a)
-= let min, max = min_of_asn1_type _a, max_of_asn1_type _a in
-  bounded_int32 min max
-
 let parse_asn1_length_kind_of_tag
   (_a: asn1_type)
 : parser_kind

@@ -57,18 +57,23 @@ let bound_of_asn1_type
 : (asn1_length_t & asn1_length_t)
 = (min_of_asn1_type a, max_of_asn1_type a)
 
+let asn1_int32_of_tag
+  (_a: asn1_type)
+= let min, max = min_of_asn1_type _a, max_of_asn1_type _a in
+  LowParse.Spec.BoundedInt.bounded_int32 min max
+
 unfold
 let datatype_of_asn1_type (a: asn1_primitive_type): Type
 = match a with
   | BOOLEAN -> bool
   // | INTEGER -> HI.pub_uint32
   | NULL -> unit
-  | OCTET_STRING -> (len: asn1_int32 & s: bytes {Seq.length s == v len})
+  | OCTET_STRING -> (len: asn1_int32_of_tag OCTET_STRING & s: bytes {Seq.length s == v len})
 
 type asn1_value: Type =
 | BOOLEAN_VALUE: b: bool -> asn1_value
 | NULL_VALUE: n:unit -> asn1_value
-| OCTET_STRING_VALUE: len: asn1_int32 (* NOTE: Carrying length here for low-level operations. *)
+| OCTET_STRING_VALUE: len: asn1_int32_of_tag OCTET_STRING (* NOTE: Carrying length here for low-level operations. *)
                    -> s: bytes{v len == Seq.length s}
                    -> asn1_value
 

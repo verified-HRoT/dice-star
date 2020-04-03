@@ -4,9 +4,141 @@ open LowParse.Spec.Base
 open LowParse.Spec.Combinators
 open LowParse.Spec.List
 open LowParse.Spec.Int
+open LowParse.Spec.SeqBytes.Base
 
-module I = FStar.Integers
+open FStar.Integers
 
+/// Experiment for runtime length verification
+///
+
+let lbytes = Seq.Properties.lseq byte
+
+let tag_of_data
+  (s: bytes{Seq.length s <= 255})
+: GTot (n: uint_8)
+= u (Seq.length s)
+
+let synth_data
+  (n: uint_8)
+  (s: lbytes (v n))
+: GTot (refine_with_tag tag_of_data n)
+= s
+
+let synth_data_inverse
+  (n: uint_8)
+  (s: lbytes (v n))
+: GTot (refine_with_tag tag_of_data n)
+
+let parse_data
+  (n: uint_8)
+: parser _ (refine_with_tag tag_of_data n)
+= parse_seq_flbytes (v n)
+  `parse_synth`
+  synth_data n
+
+let parse_data_kind_weak = strong_parser_kind 0 255 None
+let parse_data_weak
+  (n: uint_8)
+: parser parse_data_kind_weak (refine_with_tag tag_of_data n)
+= parse_data_kind_weak
+  `weaken`
+  parse_data n
+
+let parse_data_weak_length_prop
+  (n: uint_8)
+  (input: bytes)
+: Lemma (
+  let px = parse (parse_data n) input in
+  let px_weak = parse (parse_data_weak n) input in
+  (Some? px ==> snd (Some?.v px_weak) == v n)
+)
+= parser_kind_prop_equiv (get_parser_kind (parse_data n)) (parse_data n)
+
+let parser_weaken_length_prop
+  (input: bytes)
+  (#t: Type0)
+  (#k: parser_kind)
+  (p: parser k t)
+  (#k': parser_kind{k' `is_weaker_than` k})
+: Lemma (
+  let p' = k' `weaken` p in
+  let px = parse p input in
+  let px' = parse p' input in
+  px == px'
+)
+= ()
+
+let parse_test
+= parse_tagged_union
+  (* pt *) (parse_u8)
+  (* tg *) (tag_of_data)
+  (* p  *) (parse_data_weak)
+
+/// TODO: Can we reason about the "runtime" length properties of `parse_test`?
+///
+
+let runtime_length_prop
+  (s: bytes)
+: Lemma (
+  parse parse_test s ==
+ (match parse parse_u8 s with
+  | None -> None
+  | Some (tag, consumed_tag) ->
+    (let s' = Seq.slice s consumed_tag (Seq.length s) in
+     match parse (parse_data tag) s' with
+     | None -> None
+     | Some (data, consumed_data) -> Some ((data <: s: bytes{Seq.length s <= 255}), (consumed_tag + consumed_data <: consumed_length s))))
+)
+= parse_tagged_union_eq
+  (* pt *) (parse_u8)
+  (* tg *) (tag_of_data)
+  (* p  *) (parse_data_weak)
+  (* in *) (s)
+
+
+let parse_exact_prop
+  (s: bytes)
+  (p: parser 'k 't)
+: Lemma (
+  let px = parse p s in
+ (Some? px ==>
+ (let Some (v, l) = px in
+  let px' = parse (parse_exact p l) s in
+  Some? px'
+  ))
+)= ()
+
+let runtime_exact_length_prop
+  (s: bytes)
+: Lemma (
+  parse parse_test s ==
+ (match parse parse_u8 s with
+  | None -> None
+  | Some (tag, consumed_tag) ->
+    (let s' = Seq.slice s consumed_tag (Seq.length s) in
+     match parse (parse_exact (parse_data tag) (v tag)) s' with
+     | None -> None
+     | Some (data, consumed_data) -> Some ((data <: s: bytes{Seq.length s <= 255}), (consumed_tag + consumed_data <: consumed_length s))))
+)
+= parse_tagged_union_eq
+  (* pt *) (parse_u8)
+  (* tg *) (tag_of_data)
+  (* p  *) (parse_data_weak)
+  (* in *) (s)
+
+open LowParse.Spec.FLData
+
+let parse_u8_2 = parse_u8 `nondep_then` parse_u8
+
+let test (): Lemma (
+  let px = parse (parse_fldata (parse_u8 `nondep_then` parse_u8) 2) (Seq.create 5 1uy) in
+  Some? px
+) = parse_u8_spec (Seq.create 5 1uy);
+    parser_kind_prop_equiv (get_parser_kind parse_u8) parse_u8;
+    // nondep_then_eq parse_u8 parse_u8 (Seq.create 2 1uy);
+    parser_kind_prop_equiv (get_parser_kind parse_u8_2) parse_u8_2
+
+(*)
 type ty: Type =
 | BS
 | SQ

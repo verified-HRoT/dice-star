@@ -68,7 +68,7 @@ let safe_add
 let len_of_asn1_primitive_TLV
   (#_a: asn1_primitive_type)
   (data: datatype_of_asn1_type _a)
-: Tot (option asn1_int32)
+: Tot (x: option asn1_int32{Some? x ==> (I.v (Some?.v x) == Seq.length (serialize (serialize_asn1_TLV_of_type _a) data))})
 = let data_len = len_of_asn1_data _a data in
   let len_len = len_of_asn1_length data_len in
   let res = 1ul in
@@ -157,6 +157,7 @@ let parse_exact
 = parse_exact_correct p l;
   parse_exact_bare p l
 
+
 /// Example
 ///
 type inner_t = {
@@ -215,15 +216,45 @@ let parse_exact_kind_weak = {
   parser_kind_metadata = None
 }
 
+let lmm (b: bytes): Lemma
+  (requires (Some? (parse parse_inner b)))
+  (ensures (let Some (v, l) = parse parse_inner b in
+            Some? (len_of_inner_t v)))
+= ()
+
+#push-options "--query_stats --z3rlimit 64"
+let lm (): Lemma (
+  let s = Seq.create 5 1uy in
+  let i = {n1 = (); s1 = (|5ul, s|)} in
+  let pe = parse_exact parse_inner (I.v (Some?.v (len_of_inner_t i))) in
+  let sx = serialize serialize_inner i in
+  let px = parse pe sx in
+  (Some? px) /\ (len_of_inner_t i) == Some 9ul
+)
+= ()
+
+
+(*)
+parse_asn1_tag_unfold sx;
+  serialize_asn1_tag_unfold BOOLEAN
+
 let parser_tag_of_sequence
   (x: inner_t{Some? (len_of_inner_t x)})
 : GTot (the_asn1_type SEQUENCE * asn1_int32_of_tag SEQUENCE)
 = (SEQUENCE, (Some?.v (len_of_inner_t x)))
 
+let g (t: nat * nat)
+= let x, y = t in
+  Seq.create x 1uy <: s:bytes{Seq.length s == x}
+
+let parser_inner_trick
+  (t: (the_asn1_type SEQUENCE * asn1_int32_of_tag SEQUENCE))
+= let SEQUENCE, len = t in
+
 let parse_inner_TLV
 = let p = (fun (x: (the_asn1_type SEQUENCE * asn1_int32_of_tag SEQUENCE)) ->
-            parse_exact_kind_weak
-            `weaken`
+            // parse_exact_kind_weak
+            // `weaken`
             parse_exact parse_inner (I.v (snd x))) in
   // assume (and_then_cases_injective p);
   parse_tagged_union
