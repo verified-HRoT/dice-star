@@ -22,20 +22,20 @@ let serialize_asn1_null
 /// Specialized TLV
 ///
 let synth_asn1_null_TLV
-  (a: (the_asn1_type NULL * asn1_int32_of_tag NULL) * datatype_of_asn1_type NULL)
+  (a: (the_asn1_type NULL * asn1_int32_of_type NULL) * datatype_of_asn1_type NULL)
 : GTot (datatype_of_asn1_type NULL)
 = snd a
 
 let synth_asn1_null_TLV_inverse
   (x: datatype_of_asn1_type NULL)
-: GTot (a: ((the_asn1_type NULL * asn1_int32_of_tag NULL) * datatype_of_asn1_type NULL){x == synth_asn1_null_TLV a})
+: GTot (a: ((the_asn1_type NULL * asn1_int32_of_type NULL) * datatype_of_asn1_type NULL){x == synth_asn1_null_TLV a})
 = ((NULL, len_of_asn1_data NULL x), x)
 
 let parse_asn1_null_TLV_kind
 : parser_kind
 = parse_asn1_tag_kind
   `and_then_kind`
-  parse_asn1_length_kind_of_tag NULL
+  parse_asn1_length_kind_of_type NULL
   `and_then_kind`
   parse_asn1_null_kind
 
@@ -43,7 +43,7 @@ let parse_asn1_null_TLV
 : parser _ (datatype_of_asn1_type NULL)
 = parse_the_asn1_tag NULL
   `nondep_then`
-  parse_asn1_length_of_tag NULL
+  parse_asn1_length_of_type NULL
   `nondep_then`
   parse_asn1_null
   `parse_synth`
@@ -54,13 +54,13 @@ let serialize_asn1_null_TLV
 = serialize_synth
   (* p1 *) (parse_the_asn1_tag NULL
             `nondep_then`
-            parse_asn1_length_of_tag NULL
+            parse_asn1_length_of_type NULL
             `nondep_then`
             parse_asn1_null)
   (* f2 *) (synth_asn1_null_TLV)
   (* s1 *) (serialize_the_asn1_tag NULL
             `serialize_nondep_then`
-            serialize_asn1_length_of_tag NULL
+            serialize_asn1_length_of_type NULL
             `serialize_nondep_then`
             serialize_asn1_null)
   (* g1 *) (synth_asn1_null_TLV_inverse)

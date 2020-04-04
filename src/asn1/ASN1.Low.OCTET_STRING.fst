@@ -53,12 +53,12 @@ open ASN1.Low.Length
 
 let parser_tag_of_octet_string_impl
   (x: datatype_of_asn1_type OCTET_STRING)
-: Tot (tg: (the_asn1_type OCTET_STRING & asn1_int32_of_tag OCTET_STRING) {tg == parser_tag_of_octet_string x})
+: Tot (tg: (the_asn1_type OCTET_STRING & asn1_int32_of_type OCTET_STRING) {tg == parser_tag_of_octet_string x})
 = (OCTET_STRING, dfst x)
 
 let synth_asn1_octet_string_V_inverse_impl
-  (len: asn1_int32_of_tag OCTET_STRING)
-  (x: the_asn1_type OCTET_STRING & asn1_int32_of_tag OCTET_STRING{x == (OCTET_STRING, len)})
+  (len: asn1_int32_of_type OCTET_STRING)
+  (x: the_asn1_type OCTET_STRING & asn1_int32_of_type OCTET_STRING{x == (OCTET_STRING, len)})
   (value: refine_with_tag parser_tag_of_octet_string x)
 : Tot (s: lbytes (v len){s == synth_asn1_octet_string_V_inverse len x value})
 = dsnd
@@ -71,10 +71,10 @@ let serialize32_asn1_octet_string_TLV_backwards ()
 = serialize32_tagged_union_backwards
   (* lst *) (serialize32_the_asn1_tag_backwards OCTET_STRING
              `serialize32_nondep_then_backwards`
-             serialize32_asn1_length_of_tag_backwards OCTET_STRING)
+             serialize32_asn1_length_of_type_backwards OCTET_STRING)
   (* tg  *) (parser_tag_of_octet_string_impl)
   (* ls  *) (fun x -> let OCTET_STRING, len = x in
-                    let l = v len in
+                    // let l = v len in
                     (parse_asn1_octet_string_kind_weak
                     `serialize32_weaken_backwards`
                     (serialize32_synth_backwards

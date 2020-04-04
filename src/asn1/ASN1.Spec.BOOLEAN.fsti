@@ -59,18 +59,18 @@ open ASN1.Spec.Tag
 open ASN1.Spec.Length
 
 val synth_asn1_boolean_TLV
-  (a: (the_asn1_type BOOLEAN * asn1_int32_of_tag BOOLEAN) * datatype_of_asn1_type BOOLEAN)
+  (a: (the_asn1_type BOOLEAN * asn1_int32_of_type BOOLEAN) * datatype_of_asn1_type BOOLEAN)
 : GTot (value: datatype_of_asn1_type BOOLEAN{value == snd a})
 
 val synth_asn1_boolean_TLV_inverse
   (x: datatype_of_asn1_type BOOLEAN)
-: GTot (a: ((the_asn1_type BOOLEAN * asn1_int32_of_tag BOOLEAN) * datatype_of_asn1_type BOOLEAN){x == synth_asn1_boolean_TLV a})
+: GTot (a: ((the_asn1_type BOOLEAN * asn1_int32_of_type BOOLEAN) * datatype_of_asn1_type BOOLEAN){x == synth_asn1_boolean_TLV a})
 
 let parse_asn1_boolean_TLV_kind
 : parser_kind
 = parse_asn1_tag_kind
   `and_then_kind`
-  parse_asn1_length_kind_of_tag BOOLEAN
+  parse_asn1_length_kind_of_type BOOLEAN
   `and_then_kind`
   parse_asn1_boolean_kind
 
@@ -78,7 +78,7 @@ let parse_asn1_boolean_TLV
 : parser parse_asn1_boolean_TLV_kind (datatype_of_asn1_type BOOLEAN)
 = parse_the_asn1_tag BOOLEAN
   `nondep_then`
-  parse_asn1_length_of_tag BOOLEAN
+  parse_asn1_length_of_type BOOLEAN
   `nondep_then`
   parse_asn1_boolean
   `parse_synth`
@@ -92,7 +92,7 @@ val parse_asn1_boolean_TLV_unfold
   | None -> None
   | Some (BOOLEAN, consumed_T) ->
     (let input_LV = Seq.slice input_TLV consumed_T (Seq.length input_TLV) in
-     match parse (parse_asn1_length_of_tag BOOLEAN) input_LV with
+     match parse (parse_asn1_length_of_type BOOLEAN) input_LV with
      | None -> None
      | Some (1ul, consumed_L) ->
        (let input_V = Seq.slice input_LV consumed_L (Seq.length input_LV) in
@@ -106,13 +106,13 @@ let serialize_asn1_boolean_TLV
 = serialize_synth
   (* p1 *) (parse_the_asn1_tag BOOLEAN
             `nondep_then`
-            parse_asn1_length_of_tag BOOLEAN
+            parse_asn1_length_of_type BOOLEAN
             `nondep_then`
             parse_asn1_boolean)
   (* f2 *) (synth_asn1_boolean_TLV)
   (* s1 *) (serialize_the_asn1_tag BOOLEAN
             `serialize_nondep_then`
-            serialize_asn1_length_of_tag BOOLEAN
+            serialize_asn1_length_of_type BOOLEAN
             `serialize_nondep_then`
             serialize_asn1_boolean)
   (* g1 *) (synth_asn1_boolean_TLV_inverse)
@@ -125,7 +125,7 @@ val serialize_asn1_boolean_TLV_unfold
   `Seq.equal`
  (serialize (serialize_the_asn1_tag BOOLEAN) BOOLEAN
   `Seq.append`
-  serialize (serialize_asn1_length_of_tag BOOLEAN) 1ul
+  serialize (serialize_asn1_length_of_type BOOLEAN) 1ul
   `Seq.append`
   serialize serialize_asn1_boolean value)
 )

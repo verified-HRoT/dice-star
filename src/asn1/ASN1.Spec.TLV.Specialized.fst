@@ -41,13 +41,13 @@ let parse_asn1_sequence_TL_kind
 : parser_kind
 = parse_asn1_tag_kind
   `and_then_kind`
-  parse_asn1_length_kind_of_tag SEQUENCE
+  parse_asn1_length_kind_of_type SEQUENCE
 
 let parse_asn1_sequence_TL
-: parser parse_asn1_sequence_TL_kind (the_asn1_type SEQUENCE & asn1_int32_of_tag SEQUENCE)
+: parser parse_asn1_sequence_TL_kind (the_asn1_type SEQUENCE & asn1_int32_of_type SEQUENCE)
 = parse_the_asn1_tag SEQUENCE
   `nondep_then`
-  parse_asn1_length_of_tag SEQUENCE
+  parse_asn1_length_of_type SEQUENCE
 
 let serialize_asn1_sequence_TL
 : serializer parse_asn1_sequence_TL
@@ -183,7 +183,7 @@ let synth_inner_t_inverse
 
 let len_of_inner_t
   (x: inner_t)
-: Tot (option (asn1_int32_of_tag SEQUENCE))
+: Tot (option (asn1_int32_of_type SEQUENCE))
 = let len_n1 = len_of_asn1_primitive_TLV x.n1 in
   let len_s1 = len_of_asn1_primitive_TLV x.s1 in
   len_n1 `safe_add` len_s1
@@ -240,7 +240,7 @@ parse_asn1_tag_unfold sx;
 
 let parser_tag_of_sequence
   (x: inner_t{Some? (len_of_inner_t x)})
-: GTot (the_asn1_type SEQUENCE * asn1_int32_of_tag SEQUENCE)
+: GTot (the_asn1_type SEQUENCE * asn1_int32_of_type SEQUENCE)
 = (SEQUENCE, (Some?.v (len_of_inner_t x)))
 
 let g (t: nat * nat)
@@ -248,11 +248,11 @@ let g (t: nat * nat)
   Seq.create x 1uy <: s:bytes{Seq.length s == x}
 
 let parser_inner_trick
-  (t: (the_asn1_type SEQUENCE * asn1_int32_of_tag SEQUENCE))
+  (t: (the_asn1_type SEQUENCE * asn1_int32_of_type SEQUENCE))
 = let SEQUENCE, len = t in
 
 let parse_inner_TLV
-= let p = (fun (x: (the_asn1_type SEQUENCE * asn1_int32_of_tag SEQUENCE)) ->
+= let p = (fun (x: (the_asn1_type SEQUENCE * asn1_int32_of_type SEQUENCE)) ->
             // parse_exact_kind_weak
             // `weaken`
             parse_exact parse_inner (I.v (snd x))) in
@@ -260,7 +260,7 @@ let parse_inner_TLV
   parse_tagged_union
   (* pt *) (parse_the_asn1_tag SEQUENCE
             `nondep_then`
-            parse_asn1_length_of_tag SEQUENCE)
+            parse_asn1_length_of_type SEQUENCE)
   (* tg *) (parser_tag_of_sequence)
   (* p  *) (p)
 
@@ -276,7 +276,7 @@ type outer_t = {
 (*)
 let len_of_outter_t
   (x: outer_t)
-: Tot (option (asn1_int32_of_tag SEQUENCE))
+: Tot (option (asn1_int32_of_type SEQUENCE))
 = let len_b = len_of_asn1_primitive_TLV x.b in
   if (Some? len_b) then
   ( let len_inner =  )

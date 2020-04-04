@@ -48,7 +48,7 @@ open ASN1.Low.Length
 
 let synth_asn1_boolean_TLV_inverse_impl
   (x: datatype_of_asn1_type BOOLEAN)
-: Tot (a: ((the_asn1_type BOOLEAN & asn1_int32_of_tag BOOLEAN) & datatype_of_asn1_type BOOLEAN){a == synth_asn1_boolean_TLV_inverse x})
+: Tot (a: ((the_asn1_type BOOLEAN & asn1_int32_of_type BOOLEAN) & datatype_of_asn1_type BOOLEAN){a == synth_asn1_boolean_TLV_inverse x})
 = ((BOOLEAN, len_of_asn1_data BOOLEAN x), x)
 
 let serialize32_asn1_boolean_TLV_backwards ()
@@ -56,7 +56,7 @@ let serialize32_asn1_boolean_TLV_backwards ()
 = serialize32_synth_backwards
   (* ls1*) (serialize32_the_asn1_tag_backwards BOOLEAN
            `serialize32_nondep_then_backwards`
-           serialize32_asn1_length_of_tag_backwards BOOLEAN
+           serialize32_asn1_length_of_type_backwards BOOLEAN
            `serialize32_nondep_then_backwards`
            serialize32_asn1_boolean_backwards ())
   (* f2 *) (synth_asn1_boolean_TLV)

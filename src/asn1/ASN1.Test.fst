@@ -26,15 +26,27 @@ let synth_data
 
 let synth_data_inverse
   (n: uint_8)
-  (s: lbytes (v n))
-: GTot (refine_with_tag tag_of_data n)
+  (x: refine_with_tag tag_of_data n)
+: GTot (s: lbytes (v n){ x == synth_data n s })
+= x
 
+let parse_data_kind (n: uint_8) = total_constant_size_parser_kind (v n)
 let parse_data
   (n: uint_8)
-: parser _ (refine_with_tag tag_of_data n)
+: parser (parse_data_kind n) (refine_with_tag tag_of_data n)
 = parse_seq_flbytes (v n)
   `parse_synth`
   synth_data n
+
+let serialize_data
+    (n: uint_8)
+: serializer (parse_data n)
+= serialize_synth
+  (* p1 *) (parse_seq_flbytes (v n))
+  (* f2 *) (synth_data n)
+  (* s1 *) (serialize_seq_flbytes (v n))
+  (* g1 *) (synth_data_inverse n)
+  (* Prf*) ()
 
 let parse_data_kind_weak = strong_parser_kind 0 255 None
 let parse_data_weak
@@ -43,6 +55,152 @@ let parse_data_weak
 = parse_data_kind_weak
   `weaken`
   parse_data n
+
+let serialize_data_weak
+  (n: uint_8)
+: serializer (parse_data_weak n)
+= parse_data_kind_weak
+  `serialize_weaken`
+  serialize_data n
+
+let parse_test
+= parse_tagged_union
+  (* pt *) (parse_u8)
+  (* tg *) (tag_of_data)
+  (* p  *) (parse_data_weak)
+
+let serialize_test
+: serializer parse_test
+= serialize_tagged_union
+  (* st *) (serialize_u8)
+  (* tg *) (tag_of_data)
+  (* s  *) (serialize_data_weak)
+
+open LowParse.Spec.FLData
+
+let test (): Lemma (
+  let px = parse (parse_test) (Seq.create 50 1uy) in
+  Some? px /\ snd (Some?.v px) == 2 /\ fst (Some?.v px) == Seq.create 1 1uy
+)
+= let s = (Seq.create 50 1uy) in
+  // parser_kind_prop_equiv (get_parser_kind parse_test) parse_test;
+  parse_tagged_union_eq
+  (* pt *) (parse_u8)
+  (* tg *) (tag_of_data)
+  (* p  *) (parse_data_weak)
+  (* in *) (Seq.create 50 1uy);
+  // parse_u8_spec s;
+  parser_kind_prop_equiv parse_u8_kind parse_u8;
+  let Some (tag, 1) = parse parse_u8 s in
+  parse_u8_spec' s;
+  assert (tag == 1uy);
+  let s' = Seq.slice s 1 (Seq.length s) in
+  assert (Seq.index s' 0 == 1uy);
+  assert (Seq.length s' == 49);
+  Seq.lemma_split s 1;
+  Seq.lemma_index_slice s 1 (Seq.length s) 0;
+  assert (Seq.index s' 0 == 1uy);
+  // Seq.lemma_eq_intro s' (Seq.create 49 1uy);
+  assert (s' `Seq.equal` Seq.create 49 1uy);
+  parser_kind_prop_equiv (parse_data_kind tag) (parse_data_weak tag);
+  parse_synth_eq
+  (* p1 *) (parse_seq_flbytes (v tag))
+  (* f2 *) (synth_data tag)
+  (* in *) (s');
+  parser_kind_prop_equiv (get_parser_kind (parse_seq_flbytes (v tag))) (parse_seq_flbytes (v tag));
+  let pdata = parse (parse_data tag) s' in
+  assert (Some? pdata);
+  assert (snd (Some?.v pdata) == 1);
+  assert (fst (Some?.v pdata) `Seq.equal` Seq.create 1 1uy);
+()
+
+let test2 (): Lemma (
+  let px = parse (parse_fldata_strong (serialize_test) 2) (Seq.create 50 1uy) in
+  Some? px
+)
+= let s = (Seq.create 50 1uy) in
+  // parser_kind_prop_equiv (get_parser_kind parse_test) parse_test;
+  parse_tagged_union_eq
+  (* pt *) (parse_u8)
+  (* tg *) (tag_of_data)
+  (* p  *) (parse_data_weak)
+  (* in *) (Seq.create 50 1uy);
+  // parse_u8_spec s;
+  parser_kind_prop_equiv parse_u8_kind parse_u8;
+  let Some (tag, 1) = parse parse_u8 s in
+  parse_u8_spec' s;
+  assert (tag == 1uy);
+  let s' = Seq.slice s 1 (Seq.length s) in
+  assert (Seq.index s' 0 == 1uy);
+  assert (Seq.length s' == 49);
+  Seq.lemma_split s 1;
+  Seq.lemma_index_slice s 1 (Seq.length s) 0;
+  assert (Seq.index s' 0 == 1uy);
+  // Seq.lemma_eq_intro s' (Seq.create 49 1uy);
+  assert (s' `Seq.equal` Seq.create 49 1uy);
+  parser_kind_prop_equiv (parse_data_kind tag) (parse_data_weak tag);
+  parse_synth_eq
+  (* p1 *) (parse_seq_flbytes (v tag))
+  (* f2 *) (synth_data tag)
+  (* in *) (s');
+  parser_kind_prop_equiv (get_parser_kind (parse_seq_flbytes (v tag))) (parse_seq_flbytes (v tag));
+  let pdata = parse (parse_data tag) s' in
+  assert (Some? pdata);
+  assert (snd (Some?.v pdata) == 1);
+  assert (fst (Some?.v pdata) `Seq.equal` Seq.create 1 1uy);
+  let px_ = parse parse_test s in
+  assert (px_ == Some (Seq.create 1 1uy, 2));
+  let s02 = Seq.slice s 0 2 in
+  Seq.lemma_eq_intro s02 (Seq.create 2 1uy);
+  assert (s02 == Seq.create 2 1uy);
+  let px__ = parse parse_test s02 in
+  parse_tagged_union_eq
+  (* pt *) (parse_u8)
+  (* tg *) (tag_of_data)
+  (* p  *) (parse_data_weak)
+  (* in *) (s02);
+  parse_u8_spec' s02;
+  assert (Some? px__);
+()
+
+let elim_lem
+  (#p: parser 'k 't)
+  (s: serializer p)
+  (input: bytes)
+: Lemma (
+  Some? (parse p input) ==> (
+    Some? (parse p (Seq.slice input 0 (snd (Some?.v (parse p input)))))
+  )
+)
+= let px = parse p input in
+  if Some? px then
+  ( let Some (v, l) = px in
+    let input' = Seq.slice input 0 l in
+    let px' = parse p input' in
+    serializer_correct_implies_complete p s;
+    assert (Some? px'))
+  else
+  ( () )
+
+let test2' (): Lemma (
+  let px = parse (parse_fldata (parse_test) 2) (Seq.create 50 1uy) in
+  Some? px
+)
+= let s = (Seq.create 50 1uy) in
+  assert (Seq.length s >= 2);
+  let s02 = Seq.slice s 0 2 in
+  Seq.lemma_eq_intro s02 (Seq.create 2 1uy);
+  assert (s02 == Seq.create 2 1uy);
+  let parse parse_test s02
+
+(* QED *) ()
+
+let parse_test_2 = parse_test `nondep_then` parse_test
+
+let test2 (): Lemma (
+  let px = parse (parse_fldata (parse_test) 2) (Seq.create 50 1uy) in
+  Some? px
+)
 
 let parse_data_weak_length_prop
   (n: uint_8)

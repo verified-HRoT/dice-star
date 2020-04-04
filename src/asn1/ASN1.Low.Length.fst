@@ -73,22 +73,22 @@ let serialize32_asn1_length_backwards ()
              (* mem'*) h1;
 (* return *) offset
 
-let serialize32_asn1_length_of_tag
+let serialize32_asn1_length_of_type
   (_a: asn1_type)
-: Tot (serializer32 (serialize_asn1_length_of_tag _a))
-= let min, max = min_of_asn1_type _a, max_of_asn1_type _a in
+: Tot (serializer32 (serialize_asn1_length_of_type _a))
+= let min, max = asn1_length_min_of_type _a, asn1_length_max_of_type _a in
   LDER.serialize32_bounded_der_length32 min max
 
-let serialize32_asn1_length_of_tag_backwards
+let serialize32_asn1_length_of_type_backwards
   (_a: asn1_type)
-: Tot (serializer32_backwards (serialize_asn1_length_of_tag _a))
-= fun (len: asn1_int32_of_tag _a)
+: Tot (serializer32_backwards (serialize_asn1_length_of_type _a))
+= fun (len: asn1_int32_of_type _a)
     (#rrel #rel: _)
     (b: B.mbuffer byte_t rrel rel)
     (pos: size_t)
 -> let offset = offset_of_asn1_length_impl len in
    (* Prf *) let h0 = HST.get () in
-   let offset = serialize32_asn1_length_of_tag _a len b (pos - offset) in
+   let offset = serialize32_asn1_length_of_type _a len b (pos - offset) in
    (* Prf *) let h1 = HST.get () in
    (* Prf *) B.modifies_buffer_from_to_elim
              (* buf *) b
