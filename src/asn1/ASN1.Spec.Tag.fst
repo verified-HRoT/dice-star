@@ -61,11 +61,21 @@ let parse_asn1_tag_unfold
   parse parse_asn1_tag input ==
  (match parse parse_u8 input with
   | Some (x, consumed) -> if filter_asn1_tag x then
-                          ( Some (synth_asn1_tag x, consumed) )
-                          else
-                          ( None )
-  | None -> None))
-= parser_kind_prop_equiv parse_asn1_tag_kind parse_asn1_tag;
+                   ( Some (synth_asn1_tag x, consumed) )
+                   else
+                   ( None )
+  | None -> None) /\
+ (Some? (parse parse_asn1_tag input) ==>
+   Seq.length input > 0 /\
+   Some? (parse parse_u8 input) /\
+   parse parse_u8 input == Some (input.[0], 1)))
+= parser_kind_prop_equiv parse_u8_kind parse_u8;
+  parser_kind_prop_equiv parse_asn1_tag_kind parse_asn1_tag;
+ (match parse parse_u8 input with
+ | Some (x, 1) -> ( parse_u8_spec' input
+                  ; parse_u8_spec  input
+                  ; assert (x == input.[0]) )
+ | None -> ());
   parse_filter_eq
   (* p  *) (parse_u8)
   (* f  *) (filter_asn1_tag)
@@ -93,10 +103,15 @@ let serialize_asn1_tag
 let serialize_asn1_tag_unfold
   (a: asn1_type)
 : Lemma (
+  serialize serialize_u8 (synth_asn1_tag_inverse a)
+  `Seq.equal`
+  Seq.create 1 (synth_asn1_tag_inverse a) /\
   serialize serialize_asn1_tag a
   `Seq.equal`
   serialize serialize_u8 (synth_asn1_tag_inverse a))
-= serialize_synth_eq
+= serialize_u8_spec  (synth_asn1_tag_inverse a);
+  serialize_u8_spec' (synth_asn1_tag_inverse a);
+  serialize_synth_eq
   (* p1 *) (parse_u8
             `parse_filter`
             filter_asn1_tag)
@@ -158,8 +173,18 @@ let parse_the_asn1_tag_unfold
                           ( Some (synth_the_asn1_tag a x, consumed) )
                           else
                           ( None )
-  | None -> None))
-= parser_kind_prop_equiv parse_asn1_tag_kind (parse_the_asn1_tag a);
+  | None -> None) /\
+ (Some? (parse (parse_the_asn1_tag a) input) ==>
+   Seq.length input > 0 /\
+   Some? (parse parse_u8 input) /\
+   parse parse_u8 input == Some (input.[0], 1)))
+= parser_kind_prop_equiv parse_u8_kind parse_u8;
+  parser_kind_prop_equiv parse_asn1_tag_kind (parse_the_asn1_tag a);
+ (match parse parse_u8 input with
+ | Some (x, 1) -> ( parse_u8_spec' input
+                  ; parse_u8_spec  input
+                  ; assert (x == input.[0]) )
+ | None -> ());
   parse_filter_eq
   (* p  *) (parse_u8)
   (* f  *) (filter_the_asn1_tag a)
@@ -189,10 +214,15 @@ let serialize_the_asn1_tag_unfold
   (a: asn1_type)
   (a': the_asn1_type a)
 : Lemma (
+  serialize serialize_u8 (synth_the_asn1_tag_inverse a a')
+  `Seq.equal`
+  Seq.create 1 (synth_the_asn1_tag_inverse a a') /\
   serialize (serialize_the_asn1_tag a) a'
   `Seq.equal`
   serialize serialize_u8 (synth_the_asn1_tag_inverse a a'))
-= serialize_synth_eq
+= serialize_u8_spec  (synth_the_asn1_tag_inverse a a');
+  serialize_u8_spec' (synth_the_asn1_tag_inverse a a');
+  serialize_synth_eq
   (* p1 *) (parse_u8
             `parse_filter`
             filter_the_asn1_tag a)

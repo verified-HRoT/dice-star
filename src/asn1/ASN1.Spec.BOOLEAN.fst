@@ -43,8 +43,15 @@ let parse_asn1_boolean_unfold
                           ( Some (synth_asn1_boolean x, consumed) )
                           else
                           ( None )
-  | None -> None))
+  | None -> None) /\
+ (Some? (parse parse_asn1_boolean input) ==>
+   Seq.length input > 0 /\
+   parse parse_u8 input == Some (input.[0], 1)))
 = parser_kind_prop_equiv parse_asn1_boolean_kind parse_asn1_boolean;
+  parser_kind_prop_equiv parse_u8_kind parse_u8;
+  if Seq.length input > 0 then
+  ( parse_u8_spec  input
+  ; parse_u8_spec' input );
   parse_filter_eq
   (* p  *) (parse_u8)
   (* f  *) (filter_asn1_boolean)
@@ -72,10 +79,15 @@ let serialize_asn1_boolean
 let serialize_asn1_boolean_unfold
   (b: datatype_of_asn1_type BOOLEAN)
 : Lemma (
+  serialize serialize_u8 (synth_asn1_boolean_inverse b)
+  `Seq.equal`
+  Seq.create 1 (synth_asn1_boolean_inverse b) /\
   serialize serialize_asn1_boolean b
   `Seq.equal`
   serialize serialize_u8 (synth_asn1_boolean_inverse b))
-= serialize_synth_eq
+= serialize_u8_spec  (synth_asn1_boolean_inverse b);
+  serialize_u8_spec' (synth_asn1_boolean_inverse b);
+  serialize_synth_eq
   (* p1 *) (parse_u8
             `parse_filter`
             filter_asn1_boolean)
@@ -113,24 +125,30 @@ let synth_asn1_boolean_TLV_inverse
 //   `parse_synth`
 //   synth_asn1_boolean_TLV
 
-#push-options "--query_stats"
+#push-options "--query_stats --z3rlimit 16"
 let parse_asn1_boolean_TLV_unfold
   (input_TLV: bytes)
 : Lemma (
   parse parse_asn1_boolean_TLV input_TLV ==
- (match parse (parse_the_asn1_tag BOOLEAN) input_TLV with
+ (parser_kind_prop_equiv parse_asn1_tag_kind (parse_the_asn1_tag BOOLEAN);
+  match parse (parse_the_asn1_tag BOOLEAN) input_TLV with
   | None -> None
-  | Some (BOOLEAN, consumed_T) ->
-    (let input_LV = Seq.slice input_TLV consumed_T (Seq.length input_TLV) in
+  | Some (BOOLEAN, 1) ->
+    (parser_kind_prop_equiv (parse_asn1_length_kind_of_type BOOLEAN) (parse_asn1_length_of_type BOOLEAN);
+     let input_LV = Seq.slice input_TLV 1 (Seq.length input_TLV) in
      match parse (parse_asn1_length_of_type BOOLEAN) input_LV with
      | None -> None
-     | Some (1ul, consumed_L) ->
-       (let input_V = Seq.slice input_LV consumed_L (Seq.length input_LV) in
+     | Some (1ul, 1) ->
+       (parser_kind_prop_equiv parse_asn1_boolean_kind parse_asn1_boolean;
+        let input_V = Seq.slice input_LV 1 (Seq.length input_LV) in
         match parse parse_asn1_boolean input_V with
         | None -> None
-        | Some (value, consumed_V) -> Some (value, (consumed_T + consumed_L + consumed_V <: consumed_length input_TLV)))))
+        | Some (value, 1) -> Some (value, (1 + 1 + 1 <: consumed_length input_TLV)))))
 )
-= nondep_then_eq
+= parser_kind_prop_equiv parse_asn1_tag_kind (parse_the_asn1_tag BOOLEAN);
+  parser_kind_prop_equiv (parse_asn1_length_kind_of_type BOOLEAN) (parse_asn1_length_of_type BOOLEAN);
+  parser_kind_prop_equiv parse_asn1_boolean_kind parse_asn1_boolean;
+  nondep_then_eq
   (* p1 *) (parse_the_asn1_tag BOOLEAN)
   (* p2 *) (parse_asn1_length_of_type BOOLEAN)
   (* in *) (input_TLV);

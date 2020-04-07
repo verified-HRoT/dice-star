@@ -40,14 +40,17 @@ val parse_asn1_tag
 val parse_asn1_tag_unfold
   (input: bytes)
 : Lemma (
-  parser_kind_prop parse_asn1_tag_kind parse_asn1_tag /\
   parse parse_asn1_tag input ==
  (match parse parse_u8 input with
   | Some (x, consumed) -> if filter_asn1_tag x then
-                          ( Some (synth_asn1_tag x, consumed) )
-                          else
-                          ( None )
-  | None -> None))
+                   ( Some (synth_asn1_tag x, consumed) )
+                   else
+                   ( None )
+  | None -> None) /\
+ (Some? (parse parse_asn1_tag input) ==>
+   Seq.length input > 0 /\
+   Some? (parse parse_u8 input) /\
+   parse parse_u8 input == Some (input.[0], 1)))
 
 val serialize_asn1_tag
 : serializer parse_asn1_tag
@@ -55,6 +58,9 @@ val serialize_asn1_tag
 val serialize_asn1_tag_unfold
   (a: asn1_type)
 : Lemma (
+  serialize serialize_u8 (synth_asn1_tag_inverse a)
+  `Seq.equal`
+  Seq.create 1 (synth_asn1_tag_inverse a) /\
   serialize serialize_asn1_tag a
   `Seq.equal`
   serialize serialize_u8 (synth_asn1_tag_inverse a))
@@ -96,7 +102,11 @@ val parse_the_asn1_tag_unfold
                           ( Some (synth_the_asn1_tag a x, consumed) )
                           else
                           ( None )
-  | None -> None))
+  | None -> None) /\
+ (Some? (parse (parse_the_asn1_tag a) input) ==>
+   Seq.length input > 0 /\
+   Some? (parse parse_u8 input) /\
+   parse parse_u8 input == Some (input.[0], 1)))
 
 val serialize_the_asn1_tag
   (a: asn1_type)
@@ -106,6 +116,9 @@ val serialize_the_asn1_tag_unfold
   (a: asn1_type)
   (a': the_asn1_type a)
 : Lemma (
+  serialize serialize_u8 (synth_the_asn1_tag_inverse a a')
+  `Seq.equal`
+  Seq.create 1 (synth_the_asn1_tag_inverse a a') /\
   serialize (serialize_the_asn1_tag a) a'
   `Seq.equal`
   serialize serialize_u8 (synth_the_asn1_tag_inverse a a'))

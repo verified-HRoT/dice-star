@@ -141,13 +141,6 @@ let synth_inner_t_inverse
 : GTot (x': inner_t'{x == synth_inner_t x'})
 = (x.n1, x.s1)
 
-let len_of_inner_t
-  (x: inner_t)
-: Tot (option (asn1_int32_of_type SEQUENCE))
-= let len_n1 = len_of_asn1_primitive_TLV x.n1 in
-  let len_s1 = len_of_asn1_primitive_TLV x.s1 in
-  len_n1 `safe_add` len_s1
-
 let parse_inner_value
 : parser _ inner_t
 = parse_asn1_TLV_of_type NULL
@@ -155,6 +148,30 @@ let parse_inner_value
   parse_asn1_TLV_of_type OCTET_STRING
   `parse_synth`
   synth_inner_t
+
+let parse_inner_value_unfold
+  (input: bytes)
+: Lemma (
+  parse parse_inner_value input ==
+ (match parse (parse_asn1_TLV_of_type NULL) input with
+  | None -> None
+  | Some (v_null, consumed_null) ->
+      (let input' = Seq.slice input consumed_null (Seq.length input) in
+       match parse (parse_asn1_TLV_of_type OCTET_STRING) input' with
+       | None -> None
+       | Some (v_octet_string, consumed_octet_string) ->
+           (Some ( synth_inner_t (v_null, v_octet_string)
+                 , (consumed_null + consumed_octet_string <: consumed_length input))))))
+= nondep_then_eq
+  (* p1 *) (parse_asn1_TLV_of_type NULL)
+  (* p2 *) (parse_asn1_TLV_of_type OCTET_STRING)
+  (* in *) (input);
+  parse_synth_eq
+  (* p1 *) (parse_asn1_TLV_of_type NULL
+            `nondep_then`
+            parse_asn1_TLV_of_type OCTET_STRING)
+  (* f2 *) (synth_inner_t)
+  (* in *) (input)
 
 let serialize_inner_value
 : serializer parse_inner_value
@@ -169,14 +186,57 @@ let serialize_inner_value
   (* g1 *) (synth_inner_t_inverse)
   (* Prf*) ()
 
+let serialize_inner_value_unfold
+  (value: inner_t)
+: Lemma (
+  serialize serialize_inner_value value ==
+  serialize (serialize_asn1_TLV_of_type NULL) value.n1
+  `Seq.append`
+  serialize (serialize_asn1_TLV_of_type OCTET_STRING) value.s1)
+= serialize_nondep_then_eq
+  (* s1 *) (serialize_asn1_TLV_of_type NULL)
+  (* s2 *) (serialize_asn1_TLV_of_type OCTET_STRING)
+  (* val*) (synth_inner_t_inverse value);
+  serialize_synth_eq
+  (* p1 *) (parse_asn1_TLV_of_type NULL
+            `nondep_then`
+            parse_asn1_TLV_of_type OCTET_STRING)
+  (* f2 *) (synth_inner_t)
+  (* s1 *) (serialize_asn1_TLV_of_type NULL
+            `serialize_nondep_then`
+            serialize_asn1_TLV_of_type OCTET_STRING)
+  (* g1 *) (synth_inner_t_inverse)
+  (* prf*) ()
+  (* val*) (value)
+
 let parse_inner_sequence
 = parse_asn1_sequence_TLV serialize_inner_value
 
 let parse_inner_sequence_unfold
 = parse_asn1_sequence_TLV_unfold serialize_inner_value
 
+let serialize_inner_sequence
+: serializer parse_inner_sequence
+= serialize_asn1_sequence_TLV serialize_inner_value
+
+let serialze_inner_sequence_unfold
+= serialize_asn1_sequence_TLV_unfold serialize_inner_value
+
+
+#push-options "--query_stats --z3rlimit 4"
+let len_of_inner_t
+  (x: inner_t)
+: Tot (len: option (asn1_int32_of_type SEQUENCE) {
+  Some? len ==> v (Some?.v len) == Seq.length (serialize serialize_inner_value x)
+})
+= let len_n1 = len_of_asn1_primitive_TLV x.n1 in
+  let len_s1 = len_of_asn1_primitive_TLV x.s1 in
+  serialize_inner_value_unfold x;
+  len_n1 `safe_add` len_s1
+#pop-options
+
 #restart-solver
-#push-options "--query_stats --z3rlimit 32"
+#push-options "--query_stats --z3rlimit 64"
 let parse_inner_sequence_test
   ()
 =
@@ -184,14 +244,16 @@ let parse_inner_sequence_test
     n1 = ();
     s1 = (|3ul, Seq.create 3 9uy|)
   } in
+  assert (Some? (len_of_inner_t x));
+  assert (asn1_length_inbound_of_type SEQUENCE (Seq.length (serialize serialize_inner_value x)));
   let raw_seq =
-    serialize (serialize_the_asn1_tag SEQUENCE) SEQUENCE
+    (((serialize (serialize_the_asn1_tag SEQUENCE) SEQUENCE
     `Seq.append`
-    serialize (serialize_asn1_length_of_type SEQUENCE) (Some?.v (len_of_inner_t x))
-    // `Seq.append`
-    // serialize_asn1_null_TLV x.n1
-    // `Seq.append`
-    // serialize_asn1_octet_string_TLV x.s1
+    serialize (serialize_asn1_length_of_type SEQUENCE) (Some?.v (len_of_inner_t x)))
+    `Seq.append`
+    serialize_asn1_null_TLV x.n1)
+    `Seq.append`
+    serialize_asn1_octet_string_TLV x.s1)
   in
   serialize_the_asn1_tag_unfold SEQUENCE SEQUENCE;
   serialize_u8_spec (synth_the_asn1_tag_inverse SEQUENCE SEQUENCE);
@@ -211,8 +273,15 @@ let parse_inner_sequence_test
   assert (Some? px_raw);
   parse_u8_spec' raw_seq;
 
+  parse_asn1_sequence_TL_unfold raw_seq;
+  serialize_asn1_sequence_TL_unfold (SEQUENCE, Some?.v (len_of_inner_t x));
+  serialize_asn1_sequence_TLV_unfold serialize_inner_value x;
+  parse_asn1_sequence_TLV_unfold serialize_inner_value raw_seq;
   let px_t  = parse (parse_the_asn1_tag SEQUENCE) raw_seq in
   assert (Some? px_t);
+
+  parse_inner_value_unfold raw_seq;
+  serialize_inner_value_unfold x;
 
   let px_tl = parse parse_asn1_sequence_TL raw_seq in
   // let pseq = parse (parse_inner_sequence) raw_seq in
