@@ -162,7 +162,7 @@ let test2 (): Lemma (
   parse_u8_spec' s02;
   assert (Some? px__);
 ()
-
+(*)
 let elim_lem
   (#p: parser 'k 't)
   (s: serializer p)

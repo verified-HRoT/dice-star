@@ -44,13 +44,13 @@ let len_of_asn1_length
 /// Specialized
 ///
 
-let filter_asn1_length_of_type
-  (_a: asn1_type)
-  (len: asn1_int32)
-: GTot bool
-= let l = v len in
-  let min, max = asn1_length_min_of_type _a, asn1_length_max_of_type _a in
-  asn1_length_inbound l min max
+// let filter_asn1_length_of_type
+//   (_a: asn1_type)
+//   (len: asn1_int32)
+// : GTot bool
+// = let l = v len in
+//   let min, max = asn1_length_min_of_type _a, asn1_length_max_of_type _a in
+//   asn1_length_inbound l min max
 
 let parse_asn1_length_kind_of_type
   (_a: asn1_type)
@@ -68,6 +68,12 @@ let parse_asn1_length_of_type
   // `parse_filter`
   // filter_asn1_length_of_type _a
 
+let parse_asn1_length_of_type_unfold
+  (_a: asn1_type)
+  (input: bytes)
+= let min, max = asn1_length_min_of_type _a, asn1_length_max_of_type _a in
+  parse_bounded_der_length32_unfold min max input
+
 let serialize_asn1_length_of_type
   (_a: asn1_type)
 : serializer (parse_asn1_length_of_type _a)
@@ -76,3 +82,9 @@ let serialize_asn1_length_of_type
 // = serialize_asn1_length
 //   `serialize_filter`
 //   filter_asn1_length_of_type _a
+
+let serialize_asn1_length_of_type_unfold
+  (_a: asn1_type)
+  (len: asn1_int32_of_type _a)
+= let min, max = asn1_length_min_of_type _a, asn1_length_max_of_type _a in
+  serialize_bounded_der_length32_unfold min max len

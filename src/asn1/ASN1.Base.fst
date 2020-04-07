@@ -125,7 +125,7 @@ let asn1_octet_string = value: asn1_value{OCTET_STRING_VALUE? value}
 let len_of_asn1_data
   (_a: asn1_primitive_type)
   (x: datatype_of_asn1_type _a)
-: asn1_int32
+: Tot (asn1_int32_of_type _a)
 = match _a with
   | BOOLEAN      -> 1ul
   | NULL         -> 0ul

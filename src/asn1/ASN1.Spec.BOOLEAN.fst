@@ -113,6 +113,7 @@ let synth_asn1_boolean_TLV_inverse
 //   `parse_synth`
 //   synth_asn1_boolean_TLV
 
+#push-options "--query_stats"
 let parse_asn1_boolean_TLV_unfold
   (input_TLV: bytes)
 : Lemma (
@@ -127,7 +128,7 @@ let parse_asn1_boolean_TLV_unfold
        (let input_V = Seq.slice input_LV consumed_L (Seq.length input_LV) in
         match parse parse_asn1_boolean input_V with
         | None -> None
-        | Some (value, consumed_V) -> Some (value, consumed_T + consumed_L + consumed_V))))
+        | Some (value, consumed_V) -> Some (value, (consumed_T + consumed_L + consumed_V <: consumed_length input_TLV)))))
 )
 = nondep_then_eq
   (* p1 *) (parse_the_asn1_tag BOOLEAN)
