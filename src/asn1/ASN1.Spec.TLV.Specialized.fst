@@ -67,46 +67,73 @@ let safe_add
   ( None )
 #pop-options
 
-private
-let serialize_asn1_value_of_type
+// private
+// let serialize_asn1_value_of_type
+//   (#_a: asn1_primitive_type)
+//   (value: datatype_of_asn1_type _a)
+// : GTot (s: bytes)
+// = match _a with
+//   | BOOLEAN      -> serialize serialize_asn1_boolean value
+//   | NULL         -> serialize serialize_asn1_null value
+//   | OCTET_STRING -> let (|len, s|) = value <: datatype_of_asn1_type OCTET_STRING in
+//                     let l = v len in
+//                     serialize_asn1_octet_string_unfold l value;
+//                     serialize (serialize_asn1_octet_string l) value
+
+/// Length Spec of ASN.1 [VALUE] of primitive types
+///
+let length_of_asn1_primitive_value
   (#_a: asn1_primitive_type)
   (value: datatype_of_asn1_type _a)
+: GTot (length: asn1_length_t)
+= Seq.length (
+    match _a with
+    | BOOLEAN      -> serialize serialize_asn1_boolean value
+    | NULL         -> serialize serialize_asn1_null value
+    | OCTET_STRING -> serialize (serialize_asn1_octet_string (v (dfst (value <: datatype_of_asn1_type OCTET_STRING)))) value)
+
+/// Length Spec of ASN.1 Primitive [TAG, LEN, VALUE] of primitive types
+///
+let length_of_asn1_primitive_TLV
+  (#_a: asn1_primitive_type)
+  (value: datatype_of_asn1_type _a)
+: GTot (length: nat)
+= Seq.length (serialize (serialize_asn1_TLV_of_type _a) value)
+
+/// Len Impl of ASN.1 [VALUE] of primitive types
+///
+let len_of_asn1_primitive_value
+  (#_a: asn1_primitive_type)
+  (value: datatype_of_asn1_type _a)
+: Tot (len: asn1_int32_of_type _a { v len == length_of_asn1_primitive_value value })
 = match _a with
-  | BOOLEAN      -> serialize serialize_asn1_boolean value
-  | NULL         -> serialize serialize_asn1_null value
+  | BOOLEAN      -> 1ul
+  | NULL         -> 0ul
   | OCTET_STRING -> let (|len, s|) = value <: datatype_of_asn1_type OCTET_STRING in
                     let l = v len in
-                    serialize_asn1_octet_string_unfold l value;
-                    serialize (serialize_asn1_octet_string l) value
+                    (* Prf *) serialize_asn1_octet_string_unfold l value;
+                    dfst (value <: datatype_of_asn1_type OCTET_STRING)
 
-let length_of_asn1_primitive_value_spec
-  (#_a: asn1_primitive_type)
-  (value: datatype_of_asn1_type _a)
-: GTot (length: asn1_length_t {
-       length == Seq.length (serialize_asn1_value_of_type value) /\
-       length == v (len_of_asn1_data _a value)
-  })
-= match _a with
-  | OCTET_STRING   -> let (|len, s|) = value <: datatype_of_asn1_type OCTET_STRING in
-                      let l = v len in
-                      serialize_asn1_octet_string_unfold l value;
-                      Seq.length (serialize_asn1_value_of_type value)
-  | NULL | BOOLEAN -> Seq.length (serialize_asn1_value_of_type value)
+
 
 #push-options "--query_stats --z3rlimit 32"
-let len_of_asn1_primitive_TLV
+
+/// Length Spec of ASN.1 Primitive [TAG, LEN, VALUE] of primitive types
+///
+let len_of_asn1_primitive_TLV_unbounded
   (#_a: asn1_primitive_type)
   (value: datatype_of_asn1_type _a)
 : Tot (len: option asn1_int32 {
          Some? len ==>
-           (v (Some?.v len) == Seq.length (serialize (serialize_asn1_TLV_of_type _a) value))
+           (v (Some?.v len) == length_of_asn1_primitive_TLV value)
   })
 = (* Prf *) (match _a with
-             | BOOLEAN      -> (serialize_asn1_boolean_TLV_unfold (value <: datatype_of_asn1_type BOOLEAN))
-             | NULL         -> (serialize_asn1_null_TLV_unfold (value <: datatype_of_asn1_type NULL))
+             | BOOLEAN      -> (serialize_asn1_boolean_TLV_unfold      (value <: datatype_of_asn1_type BOOLEAN))
+             | NULL         -> (serialize_asn1_null_TLV_unfold         (value <: datatype_of_asn1_type NULL))
              | OCTET_STRING -> (serialize_asn1_octet_string_TLV_unfold (value <: datatype_of_asn1_type OCTET_STRING)));
-  let value_len = len_of_asn1_data _a value in
-  (* Prf *) assert (v value_len == length_of_asn1_primitive_value_spec value);
+
+  let value_len = len_of_asn1_primitive_value value in
+  (* Prf *) assert (v value_len == length_of_asn1_primitive_value value);
 
   let len_len = len_of_asn1_length value_len in
 
@@ -115,8 +142,31 @@ let len_of_asn1_primitive_TLV
   (* Prf *) assert (v tag_len + v len_len + v value_len == Seq.length (serialize (serialize_asn1_TLV_of_type _a) value));
 
 (* return *) Some tag_len `safe_add` Some len_len `safe_add` Some value_len
-#pop-options
 
+
+
+let len_of_asn1_primitive_TLV_inbound
+  (#_a: asn1_primitive_type)
+  (value: datatype_of_asn1_type _a {
+    asn1_length_inbound (length_of_asn1_primitive_TLV value) asn1_length_min asn1_length_max
+  })
+: Tot (len: asn1_int32 { v len == length_of_asn1_primitive_TLV value })
+= (* Prf *) (match _a with
+             | BOOLEAN      -> (serialize_asn1_boolean_TLV_unfold (value <: datatype_of_asn1_type BOOLEAN))
+             | NULL         -> (serialize_asn1_null_TLV_unfold (value <: datatype_of_asn1_type NULL))
+             | OCTET_STRING -> (serialize_asn1_octet_string_TLV_unfold (value <: datatype_of_asn1_type OCTET_STRING)));
+
+  let value_len = len_of_asn1_primitive_value value in
+  (* Prf *) assert (v value_len == length_of_asn1_primitive_value value);
+
+  let len_len = len_of_asn1_length value_len in
+
+  let tag_len = 1ul in
+
+  (* Prf *) assert (v tag_len + v len_len + v value_len == Seq.length (serialize (serialize_asn1_TLV_of_type _a) value));
+
+(* return *) tag_len + len_len + value_len
+#pop-options
 
 /// Example
 ///
@@ -229,14 +279,14 @@ let len_of_inner_t
 : Tot (len: option (asn1_int32_of_type SEQUENCE) {
   Some? len ==> v (Some?.v len) == Seq.length (serialize serialize_inner_value x)
 })
-= let len_n1 = len_of_asn1_primitive_TLV x.n1 in
-  let len_s1 = len_of_asn1_primitive_TLV x.s1 in
+= let len_n1 = len_of_asn1_primitive_TLV_unbounded x.n1 in
+  let len_s1 = len_of_asn1_primitive_TLV_unbounded x.s1 in
   serialize_inner_value_unfold x;
   len_n1 `safe_add` len_s1
 #pop-options
-
+(*)
 #restart-solver
-#push-options "--query_stats --z3rlimit 64"
+#push-options "--query_stats --z3rlimit 16"
 let parse_inner_sequence_test
   ()
 =
@@ -255,6 +305,9 @@ let parse_inner_sequence_test
     `Seq.append`
     serialize_asn1_octet_string_TLV x.s1)
   in
+  let px = parse parse_inner_sequence raw_seq in
+  and_then_eq
+()
   serialize_the_asn1_tag_unfold SEQUENCE SEQUENCE;
   serialize_u8_spec (synth_the_asn1_tag_inverse SEQUENCE SEQUENCE);
   serialize_u8_spec' (synth_the_asn1_tag_inverse SEQUENCE SEQUENCE);
@@ -283,9 +336,9 @@ let parse_inner_sequence_test
   parse_inner_value_unfold raw_seq;
   serialize_inner_value_unfold x;
 
-  let px_tl = parse parse_asn1_sequence_TL raw_seq in
-  // let pseq = parse (parse_inner_sequence) raw_seq in
-  assert (Some? px_tl);
+  // let px_tl = parse parse_asn1_sequence_TL raw_seq in
+  // // let pseq = parse (parse_inner_sequence) raw_seq in
+  // assert (Some? px_tl);
 
 ()
 

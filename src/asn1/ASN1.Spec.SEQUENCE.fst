@@ -231,6 +231,7 @@ let serialize_asn1_sequence_TLV
   (* tg *) (parser_tag_of_asn1_sequence s)
   (* s  *) (serialize_asn1_sequence_value_weak s)
 
+#push-options "--query_stats"
 let serialize_asn1_sequence_TLV_unfold
   (#k: parser_kind)
   (#t: Type0)
@@ -242,8 +243,16 @@ let serialize_asn1_sequence_TLV_unfold
   serialize serialize_asn1_sequence_TL (parser_tag_of_asn1_sequence s value)
   `Seq.append`
   serialize (serialize_asn1_sequence_value s (parser_tag_of_asn1_sequence s value)) value
+  /\
+  serialize (serialize_asn1_sequence_TLV s) value ==
+  serialize (serialize_the_asn1_tag SEQUENCE) SEQUENCE
+  `Seq.append`
+  serialize (serialize_asn1_length_of_type SEQUENCE) (u (Seq.length (serialize (serialize_asn1_sequence_value s (parser_tag_of_asn1_sequence s value)) value)))
+  `Seq.append`
+  serialize (serialize_asn1_sequence_value s (parser_tag_of_asn1_sequence s value)) value
 )
-= serialize_tagged_union_eq
+= serialize_asn1_sequence_TL_unfold (parser_tag_of_asn1_sequence s value);
+  serialize_tagged_union_eq
   (* st *) (serialize_asn1_sequence_TL)
   (* tg *) (parser_tag_of_asn1_sequence s)
   (* s  *) (serialize_asn1_sequence_value_weak s)

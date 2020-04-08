@@ -67,7 +67,6 @@ let serialize32_asn1_sequence_TLV_backwards
   (* tag *) (parser_tag_of_asn1_sequence_impl s len_of_data)
   (* s32 *) (fun (tag: the_asn1_type SEQUENCE & asn1_int32_of_type SEQUENCE)
              -> let SEQUENCE, len = tag in
-                // let l = v len in
                 (weak_kind_of_type SEQUENCE
                  `serialize32_weaken_backwards`
                 (serialize32_synth_backwards

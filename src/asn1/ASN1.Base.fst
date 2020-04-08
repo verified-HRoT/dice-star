@@ -122,19 +122,19 @@ let asn1_boolean = value: asn1_value{BOOLEAN_VALUE? value}
 let asn1_null = value: asn1_value{NULL_VALUE? value}
 let asn1_octet_string = value: asn1_value{OCTET_STRING_VALUE? value}
 
-let len_of_asn1_data
-  (_a: asn1_primitive_type)
-  (x: datatype_of_asn1_type _a)
-: Tot (asn1_int32_of_type _a)
-= match _a with
-  | BOOLEAN      -> 1ul
-  | NULL         -> 0ul
-  | OCTET_STRING -> dfst (x <: datatype_of_asn1_type OCTET_STRING)
+// let len_of_asn1_data
+//   (_a: asn1_primitive_type)
+//   (x: datatype_of_asn1_type _a)
+// : Tot (asn1_int32_of_type _a)
+// = match _a with
+//   | BOOLEAN      -> 1ul
+//   | NULL         -> 0ul
+//   | OCTET_STRING -> dfst (x <: datatype_of_asn1_type OCTET_STRING)
 
-let len_of_asn1_value
-  (value: asn1_value)
-: asn1_int32
-= match value with
-  | BOOLEAN_VALUE          b -> 1ul
-  | NULL_VALUE             n -> 0ul
-  | OCTET_STRING_VALUE len s -> len
+// let len_of_asn1_value
+//   (value: asn1_value)
+// : asn1_int32
+// = match value with
+//   | BOOLEAN_VALUE          b -> 1ul
+//   | NULL_VALUE             n -> 0ul
+//   | OCTET_STRING_VALUE len s -> len

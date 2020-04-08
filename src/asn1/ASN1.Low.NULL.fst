@@ -28,7 +28,7 @@ open ASN1.Low.Length
 let synth_asn1_null_TLV_inverse_impl
   (x: datatype_of_asn1_type NULL)
 : Tot (a: ((the_asn1_type NULL & asn1_int32_of_type NULL) & datatype_of_asn1_type NULL){a == synth_asn1_null_TLV_inverse x})
-= ((NULL, len_of_asn1_data NULL x), x)
+= ((NULL, 0ul), x)
 
 let serialize32_asn1_null_TLV_backwards ()
 : Tot (serializer32_backwards serialize_asn1_null_TLV)

@@ -29,18 +29,19 @@ let synth_asn1_null_TLV
 let synth_asn1_null_TLV_inverse
   (x: datatype_of_asn1_type NULL)
 : GTot (a: ((the_asn1_type NULL * asn1_int32_of_type NULL) * datatype_of_asn1_type NULL){x == synth_asn1_null_TLV a})
-= ((NULL, len_of_asn1_data NULL x), x)
+= ((NULL, 0ul), x)
 
 let parse_asn1_null_TLV_kind
 : parser_kind
-= parse_asn1_tag_kind
-  `and_then_kind`
-  parse_asn1_length_kind_of_type NULL
-  `and_then_kind`
-  parse_asn1_null_kind
+= strong_parser_kind 2 2 None
+// = parse_asn1_tag_kind
+//   `and_then_kind`
+//   parse_asn1_length_kind_of_type NULL
+//   `and_then_kind`
+//   parse_asn1_null_kind
 
 let parse_asn1_null_TLV
-: parser _ (datatype_of_asn1_type NULL)
+: parser parse_asn1_null_TLV_kind (datatype_of_asn1_type NULL)
 = parse_the_asn1_tag NULL
   `nondep_then`
   parse_asn1_length_of_type NULL
