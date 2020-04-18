@@ -49,6 +49,9 @@ let serialize32_asn1_octet_string_backwards
 
 (* retuen *) len
 
+open LowParse.Low.Writers
+open LowParse.Low.Writers.Instances
+
 open ASN1.Spec.Tag
 open ASN1.Spec.Length
 open ASN1.Low.Tag

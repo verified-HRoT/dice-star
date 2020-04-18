@@ -10,17 +10,93 @@ open ASN1.Base
 (* 1) Positive: (Leading 0x00uy ++) content
    2) Negative: b[0] & 0x80uy != 0 *)
 open LowParse.Spec.Int32le
-open FStar.Endianness
+module E = FStar.Endianness
 open FStar.Integers
 
+(*
+NOTE: 1. Negative: `**p & 0x80 == 0`, reject
+      2. Zero    : as `[0x02; 0x01; 0x00]` for INTEGER or `[0x0A; 0x01; 0x00]` fir ENUMERATED tags
+      3. Positive: if the most significant bit of a positive integer is `1`, then add a leading zero.
+
+NOTE: MbedTLS's implementation seems allow arbitrary leading zeros. We only allow one leading zero for now.
+NOTE: We only allow at most 4-byte positive integers. If an integer is encoded into 5 bytes with a leading
+      zero, then it must be a negative integer.
+*)
+
+(*
+NOTE: 1. At most one leading zero
+      3. after skip leading zero, s.[0] & 0x80 == 0
+*)
+
+let filter_asn1_integer
+  (l: asn1_length_of_type INTEGER) (* 1 <= l <= 4*)
+  (ls: lbytes l)
+: GTot (bool)
+= if ls.[0] = 0x00uy then (* has a leading zero *)
+  ( l = 1                 (* is zero *)
+  || (ls.[1] >= 0x80uy)    (* or the next byte's most significant bit is `1` *) )
+  else                    (* no leading zero *)
+  ( ls.[0] < 0x80uy       (* the most significant bit is `0` *) )
+
+#push-options "--query_stats --z3rlimit 32"
+(* NOTE: MbedTLS assumes big endian *)
+let synth_asn1_integer
+  (l: asn1_length_of_type INTEGER)
+  (ls: parse_filter_refine (filter_asn1_integer l))
+: GTot (datatype_of_asn1_type INTEGER)
+= if l = 1 then
+  ( E.lemma_be_to_n_is_bounded ls;
+    u (E.be_to_n ls) )
+  else if ls.[0] = 0x00uy then
+  ( let s = Seq.slice ls 1 l in
+    E.lemma_be_to_n_is_bounded s;
+    u (E.be_to_n s) )
+  else
+  ( E.lemma_be_to_n_is_bounded ls;
+    assert_norm (UInt.size (E.be_to_n ls) 32);
+    u (E.be_to_n ls) )
+#pop-options
+
+#push-options "--query_stats --z3rlimit 32 --initial_fuel 8"
+let synth_asn1_integer_injective'
+  (l: asn1_length_of_type INTEGER)
+  (ls1 ls2: parse_filter_refine (filter_asn1_integer l))
+: Lemma
+  (requires synth_asn1_integer l ls1 == synth_asn1_integer l ls2)
+  (ensures ls1 `Seq.equal` ls2)
+=if l = 1 then
+  ( E.lemma_be_to_n_is_bounded ls1;
+    E.lemma_be_to_n_is_bounded ls2;
+    assert_norm (v (u (E.be_to_n ls1) <: uint_32) == E.be_to_n ls1);
+    assert_norm (v (u (E.be_to_n ls2) <: uint_32) == E.be_to_n ls2);
+    assert_norm (E.be_to_n ls1 == E.be_to_n ls2);
+    E.be_to_n_inj ls1 ls2 )
+  else if ls1.[0] = 0x00uy then
+  ( assert (2 <= l /\ l <= 4);
+    let s1 = Seq.slice ls1 1 l in
+    E.lemma_be_to_n_is_bounded s1;
+    assert_norm (UInt.size (E.be_to_n s1) 32);
+    assert_norm (v (u (E.be_to_n s1) <: uint_32) == E.be_to_n s1);
+    let s2 = Seq.slice ls2 1 l in
+    E.lemma_be_to_n_is_bounded s2;
+    assert_norm (UInt.size (E.be_to_n s2) 32);
+    assert_norm (v (u (E.be_to_n s2) <: uint_32) == E.be_to_n s2);
+    // assert_norm (E.be_to_n s1 == E.be_to_n s2);
+    // E.be_to_n_inj s1 s2;
+    // assert_norm (ls2.[0] == 0x00uy )
+    admit() )
+  else
+  ( admit() )
+
 (* NOTE: Big Endian *)
-(* FIXME: Excluded 0 for now, Mbed TLS's parser said that
-          it should be represented as 020100 for INTEGER
-          or 0A0100 for ENUMERATED *)
-#push-options "--query_stats --z3rlimit 64"
-// let remove_leading_zeros'
-//   (bs: bytes)
-// : (bs': bytes{Seq.length bs' > 0 ==> bs'.[0] =!= 0x00uy})
+(*)
+let synth_asn1_integer
+  (l: asn1_length_t{l == 4 \/ l == 5})
+  (s: bytes{Seq.length s == l})
+: GTot (asn1_int32)
+= match l,  s.[0], s.[0] / 0x80uy, s.[1] / 0x80uy with
+  |     5, 0x00uy,              _,         0x01uy ->
+  |     4,      _,         0x00uy,              _ -> decode_int32le
 
 let encode_asn1_integer
   (x: uint_32{ 0 < v x } )

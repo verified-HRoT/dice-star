@@ -12,9 +12,9 @@ let filter_asn1_tag
   (b: byte)
 : Ghost bool
   (requires True)
-  (ensures fun r -> r == (b = 0x01uy || b = 0x04uy || b = 0x05uy || b = 0x30uy))
+  (ensures fun r -> r == (b = 0x01uy || b = 0x04uy || b = 0x05uy || b = 0x30uy || b = 0x03uy || b = 0x02uy || b = 0x06uy))
 = match b with
-  | 0x01uy | 0x04uy | 0x05uy | 0x30uy-> true
+  | 0x01uy | 0x04uy | 0x05uy | 0x30uy | 0x03uy | 0x02uy | 0x06uy -> true
   | _ -> false
 
 let synth_asn1_tag
@@ -24,13 +24,19 @@ let synth_asn1_tag
   (ensures fun a ->
     a == (match b with
           | 0x01uy -> BOOLEAN
+          | 0x02uy -> INTEGER
+          | 0x03uy -> BIT_STRING
           | 0x04uy -> OCTET_STRING
           | 0x05uy -> NULL
+          | 0x06uy -> OID
           | 0x30uy -> SEQUENCE))
 = match b with
   | 0x01uy -> BOOLEAN
+  | 0x02uy -> INTEGER
+  | 0x03uy -> BIT_STRING
   | 0x04uy -> OCTET_STRING
   | 0x05uy -> NULL
+  | 0x06uy -> OID
   | 0x30uy -> SEQUENCE
 
 let synth_asn1_tag_inverse
@@ -40,13 +46,14 @@ let synth_asn1_tag_inverse
   (ensures fun b -> a == synth_asn1_tag b)
 = match a with
   | BOOLEAN      -> 0x01uy
-  // | INTEGER      -> 0x02uy
-  // | BIT_STRING   -> 0x03uy
+  | INTEGER      -> 0x02uy
+  | BIT_STRING   -> 0x03uy
   | OCTET_STRING -> 0x04uy
   | NULL         -> 0x05uy
-  // | OID          -> 0x06uy
+  | OID          -> 0x06uy
   | SEQUENCE     -> 0x30uy
 
+let parse_asn1_tag_kind = strong_parser_kind 1 1 None
 let parse_asn1_tag
 : parser parse_asn1_tag_kind asn1_type
 = parse_u8
@@ -133,8 +140,11 @@ let filter_the_asn1_tag
   (ensures fun r -> (r <==> filter_asn1_tag b /\ synth_asn1_tag b == a))
 = match a, b with
   | BOOLEAN     , 0x01uy
+  | INTEGER     , 0x02uy
+  | BIT_STRING  , 0x03uy
   | OCTET_STRING, 0x04uy
   | NULL        , 0x05uy
+  | OID         , 0x06uy
   | SEQUENCE    , 0x30uy -> true
   | _ -> false
 

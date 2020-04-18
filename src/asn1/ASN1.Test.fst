@@ -1,5 +1,5 @@
 module ASN1.Test
-
+(*)
 open LowParse.Spec.Base
 open LowParse.Spec.Combinators
 open LowParse.Spec.List

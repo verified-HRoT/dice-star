@@ -20,6 +20,7 @@ let encode_asn1_tag
 : Tot (b: byte{b == synth_asn1_tag_inverse a})
 = match a with
   | BOOLEAN      -> 0x01uy
+  | BIT_STRING   -> 0x03uy
   | OCTET_STRING -> 0x04uy
   | NULL         -> 0x05uy
   | SEQUENCE     -> 0x30uy
