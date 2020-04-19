@@ -26,67 +26,477 @@ NOTE: We only allow at most 4-byte positive integers. If an integer is encoded i
 (*
 NOTE: 1. At most one leading zero
       3. after skip leading zero, s.[0] & 0x80 == 0
+      0 - 0x7FFFFFFF
 *)
 
 let filter_asn1_integer
   (l: asn1_length_of_type INTEGER) (* 1 <= l <= 4*)
-  (ls: lbytes l)
+  (s: lbytes l)
 : GTot (bool)
-= if ls.[0] = 0x00uy then (* has a leading zero *)
-  ( l = 1                 (* is zero *)
-  || (ls.[1] >= 0x80uy)    (* or the next byte's most significant bit is `1` *) )
-  else                    (* no leading zero *)
-  ( ls.[0] < 0x80uy       (* the most significant bit is `0` *) )
+= match l with
+  | 1 -> (* 1-byte integer with the most-significant bit `0` *)
+         ( s.[0] < 0x80uy )
 
-#push-options "--query_stats --z3rlimit 32"
-(* NOTE: MbedTLS assumes big endian *)
+  | 2 -> (* 1-byte integer with the most-significant bit `1` *)
+         if s.[0] = 0x00uy then
+         ( s.[1] >= 0x80uy )
+
+         (* 2-byte integer with the most-significant bit `0` *)
+         else
+         ( s.[0] < 0x80uy )
+
+  | 3 -> (* 2-byte integer with the most-significant bit `1` *)
+         if s.[0] = 0x00uy then
+         ( s.[1] >= 0x80uy )
+
+         (* 3-byte integer with the most-significant bit `0` *)
+         else
+         ( s.[0] < 0x80uy )
+
+  | 4 -> (* 3-byte integer with the most-significant bit `1` *)
+         if s.[0] = 0x00uy then
+         ( s.[1] >= 0x80uy )
+
+         (* 4-byte integer with the most-significant bit `0` *)
+         else
+         ( s.[0] < 0x80uy )
+
+// if s.[0] = 0x00uy then (* has a leading zero *)
+//   ( l = 1                 (* is zero *)
+//   || (s.[1] >= 0x80uy) )  (* or the next byte's most significant bit is `1` *)
+//   else                    (* no leading zero *)
+//   ( s.[0] < 0x80uy )     (* the most significant bit is `0` *)
+
+// val lemma_le_to_n_is_bounded_pos: b:bytes -> Lemma
+//   (requires True)
+//   (ensures  (le_to_n b < pow2 (8 * Seq.length b)))
+//   (decreases (Seq.length b))
+
+// let rec lemma_be_to_n_is_bounded b =
+//   if Seq.length b = 0 then ()
+//   else
+//     begin
+//     let s = Seq.slice b 0 (Seq.length b - 1) in
+//     assert(Seq.length s = Seq.length b - 1);
+//     lemma_be_to_n_is_bounded s;
+//     assert(UInt8.v (Seq.last b) < pow2 8);
+//     assert(be_to_n s < pow2 (8 * Seq.length s));
+//     assert(be_to_n b < pow2 8 + pow2 8 * pow2 (8 * (Seq.length b - 1)));
+//     lemma_euclidean_division (UInt8.v (Seq.last b)) (be_to_n s) (pow2 8);
+//     assert(be_to_n b <= pow2 8 * (be_to_n s + 1));
+//     assert(be_to_n b <= pow2 8 * pow2 (8 * (Seq.length b - 1)));
+//     Math.Lemmas.pow2_plus 8 (8 * (Seq.length b - 1));
+//     lemma_factorise 8 (Seq.length b - 1)
+//     end
+
+let length_of_asn1_integer
+  (value: datatype_of_asn1_type INTEGER)
+: GTot (l: asn1_length_of_type INTEGER)
+= let vx = v #(Signed W32) value in
+  if      0         <= vx && vx <= 0x7F      then
+  ( 1 )
+  else if 0x7F       < vx && vx <= 0xFF       then
+  ( 2 )
+  else if 0xFF       < vx && vx <= 0x7FFF     then
+  ( 2 )
+  else if 0x7FFF     < vx && vx <= 0xFFFF     then
+  ( 3 )
+  else if 0xFFFF     < vx && vx <= 0x7FFFFF   then
+  ( 3 )
+  else if 0x7FFFFF   < vx && vx <= 0xFFFFFF   then
+  ( 4 )
+  else if 0xFFFFFF   < vx && vx <= 0x7FFFFFFF then
+  ( 4 )
+
+
+(* NOTE: Why ... `unfold` ... *)
+#restart-solver
+#push-options "--query_stats --z3rlimit 128"
 let synth_asn1_integer
   (l: asn1_length_of_type INTEGER)
-  (ls: parse_filter_refine (filter_asn1_integer l))
-: GTot (datatype_of_asn1_type INTEGER)
-= if l = 1 then
-  ( E.lemma_be_to_n_is_bounded ls;
-    u (E.be_to_n ls) )
-  else if ls.[0] = 0x00uy then
-  ( let s = Seq.slice ls 1 l in
-    E.lemma_be_to_n_is_bounded s;
-    u (E.be_to_n s) )
-  else
-  ( E.lemma_be_to_n_is_bounded ls;
-    assert_norm (UInt.size (E.be_to_n ls) 32);
-    u (E.be_to_n ls) )
+  (s: parse_filter_refine (filter_asn1_integer l))
+: GTot (value: datatype_of_asn1_type INTEGER { l == length_of_asn1_integer value })
+= match l with
+  | 1 -> (* 1-byte integer with the most-significant bit `0` *)
+         ( assert_norm (s.[0] < 0x80uy)
+         ; E.lemma_be_to_n_is_bounded s
+         ; E.reveal_be_to_n s
+         ; assert_norm (Int.size (E.be_to_n s) 32)
+         ; let value = u #(Signed W32) (E.be_to_n s) in
+           assert_norm (0x00l <= value /\ value <= 0x7Fl)
+         ; value )
+
+  | 2 -> (* 1-byte integer with the most-significant bit `1` *)
+         if s.[0] = 0x00uy then
+         ( let s = Seq.slice s 1 l in
+           assert_norm (s.[0] >= 0x80uy)
+         ; E.lemma_be_to_n_is_bounded s
+         ; E.reveal_be_to_n s
+         ; assert_norm (Int.size (E.be_to_n s) 32)
+         ; let value = u #(Signed W32) (E.be_to_n s) in
+           assert_norm (0x7Fl < value /\ value <= 0xFFl)
+         ; value )
+
+         (* 2-byte integer with the most-significant bit `0` *)
+         else
+         ( assert_norm (s.[0] < 0x80uy)
+         ; E.lemma_be_to_n_is_bounded s
+         ; E.reveal_be_to_n s
+         ; E.reveal_be_to_n (Seq.slice s 0 1)
+         ; assert_norm (Int.size (E.be_to_n s) 32)
+         ; let value = u #(Signed W32) (E.be_to_n s) in
+           assert_norm (0xFFl < value /\ value <= 0x7FFFl)
+         ; value )
+
+  | 3 -> (* 2-byte integer with the most-significant bit `1` *)
+         if s.[0] = 0x00uy then
+         ( let s = Seq.slice s 1 l in
+           assert_norm (s.[0] >= 0x80uy)
+         ; E.lemma_be_to_n_is_bounded s
+         ; E.reveal_be_to_n s
+         ; E.reveal_be_to_n (Seq.slice s 0 1)
+         ; assert_norm (Int.size (E.be_to_n s) 32)
+         ; let value = u #(Signed W32) (E.be_to_n s) in
+           assert_norm (0x7FFFl < value /\ value <= 0xFFFFl)
+         ; value )
+
+         (* 3-byte integer with the most-significant bit `0` *)
+         else
+         ( assert_norm (s.[0] < 0x80uy)
+         ; E.lemma_be_to_n_is_bounded s
+         ; E.reveal_be_to_n s
+         ; E.reveal_be_to_n (Seq.slice s 0 2)
+         ; E.reveal_be_to_n (Seq.slice s 0 1)
+         ; assert_norm (Int.size (E.be_to_n s) 32)
+         ; let value = u #(Signed W32) (E.be_to_n s) in
+           assert_norm (0xFFFFl < value /\ value <= 0x7FFFFFl)
+         ; value )
+
+  | 4 -> (* 3-byte integer with the most-significant bit `1` *)
+         if s.[0] = 0x00uy then
+         ( let s = Seq.slice s 1 l in
+           assert_norm (s.[0] >= 0x80uy)
+         ; E.lemma_be_to_n_is_bounded s
+         ; E.reveal_be_to_n s
+         ; E.reveal_be_to_n (Seq.slice s 0 2)
+         ; E.reveal_be_to_n (Seq.slice s 0 1)
+         ; assert_norm (Int.size (E.be_to_n s) 32)
+         ; let value = u #(Signed W32) (E.be_to_n s) in
+           assert_norm (0x7FFFFFl < value /\ value <= 0xFFFFFFl)
+         ; value )
+
+         (* 4-byte integer with the most-significant bit `0` *)
+         else
+         ( assert_norm (s.[0] < 0x80uy)
+         ; E.lemma_be_to_n_is_bounded s
+         ; E.reveal_be_to_n s
+         ; E.reveal_be_to_n (Seq.slice s 0 3)
+         ; E.reveal_be_to_n (Seq.slice s 0 2)
+         ; E.reveal_be_to_n (Seq.slice s 0 1)
+         ; assert_norm (Int.size (E.be_to_n s) 32)
+         ; let value = u #(Signed W32) (E.be_to_n s) in
+           assert_norm (0xFFFFFFl < value /\ value <= 0x7FFFFFFFl)
+         ; value )
+
+// if l = 1 then
+//   ( E.lemma_be_to_n_is_bounded s
+//   ; E.reveal_be_to_n s
+//   ; u #(Signed W32) (E.be_to_n s) )
+//   else if s.[0] = 0x00uy then
+//   ( let s = Seq.slice s 1 l in
+//     E.lemma_be_to_n_is_bounded s
+//   ; assert_norm(Int.size (E.be_to_n s) 32)
+//   ; u #(Signed W32) (E.be_to_n s) )
+//   else
+//   ( assert_norm (2 <= l /\ l <= 4 /\ s.[0] < 0x80uy)
+//   ; E.lemma_be_to_n_is_bounded s
+//   ; E.reveal_be_to_n s
+//   ; if l = 4 then
+//     ( E.reveal_be_to_n (Seq.slice s 0 3) )
+//   ; if l >= 3 then
+//     ( E.reveal_be_to_n (Seq.slice s 0 2) )
+//   ; E.reveal_be_to_n (Seq.slice s 0 1)
+//   ; assert_norm (Int.size (E.be_to_n s) 32)
+//   ; u #(Signed W32) (E.be_to_n s) )
 #pop-options
 
-#push-options "--query_stats --z3rlimit 32 --initial_fuel 8"
+#push-options "--query_stats --z3rlimit 128 --max_fuel 0 --max_ifuel 0"
+let synth_asn1_integer_inverse
+  (l: asn1_length_of_type INTEGER)
+  (value: datatype_of_asn1_type INTEGER { l == length_of_asn1_integer value } )
+: GTot (s: parse_filter_refine (filter_asn1_integer l) { value == synth_asn1_integer l s })
+= let vx = v #(Signed W32) value in
+
+  (* 1-byte integer with the most-significant bit `0` *)
+  if      (0         <= vx && vx <= 0x7F      ) then
+  ( assert_norm (vx < pow2 (8 * 1 - 1) /\
+                 vx < pow2 (8 * 1))
+  ; let s = n_to_be 1 vx in
+    E.reveal_be_to_n s
+  ; s )
+
+  (* 1-byte integer with the most-significant bit `1` *)
+  else if (0x7F       < vx && vx <= 0xFF      ) then
+  ( assert_norm (vx < pow2 (8 * 1))
+  ; let s = n_to_be 1 vx in
+    E.reveal_be_to_n s
+  ; let s = 0x00uy `Seq.cons` s in
+    (* NOTE: Seems the relation between `l` and `value` is not strong
+             enough, we need to manually prove things here. *)
+    E.lemma_be_to_n_is_bounded (Seq.slice s 1 2)
+  ; E.reveal_be_to_n (Seq.slice s 1 2)
+  ; assert_norm (Int.size (E.be_to_n (Seq.slice s 1 2)) 32)
+  ; assert_norm (synth_asn1_integer l s == value)
+  ; s )
+
+  (* 2-byte integer with the most-significant bit `0` *)
+  else if (0xFF       < vx && vx <= 0x7FFF    ) then
+  ( assert_norm (vx < pow2 (8 * 2 - 1) /\
+                 vx < pow2 (8 * 2))
+  ; let s = n_to_be 2 vx in
+    E.reveal_be_to_n s
+  ; E.reveal_be_to_n (Seq.slice s 0 1)
+  ; s )
+
+  (* 2-byte integer with the most-significant bit `1` *)
+  else if (0x7FFF     < vx && vx <= 0xFFFF    ) then
+  ( assert_norm (vx < pow2 (8 * 2))
+  ; let s = n_to_be 2 vx in
+    E.reveal_be_to_n s
+  ; E.reveal_be_to_n (Seq.slice s 0 1)
+  ; let s = 0x00uy `Seq.cons` s in
+    E.lemma_be_to_n_is_bounded (Seq.slice s 1 3)
+  ; E.reveal_be_to_n (Seq.slice s 1 3)
+  ; E.reveal_be_to_n (Seq.slice s 1 2)
+  ; assert_norm (Int.size (E.be_to_n (Seq.slice s 1 3)) 32)
+  ; assert_norm (synth_asn1_integer l s == value)
+  ; s )
+
+  (* 3-byte integer with the most-significant bit `0` *)
+  else if (0xFFFF      < vx && vx <= 0x7FFFFF  ) then
+  ( assert_norm (vx < pow2 (8 * 3 - 1) /\
+                 vx < pow2 (8 * 3))
+  ; let s = n_to_be 3 vx in (* opt *)
+    E.reveal_be_to_n s
+  ; E.reveal_be_to_n (Seq.slice s 0 2)
+  ; E.reveal_be_to_n (Seq.slice s 0 1)
+  ; s )
+
+  (* 3-byte integer with the most-significant bit `1` *)
+  else if (0x7FFFFF   < vx && vx <= 0xFFFFFF  ) then
+  ( assert_norm (vx < pow2 (8 * 3))
+  ; let s = n_to_be 3 vx in
+    E.reveal_be_to_n s
+  ; E.reveal_be_to_n (Seq.slice s 0 2)
+  ; E.reveal_be_to_n (Seq.slice s 0 1)
+  ; let s = 0x00uy `Seq.cons` s in
+    E.lemma_be_to_n_is_bounded (Seq.slice s 1 4)
+  ; E.reveal_be_to_n (Seq.slice s 1 4)
+  ; E.reveal_be_to_n (Seq.slice s 1 3)
+  ; E.reveal_be_to_n (Seq.slice s 1 2)
+  ; assert_norm (Int.size (E.be_to_n (Seq.slice s 1 4)) 32)
+  ; assert_norm (synth_asn1_integer l s == value)
+  ; s )
+
+  (* 4-byte integer with the most-significant bit `0` *)
+  else if (0xFFFFFF    < vx && vx <= 0x7FFFFFFF) then
+  ( assert_norm (vx < pow2 (8 * 4 - 1) /\
+                 vx < pow2 (8 * 4))
+  ; let s = n_to_be 4 vx in
+    E.reveal_be_to_n s
+  ; E.reveal_be_to_n (Seq.slice s 0 3)
+  ; E.reveal_be_to_n (Seq.slice s 0 2)
+  ; E.reveal_be_to_n (Seq.slice s 0 1)
+  ; s )
+
+  (* Out of the range of positive 32-bit integer [0, 0x7FFFFFFF], unreachable *)
+  else
+  ( false_elim () )
+#pop-options
+
+open FStar.Tactics
+
+let filter_asn1_integer_prop_leading_zero
+  (l: asn1_length_of_type INTEGER)
+  (s: parse_filter_refine (filter_asn1_integer l))
+: Lemma
+  (requires s.[0] == 0x00uy)
+  (ensures l == 1 \/ s.[1] >= 0x80uy)
+= ()
+
+let filter_asn1_integer_prop_non_leading_zero
+  (l: asn1_length_of_type INTEGER)
+  (s: parse_filter_refine (filter_asn1_integer l))
+: Lemma
+  (requires s.[0] <> 0x00uy)
+  (ensures s.[0] < 0x80uy)
+= ()
+
+#push-options "--query_stats"
+let testl
+  (l: asn1_length_of_type INTEGER)
+  (s: parse_filter_refine (filter_asn1_integer l))
+: Lemma
+  (requires 0x7Fl < synth_asn1_integer l s /\
+                    synth_asn1_integer l s <= 0xFFl)
+  (ensures s.[0] == 0x00uy)
+= assert (l == 2);
+  if s.[0] <> 0x00uy then
+  ( assert_norm (s.[0] < 0x80uy)
+  ; E.lemma_be_to_n_is_bounded s
+  ; E.reveal_be_to_n s
+  ; E.reveal_be_to_n (Seq.slice s 0 1)
+  ; assert_norm (Int.size (E.be_to_n s) 32)
+  ; let value = u #(Signed W32) (E.be_to_n s) in
+    assert (value == synth_asn1_integer l s)
+  ; let value = synth_asn1_integer l s in
+    assert_norm (value > 0xFFl)
+  ; false_elim () )
+  else
+  ( () )
+#pop-options
+
+#push-options "--query_stats --z3rlimit 128"
+let synth_asn1_integer_injective_with_leading_zero
+  (l: asn1_length_of_type INTEGER)
+  (s1 s2: parse_filter_refine (filter_asn1_integer l))
+: Lemma
+  (requires synth_asn1_integer l s1 == synth_asn1_integer l s2 /\
+            s1.[0] == 0x00uy)
+  (ensures  s2.[0] == 0x00uy /\ s1 `Seq.equal` s2)
+= match l with
+  | 1 -> ( E.lemma_be_to_n_is_bounded s1
+         ; E.lemma_be_to_n_is_bounded s2
+         ; assert_norm (v (u #(Signed W32) (E.be_to_n s1)) == E.be_to_n s1)
+         ; assert_norm (v (u #(Signed W32) (E.be_to_n s2)) == E.be_to_n s2)
+         ; assert_norm (E.be_to_n s1 == E.be_to_n s2)
+         ; E.be_to_n_inj s1 s2 )
+  | 2 -> ( let value1 = synth_asn1_integer l s1 in
+           assert_norm (s1.[1] >= 0x80uy)
+         ; E.lemma_be_to_n_is_bounded (Seq.slice s1 1 2)
+         ; E.reveal_be_to_n (Seq.slice s1 1 2)
+         ; assert_norm (Int.size (E.be_to_n (Seq.slice s1 1 2)) 32)
+         ; assert_norm (value1 == u #(Signed W32) (E.be_to_n (Seq.slice s1 1 2)))
+         ; assert (0x7Fl < value1 /\ value1 <=0xFFl)
+         ; let value2 = synth_asn1_integer l s2 in
+           if s2.[0] = 0x00uy then
+           ( E.reveal_be_to_n (Seq.slice s2 1 2)
+           ; E.be_to_n_inj (Seq.slice s1 1 2) (Seq.slice s2 1 2) )
+           else
+           ( assert_norm (s2.[0] < 0x80uy)
+           ; E.lemma_be_to_n_is_bounded s2
+           ; E.reveal_be_to_n s2
+           ; E.reveal_be_to_n (Seq.slice s2 0 1)
+           ; assert_norm (Int.size (E.be_to_n s2) 32)
+           ; assert_norm (value2 == u #(Signed W32) (E.be_to_n s2))
+           ; assert_norm (value1 == value2)
+           ; assert_norm (value2 > 0xFFl)
+           ; false_elim () ) )
+  | 3 -> ( let value1 = synth_asn1_integer l s1 in
+           assert_norm (s1.[1] >= 0x80uy)
+         ; E.lemma_be_to_n_is_bounded (Seq.slice s1 1 3)
+         ; E.reveal_be_to_n (Seq.slice s1 1 3)
+         ; E.reveal_be_to_n (Seq.slice s1 1 2)
+         ; assert_norm (Int.size (E.be_to_n (Seq.slice s1 1 3)) 32)
+         ; assert_norm (value1 == u #(Signed W32) (E.be_to_n (Seq.slice s1 1 3)))
+         ; assert (0x7FFFl < value1 /\ value1 <=0xFFFFl)
+         ; let value2 = synth_asn1_integer l s2 in
+           if s2.[0] = 0x00uy then
+           ( E.reveal_be_to_n (Seq.slice s2 1 3)
+           ; E.reveal_be_to_n (Seq.slice s2 1 2)
+           ; E.be_to_n_inj (Seq.slice s1 1 3) (Seq.slice s2 1 3) )
+           else
+           ( assert_norm (s2.[0] < 0x80uy)
+           ; E.lemma_be_to_n_is_bounded s2
+           ; E.reveal_be_to_n s2
+           ; E.reveal_be_to_n (Seq.slice s2 0 2)
+           ; E.reveal_be_to_n (Seq.slice s2 0 1)
+           ; assert_norm (Int.size (E.be_to_n s2) 32)
+           ; assert_norm (value2 == u #(Signed W32) (E.be_to_n s2))
+           ; assert_norm (value1 == value2)
+           ; assert_norm (value2 > 0xFFFFl)
+           ; false_elim () ) )
+  | 4 -> ( let value1 = synth_asn1_integer l s1 in
+           assert_norm (s1.[1] >= 0x80uy)
+         ; E.lemma_be_to_n_is_bounded (Seq.slice s1 1 4)
+         ; E.reveal_be_to_n (Seq.slice s1 1 4)
+         ; E.reveal_be_to_n (Seq.slice s1 1 3)
+         ; E.reveal_be_to_n (Seq.slice s1 1 2)
+         ; assert_norm (Int.size (E.be_to_n (Seq.slice s1 1 4)) 32)
+         ; assert_norm (value1 == u #(Signed W32) (E.be_to_n (Seq.slice s1 1 4)))
+         ; assert (0x7FFFFFl < value1 /\ value1 <=0xFFFFFFl)
+         ; let value2 = synth_asn1_integer l s2 in
+           if s2.[0] = 0x00uy then
+           ( E.reveal_be_to_n (Seq.slice s2 1 4)
+           ; E.reveal_be_to_n (Seq.slice s2 1 3)
+           ; E.reveal_be_to_n (Seq.slice s2 1 2)
+           ; E.be_to_n_inj (Seq.slice s1 1 4) (Seq.slice s2 1 4) )
+           else
+           ( assert_norm (s2.[0] < 0x80uy)
+           ; E.lemma_be_to_n_is_bounded s2
+           ; E.reveal_be_to_n s2
+           ; E.reveal_be_to_n (Seq.slice s2 0 3)
+           ; E.reveal_be_to_n (Seq.slice s2 0 2)
+           ; E.reveal_be_to_n (Seq.slice s2 0 1)
+           ; assert_norm (Int.size (E.be_to_n s2) 32)
+           ; assert_norm (value2 == u #(Signed W32) (E.be_to_n s2))
+           ; assert_norm (value1 == value2)
+           ; assert_norm (value2 > 0xFFFFFFl)
+           ; false_elim () ) )
+#pop-options
+
+#push-options "--query_stats --z3rlimit 128"
+let synth_asn1_integer_injective_without_leading_zero
+  (l: asn1_length_of_type INTEGER)
+  (s1 s2: parse_filter_refine (filter_asn1_integer l))
+: Lemma
+  (requires synth_asn1_integer l s1 == synth_asn1_integer l s2 /\
+            s1.[0] <> 0x00uy /\ s2.[0] <> 0x00uy)
+  (ensures  s1 `Seq.equal` s2)
+= match l with
+  | 4 -> ( assert_norm (s1.[0] < 0x80uy /\ s2.[0] < 0x80uy)
+         ; E.lemma_be_to_n_is_bounded s1
+         ; E.lemma_be_to_n_is_bounded s2
+         ; E.reveal_be_to_n s1
+         ; E.reveal_be_to_n (Seq.slice s1 0 3)
+         ; E.reveal_be_to_n (Seq.slice s1 0 2)
+         ; E.reveal_be_to_n (Seq.slice s1 0 1)
+         ; E.reveal_be_to_n s2
+         ; E.reveal_be_to_n (Seq.slice s2 0 3)
+         ; E.reveal_be_to_n (Seq.slice s2 0 2)
+         ; E.reveal_be_to_n (Seq.slice s2 0 1)
+         ; assert_norm (Int.size (E.be_to_n s1) 32)
+         ; assert_norm (Int.size (E.be_to_n s2) 32)
+         ; assert_norm (v (u #(Signed W32) (E.be_to_n s1)) == E.be_to_n s1)
+         ; assert_norm (v (u #(Signed W32) (E.be_to_n s2)) == E.be_to_n s2)
+         ; assert_norm (E.be_to_n s1 == E.be_to_n s2)
+         ; E.be_to_n_inj s1 s2 )
+  | _ -> ( assert_norm (s1.[0] < 0x80uy /\ s2.[0] < 0x80uy)
+         ; E.lemma_be_to_n_is_bounded s1
+         ; E.lemma_be_to_n_is_bounded s2
+         ; assert_norm (Int.size (E.be_to_n s1) 32)
+         ; assert_norm (Int.size (E.be_to_n s2) 32)
+         ; assert_norm (v (u #(Signed W32) (E.be_to_n s1)) == E.be_to_n s1)
+         ; assert_norm (v (u #(Signed W32) (E.be_to_n s2)) == E.be_to_n s2)
+         ; assert_norm (E.be_to_n s1 == E.be_to_n s2)
+         ; E.be_to_n_inj s1 s2 )
+#pop-options
+
+#push-options "--query_stats"
 let synth_asn1_integer_injective'
   (l: asn1_length_of_type INTEGER)
-  (ls1 ls2: parse_filter_refine (filter_asn1_integer l))
+  (s1 s2: parse_filter_refine (filter_asn1_integer l))
 : Lemma
-  (requires synth_asn1_integer l ls1 == synth_asn1_integer l ls2)
-  (ensures ls1 `Seq.equal` ls2)
-=if l = 1 then
-  ( E.lemma_be_to_n_is_bounded ls1;
-    E.lemma_be_to_n_is_bounded ls2;
-    assert_norm (v (u (E.be_to_n ls1) <: uint_32) == E.be_to_n ls1);
-    assert_norm (v (u (E.be_to_n ls2) <: uint_32) == E.be_to_n ls2);
-    assert_norm (E.be_to_n ls1 == E.be_to_n ls2);
-    E.be_to_n_inj ls1 ls2 )
-  else if ls1.[0] = 0x00uy then
-  ( assert (2 <= l /\ l <= 4);
-    let s1 = Seq.slice ls1 1 l in
-    E.lemma_be_to_n_is_bounded s1;
-    assert_norm (UInt.size (E.be_to_n s1) 32);
-    assert_norm (v (u (E.be_to_n s1) <: uint_32) == E.be_to_n s1);
-    let s2 = Seq.slice ls2 1 l in
-    E.lemma_be_to_n_is_bounded s2;
-    assert_norm (UInt.size (E.be_to_n s2) 32);
-    assert_norm (v (u (E.be_to_n s2) <: uint_32) == E.be_to_n s2);
-    // assert_norm (E.be_to_n s1 == E.be_to_n s2);
-    // E.be_to_n_inj s1 s2;
-    // assert_norm (ls2.[0] == 0x00uy )
-    admit() )
+  (requires synth_asn1_integer l s1 == synth_asn1_integer l s2)
+  (ensures s1 `Seq.equal` s2)
+= if s1.[0] = 0x00uy then
+  ( synth_asn1_integer_injective_with_leading_zero l s1 s2 )
+  else if s2.[0] = 0x00uy then
+  ( synth_asn1_integer_injective_with_leading_zero l s2 s1 )
   else
-  ( admit() )
+  ( synth_asn1_integer_injective_without_leading_zero l s1 s2 )
+#pop-options
+
 
 (* NOTE: Big Endian *)
 (*)
@@ -119,7 +529,7 @@ let encode_asn1_integer
     ( assert_norm (vx < pow2 (8 * 4))
     ; n_to_be 4 vx )
     else
-    ( false_elim () ) in
+    ( fase_elim () ) in
   if ((v bs.[0]) <= 0x7F) then
   ( assert (bs.[0] =!= 0x00uy)
   ; bs )

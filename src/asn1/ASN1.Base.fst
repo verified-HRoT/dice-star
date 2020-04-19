@@ -120,11 +120,11 @@ type oid_t =
 | KEY_USAGE_OID
 
 ///
-unfold
+
 let datatype_of_asn1_type (a: asn1_primitive_type): Type
 = match a with
   | BOOLEAN      -> bool
-  | INTEGER      -> uint_32
+  | INTEGER      -> ( i: int_32{v i >= 0} )
   | NULL         -> unit
   | OCTET_STRING -> ( len: asn1_int32_of_type OCTET_STRING &
                       s  : bytes { Seq.length s == v len } )
