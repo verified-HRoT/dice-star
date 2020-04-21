@@ -3,13 +3,15 @@ module ASN1.Spec.INTEGER
 open LowParse.Spec.Base
 open LowParse.Spec.Combinators
 open LowParse.Spec.Int
+open LowParse.Spec.SeqBytes.Base
 
 open ASN1.Base
+open ASN1.Spec.Tag
+open ASN1.Spec.Length
 
 (* INTEGER *)
 (* 1) Positive: (Leading 0x00uy ++) content
    2) Negative: b[0] & 0x80uy != 0 *)
-open LowParse.Spec.Int32le
 module E = FStar.Endianness
 open FStar.Integers
 
@@ -67,28 +69,6 @@ let filter_asn1_integer
 //   else                    (* no leading zero *)
 //   ( s.[0] < 0x80uy )     (* the most significant bit is `0` *)
 
-// val lemma_le_to_n_is_bounded_pos: b:bytes -> Lemma
-//   (requires True)
-//   (ensures  (le_to_n b < pow2 (8 * Seq.length b)))
-//   (decreases (Seq.length b))
-
-// let rec lemma_be_to_n_is_bounded b =
-//   if Seq.length b = 0 then ()
-//   else
-//     begin
-//     let s = Seq.slice b 0 (Seq.length b - 1) in
-//     assert(Seq.length s = Seq.length b - 1);
-//     lemma_be_to_n_is_bounded s;
-//     assert(UInt8.v (Seq.last b) < pow2 8);
-//     assert(be_to_n s < pow2 (8 * Seq.length s));
-//     assert(be_to_n b < pow2 8 + pow2 8 * pow2 (8 * (Seq.length b - 1)));
-//     lemma_euclidean_division (UInt8.v (Seq.last b)) (be_to_n s) (pow2 8);
-//     assert(be_to_n b <= pow2 8 * (be_to_n s + 1));
-//     assert(be_to_n b <= pow2 8 * pow2 (8 * (Seq.length b - 1)));
-//     Math.Lemmas.pow2_plus 8 (8 * (Seq.length b - 1));
-//     lemma_factorise 8 (Seq.length b - 1)
-//     end
-
 let length_of_asn1_integer
   (value: datatype_of_asn1_type INTEGER)
 : GTot (l: asn1_length_of_type INTEGER)
@@ -108,8 +88,7 @@ let length_of_asn1_integer
   else if 0xFFFFFF   < vx && vx <= 0x7FFFFFFF then
   ( 4 )
 
-
-(* NOTE: Why ... `unfold` ... *)
+(* NOTE: Why ... when `datatype_of_asn1_type` is marked as `unfold`. *)
 #restart-solver
 #push-options "--query_stats --z3rlimit 128"
 let synth_asn1_integer
@@ -231,14 +210,14 @@ let synth_asn1_integer_inverse
   if      (0         <= vx && vx <= 0x7F      ) then
   ( assert_norm (vx < pow2 (8 * 1 - 1) /\
                  vx < pow2 (8 * 1))
-  ; let s = n_to_be 1 vx in
+  ; let s = E.n_to_be 1 vx in
     E.reveal_be_to_n s
   ; s )
 
   (* 1-byte integer with the most-significant bit `1` *)
   else if (0x7F       < vx && vx <= 0xFF      ) then
   ( assert_norm (vx < pow2 (8 * 1))
-  ; let s = n_to_be 1 vx in
+  ; let s = E.n_to_be 1 vx in
     E.reveal_be_to_n s
   ; let s = 0x00uy `Seq.cons` s in
     (* NOTE: Seems the relation between `l` and `value` is not strong
@@ -253,7 +232,7 @@ let synth_asn1_integer_inverse
   else if (0xFF       < vx && vx <= 0x7FFF    ) then
   ( assert_norm (vx < pow2 (8 * 2 - 1) /\
                  vx < pow2 (8 * 2))
-  ; let s = n_to_be 2 vx in
+  ; let s = E.n_to_be 2 vx in
     E.reveal_be_to_n s
   ; E.reveal_be_to_n (Seq.slice s 0 1)
   ; s )
@@ -261,7 +240,7 @@ let synth_asn1_integer_inverse
   (* 2-byte integer with the most-significant bit `1` *)
   else if (0x7FFF     < vx && vx <= 0xFFFF    ) then
   ( assert_norm (vx < pow2 (8 * 2))
-  ; let s = n_to_be 2 vx in
+  ; let s = E.n_to_be 2 vx in
     E.reveal_be_to_n s
   ; E.reveal_be_to_n (Seq.slice s 0 1)
   ; let s = 0x00uy `Seq.cons` s in
@@ -276,7 +255,7 @@ let synth_asn1_integer_inverse
   else if (0xFFFF      < vx && vx <= 0x7FFFFF  ) then
   ( assert_norm (vx < pow2 (8 * 3 - 1) /\
                  vx < pow2 (8 * 3))
-  ; let s = n_to_be 3 vx in (* opt *)
+  ; let s = E.n_to_be 3 vx in
     E.reveal_be_to_n s
   ; E.reveal_be_to_n (Seq.slice s 0 2)
   ; E.reveal_be_to_n (Seq.slice s 0 1)
@@ -285,7 +264,7 @@ let synth_asn1_integer_inverse
   (* 3-byte integer with the most-significant bit `1` *)
   else if (0x7FFFFF   < vx && vx <= 0xFFFFFF  ) then
   ( assert_norm (vx < pow2 (8 * 3))
-  ; let s = n_to_be 3 vx in
+  ; let s = E.n_to_be 3 vx in
     E.reveal_be_to_n s
   ; E.reveal_be_to_n (Seq.slice s 0 2)
   ; E.reveal_be_to_n (Seq.slice s 0 1)
@@ -302,7 +281,7 @@ let synth_asn1_integer_inverse
   else if (0xFFFFFF    < vx && vx <= 0x7FFFFFFF) then
   ( assert_norm (vx < pow2 (8 * 4 - 1) /\
                  vx < pow2 (8 * 4))
-  ; let s = n_to_be 4 vx in
+  ; let s = E.n_to_be 4 vx in
     E.reveal_be_to_n s
   ; E.reveal_be_to_n (Seq.slice s 0 3)
   ; E.reveal_be_to_n (Seq.slice s 0 2)
@@ -313,8 +292,6 @@ let synth_asn1_integer_inverse
   else
   ( false_elim () )
 #pop-options
-
-open FStar.Tactics
 
 let filter_asn1_integer_prop_leading_zero
   (l: asn1_length_of_type INTEGER)
@@ -497,187 +474,215 @@ let synth_asn1_integer_injective'
   ( synth_asn1_integer_injective_without_leading_zero l s1 s2 )
 #pop-options
 
+let synth_asn1_integer_injective
+  (l: asn1_length_of_type INTEGER)
+: Lemma (synth_injective (synth_asn1_integer l))
+= synth_injective_intro'
+  (* f *) (synth_asn1_integer l)
+  (*prf*) (synth_asn1_integer_injective' l)
 
-(* NOTE: Big Endian *)
-(*)
-let synth_asn1_integer
-  (l: asn1_length_t{l == 4 \/ l == 5})
-  (s: bytes{Seq.length s == l})
-: GTot (asn1_int32)
-= match l,  s.[0], s.[0] / 0x80uy, s.[1] / 0x80uy with
-  |     5, 0x00uy,              _,         0x01uy ->
-  |     4,      _,         0x00uy,              _ -> decode_int32le
+let parse_asn1_integer_kind (l: asn1_length_of_type INTEGER) = constant_size_parser_kind l
+let parse_asn1_integer
+  (l: asn1_length_of_type INTEGER)
+: parser (parse_asn1_integer_kind l)
+         (value: datatype_of_asn1_type INTEGER { l == length_of_asn1_integer value })
+= synth_asn1_integer_injective l;
+  parse_seq_flbytes l
+  `parse_filter`
+  filter_asn1_integer l
+  `parse_synth`
+  synth_asn1_integer l
 
-let encode_asn1_integer
-  (x: uint_32{ 0 < v x } )
-: Tot (bs: bytes{be_to_n bs == v x})
-  // 1 <= Seq.length bs /\ Seq.length bs <= 5 /\
-  // (U8.v bs.[0]) <= 0x7F /\
-  // (bs.[0] == 0x00uy ==> 2 <= Seq.length bs /\ (U8.v bs.[1]) > 0x7F)})
-= let vx = v x in
-  let bs: bs:bytes{be_to_n bs == vx} =
-    if      (0          < vx && vx <= 0xFF      ) then
-    ( assert_norm (vx < pow2 (8 * 1))
-    ; n_to_be 1 vx )
-    else if (0xFF       < vx && vx <= 0xFFFF    ) then
-    ( assert_norm (vx < pow2 (8 * 2))
-    ; n_to_be 2 vx )
-    else if (0xFFFF     < vx && vx <= 0xFFFFFF  ) then
-    ( assert_norm (vx < pow2 (8 * 3))
-    ; n_to_be 3 vx )
-    else if (0xFFFFFF   < vx && vx <= 0xFFFFFFFF) then
-    ( assert_norm (vx < pow2 (8 * 4))
-    ; n_to_be 4 vx )
-    else
-    ( fase_elim () ) in
-  if ((v bs.[0]) <= 0x7F) then
-  ( assert (bs.[0] =!= 0x00uy)
-  ; bs )
-  else
-  ( 0x00uy `Seq.cons` bs )
-
-let lemma_e
-  (x: uint_32{ 0 < v x } )
-():Lemma (
-  forall x.
-    let b = encode_asn1_integer x in
-    be_to_n b == v x
-) = ()
-
-let encode_asn1_injective
-  (x1: uint_32{0 < v x1})
-  (x2: uint_32{0 < v x2})
-:Lemma (
-  encode_asn1_integer x1 == encode_asn1_integer x2
-  ==>
-  x1 == x2
-)
-= () // if (encode_asn1_integer x1 == encode_asn1_integer x2)
-
-// let decode_asn1_integer
-//   (bs: bytes{4 <= Seq.length bs /\ Seq.length bs <= 5})
-// : option (x: uint_32{ 0 <= v x /\ v x < 4294967296 })
-// = match Seq.length bs,
-//         bs.[0],
-//         bs.[0] `U8.div` 0x80uy,
-//         bs.[1] `U8.div` 0x80uy
-//   with
-//   | 5, 0x00uy, _     , 0x01uy -> Some (decode_int32le (Seq.slice bs 1 5))
-//   | 4, _     , 0x00uy, _      -> Some (decode_int32le bs)
-//   | (*reject negative int*) _ -> None
-
-// let filter_asn1_integer_weak
-//   (bs: bytes{Seq.length bs == 4})
-// : GTot bool
-// = (v bs.[0]) / 0x80 = 0
-
-// let synth_asn1_integer
-//   (bs: bytes{Seq.length bs == 4})
-// : GTot (x: uint_32{0 <= v x /\ v x < 4294967296})
-// = decode_int32le
-// match Seq.length bs with
-//   | 4 -> decode_int32le bs
-//   | 5 -> decode_int32le (Seq.slice bs 1 5)
-
-let filter_asn1_integer
-  (bs: bytes{Seq.length bs == 4 \/ Seq.length bs == 5})
-: GTot bool
-= Seq.length bs = 4 && (v bs.[0]) / 0x80 = 0 ||
-  Seq.length bs = 5 && (v bs.[1]) / 0x80 = 1 && bs.[0] = 0x00uy
-
-let c = normalize_term (n_to_le 4 100)
-
-let asn1_int_bytes = bs: bytes{
-  Seq.length bs == 4 /\ Seq.length bs == 5 /\
- ((v bs.[0]) >= 128 == 0 ==> Seq.length bs == 4 \/
-  (v bs.[1]) >= 128 == 1 /\ bs.[0] == 0x00uy ==> Seq.length bs == 5)
-}
-
-let synth_asn1_integer
-  (bs: asn1_int_bytes)
-: GTot (x: uint_32{0 <= v x /\ v x < 4294967296})
-= match Seq.length bs with
-  | 4 -> decode_int32le bs
-  | 5 -> decode_int32le (Seq.slice bs 1 5)
-
-let synth_asn1_integer_injective ()
-: Lemma (synth_injective synth_asn1_integer)
-= synth_injective_intro' synth_asn1_integer (fun (x x': asn1_int_bytes) ->
-  match Seq.length x with
-  | 4 -> decode_int32le_injective x x'
-  | 5 -> assert (x.[0] == x'.[0]);
-         decode_int32le_injective (Seq.slice x 1 5) (Seq.slice x' 1 5)
-)
-
-open LowParse.Spec.SeqBytes
-
-// let parse_asn1_integer (len: nat{len == 4 \/ len == 5})
-// = parse_seq_flbytes len
-//   `parse_filter`
-//   filter_asn1_integer
-//   `parse_synth`
-//   synth_asn1_integer
-
-// #push-options "--query_stats --z3rlimit 64 --max_fuel 64 --max_ifuel 64"
-
-let encode_asn1_integer
-  (x: uint_32{ 0 <= v x /\ v x < 4294967296 } )
-: Tot asn1_int_bytes
-= let v  = v x in
-  let bs = n_to_le 4 v in
-  if (v bs.[0]) / 0x80 = 0 then
-  ( assert (bs.[0] == 0x00uy ==> Seq.length bs == 4)
-   ; bs )
-  else (* add a leading byte 0x00uy *)
-  ( 0x00uy `Seq.cons` bs )
-
-let decode_asn1_integer
-  (bs: bytes{4 <= Seq.length bs /\ Seq.length bs <= 5})
-: option (x: uint_32{ 0 <= v x /\ v x < 4294967296 })
-= match Seq.length bs,
-        bs.[0],
-        (v bs.[0]) / 0x80,
-        (v bs.[1]) / 0x80
-  with
-  | 5, 0x00uy, _   , 0x01 -> Some (decode_int32le (Seq.slice bs 1 5))
-  | 4, _     , 0x00, _    -> Some (decode_int32le bs)
-  | (*reject neg int*) _  -> None
-
-#push-options "--query_stats --z3rlimit 64"
-let decode_asn1_integer_correct ()
+let parse_asn1_integer_unfold
+  (l: asn1_length_of_type INTEGER)
+  (input: bytes)
 : Lemma (
-  forall (x: uint_32{ 0 <= v x /\ v x < 4294967296 } ).
-  let bs = encode_asn1_integer x in
-  let x' = decode_asn1_integer bs in
-  Some?.v x' == x
-)
-= ()
-(*)
-#push-options "--query_stats"
-let decode_asn1_integer_injective
-  (bs1: bytes{4 <= Seq.length bs1 /\ Seq.length bs1 <= 5})
-  (bs2: bytes{4 <= Seq.length bs2 /\ Seq.length bs2 <= 5})
+  parse_asn1_integer l input ==
+ (match parse (parse_seq_flbytes l) input with
+  | None -> None
+  | Some (s, consumed) -> if filter_asn1_integer l s then
+                          ( Some (synth_asn1_integer l s, consumed) )
+                          else
+                          ( None )))
+= parse_filter_eq
+  (* p *) (parse_seq_flbytes l)
+  (* f *) (filter_asn1_integer l)
+  (* in*) (input);
+  synth_asn1_integer_injective l;
+  parse_synth_eq
+  (* p *) (parse_seq_flbytes l
+           `parse_filter`
+           filter_asn1_integer l)
+  (* f *) (synth_asn1_integer l)
+  (* in*) (input)
+
+let serialize_asn1_integer
+  (l: asn1_length_of_type INTEGER)
+: serializer (parse_asn1_integer l)
+= serialize_synth
+  (* p1 *) (parse_seq_flbytes l
+            `parse_filter`
+            filter_asn1_integer l)
+  (* f2 *) (synth_asn1_integer l)
+  (* s1 *) (serialize_seq_flbytes l
+            `serialize_filter`
+            filter_asn1_integer l)
+  (* g1 *) (synth_asn1_integer_inverse l)
+  (* prf*) (synth_asn1_integer_injective l)
+
+let serialize_asn1_integer_unfold
+  (l: asn1_length_of_type INTEGER)
+  (value: datatype_of_asn1_type INTEGER { l == length_of_asn1_integer value })
 : Lemma (
-  decode_asn1_integer bs1 == decode_asn1_integer bs2 /\
-  Some? (decode_asn1_integer bs1)
-  ==>
-  Seq.length bs1 == Seq.length bs2)
-= () if decode_asn1_integer bs1 = decode_asn1_integer bs2 &&
-     Some? (decode_asn1_integer bs1) then
-  ( if (Seq.length bs1) )
+  serialize (serialize_asn1_integer l) value ==
+  synth_asn1_integer_inverse l value)
+= serialize_filter_correct
+  (* p *) (serialize_seq_flbytes l)
+  (* f *) (filter_asn1_integer l);
+  synth_asn1_integer_injective l;
+  serialize_synth_eq
+  (* p1 *) (parse_seq_flbytes l
+            `parse_filter`
+            filter_asn1_integer l)
+  (* f2 *) (synth_asn1_integer l)
+  (* s1 *) (serialize_seq_flbytes l
+            `serialize_filter`
+            filter_asn1_integer l)
+  (* g1 *) (synth_asn1_integer_inverse l)
+  (* prf*) (synth_asn1_integer_injective l)
+  (* val*) (value)
 
-(*)
-if (decode_asn1_integer bs1) = (decode_asn1_integer bs2) then
-  (  )
+let parser_tag_of_asn1_integer
+  (value: datatype_of_asn1_type INTEGER)
+: GTot (the_asn1_type INTEGER & asn1_int32_of_type INTEGER)
+= (INTEGER, u (length_of_asn1_integer value))
 
-#push-options "--query_stats --z3rlimit 64"
-// let bi (): Lemma// (decode_asn1_integer (encode_asn1_integer 1ul) = Some 1ul) = ()
-// ( (decode_asn1_integer (encode_asn1_integer 0ul)) == Some 0ul )
-// = let b = encode_asn1_integer 0ul in
-// reveal_le_to_n (encode_asn1_integer 0ul)
+let synth_asn1_integer_TLV
+  (tag: (the_asn1_type INTEGER & asn1_int32_of_type INTEGER))
+  (value: datatype_of_asn1_type INTEGER { v (snd tag) == length_of_asn1_integer value })
+: GTot (value': refine_with_tag parser_tag_of_asn1_integer tag)
+= value
 
-// assert (Seq.length (encode_asn1_integer 0ul) == 4)
+let synth_asn1_integer_TLV_inverse
+  (tag: (the_asn1_type INTEGER & asn1_int32_of_type INTEGER))
+  (value': refine_with_tag parser_tag_of_asn1_integer tag)
+: GTot (value: datatype_of_asn1_type INTEGER {
+               v (snd tag) == length_of_asn1_integer value /\
+               value' == synth_asn1_integer_TLV tag value })
+= value'
 
-(*)
-let decode_asn1_integer_injective
-  (bs1: bytes{4 <= Seq.length bs /\ Seq.length bs <= 5})
+let parse_asn1_integer_TLV
+= parse_tagged_union
+  (* pt *) (parse_the_asn1_tag INTEGER
+            `nondep_then`
+            parse_asn1_length_of_type INTEGER)
+  (* tg *) (parser_tag_of_asn1_integer)
+  (* p  *) (fun parser_tag -> weak_kind_of_type INTEGER
+                            `weaken`
+                           (parse_asn1_integer (v (snd parser_tag))
+                            `parse_synth`
+                            synth_asn1_integer_TLV parser_tag))
+
+#restart-solver
+#push-options "--query_stats --z3rlimit 32"
+let parse_asn1_integer_TLV_unfold
+  (input: bytes)
+: Lemma (
+  parse parse_asn1_integer_TLV input ==
+ (match parse (parse_the_asn1_tag INTEGER) input with
+  | None -> None
+  | Some (tag, consumed_tag) ->
+    (let input_LV = Seq.slice input consumed_tag (Seq.length input) in
+     match parse (parse_asn1_length_of_type INTEGER) input_LV with
+     | None -> None
+     | Some (len, consumed_len) ->
+     (let input_V = Seq.slice input_LV consumed_len (Seq.length input_LV) in
+      match parse (parse_asn1_integer (v len)) input_V with
+      | None -> None
+      | Some (value, consumed_value) -> Some (value, (consumed_tag + consumed_len + consumed_value <: consumed_length input)))
+  )))
+= nondep_then_eq
+  (* p1 *) (parse_the_asn1_tag INTEGER)
+  (* p2 *) (parse_asn1_length_of_type INTEGER)
+  (* in *) (input);
+
+  let parser_tag = parse (parse_the_asn1_tag INTEGER
+                          `nondep_then`
+                          parse_asn1_length_of_type INTEGER) input in
+  if (Some? parser_tag) then
+  ( let Some (parser_tag, consumed_parser_tag) = parser_tag in
+    parse_synth_eq
+      (* p1 *) (parse_asn1_integer (v (snd parser_tag)))
+      (* f2 *) (synth_asn1_integer_TLV parser_tag)
+      (* in *) (Seq.slice input consumed_parser_tag (Seq.length input)) );
+
+  parse_tagged_union_eq
+  (* pt *) (parse_the_asn1_tag INTEGER
+            `nondep_then`
+            parse_asn1_length_of_type INTEGER)
+  (* tg *) (parser_tag_of_asn1_integer)
+  (* p  *) (fun parser_tag -> weak_kind_of_type INTEGER
+                            `weaken`
+                           (parse_asn1_integer (v (snd parser_tag))
+                            `parse_synth`
+                            synth_asn1_integer_TLV parser_tag))
+  (* in *) (input)
+
+; (*FIXME*) admit()
+#pop-options
+
+#push-options "--query_stats --initial_fuel 4"
+let serialize_asn1_integer_TLV
+: serializer parse_asn1_integer_TLV
+= serialize_tagged_union
+  (* st *) (serialize_the_asn1_tag INTEGER
+            `serialize_nondep_then`
+            serialize_asn1_length_of_type INTEGER)
+  (* tg *) (parser_tag_of_asn1_integer)
+  (* s  *) (fun parser_tag -> weak_kind_of_type INTEGER
+                            `serialize_weaken`
+                           (serialize_synth
+                            (* p1 *) (parse_asn1_integer (v (snd parser_tag)))
+                            (* f2 *) (synth_asn1_integer_TLV parser_tag)
+                            (* s1 *) (serialize_asn1_integer (v (snd parser_tag)))
+                            (* g1 *) (synth_asn1_integer_TLV_inverse parser_tag)
+                            (* prf*) ()))
+#pop-options
+
+#push-options "--query_stats --z3rlimit 32"
+let serialize_asn1_integer_TLV_unfold
+  (value: datatype_of_asn1_type INTEGER)
+: Lemma (
+  serialize serialize_asn1_integer_TLV value ==
+  serialize (serialize_the_asn1_tag INTEGER) INTEGER
+  `Seq.append`
+  serialize (serialize_asn1_length_of_type INTEGER) (u (length_of_asn1_integer value))
+  `Seq.append`
+  serialize (serialize_asn1_integer (length_of_asn1_integer value)) value)
+= serialize_nondep_then_eq
+  (* s1 *) (serialize_the_asn1_tag INTEGER)
+  (* s2 *) (serialize_asn1_length_of_type INTEGER)
+  (* val*) (parser_tag_of_asn1_integer value);
+  serialize_synth_eq
+  (* p1 *) (parse_asn1_integer (length_of_asn1_integer value))
+  (* f2 *) (synth_asn1_integer_TLV (parser_tag_of_asn1_integer value))
+  (* s1 *) (serialize_asn1_integer (length_of_asn1_integer value))
+  (* g1 *) (synth_asn1_integer_TLV_inverse (parser_tag_of_asn1_integer value))
+  (* prf*) ()
+  (* val*) (value);
+  serialize_tagged_union_eq
+  (* st *) (serialize_the_asn1_tag INTEGER
+            `serialize_nondep_then`
+            serialize_asn1_length_of_type INTEGER)
+  (* tg *) (parser_tag_of_asn1_integer)
+  (* s  *) (fun parser_tag -> weak_kind_of_type INTEGER
+                            `serialize_weaken`
+                           (serialize_synth
+                            (* p1 *) (parse_asn1_integer (v (snd parser_tag)))
+                            (* f2 *) (synth_asn1_integer_TLV parser_tag)
+                            (* s1 *) (serialize_asn1_integer (v (snd parser_tag)))
+                            (* g1 *) (synth_asn1_integer_TLV_inverse parser_tag)
+                            (* prf*) ()))
+  (* val*) (value)
+; (*FIXME*) admit ()
+#pop-options

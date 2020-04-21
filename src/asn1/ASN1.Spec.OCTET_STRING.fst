@@ -2,6 +2,7 @@ module ASN1.Spec.OCTET_STRING
 
 open LowParse.Spec.Base
 open LowParse.Spec.Combinators
+// open LowParse.Spec.Bytes
 open LowParse.Spec.SeqBytes.Base
 
 open ASN1.Base
@@ -11,27 +12,27 @@ open ASN1.Spec.Length
 open FStar.Integers
 
 let synth_asn1_octet_string
-  (l: asn1_length_t)
+  (l: asn1_length_of_type OCTET_STRING)
   (ls: lbytes l)
 : GTot (value: datatype_of_asn1_type OCTET_STRING{v (dfst value) == l})
 = (|u l, ls|)
 
 let synth_asn1_octet_string_inverse
-  (l: asn1_length_t)
+  (l: asn1_length_of_type OCTET_STRING)
   (value: datatype_of_asn1_type OCTET_STRING{v (dfst value) == l})
 : GTot (ls: lbytes l{ value == synth_asn1_octet_string l ls })
 = dsnd value
 
-let parse_asn1_octet_string_kind (l: asn1_length_t) = total_constant_size_parser_kind l
+let parse_asn1_octet_string_kind (l: asn1_length_of_type OCTET_STRING) = total_constant_size_parser_kind l
 let parse_asn1_octet_string
-  (l: asn1_length_t)
+  (l: asn1_length_of_type OCTET_STRING)
 : parser (parse_asn1_octet_string_kind l) (x: datatype_of_asn1_type OCTET_STRING{v (dfst x) == l})
 = parse_seq_flbytes l
   `parse_synth`
  synth_asn1_octet_string l
 
 let parse_asn1_octet_string_unfold
-  (l: asn1_length_t)
+  (l: asn1_length_of_type OCTET_STRING)
   (input: bytes)
 : Lemma (
   parse (parse_asn1_octet_string l) input ==
@@ -44,7 +45,7 @@ let parse_asn1_octet_string_unfold
   (* in *) (input)
 
 let serialize_asn1_octet_string
-  (l: asn1_length_t)
+  (l: asn1_length_of_type OCTET_STRING)
 : serializer (parse_asn1_octet_string l)
 = serialize_synth
   (* p1 *) (parse_seq_flbytes l)
@@ -54,7 +55,7 @@ let serialize_asn1_octet_string
   (* Prf*) ()
 
 let serialize_asn1_octet_string_unfold
-  (l: asn1_length_t)
+  (l: asn1_length_of_type OCTET_STRING)
   (value: datatype_of_asn1_type OCTET_STRING{v (dfst value) == l})
 : Lemma (
   serialize (serialize_asn1_octet_string l) value ==
@@ -68,14 +69,14 @@ let serialize_asn1_octet_string_unfold
   (* in *) (value)
 
 let parse_asn1_octet_string_weak
-  (l: asn1_length_t)
+  (l: asn1_length_of_type OCTET_STRING)
 : parser (weak_kind_of_type SEQUENCE) (value: datatype_of_asn1_type OCTET_STRING{v (dfst value) == l})
 = weak_kind_of_type SEQUENCE
   `weaken`
   parse_asn1_octet_string l
 
 let serialize_asn1_octet_string_weak
-  (l: asn1_length_t)
+  (l: asn1_length_of_type OCTET_STRING)
 : serializer (parse_asn1_octet_string_weak l)
 = weak_kind_of_type SEQUENCE
   `serialize_weaken`
@@ -235,7 +236,7 @@ let parse_asn1_octet_string_TLV
   (* p  *) (parse_asn1_octet_string_V)
 
 #restart-solver
-#push-options "--query_stats --z3rlimit 16 --initial_fuel 8"
+#push-options "--query_stats --z3rlimit 32 --initial_ifuel 8"
 let parse_asn1_octet_string_TLV_unfold
   (input: bytes)
 : Lemma (
@@ -264,7 +265,7 @@ let parse_asn1_octet_string_TLV_unfold
            parse_asn1_length_of_type OCTET_STRING) input in
   if (Some? parsed_tag) then
   ( let Some (tag, consumed) = parsed_tag in
-    parse_asn1_octet_string_V_unfold tag input );
+    parse_asn1_octet_string_V_unfold tag (Seq.slice input consumed (Seq.length input)) );
 
   parse_tagged_union_eq
   (* pt *) (parse_the_asn1_tag OCTET_STRING

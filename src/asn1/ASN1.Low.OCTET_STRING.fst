@@ -14,7 +14,7 @@ module B = LowStar.Buffer
 module Cast = FStar.Int.Cast
 
 let serialize32_asn1_octet_string
-  (len: size_t)
+  (len: asn1_int32_of_type OCTET_STRING)
 : Tot (serializer32 (serialize_asn1_octet_string (v len)))
 = fun (value: datatype_of_asn1_type OCTET_STRING { v (dfst value) == v len })
     (#rrel #rel: _)
@@ -32,7 +32,7 @@ let serialize32_asn1_octet_string
 (* retuen *) len
 
 let serialize32_asn1_octet_string_backwards
-  (len: size_t)
+  (len: asn1_int32_of_type OCTET_STRING)
 : Tot (serializer32_backwards (serialize_asn1_octet_string (v len)))
 = fun (value: datatype_of_asn1_type OCTET_STRING { v (dfst value) == v len })
     (#rrel #rel: _)

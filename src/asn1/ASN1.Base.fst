@@ -112,8 +112,6 @@ let weak_kind_of_type
 = let min, max = asn1_length_bound_of_type a in
   LowParse.Spec.Base.strong_parser_kind min max None
 
-(* FStar.Integers does not have `lognot` *)
-
 type oid_t =
 | RIOT_OID
 | ECDSA_WITH_SHA256_OID
