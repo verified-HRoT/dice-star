@@ -55,9 +55,35 @@ let serialize_algorithmIdentifier_value
   (* g1 *) (synth_algorithmIdentifier_t')
   (* prf*) ()
 
+let serialize_algorithmIdentifier_value_unfold
+  (x: algorithmIdentifier_t)
+: Lemma (
+  serialize serialize_algorithmIdentifier_value x ==
+  serialize (serialize_asn1_TLV_of_type OCTET_STRING) x.algorithm_oid
+  `Seq.append`
+  serialize (serialize_asn1_TLV_of_type OCTET_STRING) x.parameters
+)
+= serialize_nondep_then_eq
+  (* s1 *) (serialize_asn1_TLV_of_type OCTET_STRING)
+  (* s2 *) (serialize_asn1_TLV_of_type OCTET_STRING)
+  (* in *) (synth_algorithmIdentifier_t' x);
+  serialize_synth_eq
+  (* p1 *) (parse_asn1_TLV_of_type OCTET_STRING
+            `nondep_then`
+            parse_asn1_TLV_of_type OCTET_STRING)
+  (* f2 *) (synth_algorithmIdentifier_t)
+  (* s1 *) (serialize_asn1_TLV_of_type OCTET_STRING
+            `serialize_nondep_then`
+            serialize_asn1_TLV_of_type OCTET_STRING)
+  (* g1 *) (synth_algorithmIdentifier_t')
+  (* prf*) ()
+  (* in *) x
+
 let algorithmIdentifier_t_valid
 = valid_sequence_value_of serialize_algorithmIdentifier_value
 
+/// TLV
+///
 let parse_algorithmIdentifier_sequence
 : parser _ algorithmIdentifier_t_valid
 = parse_asn1_sequence_TLV serialize_algorithmIdentifier_value
@@ -66,12 +92,24 @@ let serialize_algorithmIdentifier_sequence
 : serializer parse_algorithmIdentifier_sequence
 = serialize_asn1_sequence_TLV serialize_algorithmIdentifier_value
 
+let serialize_algorithmIdentifier_sequence_unfold
+= serialize_asn1_sequence_TLV_unfold serialize_algorithmIdentifier_value
+
+let serialize_algorithmIdentifier_sequence_size
+= serialize_asn1_sequence_TLV_size serialize_algorithmIdentifier_value
+
+/// Low
+///
+#push-options "--query_stats --z3rlimit 16"
 let len_of_algorithmIdentifier_t_inbound
   (x: algorithmIdentifier_t_valid)
 : Tot (valid_sequence_len_of serialize_algorithmIdentifier_value x)
-= admit()
+= serialize_algorithmIdentifier_value_unfold x;
+  len_of_asn1_primitive_TLV_inbound x.algorithm_oid +
+  len_of_asn1_primitive_TLV_inbound x.parameters
+#pop-options
 
-let serialize32_algorithmIdentifier_value
+let serialize32_algorithmIdentifier_value_backwards
 : serializer32_backwards serialize_algorithmIdentifier_value
 = serialize32_synth_backwards
   (* ls *) (serialize32_asn1_TLV_backwards_of_type OCTET_STRING
@@ -84,28 +122,21 @@ let serialize32_algorithmIdentifier_value
 
 let serialize32_algorithmIdentifier_sequence_backwards
 = serialize32_asn1_sequence_TLV_backwards
-  (* ls *) (serialize32_algorithmIdentifier_value)
+  (* ls *) (serialize32_algorithmIdentifier_value_backwards)
   (*flen*) (len_of_algorithmIdentifier_t_inbound)
-
-// let main ()
-// : HST.ST C.exit_code
-//   (requires fun h -> True)
-//   (ensures fun _ _ _ -> True)
-// =
-//   C.EXIT_SUCCESS
 
 /////////////////////////////////
 noeq
 type subjectPublicKeyInfo_t = {
   algorithm       : algorithmIdentifier_t_valid;
-  subjectPublicKey: datatype_of_asn1_type OCTET_STRING  (* BIT STRING *)
+  subjectPublicKey: datatype_of_asn1_type BIT_STRING  (* BIT STRING *)
 }
 
-let subjectPublicKeyInfo_t' = (algorithmIdentifier_t_valid & datatype_of_asn1_type OCTET_STRING)
+let subjectPublicKeyInfo_t' = (algorithmIdentifier_t_valid & datatype_of_asn1_type BIT_STRING)
 
 let synth_subjectPublicKeyInfo_t
   (x': subjectPublicKeyInfo_t')
-: GTot (x: subjectPublicKeyInfo_t)
+: GTot (subjectPublicKeyInfo_t)
 = { algorithm        = fst x';
     subjectPublicKey = snd x' }
 
@@ -119,7 +150,7 @@ let parse_subjectPublicKeyInfo_value
 : parser _ subjectPublicKeyInfo_t
 = parse_algorithmIdentifier_sequence
   `nondep_then`
-  parse_asn1_TLV_of_type OCTET_STRING
+  parse_asn1_TLV_of_type BIT_STRING
   `parse_synth`
   synth_subjectPublicKeyInfo_t
 
@@ -128,17 +159,42 @@ let serialize_subjectPublicKeyInfo_value
 = serialize_synth
   (* p1 *) (parse_algorithmIdentifier_sequence
             `nondep_then`
-            parse_asn1_TLV_of_type OCTET_STRING)
+            parse_asn1_TLV_of_type BIT_STRING)
   (* f2 *) (synth_subjectPublicKeyInfo_t)
   (* s1 *) (serialize_algorithmIdentifier_sequence
             `serialize_nondep_then`
-            serialize_asn1_TLV_of_type OCTET_STRING)
+            serialize_asn1_TLV_of_type BIT_STRING)
   (* g1 *) (synth_subjectPublicKeyInfo_t')
   (* prf*) ()
+
+let serialize_subjectPublicKeyInfo_value_unfold
+  (x: subjectPublicKeyInfo_t)
+: Lemma (
+  serialize serialize_subjectPublicKeyInfo_value x ==
+  serialize serialize_algorithmIdentifier_sequence x.algorithm
+  `Seq.append`
+  serialize serialize_asn1_bit_string_TLV x.subjectPublicKey
+)
+= serialize_nondep_then_eq
+  (* s1 *) (serialize_algorithmIdentifier_sequence)
+  (* s2 *) (serialize_asn1_TLV_of_type BIT_STRING)
+  (* in *) (synth_subjectPublicKeyInfo_t' x);
+  serialize_synth_eq
+  (* p1 *) (parse_algorithmIdentifier_sequence
+            `nondep_then`
+            parse_asn1_TLV_of_type BIT_STRING)
+  (* f2 *) (synth_subjectPublicKeyInfo_t)
+  (* s1 *) (serialize_algorithmIdentifier_sequence
+            `serialize_nondep_then`
+            serialize_asn1_TLV_of_type BIT_STRING)
+  (* g1 *) (synth_subjectPublicKeyInfo_t')
+  (* prf*) ()
+  (* in *) x
 
 let subjectPublicKeyInfo_t_valid
 = valid_sequence_value_of serialize_subjectPublicKeyInfo_value
 
+/// TLV
 let parse_subjectPublicKeyInfo_sequence
 : parser _ subjectPublicKeyInfo_t_valid
 = parse_asn1_sequence_TLV serialize_subjectPublicKeyInfo_value
@@ -147,21 +203,28 @@ let serialize_subjectPublicKeyInfo_sequence
 : serializer parse_subjectPublicKeyInfo_sequence
 = serialize_asn1_sequence_TLV serialize_subjectPublicKeyInfo_value
 
+/// Low
 let serialize32_subjectPublicKeyInfo_value
 : serializer32_backwards serialize_subjectPublicKeyInfo_value
 = serialize32_synth_backwards
   (* ls *) (serialize32_algorithmIdentifier_sequence_backwards
             `serialize32_nondep_then_backwards`
-            serialize32_asn1_TLV_backwards_of_type OCTET_STRING)
+            serialize32_asn1_TLV_backwards_of_type BIT_STRING)
   (* f2 *) (synth_subjectPublicKeyInfo_t)
   (* g1 *) (synth_subjectPublicKeyInfo_t')
   (* g1'*) (synth_subjectPublicKeyInfo_t')
   (* prf*) ()
 
+(* TODO: Finish the inbound and unbounded length spec/impl for SEQUENCE TLV
+#push-options "--z3rlimit 32"
 let len_of_subjectPublicKeyInfo_t_inbound
   (x: subjectPublicKeyInfo_t_valid)
 : Tot (valid_sequence_len_of serialize_subjectPublicKeyInfo_value x)
-= admit()
+= serialize_subjectPublicKeyInfo_value_unfold x;
+  serialize_algorithmIdentifier_sequence_size x.algorithm;
+  len_of_algorithmIdentifier_t_inbound x.algorithm +
+  len_of_asn1_primitive_TLV_inbound    x.subjectPublicKey
+#pop-options
 
 let serialize32_subjectPublicKeyInfo_sequence
 : serializer32_backwards serialize_subjectPublicKeyInfo_sequence
@@ -170,6 +233,8 @@ let serialize32_subjectPublicKeyInfo_sequence
   (*flen*) (len_of_subjectPublicKeyInfo_t_inbound)
 
 /////////////////////////////////
+(* TODO: Migrate the following definition using new primitives, interfaces and lemmas
+
 noeq
 type fwid_t = {
   hashAlg: datatype_of_asn1_type OCTET_STRING; (* OID *)
@@ -243,14 +308,12 @@ let serialize32_fwid_sequence
   (*flen*) (len_of_fwid_t_inbound)
 
 //////////////////////////////////
-// #push-options "--lax"
 noeq
 type compositeDeviceID_t = {
   version : datatype_of_asn1_type OCTET_STRING; (* INTEGER (1) *)
-  deviceID: subjectPublicKeyInfo_t_valid; (* FIXME: F* got stuck here *)
+  deviceID: subjectPublicKeyInfo_t_valid;
   fwid    : fwid_t_valid
 }
-// #pop-options
 let compositeDeviceID_t' = ((datatype_of_asn1_type OCTET_STRING & subjectPublicKeyInfo_t_valid) & fwid_t_valid)
 
 let synth_compositeDeviceID_t
@@ -328,14 +391,12 @@ let serialize32_compositeDeviceID_sequence
   (*flen*) (len_of_compositeDeviceID_t_inbound)
 
 /////////////////////////////////////
-#push-options "--lax" (* FIXME *)
 noeq
 type ext_t = {
   riot_oid         : datatype_of_asn1_type OCTET_STRING;
   (* NOTE: ENVELOPING OCTETSTRING? *)
   compositeDeviceID: compositeDeviceID_t_valid;
 }
-#pop-options
 let ext_t' = (datatype_of_asn1_type OCTET_STRING & compositeDeviceID_t_valid)
 
 let synth_ext_t

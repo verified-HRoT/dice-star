@@ -1,4 +1,7 @@
 *.fst.checked.lax
 *.fsti.checked.lax
 *.krml
+obj
+.depend
 docs
+*.hints

@@ -121,7 +121,7 @@ let get_riot_out_loc_l rout = [
 #reset-options "--z3rlimit 50"
 #push-options "--query_stats"
 let riot_main
-  (st: state)
+  (st: HW.state)
   (fwid: B.buffer uint8{B.length fwid == v digest_len})
   (rout:riot_out_t)
 : HST.Stack unit

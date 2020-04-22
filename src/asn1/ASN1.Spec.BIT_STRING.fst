@@ -32,6 +32,7 @@ module B32 = FStar.Bytes
 
 // let (.[]) = B32.index
 
+noextract
 let filter_asn1_bit_string
   (l: asn1_length_of_type BIT_STRING)
   (raw: lbytes l)
@@ -44,6 +45,7 @@ let filter_asn1_bit_string
     0uy <= unused_bits && unused_bits <= 7uy &&
     0 = normalize_term ((v raw.[l - 1]) % mask) )
 
+noextract
 let synth_asn1_bit_string
   (l: asn1_length_of_type BIT_STRING)
   (raw: parse_filter_refine (filter_asn1_bit_string l))
@@ -54,21 +56,8 @@ let synth_asn1_bit_string
   let s32 = B32.hide (Seq.slice raw 1 l) in
   (|u l, unused_bits, s32|)
 
-// let unused_bits = ls.[0] in
-//   let s = Seq.slice ls 1 l in
-//   if l = 1 then
-//   ( assert_norm ( v unused_bits == 0 )
-//   ; let bits: n:uint_32{v n == 0} = normalize_term (u ((l - 1) * 8 - (v unused_bits))) in
-//     (|bits, s|) )
-//   else
-//   ( assert_norm ( v unused_bits <= 7 )
-//   ; let bits: n:uint_32 {
-//         0 <= v n /\
-//         v n <= normalize_term (u ((asn1_length_max - 1) * 8))
-//     } = normalize_term (u ((l - 1) * 8 - (v unused_bits))) in
-//     (|bits, s|) )
-
 #push-options "--query_stats --z3rlimit 16"
+noextract
 let synth_asn1_bit_string_injective'
   (l: asn1_length_of_type BIT_STRING)
   (raw1 raw2: parse_filter_refine (filter_asn1_bit_string l))
@@ -78,34 +67,9 @@ let synth_asn1_bit_string_injective'
 = Seq.lemma_split raw1 1;
   Seq.lemma_split raw2 1;
   assert (raw1 `Seq.equal` raw2)
-  // let unused_bits1 = raw1.[0] in
-  // let unused_bits2 = raw2.[0] in
-  // let s1 = Seq.slice raw1 1 l in
-  // let s2 = Seq.slice raw2 1 l in
-  // assert ( unused_bits1 == unused_bits2 /\
-  //          s1 `Seq.equal` s2 /\
-  //          (unused_bits1 `Seq.cons` s1) `Seq.equal` raw1 /\
-  //          (unused_bits2 `Seq.cons` s2) `Seq.equal` raw2 );
-  // assert_norm ((unused_bits1 `Seq.cons` s1) `Seq.equal` raw1);
-  // assert_norm ((unused_bits2 `Seq.cons` s2) `Seq.equal` raw2);
-  // if l = 1 then
-  // ( assert_norm (unused_bits1 == unused_bits2) )
-
-  // ( let bits1: n:nat {
-  //       0 <= n /\
-  //       n <= normalize_term ((asn1_length_max - 1) * 8)
-  //   } = normalize_term ((l - 1) * 8 - (v unused_bits1)) in
-  //   let bits2: n:nat {
-  //       0 <= n /\
-  //       n <= normalize_term ((asn1_length_max - 1) * 8)
-  //   } = normalize_term ((l - 1) * 8 - (v unused_bits2)) in
-  //   assert_norm (bits1 == bits2)
-  // ; assert_norm (unused_bits1 == unused_bits2)
-  // ; assert_norm (s1 `Seq.equal` s2)
-  // ; assert_norm ((unused_bits1 `Seq.cons` s1) `Seq.equal` raw1)
-  // ; assert_norm ((unused_bits2 `Seq.cons` s2) `Seq.equal` raw2) )
 #pop-options
 
+noextract
 let synth_asn1_bit_string_injective
   (l: asn1_length_of_type BIT_STRING)
 : Lemma (
@@ -115,6 +79,7 @@ let synth_asn1_bit_string_injective
   (* f *) (synth_asn1_bit_string l)
   (*prf*) (synth_asn1_bit_string_injective' l)
 
+noextract
 let synth_asn1_bit_string_inverse
   (l: asn1_length_of_type BIT_STRING)
   (value: datatype_of_asn1_type BIT_STRING {
@@ -127,7 +92,10 @@ let synth_asn1_bit_string_inverse
   B32.extensionality s32 s32';
   raw
 
+noextract
 let parse_asn1_bit_string_kind (l: asn1_length_of_type BIT_STRING) = constant_size_parser_kind l
+
+noextract
 let parse_asn1_bit_string
   (l: asn1_length_of_type BIT_STRING)
 : parser (parse_asn1_bit_string_kind l)
@@ -141,6 +109,7 @@ let parse_asn1_bit_string
   `parse_synth`
   synth_asn1_bit_string l
 
+noextract
 let parse_asn1_bit_string_unfold
   (l: asn1_length_of_type BIT_STRING)
   (input: bytes)
@@ -167,6 +136,7 @@ let parse_asn1_bit_string_unfold
   (* f *) (synth_asn1_bit_string l)
   (* in*) (input)
 
+noextract
 let serialize_asn1_bit_string
   (l: asn1_length_of_type BIT_STRING)
 : serializer (parse_asn1_bit_string l)
@@ -181,6 +151,7 @@ let serialize_asn1_bit_string
   (* g1 *) (synth_asn1_bit_string_inverse l)
   (* prf*) (synth_asn1_bit_string_injective l)
 
+noextract
 let serialize_asn1_bit_string_unfold
   (l: asn1_length_of_type BIT_STRING)
   (value: datatype_of_asn1_type BIT_STRING {
@@ -201,31 +172,109 @@ let serialize_asn1_bit_string_unfold
   (* prf*) (synth_asn1_bit_string_injective l)
   (* val*) (value)
 
+noextract
+let serialize_asn1_bit_string_size
+  (l: asn1_length_of_type BIT_STRING)
+  (value: datatype_of_asn1_type BIT_STRING {
+                 let (|len, unused_bits, s|) = value in
+                 l == v len })
+: Lemma (
+  Seq.length (serialize (serialize_asn1_bit_string l) value) == l)
+= parser_kind_prop_equiv (parse_asn1_bit_string_kind l) (parse_asn1_bit_string l);
+  serialize_asn1_bit_string_unfold l value
 
-////////// TLV //////////
+////////// V //////////
+(* NOTE: Have this aux parser explicitly defined will make the proofs simpler *)
+noextract
 let parser_tag_of_bit_string
   (x: datatype_of_asn1_type BIT_STRING)
 : GTot (the_asn1_type BIT_STRING & asn1_int32_of_type BIT_STRING)
 = let (|len, unused_bits, s32|) = x in
   (BIT_STRING, len)
 
-let synth_asn1_bit_string_TLV
+noextract
+let synth_asn1_bit_string_V
   (tag: (the_asn1_type BIT_STRING & asn1_int32_of_type BIT_STRING))
   (value: datatype_of_asn1_type BIT_STRING {
                  let (|len, unused_bits, s|) = value in
                  v (snd tag) == v len })
-: GTot (value': refine_with_tag parser_tag_of_bit_string tag)
+: GTot (refine_with_tag parser_tag_of_bit_string tag)
 = value
 
-let synth_asn1_bit_string_TLV_inverse
+noextract
+let synth_asn1_bit_string_V_inverse
   (tag: (the_asn1_type BIT_STRING & asn1_int32_of_type BIT_STRING))
   (value': refine_with_tag parser_tag_of_bit_string tag)
 : GTot (value: datatype_of_asn1_type BIT_STRING {
                  let (|len, unused_bits, s|) = value in
                  v (snd tag) == v len /\
-                 value' == synth_asn1_bit_string_TLV tag value})
+                 value' == synth_asn1_bit_string_V tag value })
 = value'
 
+noextract
+let parse_asn1_bit_string_V
+  (tag: (the_asn1_type BIT_STRING & asn1_int32_of_type BIT_STRING))
+: parser (weak_kind_of_type BIT_STRING) (refine_with_tag parser_tag_of_bit_string tag)
+= (weak_kind_of_type BIT_STRING
+   `weaken`
+   parse_asn1_bit_string (v (snd tag)))
+   `parse_synth`
+   synth_asn1_bit_string_V tag
+
+noextract
+let parse_asn1_bit_string_V_unfold
+  (tag: (the_asn1_type BIT_STRING & asn1_int32_of_type BIT_STRING))
+  (input: bytes)
+: Lemma (
+  parse (parse_asn1_bit_string_V tag) input ==
+ (match parse (parse_asn1_bit_string (v (snd tag))) input with
+  | None -> None
+  | Some (value, consumed) ->  Some (synth_asn1_bit_string_V tag value, consumed)))
+= parse_synth_eq
+  (* p1 *) (weak_kind_of_type BIT_STRING
+            `weaken`
+            parse_asn1_bit_string (v (snd tag)))
+  (* f2 *) (synth_asn1_bit_string_V tag)
+  (* in *) input
+
+noextract
+let serialize_asn1_bit_string_V
+  (tag: (the_asn1_type BIT_STRING & asn1_int32_of_type BIT_STRING))
+: serializer (parse_asn1_bit_string_V tag)
+= serialize_synth
+  (* p1 *) (weak_kind_of_type BIT_STRING
+            `weaken`
+            parse_asn1_bit_string (v (snd tag)))
+  (* f2 *) (synth_asn1_bit_string_V tag)
+  (* s1 *) (weak_kind_of_type BIT_STRING
+            `serialize_weaken`
+            serialize_asn1_bit_string (v (snd tag)))
+  (* g1 *) (synth_asn1_bit_string_V_inverse tag)
+  (* prf*) ()
+
+noextract
+let serialize_asn1_bit_string_V_unfold
+  (tag: (the_asn1_type BIT_STRING & asn1_int32_of_type BIT_STRING))
+  (value: refine_with_tag parser_tag_of_bit_string tag)
+: Lemma (
+  serialize (serialize_asn1_bit_string_V tag) value ==
+  serialize (serialize_asn1_bit_string (v (snd tag))) value
+)
+= serialize_synth_eq
+  (* p1 *) (weak_kind_of_type BIT_STRING
+            `weaken`
+            parse_asn1_bit_string (v (snd tag)))
+  (* f2 *) (synth_asn1_bit_string_V tag)
+  (* s1 *) (weak_kind_of_type BIT_STRING
+            `serialize_weaken`
+            serialize_asn1_bit_string (v (snd tag)))
+  (* g1 *) (synth_asn1_bit_string_V_inverse tag)
+  (* prf*) ()
+  (* in *) (value)
+
+/////////////////////////////////////////////////////
+
+noextract
 let parse_asn1_bit_string_TLV_kind
 : parser_kind
 = parse_asn1_tag_kind
@@ -234,25 +283,24 @@ let parse_asn1_bit_string_TLV_kind
   `and_then_kind`
   weak_kind_of_type BIT_STRING
 
+noextract
 let parse_asn1_bit_string_TLV
 : parser parse_asn1_bit_string_TLV_kind (datatype_of_asn1_type BIT_STRING)
 = parse_tagged_union
-  (* pt *) (parse_the_asn1_tag BIT_STRING
+  (* pt *) (parse_asn1_tag_of_type BIT_STRING
             `nondep_then`
             parse_asn1_length_of_type BIT_STRING)
   (* tg *) (parser_tag_of_bit_string)
-  (* p  *) (fun parser_tag -> weak_kind_of_type BIT_STRING
-                            `weaken`
-                           (parse_asn1_bit_string (v (snd parser_tag))
-                            `parse_synth`
-                            synth_asn1_bit_string_TLV parser_tag))
+  (* p  *) (parse_asn1_bit_string_V)
 
+#restart-solver
 #push-options "--query_stats --z3rlimit 32"
+noextract
 let parse_asn1_bit_string_TLV_unfold
   (input: bytes)
 : Lemma (
   parse parse_asn1_bit_string_TLV input ==
- (match parse (parse_the_asn1_tag BIT_STRING) input with
+ (match parse (parse_asn1_tag_of_type BIT_STRING) input with
   | None -> None
   | Some (tag, consumed_tag) ->
     (let input_LV = Seq.slice input consumed_tag (Seq.length input) in
@@ -263,91 +311,85 @@ let parse_asn1_bit_string_TLV_unfold
         match parse (parse_asn1_bit_string (v len)) input_V with
         | None -> None
         | Some (value, consumed_value) ->
-               Some ((synth_asn1_bit_string_TLV (tag, len) value),
+               Some ((synth_asn1_bit_string_V (tag, len) value),
                      (consumed_tag + consumed_len + consumed_value <: consumed_length input)))))
 )
-= parser_kind_prop_equiv (get_parser_kind (parse_the_asn1_tag BIT_STRING)) (parse_the_asn1_tag BIT_STRING);
+= parser_kind_prop_equiv (get_parser_kind (parse_asn1_tag_of_type BIT_STRING)) (parse_asn1_tag_of_type BIT_STRING);
   parser_kind_prop_equiv (get_parser_kind (parse_asn1_length_of_type BIT_STRING)) (parse_asn1_length_of_type BIT_STRING);
 
   nondep_then_eq
-  (* p1 *) (parse_the_asn1_tag BIT_STRING)
+  (* p1 *) (parse_asn1_tag_of_type BIT_STRING)
   (* p2 *) (parse_asn1_length_of_type BIT_STRING)
   (* in *) (input);
 
-  let parser_tag = (parse_the_asn1_tag BIT_STRING
+  let parser_tag = (parse_asn1_tag_of_type BIT_STRING
                     `nondep_then`
                     parse_asn1_length_of_type BIT_STRING) input in
   if Some? parser_tag then
   ( let Some (parser_tag, length) = parser_tag in
-    parser_kind_prop_equiv (get_parser_kind (parse_asn1_bit_string length)) (parse_asn1_bit_string length);
-    parse_synth_eq
-    (* p *) (parse_asn1_bit_string (v (snd parser_tag)))
-    (* f *) (synth_asn1_bit_string_TLV parser_tag)
-    (* in*) (Seq.slice input length (Seq.length input)) );
+    parse_asn1_bit_string_V_unfold parser_tag (Seq.slice input length (Seq.length input)) );
 
   parse_tagged_union_eq
-  (* pt *) (parse_the_asn1_tag BIT_STRING
+  (* pt *) (parse_asn1_tag_of_type BIT_STRING
             `nondep_then`
             parse_asn1_length_of_type BIT_STRING)
   (* tg *) (parser_tag_of_bit_string)
-  (* p  *) (fun parser_tag -> weak_kind_of_type BIT_STRING
-                            `weaken`
-                           (parse_asn1_bit_string (v (snd parser_tag))
-                            `parse_synth`
-                            synth_asn1_bit_string_TLV parser_tag))
-  (* in *) (input);
-
-(*FIXME:*) admit()
+  (* p  *) (parse_asn1_bit_string_V)
+  (* in *) (input)
 #pop-options
 
 #push-options "--query_stats --initial_fuel 4"
+noextract
 let serialize_asn1_bit_string_TLV
 : serializer parse_asn1_bit_string_TLV
 = serialize_tagged_union
-  (* st *) (serialize_the_asn1_tag BIT_STRING
+  (* st *) (serialize_asn1_tag_of_type BIT_STRING
             `serialize_nondep_then`
             serialize_asn1_length_of_type BIT_STRING)
   (* tg *) (parser_tag_of_bit_string)
-  (* s  *) (fun parser_tag -> weak_kind_of_type BIT_STRING
-                            `serialize_weaken`
-                           (serialize_synth
-                            (* p1 *) (parse_asn1_bit_string (v (snd parser_tag)))
-                            (* f2 *) (synth_asn1_bit_string_TLV parser_tag)
-                            (* s1 *) (serialize_asn1_bit_string (v (snd parser_tag)))
-                            (* g1 *) (synth_asn1_bit_string_TLV_inverse parser_tag)
-                            (* prf*) ()))
+  (* s  *) (serialize_asn1_bit_string_V)
 #pop-options
 
-(*)
+
 #push-options "--query_stats --z3rlimit 32"
+noextract
 let serialize_asn1_bit_string_TLV_unfold
   (value: datatype_of_asn1_type BIT_STRING)
 : Lemma (
+  let (|len, unused_bits, s32|) = value in
   serialize serialize_asn1_bit_string_TLV value ==
-  serialize (serialize_the_asn1_tag BIT_STRING) BIT_STRING
+  serialize (serialize_asn1_tag_of_type BIT_STRING) BIT_STRING
   `Seq.append`
-  serialize (serialize_asn1_length_of_type BIT_STRING) (dfst value)
+  serialize (serialize_asn1_length_of_type BIT_STRING) len
   `Seq.append`
-  serialize (serialize_asn1_bit_string (v (dfst value))) value
+  serialize (serialize_asn1_bit_string (v len)) value
 )
 = serialize_nondep_then_eq
-  (* s1 *) (serialize_the_asn1_tag BIT_STRING)
+  (* s1 *) (serialize_asn1_tag_of_type BIT_STRING)
   (* s2 *) (serialize_asn1_length_of_type BIT_STRING)
   (* in *) (parser_tag_of_bit_string value);
-  serialize_asn1_bit_string_unfold (parser_tag_of_bit_string value) value;
+  serialize_asn1_bit_string_V_unfold (parser_tag_of_bit_string value) value;
   serialize_tagged_union_eq
-  (* st *) (serialize_the_asn1_tag BIT_STRING
+  (* st *) (serialize_asn1_tag_of_type BIT_STRING
             `serialize_nondep_then`
             serialize_asn1_length_of_type BIT_STRING)
   (* tg *) (parser_tag_of_bit_string)
-  (* s  *) (fun parser_tag -> weak_kind_of_type BIT_STRING
-                            `serialize_weaken`
-                           (serialize_synth
-                            (* p1 *) (parse_asn1_bit_string (v (snd parser_tag)))
-                            (* f2 *) (synth_asn1_bit_string_TLV parser_tag)
-                            (* s1 *) (serialize_asn1_bit_string (v (snd parser_tag)))
-                            (* g1 *) (synth_asn1_bit_string_TLV_inverse parser_tag)
-                            (* prf*) ()))
+  (* s  *) (serialize_asn1_bit_string_V)
   (* in *) (value)
 #pop-options
 
+#push-options "--query_stats --z3rlimit 16"
+noextract
+let serialize_asn1_bit_string_TLV_size
+  (value: datatype_of_asn1_type BIT_STRING)
+: Lemma (
+  let (|len, unused_bits, s32|) = value in
+  Seq.length (serialize serialize_asn1_bit_string_TLV value) ==
+  1 + length_of_asn1_length len + v len)
+= let (|len, unused_bits, s32|) = value in
+  serialize_asn1_bit_string_TLV_unfold value;
+  serialize_asn1_tag_of_type_size BIT_STRING BIT_STRING;
+  serialize_asn1_length_size len;
+  serialize_asn1_length_of_type_eq BIT_STRING len;
+  serialize_asn1_bit_string_size (v len) value
+#pop-options

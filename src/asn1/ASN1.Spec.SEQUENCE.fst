@@ -11,23 +11,26 @@ open FStar.Integers
 /// ASN.1 SEQUENCE Tag-Length parser/serializer
 ///
 ///
+noextract
 let parse_asn1_sequence_TL_kind
 : parser_kind
 = parse_asn1_tag_kind
   `and_then_kind`
   parse_asn1_length_kind_of_type SEQUENCE
 
+noextract
 let parse_asn1_sequence_TL
 : parser parse_asn1_sequence_TL_kind (the_asn1_type SEQUENCE & asn1_int32_of_type SEQUENCE)
-= parse_the_asn1_tag SEQUENCE
+= parse_asn1_tag_of_type SEQUENCE
   `nondep_then`
   parse_asn1_length_of_type SEQUENCE
 
+noextract
 let parse_asn1_sequence_TL_unfold
   (input: bytes)
 : Lemma (
   parse parse_asn1_sequence_TL input ==
- (match parse (parse_the_asn1_tag SEQUENCE) input with
+ (match parse (parse_asn1_tag_of_type SEQUENCE) input with
   | None -> None
   | Some (SEQUENCE, consumed_tag) ->
       (let input_len = Seq.slice input consumed_tag (Seq.length input) in
@@ -35,31 +38,33 @@ let parse_asn1_sequence_TL_unfold
        | None -> None
        | Some (len, consumed_len) -> Some ((SEQUENCE, len), (consumed_tag + consumed_len <: consumed_length input)))))
 = nondep_then_eq
-  (* p1 *) (parse_the_asn1_tag SEQUENCE)
+  (* p1 *) (parse_asn1_tag_of_type SEQUENCE)
   (* p2 *) (parse_asn1_length_of_type SEQUENCE)
   (* in *) (input)
 
+noextract
 let serialize_asn1_sequence_TL
 : serializer parse_asn1_sequence_TL
-= serialize_the_asn1_tag SEQUENCE
+= serialize_asn1_tag_of_type SEQUENCE
   `serialize_nondep_then`
   serialize_asn1_length
 
+noextract
 let serialize_asn1_sequence_TL_unfold
   (tl: (the_asn1_type SEQUENCE & asn1_int32_of_type SEQUENCE))
 : Lemma (
   serialize serialize_asn1_sequence_TL tl ==
-  serialize (serialize_the_asn1_tag SEQUENCE) (fst tl)
+  serialize (serialize_asn1_tag_of_type SEQUENCE) (fst tl)
   `Seq.append`
   serialize (serialize_asn1_length_of_type SEQUENCE) (snd tl))
 = serialize_nondep_then_eq
-  (* s1 *) (serialize_the_asn1_tag SEQUENCE)
+  (* s1 *) (serialize_asn1_tag_of_type SEQUENCE)
   (* s2 *) (serialize_asn1_length_of_type SEQUENCE)
   (* val*) (tl)
 
 /// Tagging function
 ///
-///
+noextract
 let parser_tag_of_asn1_sequence
   (#k: parser_kind)
   (#t: Type0)
@@ -69,6 +74,7 @@ let parser_tag_of_asn1_sequence
 : GTot (the_asn1_type SEQUENCE & asn1_int32_of_type SEQUENCE)
 = (SEQUENCE, u (Seq.length (serialize s data)))
 
+noextract
 let synth_asn1_sequence_value
   (#k: parser_kind)
   (#t: Type0)
@@ -79,6 +85,7 @@ let synth_asn1_sequence_value
 : GTot (data: refine_with_tag (parser_tag_of_asn1_sequence s) tag)
 = y <: refine_with_tag (parser_tag_of_asn1_sequence s) tag
 
+noextract
 let synth_asn1_sequence_value_inverse
   (#k: parser_kind)
   (#t: Type0)
@@ -91,7 +98,7 @@ let synth_asn1_sequence_value_inverse
 
 /// ASN.1 SEQUENCE value parser/serializer
 ///
-///
+noextract
 let parse_asn1_sequence_value
   (#k: parser_kind)
   (#t: Type0)
@@ -104,6 +111,7 @@ let parse_asn1_sequence_value
   `parse_synth`
   synth_asn1_sequence_value s tag
 
+noextract
 let parse_asn1_sequence_value_unfold
   (#k: parser_kind)
   (#t: Type0)
@@ -121,6 +129,7 @@ let parse_asn1_sequence_value_unfold
   (* f2 *) (synth_asn1_sequence_value s tag)
   (* in *) (input)
 
+noextract
 let parse_asn1_sequence_value_weak
   (#k: parser_kind)
   (#t: Type0)
@@ -132,6 +141,7 @@ let parse_asn1_sequence_value_weak
   `weaken`
   parse_asn1_sequence_value s tag
 
+noextract
 let serialize_asn1_sequence_value
   (#k: parser_kind)
   (#t: Type0)
@@ -147,6 +157,7 @@ let serialize_asn1_sequence_value
   (* g1 *) (synth_asn1_sequence_value_inverse s tag)
   (* prf*) ()
 
+noextract
 let serialize_asn1_sequence_value_unfold
   (#k: parser_kind)
   (#t: Type0)
@@ -169,6 +180,7 @@ let serialize_asn1_sequence_value_unfold
   (* prf*) ()
   (* val*) (value)
 
+noextract
 let serialize_asn1_sequence_value_weak
   (#k: parser_kind)
   (#t: Type0)
@@ -184,6 +196,7 @@ let serialize_asn1_sequence_value_weak
 ///
 ///
 
+noextract
 let parse_asn1_sequence_TLV
   (#k: parser_kind)
   (#t: Type0)
@@ -196,6 +209,7 @@ let parse_asn1_sequence_TLV
   (* p  *) (parse_asn1_sequence_value_weak s)
 
 #push-options "--query_stats --z3rlimit 16"
+noextract
 let parse_asn1_sequence_TLV_unfold
   (#k: parser_kind)
   (#t: Type0)
@@ -220,6 +234,7 @@ let parse_asn1_sequence_TLV_unfold
   (* in *) (input)
 #pop-options
 
+noextract
 let serialize_asn1_sequence_TLV
   (#k: parser_kind)
   (#t: Type0)
@@ -232,6 +247,7 @@ let serialize_asn1_sequence_TLV
   (* s  *) (serialize_asn1_sequence_value_weak s)
 
 #push-options "--query_stats"
+noextract
 let serialize_asn1_sequence_TLV_unfold
   (#k: parser_kind)
   (#t: Type0)
@@ -245,7 +261,7 @@ let serialize_asn1_sequence_TLV_unfold
   serialize (serialize_asn1_sequence_value s (parser_tag_of_asn1_sequence s value)) value
   /\
   serialize (serialize_asn1_sequence_TLV s) value ==
-  serialize (serialize_the_asn1_tag SEQUENCE) SEQUENCE
+  serialize (serialize_asn1_tag_of_type SEQUENCE) SEQUENCE
   `Seq.append`
   serialize (serialize_asn1_length_of_type SEQUENCE) (u (Seq.length (serialize (serialize_asn1_sequence_value s (parser_tag_of_asn1_sequence s value)) value)))
   `Seq.append`
@@ -257,4 +273,25 @@ let serialize_asn1_sequence_TLV_unfold
   (* tg *) (parser_tag_of_asn1_sequence s)
   (* s  *) (serialize_asn1_sequence_value_weak s)
   (* val*) (value)
+
+#push-options "--query_stats --z3rlimit 16"
+noextract
+let serialize_asn1_sequence_TLV_size
+  (#k: parser_kind)
+  (#t: Type0)
+  (#p: parser k t)
+  (s: serializer p)
+  (value: t{ asn1_length_inbound_of_type SEQUENCE (Seq.length (serialize s value)) })
+: Lemma (
+  let length: asn1_length_of_type SEQUENCE = Seq.length (serialize s value) in
+  let len: asn1_int32_of_type SEQUENCE = u length in
+  Seq.length (serialize (serialize_asn1_sequence_TLV s) value) ==
+  1 + length_of_asn1_length len + length)
+= let length: asn1_length_of_type SEQUENCE = Seq.length (serialize s value) in
+  let len: asn1_int32_of_type SEQUENCE = u length in
+  serialize_asn1_sequence_TLV_unfold s value;
+  serialize_asn1_tag_of_type_size SEQUENCE SEQUENCE;
+  serialize_asn1_length_size len;
+  serialize_asn1_length_of_type_eq SEQUENCE len
+#pop-options
 

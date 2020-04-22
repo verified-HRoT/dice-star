@@ -17,6 +17,7 @@ module HST = FStar.HyperStack.ST
 module B = LowStar.Buffer
 open FStar.Integers
 
+inline_for_extraction
 let serialize32_fldata_strong_backwards
   (#k: parser_kind)
   (#t: Type0)
@@ -28,6 +29,7 @@ let serialize32_fldata_strong_backwards
 = fun (x: parse_fldata_strong_t s (v len))
 -> ls x
 
+inline_for_extraction
 let parser_tag_of_asn1_sequence_impl
   (#k: parser_kind)
   (#t: Type0)
@@ -40,6 +42,7 @@ let parser_tag_of_asn1_sequence_impl
 : Tot (tag: (the_asn1_type SEQUENCE & asn1_int32_of_type SEQUENCE) { tag == parser_tag_of_asn1_sequence s data })
 = (SEQUENCE, len_of_data data)
 
+inline_for_extraction
 let synth_asn1_sequence_value_inverse_impl
   (#k: parser_kind)
   (#t: Type0)
@@ -50,6 +53,7 @@ let synth_asn1_sequence_value_inverse_impl
 : Tot (y: parse_fldata_strong_t s (v (snd tag)){ y == synth_asn1_sequence_value_inverse s tag data })
 = data <: refine_with_tag (parser_tag_of_asn1_sequence s) tag
 
+inline_for_extraction
 let serialize32_asn1_sequence_TLV_backwards
   (#k: parser_kind)
   (#t: Type0)
@@ -61,7 +65,7 @@ let serialize32_asn1_sequence_TLV_backwards
     -> Tot (len: asn1_int32_of_type SEQUENCE { v len == Seq.length (serialize s data) }))
 : Tot (serializer32_backwards (serialize_asn1_sequence_TLV s))
 = serialize32_tagged_union_backwards
-  (* lst *) (serialize32_the_asn1_tag_backwards SEQUENCE
+  (* lst *) (serialize32_asn1_tag_of_type_backwards SEQUENCE
              `serialize32_nondep_then_backwards`
              serialize32_asn1_length_of_type_backwards SEQUENCE)
   (* tag *) (parser_tag_of_asn1_sequence_impl s len_of_data)

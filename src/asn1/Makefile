@@ -8,14 +8,18 @@ FSTAR_INCLUDES=$(FSTAR_HOME)/ulib/.cache \
   $(KREMLIN_HOME)/include \
   $(KREMLIN_HOME)/kremlib/dist/generic \
   $(KREMLIN_HOME)/kremlib \
+  $(HACL_HOME)/lib \
   $(EVERPARSE_HOME)/src/lowparse \
   $(OUTPUT_DIR)
 
 FSTAR_FLAGS=--cache_checked_modules \
   $(addprefix --include ,$(FSTAR_INCLUDES)) \
+	--cache_checked_modules \
   --odir $(OUTPUT_DIR) \
   --cache_dir $(OUTPUT_DIR) \
-  --already_cached 'Prims FStar LowStar C LowParse Spec'
+  --use_hints \
+  --record_hints \
+  --already_cached 'Prims FStar LowStar C LowParse Spec Lib'
 
 FSTAR=$(FSTAR_HOME)/bin/fstar.exe $(FSTAR_FLAGS) $(OTHERFLAGS)
 
@@ -47,9 +51,8 @@ extract-all: $(ALL_KRML_FILES)
 
 KREMLIN_FLAGS = \
   -no-prefix 'RIoT.Test' \
-  -drop Lib.IntVector.Intrinsics \
   -fparentheses -fno-shadow -fcurly-braces \
-  -bundle Prims,C.Failure,C,C.*,FStar.*,LowStar.* \
+  -bundle Prims,C.Failure,C,C.*,FStar.*,LowStar.*,Lib.* \
   -minimal \
   -fnoreturn-else \
   -add-include '"kremlin/internal/types.h"' \

@@ -51,10 +51,10 @@ unfold let cdi_len = digest_len
 unfold type signature_t = B.lbuffer I.uint8 64
 unfold type key_t = B.lbuffer I.uint8 32
 
-noeq
-type ext_t = {
-   // riot_oid: ;
-}
+// noeq
+// type ext_t = {
+//    riot_oid: 
+// }
 
 (* ZT: will revise them *)
 noeq

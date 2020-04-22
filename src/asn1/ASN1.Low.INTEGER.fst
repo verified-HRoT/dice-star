@@ -9,12 +9,15 @@ open FStar.Integers
 
 module HS = FStar.HyperStack
 module HST = FStar.HyperStack.ST
+
 module MB = LowStar.Monotonic.Buffer
 module B = LowStar.Buffer
 module Cast = FStar.Int.Cast
 module E = LowParse.Endianness
 module LE = LowParse.Low.Endianness
 
+(* FIXME: Failed when compiling. *)
+inline_for_extraction
 let len_of_asn1_integer
   (value: datatype_of_asn1_type INTEGER)
 : Tot (len: asn1_int32_of_type INTEGER { v len == length_of_asn1_integer value } )
@@ -37,11 +40,9 @@ let len_of_asn1_integer
 NOTE: Since there are no low-level machine-integer to bytes implementations
       available, the (big-endian) serialization of integers are tricky. For
       1-byte, 2-byte and 4-byte integers, we could use `LowStar.Endianness`
-      16-bit, 32-bit integer store interfaces. For 3-byte, we may need some
-      magic.
+      16-bit, 32-bit integer store interfaces. For 3-byte, we need to store
+      the first 2 bytes and the last byte separately.
 *)
-
-open LowParse.Low.BoundedInt
 
 #restart-solver
 #push-options "--query_stats --z3rlimit 512"
@@ -50,7 +51,7 @@ let serialize32_asn1_integer_backwards
 : Tot (serializer32_backwards (serialize_asn1_integer (v len)))
 = fun (value: datatype_of_asn1_type INTEGER { v len == length_of_asn1_integer value })
     (#rrel #rel: _)
-    (b: B.mbuffer byte_t rrel rel)
+    (b: B.mbuffer byte rrel rel)
     (pos: size_t)
 ->
   (* NOTE: Using 1 byte to store a 1-byte integer with the most-significant bit `0` *)
@@ -364,3 +365,41 @@ let serialize32_asn1_integer_backwards
   (* Unreachable *)
   else
   ( false_elim () )
+
+inline_for_extraction
+let parser_tag_of_asn1_integer_impl
+  (value: datatype_of_asn1_type INTEGER)
+: Tot (tg: (the_asn1_type INTEGER & asn1_int32_of_type INTEGER) {
+           tg == parser_tag_of_asn1_integer value
+  })
+= (INTEGER, len_of_asn1_integer value)
+
+inline_for_extraction
+let synth_asn1_integer_V_inverse_impl
+  (tag: (the_asn1_type INTEGER & asn1_int32_of_type INTEGER))
+  (value': refine_with_tag parser_tag_of_asn1_integer tag)
+: Tot (value: datatype_of_asn1_type INTEGER {
+               v (snd tag) == length_of_asn1_integer value /\
+               value' == synth_asn1_integer_V tag value /\
+               value == synth_asn1_integer_V_inverse tag value' })
+= value'
+
+open ASN1.Low.Tag
+open ASN1.Low.Length
+
+inline_for_extraction
+let serialize32_asn1_integer_TLV_backwards ()
+: Tot (serializer32_backwards (serialize_asn1_integer_TLV))
+= serialize32_tagged_union_backwards
+  (* lst *) (serialize32_asn1_tag_of_type_backwards INTEGER
+             `serialize32_nondep_then_backwards`
+             serialize32_asn1_length_of_type_backwards INTEGER)
+  (* ltg *) (parser_tag_of_asn1_integer_impl)
+  (* ls  *) (fun parser_tag -> (serialize32_synth_backwards
+                              (* ls *) (weak_kind_of_type INTEGER
+                                        `serialize32_weaken_backwards`
+                                        serialize32_asn1_integer_backwards (snd parser_tag))
+                              (* f2 *) (synth_asn1_integer_V parser_tag)
+                              (* g1 *) (synth_asn1_integer_V_inverse parser_tag)
+                              (* g1'*) (synth_asn1_integer_V_inverse_impl parser_tag)
+                              (* prf*) ()))

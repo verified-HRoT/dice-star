@@ -9,7 +9,7 @@ open ASN1.Spec.Tag
 open ASN1.Spec.Length
 
 open FStar.Integers
-
+(*)
 (* FIXME: Use real OIDs *)
 let riot_oid              : datatype_of_asn1_type OCTET_STRING = (|5ul, Seq.create 5 0x00uy|)
 let ecdsa_with_sha256_oid : datatype_of_asn1_type OCTET_STRING = (|5ul, Seq.create 5 0x00uy|)
