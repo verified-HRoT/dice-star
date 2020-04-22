@@ -3,7 +3,7 @@ module ASN1.Low.OCTET_STRING
 open ASN1.Base
 open ASN1.Spec.OCTET_STRING
 open ASN1.Low.Base
-open LowParse.Bytes
+open LowParse.Low.Bytes
 
 open FStar.Integers
 
@@ -12,6 +12,8 @@ module HST = FStar.HyperStack.ST
 module MB = LowStar.Monotonic.Buffer
 module B = LowStar.Buffer
 module Cast = FStar.Int.Cast
+
+module B32 = FStar.Bytes
 
 let serialize32_asn1_octet_string
   (len: asn1_int32_of_type OCTET_STRING)
@@ -22,7 +24,7 @@ let serialize32_asn1_octet_string
     (pos: size_t)
 ->  (* Prf *) serialize_asn1_octet_string_unfold (v len) (value);
 
-    store_seqbytes
+    store_bytes
     (* src *) (dsnd value)
     (* from*) 0ul
     (* to  *) len
@@ -40,7 +42,7 @@ let serialize32_asn1_octet_string_backwards
     (pos: size_t)
 ->  (* Prf *) serialize_asn1_octet_string_unfold (v len) (value);
 
-    store_seqbytes
+    store_bytes
     (* src *) (dsnd value)
     (* from*) 0ul
     (* to  *) len
@@ -48,9 +50,6 @@ let serialize32_asn1_octet_string_backwards
     (* pos *) (pos - len);
 
 (* retuen *) len
-
-open LowParse.Low.Writers
-open LowParse.Low.Writers.Instances
 
 open ASN1.Spec.Tag
 open ASN1.Spec.Length

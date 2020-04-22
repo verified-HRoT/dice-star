@@ -46,7 +46,7 @@ verify-all: $(ALL_CHECKED_FILES)
 extract-all: $(ALL_KRML_FILES)
 
 KREMLIN_FLAGS = \
-  -no-prefix 'RIoT.Ext' \
+  -no-prefix 'RIoT.Test' \
   -drop Lib.IntVector.Intrinsics \
   -fparentheses -fno-shadow -fcurly-braces \
   -bundle Prims,C.Failure,C,C.*,FStar.*,LowStar.* \
@@ -59,9 +59,7 @@ KREMLIN_FLAGS = \
   -drop WasmSupport \
   -tmpdir $(OUTPUT_DIR) \
   -verbose \
-  -warn-error +9\
-  -warn-error +11\
-  -o asn1.exe
+  -o riot.exe
 
 KRML=$(KREMLIN_HOME)/krml
 

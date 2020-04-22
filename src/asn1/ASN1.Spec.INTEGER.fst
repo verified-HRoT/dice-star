@@ -599,7 +599,7 @@ let parse_asn1_integer_TLV_unfold
      (let input_V = Seq.slice input_LV consumed_len (Seq.length input_LV) in
       match parse (parse_asn1_integer (v len)) input_V with
       | None -> None
-      | Some (value, consumed_value) -> Some (value, (consumed_tag + consumed_len + consumed_value <: consumed_length input)))
+      | Some (value, consumed_value) -> Some (synth_asn1_integer_TLV (tag, len) value, (consumed_tag + consumed_len + consumed_value <: consumed_length input)))
   )))
 = nondep_then_eq
   (* p1 *) (parse_the_asn1_tag INTEGER)

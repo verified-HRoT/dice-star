@@ -52,74 +52,74 @@ let serializer32_backwards
     B.live h' b /\
     Seq.slice (B.as_seq h' b) (v (pos - offset)) (v pos) `Seq.equal` sx)
 
-[@unifier_hint_injective]
-inline_for_extraction
-let serializer32_backwards_alt
-  (#k: parser_kind)
-  (#t: Type0)
-  (#p: parser k t)
-  (s: serializer p)
-: Tot Type
-= (x: t) ->
-  (#rrel: _) -> (#rel: _) ->
-  (b: B.mbuffer byte_t rrel rel) ->
-  (pos: size_t) ->
-  HST.Stack (offset: size_t)
-  (* NOTE: b[pos] is already written, and b[pos - offset, pos - 1] will be written. *)
-  (requires fun h ->
-    let offset = Seq.length (serialize s x) in
-    B.live h b /\
-    offset <= v pos /\ v pos <= B.length b /\
-    writable b (v pos - offset) (v pos) h)
-  (ensures fun h offset h' ->
-    let sx = serialize s x in
-    let s  = B.as_seq h  b in
-    let s' = B.as_seq h' b in
-    Seq.length sx == v offset /\
-    B.modifies (B.loc_buffer_from_to b (pos - offset) (pos)) h h' /\
-    // Seq.slice s 0 (v (pos - offset)) `Seq.equal` Seq.slice s' 0 (v (pos - offset)) /\
-    // Seq.slice s (v pos) (B.length b) `Seq.equal` Seq.slice s' (v pos) (B.length b) /\
-    // writable b (v (pos - offset)) (v pos) h' /\
-    B.live h' b /\
-    Seq.slice (B.as_seq h' b) (v (pos - offset)) (v pos) `Seq.equal` sx)
+// [@unifier_hint_injective]
+// inline_for_extraction
+// let serializer32_backwards_alt
+//   (#k: parser_kind)
+//   (#t: Type0)
+//   (#p: parser k t)
+//   (s: serializer p)
+// : Tot Type
+// = (x: t) ->
+//   (#rrel: _) -> (#rel: _) ->
+//   (b: B.mbuffer byte_t rrel rel) ->
+//   (pos: size_t) ->
+//   HST.Stack (offset: size_t)
+//   (* NOTE: b[pos] is already written, and b[pos - offset, pos - 1] will be written. *)
+//   (requires fun h ->
+//     let offset = Seq.length (serialize s x) in
+//     B.live h b /\
+//     offset <= v pos /\ v pos <= B.length b /\
+//     writable b (v pos - offset) (v pos) h)
+//   (ensures fun h offset h' ->
+//     let sx = serialize s x in
+//     let s  = B.as_seq h  b in
+//     let s' = B.as_seq h' b in
+//     Seq.length sx == v offset /\
+//     B.modifies (B.loc_buffer_from_to b (pos - offset) (pos)) h h' /\
+//     // Seq.slice s 0 (v (pos - offset)) `Seq.equal` Seq.slice s' 0 (v (pos - offset)) /\
+//     // Seq.slice s (v pos) (B.length b) `Seq.equal` Seq.slice s' (v pos) (B.length b) /\
+//     // writable b (v (pos - offset)) (v pos) h' /\
+//     B.live h' b /\
+//     Seq.slice (B.as_seq h' b) (v (pos - offset)) (v pos) `Seq.equal` sx)
 
-[@unifier_hint_injective]
-inline_for_extraction
-let serializer32_backwards_from_buffer
-  (#k: parser_kind)
-  (#t_elem: Type0)
-  (#p: parser k (Seq.seq t_elem)) (* TODO: length properties here *)
-  (s: serializer p)
-: Tot Type
-= (#rrel: _) -> (#rel: _) ->
-  (src: B.mbuffer t_elem rrel rel) ->
-  (from: size_t) ->
-  (to: size_t{v from <= v to /\ v to <= B.length src}) ->
-  (#rrel': _) -> (#rel': _) ->
-  (dst: B.mbuffer byte_t rrel' rel') ->
-  (pos: size_t) ->
-  HST.Stack (offset: size_t)
-  (* NOTE: b[pos] is already written, and b[pos - offset, pos - 1] will be written. *)
-  (requires fun h ->
-    let src_seq = B.as_seq h src in
-    (* raw input sequence*)
-    let x: Seq.seq t_elem = Seq.slice src_seq (v from) (v to) in
-    (* length of the serialization of the raw input sequence *)
-    let offset = Seq.length (serialize s x) in
-    B.live h src /\ B.live h dst /\ B.disjoint src dst /\
-    v from < v to /\ v to < B.length src /\
-    offset <= v pos /\ v pos <= B.length dst /\
-    writable dst (v pos - offset) (v pos) h)
-  (ensures fun h offset h' ->
-    let src_seq = B.as_seq h src in
-    (* raw input sequence*)
-    let x: Seq.seq t_elem = Seq.slice src_seq (v from) (v to) in
-    (* serialization of the raw input sequence *)
-    let sx = serialize s x in
-    Seq.length sx == v offset /\
-    B.modifies (B.loc_buffer_from_to dst (pos - offset) (pos)) h h' /\
-    B.live h' src /\ B.live h' dst /\
-    Seq.slice (B.as_seq h' dst) (v (pos - offset)) (v pos) `Seq.equal` sx)
+// [@unifier_hint_injective]
+// inline_for_extraction
+// let serializer32_backwards_from_buffer
+//   (#k: parser_kind)
+//   (#t_elem: Type0)
+//   (#p: parser k (Seq.seq t_elem)) (* TODO: length properties here *)
+//   (s: serializer p)
+// : Tot Type
+// = (#rrel: _) -> (#rel: _) ->
+//   (src: B.mbuffer t_elem rrel rel) ->
+//   (from: size_t) ->
+//   (to: size_t{v from <= v to /\ v to <= B.length src}) ->
+//   (#rrel': _) -> (#rel': _) ->
+//   (dst: B.mbuffer byte_t rrel' rel') ->
+//   (pos: size_t) ->
+//   HST.Stack (offset: size_t)
+//   (* NOTE: b[pos] is already written, and b[pos - offset, pos - 1] will be written. *)
+//   (requires fun h ->
+//     let src_seq = B.as_seq h src in
+//     (* raw input sequence*)
+//     let x: Seq.seq t_elem = Seq.slice src_seq (v from) (v to) in
+//     (* length of the serialization of the raw input sequence *)
+//     let offset = Seq.length (serialize s x) in
+//     B.live h src /\ B.live h dst /\ B.disjoint src dst /\
+//     v from < v to /\ v to < B.length src /\
+//     offset <= v pos /\ v pos <= B.length dst /\
+//     writable dst (v pos - offset) (v pos) h)
+//   (ensures fun h offset h' ->
+//     let src_seq = B.as_seq h src in
+//     (* raw input sequence*)
+//     let x: Seq.seq t_elem = Seq.slice src_seq (v from) (v to) in
+//     (* serialization of the raw input sequence *)
+//     let sx = serialize s x in
+//     Seq.length sx == v offset /\
+//     B.modifies (B.loc_buffer_from_to dst (pos - offset) (pos)) h h' /\
+//     B.live h' src /\ B.live h' dst /\
+//     Seq.slice (B.as_seq h' dst) (v (pos - offset)) (v pos) `Seq.equal` sx)
 
 inline_for_extraction
 let frame_serializer32_backwards

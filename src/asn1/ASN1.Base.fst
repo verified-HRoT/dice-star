@@ -6,6 +6,8 @@ let byte = uint_8
 let bytes = Seq.seq byte
 let lbytes = Seq.Properties.lseq byte
 
+module B32 = FStar.Bytes
+
 type asn1_type: Type =
 | BOOLEAN
 | INTEGER
@@ -125,17 +127,27 @@ let datatype_of_asn1_type (a: asn1_primitive_type): Type
   | INTEGER      -> ( i: int_32{v i >= 0} )
   | NULL         -> unit
   | OCTET_STRING -> ( len: asn1_int32_of_type OCTET_STRING &
-                      s  : bytes { Seq.length s == v len } )
+                      s  : B32.bytes { B32.length s == v len } )
   | OID          -> oid_t
-  | BIT_STRING   -> ( bits: nat {0 <= bits /\ bits <= normalize_term ((asn1_length_max - 1) * 8)} &
-                      s  : bytes { let bytes_length: l:asn1_length_t {l <= asn1_length_max - 1} = normalize_term ((bits + 7) / 8) in
-                                   let unused_bits: n:nat{0 <= n /\ n <= 7} = normalize_term ((bytes_length * 8) - bits) in
-                                   Seq.length s == bytes_length /\
-                                  (if bytes_length = 0 then
-                                   ( bits == 0 )
-                                   else
-                                   ( let mask: n:nat{cast_ok (Unsigned W8) n} = normalize_term (pow2 unused_bits) in
-                                     0 == normalize_term ((v s.[bytes_length - 1]) % mask) ))} )
+  | BIT_STRING   -> ( len        : asn1_int32_of_type BIT_STRING &
+                      unused_bits: asn1_int32 {0 <= v unused_bits /\ v unused_bits <= 7} &
+                      s          : B32.bytes { B32.length s == v len - 1 /\
+                                             ( if B32.length s = 0 then
+                                               ( v unused_bits == 0 )
+                                               else
+                                               ( let mask: n:nat{cast_ok (Unsigned W8) n} = normalize_term (pow2 (v unused_bits)) in
+                                                 let last_byte = B32.index s (B32.length s - 1) in
+                                                 0 == normalize_term ((v last_byte) % mask)) )} )
+
+  // | BIT_STRING   -> ( bits: uint_32 {0 <= v bits /\ v bits <= normalize_term ((asn1_length_max - 1) * 8)} &
+  //                     s  : bytes { let bytes_length: l:asn1_length_t {l <= asn1_length_max - 1} = normalize_term ((v bits + 7) / 8) in
+  //                                  let unused_bits: n:nat{0 <= n /\ n <= 7} = normalize_term ((bytes_length * 8) - v bits) in
+  //                                  Seq.length s == bytes_length /\
+  //                                 (if bytes_length = 0 then
+  //                                  ( v bits == 0 )
+  //                                  else
+  //                                  ( let mask: n:nat{cast_ok (Unsigned W8) n} = normalize_term (pow2 unused_bits) in
+  //                                    0 == normalize_term ((v s.[bytes_length - 1]) % mask) ))} )
 
 // type asn1_value: Type =
 // | BOOLEAN_VALUE: b: bool -> asn1_value

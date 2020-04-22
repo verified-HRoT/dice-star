@@ -2,8 +2,8 @@ module ASN1.Spec.OCTET_STRING
 
 open LowParse.Spec.Base
 open LowParse.Spec.Combinators
-// open LowParse.Spec.Bytes
-open LowParse.Spec.SeqBytes.Base
+open LowParse.Spec.Bytes
+// open LowParse.Spec.SeqBytes.Base
 
 open ASN1.Base
 open ASN1.Spec.Tag
@@ -11,23 +11,25 @@ open ASN1.Spec.Length
 
 open FStar.Integers
 
+module B32 = FStar.Bytes
+
 let synth_asn1_octet_string
   (l: asn1_length_of_type OCTET_STRING)
-  (ls: lbytes l)
+  (s32: B32.lbytes l)
 : GTot (value: datatype_of_asn1_type OCTET_STRING{v (dfst value) == l})
-= (|u l, ls|)
+= (|u l, s32|)
 
 let synth_asn1_octet_string_inverse
   (l: asn1_length_of_type OCTET_STRING)
   (value: datatype_of_asn1_type OCTET_STRING{v (dfst value) == l})
-: GTot (ls: lbytes l{ value == synth_asn1_octet_string l ls })
+: GTot (s32: B32.lbytes l{ value == synth_asn1_octet_string l s32 })
 = dsnd value
 
 let parse_asn1_octet_string_kind (l: asn1_length_of_type OCTET_STRING) = total_constant_size_parser_kind l
 let parse_asn1_octet_string
   (l: asn1_length_of_type OCTET_STRING)
 : parser (parse_asn1_octet_string_kind l) (x: datatype_of_asn1_type OCTET_STRING{v (dfst x) == l})
-= parse_seq_flbytes l
+= parse_flbytes l
   `parse_synth`
  synth_asn1_octet_string l
 
@@ -36,11 +38,11 @@ let parse_asn1_octet_string_unfold
   (input: bytes)
 : Lemma (
   parse (parse_asn1_octet_string l) input ==
- (match parse (parse_seq_flbytes l) input with
+ (match parse (parse_flbytes l) input with
   | None -> None
   | Some (ls, consumed) -> Some (synth_asn1_octet_string l ls, consumed)))
 = parse_synth_eq
-  (* p1 *) (parse_seq_flbytes l)
+  (* p1 *) (parse_flbytes l)
   (* f2 *) (synth_asn1_octet_string l)
   (* in *) (input)
 
@@ -48,9 +50,9 @@ let serialize_asn1_octet_string
   (l: asn1_length_of_type OCTET_STRING)
 : serializer (parse_asn1_octet_string l)
 = serialize_synth
-  (* p1 *) (parse_seq_flbytes l)
+  (* p1 *) (parse_flbytes l)
   (* f2 *) (synth_asn1_octet_string l)
-  (* s1 *) (serialize_seq_flbytes l)
+  (* s1 *) (serialize_flbytes l)
   (* g1 *) (synth_asn1_octet_string_inverse l)
   (* Prf*) ()
 
@@ -59,11 +61,11 @@ let serialize_asn1_octet_string_unfold
   (value: datatype_of_asn1_type OCTET_STRING{v (dfst value) == l})
 : Lemma (
   serialize (serialize_asn1_octet_string l) value ==
-  serialize (serialize_seq_flbytes l) (synth_asn1_octet_string_inverse l value))
+  serialize (serialize_flbytes l) (synth_asn1_octet_string_inverse l value))
 = serialize_synth_eq
-  (* p1 *) (parse_seq_flbytes l)
+  (* p1 *) (parse_flbytes l)
   (* f2 *) (synth_asn1_octet_string l)
-  (* s1 *) (serialize_seq_flbytes l)
+  (* s1 *) (serialize_flbytes l)
   (* g1 *) (synth_asn1_octet_string_inverse l)
   (* Prf*) ()
   (* in *) (value)
@@ -167,7 +169,7 @@ let parse_asn1_octet_string_TLV_kind
   `and_then_kind`
   parse_asn1_length_kind_of_type OCTET_STRING
   `and_then_kind`
-  weak_kind_of_type SEQUENCE
+  weak_kind_of_type OCTET_STRING
 
 let synth_asn1_octet_string_V
   (tag: (the_asn1_type OCTET_STRING & asn1_int32_of_type OCTET_STRING))
@@ -319,16 +321,16 @@ let serialize_asn1_octet_string_TLV_unfold
   (* in *) (value)
 #pop-options
 
-private
-let length_test
-  (value: datatype_of_asn1_type OCTET_STRING)
-: Lemma (
-  let (|len, s|) = value in
-  v len == Seq.length (serialize (serialize_asn1_octet_string (v (snd (parser_tag_of_octet_string value)))) value)
-)
-= let tag = parser_tag_of_octet_string value in
-  let l = v (snd tag) in
-  parser_kind_prop_equiv
-  (* k *) (parse_asn1_octet_string_kind l)
-  (* p *) (parse_asn1_octet_string l);
-  serialize_asn1_octet_string_unfold l value
+// private
+// let length_test
+//   (value: datatype_of_asn1_type OCTET_STRING)
+// : Lemma (
+//   let (|len, s|) = value in
+//   v len == Seq.length (serialize (serialize_asn1_octet_string (v (snd (parser_tag_of_octet_string value)))) value)
+// )
+// = let tag = parser_tag_of_octet_string value in
+//   let l = v (snd tag) in
+//   parser_kind_prop_equiv
+//   (* k *) (parse_asn1_octet_string_kind l)
+//   (* p *) (parse_asn1_octet_string l);
+//   serialize_asn1_octet_string_unfold l value
