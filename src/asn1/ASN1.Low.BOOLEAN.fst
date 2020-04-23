@@ -67,7 +67,7 @@ let serialize32_asn1_boolean_TLV_backwards ()
 = serialize32_synth_backwards
   (* ls1*) (serialize32_asn1_tag_of_type_backwards BOOLEAN
            `serialize32_nondep_then_backwards`
-           serialize32_asn1_value_length_of_type_backwards BOOLEAN
+           serialize32_asn1_length_of_type_backwards BOOLEAN
            `serialize32_nondep_then_backwards`
            serialize32_asn1_boolean_backwards ())
   (* f2 *) (synth_asn1_boolean_TLV)

@@ -77,7 +77,7 @@ let serialize32_asn1_octet_string_TLV_backwards ()
 = serialize32_tagged_union_backwards
   (* lst *) (serialize32_asn1_tag_of_type_backwards OCTET_STRING
              `serialize32_nondep_then_backwards`
-             serialize32_asn1_value_length_of_type_backwards OCTET_STRING)
+             serialize32_asn1_length_of_type_backwards OCTET_STRING)
   (* tg  *) (parser_tag_of_octet_string_impl)
   (* ls  *) (fun x -> (serialize32_synth_backwards
                      (* ls1 *) (weak_kind_of_type OCTET_STRING

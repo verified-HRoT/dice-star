@@ -87,7 +87,7 @@ let serialize32_asn1_sequence_TLV_backwards
 = serialize32_tagged_union_backwards
   (* lst *) (serialize32_asn1_tag_of_type_backwards SEQUENCE
              `serialize32_nondep_then_backwards`
-             serialize32_asn1_value_length_of_type_backwards SEQUENCE)
+             serialize32_asn1_length_of_type_backwards SEQUENCE)
   (* tag *) (parser_tag_of_asn1_sequence_impl s len_of_data)
   (* s32 *) (fun (tag: the_asn1_type SEQUENCE & asn1_value_int32_of_type SEQUENCE)
              -> let SEQUENCE, len = tag in

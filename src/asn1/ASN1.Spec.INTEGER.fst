@@ -601,7 +601,7 @@ let parse_asn1_integer_TLV
 = parse_tagged_union
   (* pt *) (parse_asn1_tag_of_type INTEGER
             `nondep_then`
-            parse_asn1_value_length_of_type INTEGER)
+            parse_asn1_length_of_type INTEGER)
   (* tg *) (parser_tag_of_asn1_integer)
   (* p  *) (parse_asn1_integer_V)
 
@@ -616,7 +616,7 @@ let parse_asn1_integer_TLV_unfold
   | None -> None
   | Some (tag, consumed_tag) ->
     (let input_LV = Seq.slice input consumed_tag (Seq.length input) in
-     match parse (parse_asn1_value_length_of_type INTEGER) input_LV with
+     match parse (parse_asn1_length_of_type INTEGER) input_LV with
      | None -> None
      | Some (len, consumed_len) ->
      (let input_V = Seq.slice input_LV consumed_len (Seq.length input_LV) in
@@ -628,12 +628,12 @@ let parse_asn1_integer_TLV_unfold
   )))
 = nondep_then_eq
   (* p1 *) (parse_asn1_tag_of_type INTEGER)
-  (* p2 *) (parse_asn1_value_length_of_type INTEGER)
+  (* p2 *) (parse_asn1_length_of_type INTEGER)
   (* in *) (input);
 
   let parser_tag = parse (parse_asn1_tag_of_type INTEGER
                           `nondep_then`
-                          parse_asn1_value_length_of_type INTEGER) input in
+                          parse_asn1_length_of_type INTEGER) input in
   if (Some? parser_tag) then
   ( let Some (parser_tag, length) = parser_tag in
     parse_asn1_integer_V_unfold parser_tag (Seq.slice input length (Seq.length input)) );
@@ -641,7 +641,7 @@ let parse_asn1_integer_TLV_unfold
   parse_tagged_union_eq
   (* pt *) (parse_asn1_tag_of_type INTEGER
             `nondep_then`
-            parse_asn1_value_length_of_type INTEGER)
+            parse_asn1_length_of_type INTEGER)
   (* tg *) (parser_tag_of_asn1_integer)
   (* p  *) (parse_asn1_integer_V)
   (* in *) (input)
@@ -654,7 +654,7 @@ let serialize_asn1_integer_TLV
 = serialize_tagged_union
   (* st *) (serialize_asn1_tag_of_type INTEGER
             `serialize_nondep_then`
-            serialize_asn1_value_length_of_type INTEGER)
+            serialize_asn1_length_of_type INTEGER)
   (* tg *) (parser_tag_of_asn1_integer)
   (* s  *) (serialize_asn1_integer_V)
 #pop-options
@@ -667,18 +667,18 @@ let serialize_asn1_integer_TLV_unfold
   serialize serialize_asn1_integer_TLV value ==
   serialize (serialize_asn1_tag_of_type INTEGER) INTEGER
   `Seq.append`
-  serialize (serialize_asn1_value_length_of_type INTEGER) (u (length_of_asn1_integer value))
+  serialize (serialize_asn1_length_of_type INTEGER) (u (length_of_asn1_integer value))
   `Seq.append`
   serialize (serialize_asn1_integer (length_of_asn1_integer value)) value)
 = serialize_nondep_then_eq
   (* s1 *) (serialize_asn1_tag_of_type INTEGER)
-  (* s2 *) (serialize_asn1_value_length_of_type INTEGER)
+  (* s2 *) (serialize_asn1_length_of_type INTEGER)
   (* in *) (parser_tag_of_asn1_integer value);
   serialize_asn1_integer_V_unfold (parser_tag_of_asn1_integer value) value;
   serialize_tagged_union_eq
   (* st *) (serialize_asn1_tag_of_type INTEGER
             `serialize_nondep_then`
-            serialize_asn1_value_length_of_type INTEGER)
+            serialize_asn1_length_of_type INTEGER)
   (* tg *) (parser_tag_of_asn1_integer)
   (* s  *) (serialize_asn1_integer_V)
   (* in *) (value)
@@ -699,6 +699,6 @@ let serialize_asn1_integer_TLV_size
   serialize_asn1_integer_TLV_unfold value;
   serialize_asn1_tag_of_type_size INTEGER INTEGER;
   serialize_asn1_length_size len;
-  serialize_asn1_value_length_of_type_eq INTEGER len;
+  serialize_asn1_length_of_type_eq INTEGER len;
   serialize_asn1_integer_size length value
 #pop-options

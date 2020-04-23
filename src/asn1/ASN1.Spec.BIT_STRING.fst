@@ -289,7 +289,7 @@ let parse_asn1_bit_string_TLV
 = parse_tagged_union
   (* pt *) (parse_asn1_tag_of_type BIT_STRING
             `nondep_then`
-            parse_asn1_value_length_of_type BIT_STRING)
+            parse_asn1_length_of_type BIT_STRING)
   (* tg *) (parser_tag_of_bit_string)
   (* p  *) (parse_asn1_bit_string_V)
 
@@ -304,7 +304,7 @@ let parse_asn1_bit_string_TLV_unfold
   | None -> None
   | Some (tag, consumed_tag) ->
     (let input_LV = Seq.slice input consumed_tag (Seq.length input) in
-     match parse (parse_asn1_value_length_of_type BIT_STRING) input_LV with
+     match parse (parse_asn1_length_of_type BIT_STRING) input_LV with
      | None -> None
      | Some (len, consumed_len) ->
        (let input_V = Seq.slice input_LV consumed_len (Seq.length input_LV) in
@@ -315,16 +315,16 @@ let parse_asn1_bit_string_TLV_unfold
                      (consumed_tag + consumed_len + consumed_value <: consumed_length input)))))
 )
 = parser_kind_prop_equiv (get_parser_kind (parse_asn1_tag_of_type BIT_STRING)) (parse_asn1_tag_of_type BIT_STRING);
-  parser_kind_prop_equiv (get_parser_kind (parse_asn1_value_length_of_type BIT_STRING)) (parse_asn1_value_length_of_type BIT_STRING);
+  parser_kind_prop_equiv (get_parser_kind (parse_asn1_length_of_type BIT_STRING)) (parse_asn1_length_of_type BIT_STRING);
 
   nondep_then_eq
   (* p1 *) (parse_asn1_tag_of_type BIT_STRING)
-  (* p2 *) (parse_asn1_value_length_of_type BIT_STRING)
+  (* p2 *) (parse_asn1_length_of_type BIT_STRING)
   (* in *) (input);
 
   let parser_tag = (parse_asn1_tag_of_type BIT_STRING
                     `nondep_then`
-                    parse_asn1_value_length_of_type BIT_STRING) input in
+                    parse_asn1_length_of_type BIT_STRING) input in
   if Some? parser_tag then
   ( let Some (parser_tag, length) = parser_tag in
     parse_asn1_bit_string_V_unfold parser_tag (Seq.slice input length (Seq.length input)) );
@@ -332,7 +332,7 @@ let parse_asn1_bit_string_TLV_unfold
   parse_tagged_union_eq
   (* pt *) (parse_asn1_tag_of_type BIT_STRING
             `nondep_then`
-            parse_asn1_value_length_of_type BIT_STRING)
+            parse_asn1_length_of_type BIT_STRING)
   (* tg *) (parser_tag_of_bit_string)
   (* p  *) (parse_asn1_bit_string_V)
   (* in *) (input)
@@ -345,7 +345,7 @@ let serialize_asn1_bit_string_TLV
 = serialize_tagged_union
   (* st *) (serialize_asn1_tag_of_type BIT_STRING
             `serialize_nondep_then`
-            serialize_asn1_value_length_of_type BIT_STRING)
+            serialize_asn1_length_of_type BIT_STRING)
   (* tg *) (parser_tag_of_bit_string)
   (* s  *) (serialize_asn1_bit_string_V)
 #pop-options
@@ -360,19 +360,19 @@ let serialize_asn1_bit_string_TLV_unfold
   serialize serialize_asn1_bit_string_TLV value ==
   serialize (serialize_asn1_tag_of_type BIT_STRING) BIT_STRING
   `Seq.append`
-  serialize (serialize_asn1_value_length_of_type BIT_STRING) len
+  serialize (serialize_asn1_length_of_type BIT_STRING) len
   `Seq.append`
   serialize (serialize_asn1_bit_string (v len)) value
 )
 = serialize_nondep_then_eq
   (* s1 *) (serialize_asn1_tag_of_type BIT_STRING)
-  (* s2 *) (serialize_asn1_value_length_of_type BIT_STRING)
+  (* s2 *) (serialize_asn1_length_of_type BIT_STRING)
   (* in *) (parser_tag_of_bit_string value);
   serialize_asn1_bit_string_V_unfold (parser_tag_of_bit_string value) value;
   serialize_tagged_union_eq
   (* st *) (serialize_asn1_tag_of_type BIT_STRING
             `serialize_nondep_then`
-            serialize_asn1_value_length_of_type BIT_STRING)
+            serialize_asn1_length_of_type BIT_STRING)
   (* tg *) (parser_tag_of_bit_string)
   (* s  *) (serialize_asn1_bit_string_V)
   (* in *) (value)
@@ -390,6 +390,6 @@ let serialize_asn1_bit_string_TLV_size
   serialize_asn1_bit_string_TLV_unfold value;
   serialize_asn1_tag_of_type_size BIT_STRING BIT_STRING;
   serialize_asn1_length_size len;
-  serialize_asn1_value_length_of_type_eq BIT_STRING len;
+  serialize_asn1_length_of_type_eq BIT_STRING len;
   serialize_asn1_bit_string_size (v len) value
 #pop-options

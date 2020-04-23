@@ -23,7 +23,7 @@ let parse_asn1_sequence_TL
 : parser parse_asn1_sequence_TL_kind (the_asn1_type SEQUENCE & asn1_value_int32_of_type SEQUENCE)
 = parse_asn1_tag_of_type SEQUENCE
   `nondep_then`
-  parse_asn1_value_length_of_type SEQUENCE
+  parse_asn1_length_of_type SEQUENCE
 
 noextract
 let parse_asn1_sequence_TL_unfold
@@ -34,12 +34,12 @@ let parse_asn1_sequence_TL_unfold
   | None -> None
   | Some (SEQUENCE, consumed_tag) ->
       (let input_len = Seq.slice input consumed_tag (Seq.length input) in
-       match parse (parse_asn1_value_length_of_type SEQUENCE) input_len with
+       match parse (parse_asn1_length_of_type SEQUENCE) input_len with
        | None -> None
        | Some (len, consumed_len) -> Some ((SEQUENCE, len), (consumed_tag + consumed_len <: consumed_length input)))))
 = nondep_then_eq
   (* p1 *) (parse_asn1_tag_of_type SEQUENCE)
-  (* p2 *) (parse_asn1_value_length_of_type SEQUENCE)
+  (* p2 *) (parse_asn1_length_of_type SEQUENCE)
   (* in *) (input)
 
 noextract
@@ -47,7 +47,7 @@ let serialize_asn1_sequence_TL
 : serializer parse_asn1_sequence_TL
 = serialize_asn1_tag_of_type SEQUENCE
   `serialize_nondep_then`
-  serialize_asn1_value_length_of_type SEQUENCE
+  serialize_asn1_length_of_type SEQUENCE
 
 noextract
 let serialize_asn1_sequence_TL_unfold
@@ -56,10 +56,10 @@ let serialize_asn1_sequence_TL_unfold
   serialize serialize_asn1_sequence_TL tl ==
   serialize (serialize_asn1_tag_of_type SEQUENCE) (fst tl)
   `Seq.append`
-  serialize (serialize_asn1_value_length_of_type SEQUENCE) (snd tl))
+  serialize (serialize_asn1_length_of_type SEQUENCE) (snd tl))
 = serialize_nondep_then_eq
   (* s1 *) (serialize_asn1_tag_of_type SEQUENCE)
-  (* s2 *) (serialize_asn1_value_length_of_type SEQUENCE)
+  (* s2 *) (serialize_asn1_length_of_type SEQUENCE)
   (* val*) (tl)
 
 /// Tagging function
@@ -263,7 +263,7 @@ let serialize_asn1_sequence_TLV_unfold
   serialize (serialize_asn1_sequence_TLV s) value ==
   serialize (serialize_asn1_tag_of_type SEQUENCE) SEQUENCE
   `Seq.append`
-  serialize (serialize_asn1_value_length_of_type SEQUENCE) (u (Seq.length (serialize (serialize_asn1_sequence_value s (parser_tag_of_asn1_sequence s value)) value)))
+  serialize (serialize_asn1_length_of_type SEQUENCE) (u (Seq.length (serialize (serialize_asn1_sequence_value s (parser_tag_of_asn1_sequence s value)) value)))
   `Seq.append`
   serialize (serialize_asn1_sequence_value s (parser_tag_of_asn1_sequence s value)) value
 )
@@ -291,7 +291,7 @@ let serialize_asn1_sequence_TLV_size
   serialize_asn1_sequence_TLV_unfold s value;
   serialize_asn1_tag_of_type_size SEQUENCE SEQUENCE;
   serialize_asn1_length_size len;
-  serialize_asn1_value_length_of_type_eq SEQUENCE len
+  serialize_asn1_length_of_type_eq SEQUENCE len
 
 noextract
 let length_of_sequence_TLV

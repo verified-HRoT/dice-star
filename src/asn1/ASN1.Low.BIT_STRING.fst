@@ -101,7 +101,7 @@ let serialize32_asn1_bit_string_TLV_backwards ()
 = serialize32_tagged_union_backwards
   (* lst *) (serialize32_asn1_tag_of_type_backwards BIT_STRING
              `serialize32_nondep_then_backwards`
-             serialize32_asn1_value_length_of_type_backwards BIT_STRING)
+             serialize32_asn1_length_of_type_backwards BIT_STRING)
   (* ltg *) (parser_tag_of_bit_string_impl)
   (* ls  *) (fun parser_tag -> (serialize32_synth_backwards
                               (* ls *) (weak_kind_of_type BIT_STRING

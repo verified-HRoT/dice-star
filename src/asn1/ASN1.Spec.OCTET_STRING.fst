@@ -192,7 +192,7 @@ let parse_asn1_octet_string_TLV
 = parse_tagged_union
   (* pt *) (parse_asn1_tag_of_type OCTET_STRING
             `nondep_then`
-            parse_asn1_value_length_of_type OCTET_STRING)
+            parse_asn1_length_of_type OCTET_STRING)
   (* tg *) (parser_tag_of_octet_string)
   (* p  *) (parse_asn1_octet_string_V)
 
@@ -207,7 +207,7 @@ let parse_asn1_octet_string_TLV_unfold
   | None -> None
   | Some (tag, consumed_tag) ->
     (let input_LV = Seq.slice input consumed_tag (Seq.length input) in
-     match parse (parse_asn1_value_length_of_type OCTET_STRING) input_LV with
+     match parse (parse_asn1_length_of_type OCTET_STRING) input_LV with
      | None -> None
      | Some (len, consumed_len) ->
        (let input_V = Seq.slice input_LV consumed_len (Seq.length input_LV) in
@@ -220,13 +220,13 @@ let parse_asn1_octet_string_TLV_unfold
 )
 = nondep_then_eq
   (* p1 *) (parse_asn1_tag_of_type OCTET_STRING)
-  (* p2 *) (parse_asn1_value_length_of_type OCTET_STRING)
+  (* p2 *) (parse_asn1_length_of_type OCTET_STRING)
   (* in *) (input);
 
   let parsed_tag
   = parse (parse_asn1_tag_of_type OCTET_STRING
            `nondep_then`
-           parse_asn1_value_length_of_type OCTET_STRING) input in
+           parse_asn1_length_of_type OCTET_STRING) input in
   if (Some? parsed_tag) then
   ( let Some (tag, consumed) = parsed_tag in
     parse_asn1_octet_string_V_unfold tag (Seq.slice input consumed (Seq.length input)) );
@@ -234,7 +234,7 @@ let parse_asn1_octet_string_TLV_unfold
   parse_tagged_union_eq
   (* pt *) (parse_asn1_tag_of_type OCTET_STRING
             `nondep_then`
-            parse_asn1_value_length_of_type OCTET_STRING)
+            parse_asn1_length_of_type OCTET_STRING)
   (* tg *) (parser_tag_of_octet_string)
   (* p  *) (parse_asn1_octet_string_V)
   (* in *) (input)
@@ -246,7 +246,7 @@ let serialize_asn1_octet_string_TLV
 = serialize_tagged_union
   (* st *) (serialize_asn1_tag_of_type OCTET_STRING
             `serialize_nondep_then`
-            serialize_asn1_value_length_of_type OCTET_STRING)
+            serialize_asn1_length_of_type OCTET_STRING)
   (* tg *) (parser_tag_of_octet_string)
   (* s  *) (serialize_asn1_octet_string_V)
 
@@ -258,19 +258,19 @@ let serialize_asn1_octet_string_TLV_unfold
   serialize serialize_asn1_octet_string_TLV value ==
   serialize (serialize_asn1_tag_of_type OCTET_STRING) OCTET_STRING
   `Seq.append`
-  serialize (serialize_asn1_value_length_of_type OCTET_STRING) (dfst value)
+  serialize (serialize_asn1_length_of_type OCTET_STRING) (dfst value)
   `Seq.append`
   serialize (serialize_asn1_octet_string_weak (v (dfst value))) value
 )
 = serialize_nondep_then_eq
   (* s1 *) (serialize_asn1_tag_of_type OCTET_STRING)
-  (* s2 *) (serialize_asn1_value_length_of_type OCTET_STRING)
+  (* s2 *) (serialize_asn1_length_of_type OCTET_STRING)
   (* in *) (parser_tag_of_octet_string value);
   serialize_asn1_octet_string_V_unfold (parser_tag_of_octet_string value) value;
   serialize_tagged_union_eq
   (* st *) (serialize_asn1_tag_of_type OCTET_STRING
             `serialize_nondep_then`
-            serialize_asn1_value_length_of_type OCTET_STRING)
+            serialize_asn1_length_of_type OCTET_STRING)
   (* tg *) (parser_tag_of_octet_string)
   (* s  *) (serialize_asn1_octet_string_V)
   (* in *) (value)
@@ -287,7 +287,7 @@ let serialize_asn1_octet_string_TLV_size
 = serialize_asn1_octet_string_TLV_unfold value;
   serialize_asn1_tag_of_type_size OCTET_STRING OCTET_STRING;
   serialize_asn1_length_size (dfst value);
-  serialize_asn1_value_length_of_type_eq OCTET_STRING (dfst value);
+  serialize_asn1_length_of_type_eq OCTET_STRING (dfst value);
   serialize_asn1_octet_string_size (v (dfst value)) value
 #pop-options
 

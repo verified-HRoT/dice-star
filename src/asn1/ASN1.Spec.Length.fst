@@ -63,45 +63,45 @@ let parse_asn1_length_kind_of_type
 = parse_bounded_der_length32_kind (asn1_value_length_min_of_type _a) (asn1_value_length_max_of_type _a)
 
 noextract
-let parse_asn1_value_length_of_type
+let parse_asn1_length_of_type
   (_a: asn1_type)
 : parser (parse_asn1_length_kind_of_type _a) (asn1_value_int32_of_type _a)
 = parse_bounded_der_length32 (asn1_value_length_min_of_type _a) (asn1_value_length_max_of_type _a)
 
 noextract
-let serialize_asn1_value_length_of_type
+let serialize_asn1_length_of_type
   (_a: asn1_type)
-: serializer (parse_asn1_value_length_of_type _a)
+: serializer (parse_asn1_length_of_type _a)
 = serialize_bounded_der_length32 (asn1_value_length_min_of_type _a) (asn1_value_length_max_of_type _a)
 
 /// NOTE: Since we cannot simply define them (the refinement in the return types will lose),
 ///       not definint them for now.
 // noextract
-// let parse_asn1_value_length_of_type_unfold
+// let parse_asn1_length_of_type_unfold
 //   (_a: asn1_type)
 //   (input: bytes)
 // = parse_bounded_der_length32_unfold (asn1_value_length_min_of_type _a) (asn1_value_length_max_of_type _a) input
 
 // noextract
-// let serialize_asn1_value_length_of_type_unfold
+// let serialize_asn1_length_of_type_unfold
 //   (_a: asn1_type)
 //   (len: asn1_value_int32_of_type _a)
 // = serialize_bounded_der_length32_unfold (asn1_value_length_min_of_type _a) (asn1_value_length_max_of_type _a) len
 
 // noextract
-// let serialize_asn1_value_length_of_type_size
+// let serialize_asn1_length_of_type_size
 //   (_a: asn1_type)
 //   (len: asn1_value_int32_of_type _a)
 // = serialize_bounded_der_length32_size (asn1_value_length_min_of_type _a) (asn1_value_length_max_of_type _a) len
 
 /// NOTE: Use this with `serialize_asn1_length_unfold/size` when you need to prove something in the serialization.
 noextract
-let serialize_asn1_value_length_of_type_eq
+let serialize_asn1_length_of_type_eq
   (_a: asn1_type)
   (len: asn1_value_int32_of_type _a)
 : Lemma (
   serialize serialize_asn1_length len ==
-  serialize (serialize_asn1_value_length_of_type _a) len
+  serialize (serialize_asn1_length_of_type _a) len
 )
 = serialize_asn1_length_unfold len;
   let min, max = asn1_value_length_min_of_type _a, asn1_value_length_max_of_type _a in
