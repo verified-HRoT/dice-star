@@ -20,7 +20,7 @@ module LE = LowParse.Low.Endianness
 inline_for_extraction
 let len_of_asn1_integer
   (value: datatype_of_asn1_type INTEGER)
-: Tot (len: asn1_int32_of_type INTEGER { v len == length_of_asn1_integer value } )
+: Tot (len: asn1_value_int32_of_type INTEGER { v len == length_of_asn1_integer value } )
 = if      0l         <= value && value <= 0x7Fl      then
   ( 1ul )
   else if 0x7Fl       < value && value <= 0xFFl       then
@@ -47,7 +47,7 @@ NOTE: Since there are no low-level machine-integer to bytes implementations
 #restart-solver
 #push-options "--query_stats --z3rlimit 512"
 let serialize32_asn1_integer_backwards
-  (len: asn1_int32_of_type INTEGER)
+  (len: asn1_value_int32_of_type INTEGER)
 : Tot (serializer32_backwards (serialize_asn1_integer (v len)))
 = fun (value: datatype_of_asn1_type INTEGER { v len == length_of_asn1_integer value })
     (#rrel #rel: _)
@@ -369,14 +369,14 @@ let serialize32_asn1_integer_backwards
 inline_for_extraction
 let parser_tag_of_asn1_integer_impl
   (value: datatype_of_asn1_type INTEGER)
-: Tot (tg: (the_asn1_type INTEGER & asn1_int32_of_type INTEGER) {
+: Tot (tg: (the_asn1_type INTEGER & asn1_value_int32_of_type INTEGER) {
            tg == parser_tag_of_asn1_integer value
   })
 = (INTEGER, len_of_asn1_integer value)
 
 inline_for_extraction
 let synth_asn1_integer_V_inverse_impl
-  (tag: (the_asn1_type INTEGER & asn1_int32_of_type INTEGER))
+  (tag: (the_asn1_type INTEGER & asn1_value_int32_of_type INTEGER))
   (value': refine_with_tag parser_tag_of_asn1_integer tag)
 : Tot (value: datatype_of_asn1_type INTEGER {
                v (snd tag) == length_of_asn1_integer value /\
@@ -393,7 +393,7 @@ let serialize32_asn1_integer_TLV_backwards ()
 = serialize32_tagged_union_backwards
   (* lst *) (serialize32_asn1_tag_of_type_backwards INTEGER
              `serialize32_nondep_then_backwards`
-             serialize32_asn1_length_of_type_backwards INTEGER)
+             serialize32_asn1_value_length_of_type_backwards INTEGER)
   (* ltg *) (parser_tag_of_asn1_integer_impl)
   (* ls  *) (fun parser_tag -> (serialize32_synth_backwards
                               (* ls *) (weak_kind_of_type INTEGER

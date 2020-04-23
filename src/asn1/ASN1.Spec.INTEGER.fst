@@ -24,7 +24,7 @@ NOTE: We only allow at most 4-byte positive integers ([0, 0x7FFFFFFF]). If an in
 
 noextract
 let filter_asn1_integer
-  (l: asn1_length_of_type INTEGER) (* 1 <= l <= 4*)
+  (l: asn1_value_length_of_type INTEGER) (* 1 <= l <= 4*)
   (s: lbytes l)
 : GTot (bool)
 = match l with
@@ -58,7 +58,7 @@ let filter_asn1_integer
 noextract
 let length_of_asn1_integer
   (value: datatype_of_asn1_type INTEGER)
-: GTot (asn1_length_of_type INTEGER)
+: GTot (asn1_value_length_of_type INTEGER)
 = let vx = v #(Signed W32) value in
   if      0         <= vx && vx <= 0x7F      then
   ( 1 )
@@ -83,7 +83,7 @@ let length_of_asn1_integer
 #push-options "--query_stats --z3rlimit 128"
 noextract
 let synth_asn1_integer
-  (l: asn1_length_of_type INTEGER)
+  (l: asn1_value_length_of_type INTEGER)
   (s: parse_filter_refine (filter_asn1_integer l))
 : GTot (value: datatype_of_asn1_type INTEGER { l == length_of_asn1_integer value })
 = match l with
@@ -172,7 +172,7 @@ let synth_asn1_integer
 #push-options "--query_stats --z3rlimit 128 --max_fuel 0 --max_ifuel 0"
 noextract
 let synth_asn1_integer_inverse
-  (l: asn1_length_of_type INTEGER)
+  (l: asn1_value_length_of_type INTEGER)
   (value: datatype_of_asn1_type INTEGER { l == length_of_asn1_integer value } )
 : GTot (s: parse_filter_refine (filter_asn1_integer l) { value == synth_asn1_integer l s })
 = let vx = v #(Signed W32) value in
@@ -265,7 +265,7 @@ let synth_asn1_integer_inverse
 #push-options "--query_stats --z3rlimit 128"
 noextract
 let synth_asn1_integer_injective_with_leading_zero
-  (l: asn1_length_of_type INTEGER)
+  (l: asn1_value_length_of_type INTEGER)
   (s1 s2: parse_filter_refine (filter_asn1_integer l))
 : Lemma
   (requires synth_asn1_integer l s1 == synth_asn1_integer l s2 /\
@@ -355,7 +355,7 @@ let synth_asn1_integer_injective_with_leading_zero
 #push-options "--query_stats --z3rlimit 128"
 noextract
 let synth_asn1_integer_injective_without_leading_zero
-  (l: asn1_length_of_type INTEGER)
+  (l: asn1_value_length_of_type INTEGER)
   (s1 s2: parse_filter_refine (filter_asn1_integer l))
 : Lemma
   (requires synth_asn1_integer l s1 == synth_asn1_integer l s2 /\
@@ -392,7 +392,7 @@ let synth_asn1_integer_injective_without_leading_zero
 
 noextract
 let synth_asn1_integer_injective'
-  (l: asn1_length_of_type INTEGER)
+  (l: asn1_value_length_of_type INTEGER)
   (s1 s2: parse_filter_refine (filter_asn1_integer l))
 : Lemma
   (requires synth_asn1_integer l s1 == synth_asn1_integer l s2)
@@ -406,18 +406,18 @@ let synth_asn1_integer_injective'
 
 noextract
 let synth_asn1_integer_injective
-  (l: asn1_length_of_type INTEGER)
+  (l: asn1_value_length_of_type INTEGER)
 : Lemma (synth_injective (synth_asn1_integer l))
 = synth_injective_intro'
   (* f *) (synth_asn1_integer l)
   (*prf*) (synth_asn1_integer_injective' l)
 
 noextract
-let parse_asn1_integer_kind (l: asn1_length_of_type INTEGER) = constant_size_parser_kind l
+let parse_asn1_integer_kind (l: asn1_value_length_of_type INTEGER) = constant_size_parser_kind l
 
 noextract
 let parse_asn1_integer
-  (l: asn1_length_of_type INTEGER)
+  (l: asn1_value_length_of_type INTEGER)
 : parser (parse_asn1_integer_kind l)
          (value: datatype_of_asn1_type INTEGER { l == length_of_asn1_integer value })
 = synth_asn1_integer_injective l;
@@ -429,7 +429,7 @@ let parse_asn1_integer
 
 noextract
 let parse_asn1_integer_unfold
-  (l: asn1_length_of_type INTEGER)
+  (l: asn1_value_length_of_type INTEGER)
   (input: bytes)
 : Lemma (
   parse_asn1_integer l input ==
@@ -453,7 +453,7 @@ let parse_asn1_integer_unfold
 
 noextract
 let serialize_asn1_integer
-  (l: asn1_length_of_type INTEGER)
+  (l: asn1_value_length_of_type INTEGER)
 : serializer (parse_asn1_integer l)
 = serialize_synth
   (* p1 *) (parse_seq_flbytes l
@@ -468,7 +468,7 @@ let serialize_asn1_integer
 
 noextract
 let serialize_asn1_integer_unfold
-  (l: asn1_length_of_type INTEGER)
+  (l: asn1_value_length_of_type INTEGER)
   (value: datatype_of_asn1_type INTEGER { l == length_of_asn1_integer value })
 : Lemma (
   serialize (serialize_asn1_integer l) value ==
@@ -491,7 +491,7 @@ let serialize_asn1_integer_unfold
 
 noextract
 let serialize_asn1_integer_size
-  (l: asn1_length_of_type INTEGER)
+  (l: asn1_value_length_of_type INTEGER)
   (value: datatype_of_asn1_type INTEGER { l == length_of_asn1_integer value })
 : Lemma (
   Seq.length (serialize (serialize_asn1_integer l) value) ==
@@ -504,19 +504,19 @@ let serialize_asn1_integer_size
 noextract
 let parser_tag_of_asn1_integer
   (value: datatype_of_asn1_type INTEGER)
-: GTot (the_asn1_type INTEGER & asn1_int32_of_type INTEGER)
+: GTot (the_asn1_type INTEGER & asn1_value_int32_of_type INTEGER)
 = (INTEGER, u (length_of_asn1_integer value))
 
 noextract
 let synth_asn1_integer_V
-  (tag: (the_asn1_type INTEGER & asn1_int32_of_type INTEGER))
+  (tag: (the_asn1_type INTEGER & asn1_value_int32_of_type INTEGER))
   (value: datatype_of_asn1_type INTEGER { v (snd tag) == length_of_asn1_integer value })
 : GTot (refine_with_tag parser_tag_of_asn1_integer tag)
 = value
 
 noextract
 let synth_asn1_integer_V_inverse
-  (tag: (the_asn1_type INTEGER & asn1_int32_of_type INTEGER))
+  (tag: (the_asn1_type INTEGER & asn1_value_int32_of_type INTEGER))
   (value': refine_with_tag parser_tag_of_asn1_integer tag)
 : GTot (value: datatype_of_asn1_type INTEGER {
                v (snd tag) == length_of_asn1_integer value /\
@@ -525,7 +525,7 @@ let synth_asn1_integer_V_inverse
 
 noextract
 let parse_asn1_integer_V
-  (tag: (the_asn1_type INTEGER & asn1_int32_of_type INTEGER))
+  (tag: (the_asn1_type INTEGER & asn1_value_int32_of_type INTEGER))
 : parser (weak_kind_of_type INTEGER) (refine_with_tag parser_tag_of_asn1_integer tag)
 = (weak_kind_of_type INTEGER
    `weaken`
@@ -535,7 +535,7 @@ let parse_asn1_integer_V
 
 noextract
 let parse_asn1_integer_V_unfold
-  (tag: (the_asn1_type INTEGER & asn1_int32_of_type INTEGER))
+  (tag: (the_asn1_type INTEGER & asn1_value_int32_of_type INTEGER))
   (input: bytes)
 : Lemma (
   parse (parse_asn1_integer_V tag) input ==
@@ -551,7 +551,7 @@ let parse_asn1_integer_V_unfold
 
 noextract
 let serialize_asn1_integer_V
-  (tag: (the_asn1_type INTEGER & asn1_int32_of_type INTEGER))
+  (tag: (the_asn1_type INTEGER & asn1_value_int32_of_type INTEGER))
 : serializer (parse_asn1_integer_V tag)
 = serialize_synth
   (* p1 *) (weak_kind_of_type INTEGER
@@ -566,7 +566,7 @@ let serialize_asn1_integer_V
 
 noextract
 let serialize_asn1_integer_V_unfold
-  (tag: (the_asn1_type INTEGER & asn1_int32_of_type INTEGER))
+  (tag: (the_asn1_type INTEGER & asn1_value_int32_of_type INTEGER))
   (value: refine_with_tag parser_tag_of_asn1_integer tag)
 : Lemma (
   serialize (serialize_asn1_integer_V tag) value ==
@@ -601,7 +601,7 @@ let parse_asn1_integer_TLV
 = parse_tagged_union
   (* pt *) (parse_asn1_tag_of_type INTEGER
             `nondep_then`
-            parse_asn1_length_of_type INTEGER)
+            parse_asn1_value_length_of_type INTEGER)
   (* tg *) (parser_tag_of_asn1_integer)
   (* p  *) (parse_asn1_integer_V)
 
@@ -616,7 +616,7 @@ let parse_asn1_integer_TLV_unfold
   | None -> None
   | Some (tag, consumed_tag) ->
     (let input_LV = Seq.slice input consumed_tag (Seq.length input) in
-     match parse (parse_asn1_length_of_type INTEGER) input_LV with
+     match parse (parse_asn1_value_length_of_type INTEGER) input_LV with
      | None -> None
      | Some (len, consumed_len) ->
      (let input_V = Seq.slice input_LV consumed_len (Seq.length input_LV) in
@@ -628,12 +628,12 @@ let parse_asn1_integer_TLV_unfold
   )))
 = nondep_then_eq
   (* p1 *) (parse_asn1_tag_of_type INTEGER)
-  (* p2 *) (parse_asn1_length_of_type INTEGER)
+  (* p2 *) (parse_asn1_value_length_of_type INTEGER)
   (* in *) (input);
 
   let parser_tag = parse (parse_asn1_tag_of_type INTEGER
                           `nondep_then`
-                          parse_asn1_length_of_type INTEGER) input in
+                          parse_asn1_value_length_of_type INTEGER) input in
   if (Some? parser_tag) then
   ( let Some (parser_tag, length) = parser_tag in
     parse_asn1_integer_V_unfold parser_tag (Seq.slice input length (Seq.length input)) );
@@ -641,7 +641,7 @@ let parse_asn1_integer_TLV_unfold
   parse_tagged_union_eq
   (* pt *) (parse_asn1_tag_of_type INTEGER
             `nondep_then`
-            parse_asn1_length_of_type INTEGER)
+            parse_asn1_value_length_of_type INTEGER)
   (* tg *) (parser_tag_of_asn1_integer)
   (* p  *) (parse_asn1_integer_V)
   (* in *) (input)
@@ -654,7 +654,7 @@ let serialize_asn1_integer_TLV
 = serialize_tagged_union
   (* st *) (serialize_asn1_tag_of_type INTEGER
             `serialize_nondep_then`
-            serialize_asn1_length_of_type INTEGER)
+            serialize_asn1_value_length_of_type INTEGER)
   (* tg *) (parser_tag_of_asn1_integer)
   (* s  *) (serialize_asn1_integer_V)
 #pop-options
@@ -667,18 +667,18 @@ let serialize_asn1_integer_TLV_unfold
   serialize serialize_asn1_integer_TLV value ==
   serialize (serialize_asn1_tag_of_type INTEGER) INTEGER
   `Seq.append`
-  serialize (serialize_asn1_length_of_type INTEGER) (u (length_of_asn1_integer value))
+  serialize (serialize_asn1_value_length_of_type INTEGER) (u (length_of_asn1_integer value))
   `Seq.append`
   serialize (serialize_asn1_integer (length_of_asn1_integer value)) value)
 = serialize_nondep_then_eq
   (* s1 *) (serialize_asn1_tag_of_type INTEGER)
-  (* s2 *) (serialize_asn1_length_of_type INTEGER)
+  (* s2 *) (serialize_asn1_value_length_of_type INTEGER)
   (* in *) (parser_tag_of_asn1_integer value);
   serialize_asn1_integer_V_unfold (parser_tag_of_asn1_integer value) value;
   serialize_tagged_union_eq
   (* st *) (serialize_asn1_tag_of_type INTEGER
             `serialize_nondep_then`
-            serialize_asn1_length_of_type INTEGER)
+            serialize_asn1_value_length_of_type INTEGER)
   (* tg *) (parser_tag_of_asn1_integer)
   (* s  *) (serialize_asn1_integer_V)
   (* in *) (value)
@@ -690,15 +690,15 @@ let serialize_asn1_integer_TLV_size
   (value: datatype_of_asn1_type INTEGER)
 : Lemma (
   let length = length_of_asn1_integer value in
-  let len: asn1_int32_of_type INTEGER = u length in
+  let len: asn1_value_int32_of_type INTEGER = u length in
   Seq.length (serialize serialize_asn1_integer_TLV value) ==
   1 + length_of_asn1_length len + length
 )
 = let length = length_of_asn1_integer value in
-  let len: asn1_int32_of_type INTEGER = u length in
+  let len: asn1_value_int32_of_type INTEGER = u length in
   serialize_asn1_integer_TLV_unfold value;
   serialize_asn1_tag_of_type_size INTEGER INTEGER;
   serialize_asn1_length_size len;
-  serialize_asn1_length_of_type_eq INTEGER len;
+  serialize_asn1_value_length_of_type_eq INTEGER len;
   serialize_asn1_integer_size length value
 #pop-options

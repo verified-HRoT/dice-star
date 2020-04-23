@@ -49,10 +49,12 @@ let asn1_length_inbound (x: nat) (min max: asn1_length_t): bool
    6. BIT_STRING value could take arbitrary greater-than-zero valid length/size of bytes, since it
       always take one byte to store the `unused_bits`, see `ASN1.Spec.BIT_STRING` for details;
    7. SEQUENCE value could take arbitrary valid length/size of bytes.
+NOTE: Making the max length be `ans1_length_max - 6` to make all TLV be inbound (Tag takes 1 byte and
+      Len takes at most 5 bytes).
 *)
 (* NOTE: Not marking them with `GTot` because many definition's total definitions need them. *)
 noextract
-let asn1_length_min_of_type
+let asn1_value_length_min_of_type
   (a: asn1_type)
 : asn1_length_t
 = match a with
@@ -65,36 +67,82 @@ let asn1_length_min_of_type
   | SEQUENCE     -> asn1_length_min
 
 noextract
-let asn1_length_max_of_type
+let asn1_value_length_max_of_type
   (a: asn1_type)
 : asn1_length_t
 = match a with
   | BOOLEAN      -> 1
   | INTEGER      -> 4
   | NULL         -> 0
+  | OCTET_STRING -> asn1_length_max - 6
+  | OID          -> asn1_length_max - 6
+  | BIT_STRING   -> asn1_length_max - 6
+  | SEQUENCE     -> asn1_length_max - 6
+
+noextract
+let asn1_value_length_bound_of_type
+  (a: asn1_type)
+: (asn1_length_t & asn1_length_t)
+= (asn1_value_length_min_of_type a, asn1_value_length_max_of_type a)
+
+noextract
+let asn1_value_length_inbound_of_type
+  (a: asn1_type) (x: nat)
+: bool
+= let min, max = asn1_value_length_bound_of_type a in
+  asn1_length_inbound x min max
+
+/// Valid mathematical integer for a specific type
+noextract
+let asn1_value_length_of_type
+  (a: asn1_type)
+= l: asn1_length_t {asn1_value_length_inbound_of_type a l}
+
+//////////////////////////////////////////////////////////////
+noextract
+let asn1_TLV_length_min_of_type
+  (a: asn1_type)
+: asn1_length_t
+= match a with
+  | BOOLEAN      -> 3
+  | INTEGER      -> 3
+  | NULL         -> 2
+  | OCTET_STRING -> 2
+  | OID          -> 2
+  | BIT_STRING   -> 3
+  | SEQUENCE     -> 2
+
+noextract
+let asn1_TLV_length_max_of_type
+  (a: asn1_type)
+: asn1_length_t
+= match a with
+  | BOOLEAN      -> 3
+  | INTEGER      -> 6
+  | NULL         -> 2
   | OCTET_STRING -> asn1_length_max
   | OID          -> asn1_length_max
   | BIT_STRING   -> asn1_length_max
   | SEQUENCE     -> asn1_length_max
 
 noextract
-let asn1_length_bound_of_type
+let asn1_TLV_length_bound_of_type
   (a: asn1_type)
 : (asn1_length_t & asn1_length_t)
-= (asn1_length_min_of_type a, asn1_length_max_of_type a)
+= (asn1_TLV_length_min_of_type a, asn1_TLV_length_max_of_type a)
 
 noextract
-let asn1_length_inbound_of_type
+let asn1_TLV_length_inbound_of_type
   (a: asn1_type) (x: nat)
 : bool
-= let min, max = asn1_length_bound_of_type a in
+= let min, max = asn1_TLV_length_bound_of_type a in
   asn1_length_inbound x min max
 
 /// Valid mathematical integer for a specific type
 noextract
-let asn1_length_of_type
+let asn1_TLV_length_of_type
   (a: asn1_type)
-= l: asn1_length_t {asn1_length_inbound_of_type a l}
+= l: asn1_length_t {asn1_TLV_length_inbound_of_type a l}
 
 //////////////////////////////////////////////////////////////
 /// ASN1 bounded 32-bit unsigned machine integers
@@ -104,9 +152,9 @@ let asn1_int32_min: i: asn1_int32 {forall (i': asn1_int32). i <= i'} = 0ul
 let asn1_int32_max: i: asn1_int32 {forall (i': asn1_int32). i >= i'} = 4294967295ul
 
 (* Defining the min and max machine len of the serialization of _value_s *)
-let asn1_int32_min_of_type
+let asn1_value_int32_min_of_type
   (a: asn1_type)
-: Tot (n: asn1_int32 {v n == asn1_length_min_of_type a})
+: Tot (n: asn1_int32 {v n == asn1_value_length_min_of_type a})
 = match a with
   | BOOLEAN      -> 1ul
   | INTEGER      -> 1ul
@@ -116,30 +164,69 @@ let asn1_int32_min_of_type
   | BIT_STRING   -> 1ul
   | SEQUENCE     -> asn1_int32_min
 
-let asn1_int32_max_of_type
+let asn1_value_int32_max_of_type
   (a: asn1_type)
-: Tot (n: asn1_int32 {v n == asn1_length_max_of_type a})
+: Tot (n: asn1_int32 {v n == asn1_value_length_max_of_type a})
 = match a with
   | BOOLEAN      -> 1ul
   | INTEGER      -> 4ul
   | NULL         -> 0ul
+  | OCTET_STRING -> asn1_int32_max - 6ul
+  | OID          -> asn1_int32_max - 6ul
+  | BIT_STRING   -> asn1_int32_max - 6ul
+  | SEQUENCE     -> asn1_int32_max - 6ul
+
+let asn1_value_int32_bound_of_type
+  (a: asn1_type)
+: Tot (x: (asn1_int32 & asn1_int32) {
+          let (vmin, vmax) = asn1_value_length_bound_of_type a in
+          let (min , max ) = x in
+          v min == vmin /\ v max == vmax })
+= (asn1_value_int32_min_of_type a, asn1_value_int32_max_of_type a)
+
+/// Valid mathematical integer for a specific type
+let asn1_value_int32_of_type
+  (_a: asn1_type)
+= let min, max = asn1_value_length_min_of_type _a, asn1_value_length_max_of_type _a in
+  LowParse.Spec.BoundedInt.bounded_int32 min max
+
+/////////////////////////////////////////////////////////////////////////////////
+let asn1_TLV_int32_min_of_type
+  (a: asn1_type)
+: Tot (n: asn1_int32 {v n == asn1_TLV_length_min_of_type a})
+= match a with
+  | BOOLEAN      -> 3ul
+  | INTEGER      -> 3ul
+  | NULL         -> 2ul
+  | OCTET_STRING -> 2ul
+  | OID          -> 2ul
+  | BIT_STRING   -> 3ul
+  | SEQUENCE     -> 2ul
+
+let asn1_TLV_int32_max_of_type
+  (a: asn1_type)
+: Tot (n: asn1_int32 {v n == asn1_TLV_length_max_of_type a})
+= match a with
+  | BOOLEAN      -> 3ul
+  | INTEGER      -> 6ul
+  | NULL         -> 2ul
   | OCTET_STRING -> asn1_int32_max
   | OID          -> asn1_int32_max
   | BIT_STRING   -> asn1_int32_max
   | SEQUENCE     -> asn1_int32_max
 
-let asn1_int32_bound_of_type
+let asn1_TLV_int32_bound_of_type
   (a: asn1_type)
 : Tot (x: (asn1_int32 & asn1_int32) {
-          let (vmin, vmax) = asn1_length_bound_of_type a in
+          let (vmin, vmax) = asn1_TLV_length_bound_of_type a in
           let (min , max ) = x in
           v min == vmin /\ v max == vmax })
-= (asn1_int32_min_of_type a, asn1_int32_max_of_type a)
+= (asn1_TLV_int32_min_of_type a, asn1_TLV_int32_max_of_type a)
 
 /// Valid mathematical integer for a specific type
-let asn1_int32_of_type
+let asn1_TLV_int32_of_type
   (_a: asn1_type)
-= let min, max = asn1_length_min_of_type _a, asn1_length_max_of_type _a in
+= let min, max = asn1_TLV_length_min_of_type _a, asn1_TLV_length_max_of_type _a in
   LowParse.Spec.BoundedInt.bounded_int32 min max
 
 //////////////////////////////////////////////////////////////////////
@@ -149,7 +236,7 @@ let asn1_int32_of_type
 let weak_kind_of_type
   (a: asn1_type)
 : LowParse.Spec.Base.parser_kind
-= let min, max = asn1_length_bound_of_type a in
+= let min, max = asn1_value_length_bound_of_type a in
   LowParse.Spec.Base.strong_parser_kind min max None
 
 
@@ -179,7 +266,7 @@ let datatype_of_asn1_type (a: asn1_primitive_type): Type
   (* An octet string is represented as
      1. `len`: the length of the octet string;
      2. `s`: the octet string. *)
-  | OCTET_STRING -> ( len: asn1_int32_of_type OCTET_STRING &
+  | OCTET_STRING -> ( len: asn1_value_int32_of_type OCTET_STRING &
                       s  : B32.bytes { B32.length s == v len } )
 
   (* WIP *)
@@ -189,7 +276,7 @@ let datatype_of_asn1_type (a: asn1_primitive_type): Type
      1. `len`: the length of both `unused_bits` and `s`;
      2. `unused_bits`: a byte, ranging [0, 7], to represent the number of unused bits in the last byte of `s`.
      3. `s`: bytes, whose last bytes' last `unused_bits` bits should be zeroed. could be an empty bytes. *)
-  | BIT_STRING   -> ( len        : asn1_int32_of_type BIT_STRING &
+  | BIT_STRING   -> ( len        : asn1_value_int32_of_type BIT_STRING &
                       unused_bits: asn1_int32 {0 <= v unused_bits /\ v unused_bits <= 7} &
                       s          : B32.bytes { B32.length s == v len - 1 /\
                                              ( if B32.length s = 0 then

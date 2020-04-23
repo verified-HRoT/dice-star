@@ -21,7 +21,7 @@ module B32 = FStar.Bytes
 #push-options "--query_stats --z3rlimit 64"
 inline_for_extraction
 let serialize32_asn1_bit_string_backwards
-  (len: asn1_int32_of_type BIT_STRING)
+  (len: asn1_value_int32_of_type BIT_STRING)
 : Tot (serializer32_backwards (serialize_asn1_bit_string (v len)))
 = fun (value: datatype_of_asn1_type BIT_STRING {
             let (|len', unused_bits, s|) = value in
@@ -79,7 +79,7 @@ let serialize32_asn1_bit_string_backwards
 inline_for_extraction
 let parser_tag_of_bit_string_impl
   (x: datatype_of_asn1_type BIT_STRING)
-: Tot (tg: (the_asn1_type BIT_STRING & asn1_int32_of_type BIT_STRING) {
+: Tot (tg: (the_asn1_type BIT_STRING & asn1_value_int32_of_type BIT_STRING) {
            tg == parser_tag_of_bit_string x
   })
 = let (|len, unused_bits, s32|) = x in
@@ -87,7 +87,7 @@ let parser_tag_of_bit_string_impl
 
 inline_for_extraction
 let synth_asn1_bit_string_V_inverse_impl
-  (tag: (the_asn1_type BIT_STRING & asn1_int32_of_type BIT_STRING))
+  (tag: (the_asn1_type BIT_STRING & asn1_value_int32_of_type BIT_STRING))
   (value': refine_with_tag parser_tag_of_bit_string tag)
 : Tot (value: datatype_of_asn1_type BIT_STRING {
                  let (|len, unused_bits, s|) = value in
@@ -101,7 +101,7 @@ let serialize32_asn1_bit_string_TLV_backwards ()
 = serialize32_tagged_union_backwards
   (* lst *) (serialize32_asn1_tag_of_type_backwards BIT_STRING
              `serialize32_nondep_then_backwards`
-             serialize32_asn1_length_of_type_backwards BIT_STRING)
+             serialize32_asn1_value_length_of_type_backwards BIT_STRING)
   (* ltg *) (parser_tag_of_bit_string_impl)
   (* ls  *) (fun parser_tag -> (serialize32_synth_backwards
                               (* ls *) (weak_kind_of_type BIT_STRING

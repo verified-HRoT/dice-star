@@ -37,15 +37,33 @@ let main ()
     parameters    = (|5ul, B32.of_buffer 5ul algo_param|)
   } in
 
+  (* NOTE: We need to prove this whole constructed SEQUENCE value has a valid length frist. *)
   (* Prf *) serialize_algorithmIdentifier_value_unfold algo_id;
   (* Prf *) serialize_asn1_octet_string_TLV_size algo_id.algorithm_oid;
   (* Prf *) serialize_asn1_octet_string_TLV_size algo_id.parameters;
 
-  let dst: b: B.buffer pub_uint8 {B.length b == 50} = B.alloca 0x00uy 50ul in
-  let offset = serialize32_algorithmIdentifier_value_backwards
-               (* val *) algo_id
+  (* NOTE: Then reveal the whole constructed SEQUENCE TLV's length. *)
+  // (* Prf *) serialize_algorithmIdentifier_sequence_unfold algo_id;
+  (* Prf *) serialize_algorithmIdentifier_sequence_TLV_size algo_id;
+
+  let pubkey: b: B.buffer uint8 {B.length b == 3} = B.alloca 0b100uy 3ul in
+  let subjectPublicKeyInfo: subjectPublicKeyInfo_t = {
+    algorithm = algo_id;
+    subjectPublicKey = (|4ul, 2ul, B32.of_buffer 3ul pubkey|)
+  } in
+
+  (* NOTE: Prove subjectPublicKeyInfo is inbound. *)
+  (* Prf *) serialize_subjectPublicKeyInfo_value_unfold subjectPublicKeyInfo;
+  (* Prf *) serialize_asn1_bit_string_TLV_size subjectPublicKeyInfo.subjectPublicKey;
+
+  (* NOTE: Reveal subjectPublicKeyInfo's TLV's length. *)
+  (* Prf *) serialize_subjectPublicKeyInfo_sequence_TLV_size subjectPublicKeyInfo;
+
+  let dst: b: B.buffer pub_uint8 {B.length b == 100} = B.alloca 0x00uy 100ul in
+  let offset = serialize32_subjectPublicKeyInfo_sequence_TLV_backwards
+               (* val *) subjectPublicKeyInfo
                (* buf *) dst
-               (* pos *) 49ul in
+               (* pos *) 99ul in
 
   HST.pop_frame ();
   C.EXIT_SUCCESS

@@ -54,6 +54,10 @@ let serialize_asn1_TLV_of_type
   | BIT_STRING   -> serialize_asn1_bit_string_TLV
   | OID          -> admit ()
 
+
+(* NOTE: Use this for potentially unbounded len computations. Since I have
+         tighten the max asn1 value length to make all asn1 TLV of a valid
+         asn1 value inbound, this may no longer needed. *)
 #push-options "--query_stats --z3rlimit 32"
 let safe_add
   (a b: option asn1_int32)
@@ -75,7 +79,7 @@ noextract
 let length_of_asn1_primitive_value
   (#_a: asn1_primitive_type)
   (value: datatype_of_asn1_type _a)
-: GTot (length: asn1_length_of_type _a {
+: GTot (length: asn1_value_length_of_type _a {
   length == Seq.length (
     match _a with
     | BOOLEAN      -> serialize serialize_asn1_boolean value
@@ -112,24 +116,41 @@ let length_of_asn1_primitive_value
   | OID          -> admit ()
 #pop-options
 
-(* TODO: Revise this. *)
-noextract
-let asn1_length_inbound_of_primitive_value
-  (#_a: asn1_primitive_type)
-  (value: datatype_of_asn1_type _a)
-: GTot (b: bool { b == asn1_length_inbound_of_type _a (length_of_asn1_primitive_value value) })
-= let min, max = asn1_length_bound_of_type _a in
-  let length = length_of_asn1_primitive_value value in
-  asn1_length_inbound length min max
-
 /// Length Spec of ASN.1 Primitive [TAG, LEN, VALUE] of primitive types
 ///
-#push-options "--query_stats --z3rlimit 8"
+#push-options "--query_stats --z3rlimit 32"
 noextract
 let length_of_asn1_primitive_TLV
   (#_a: asn1_primitive_type)
   (value: datatype_of_asn1_type _a)
-: GTot (length: nat { length == Seq.length (serialize (serialize_asn1_TLV_of_type _a) value) })
+: GTot (length: asn1_TLV_length_of_type _a {
+               (* Provide proofs here *)
+               let _ =
+               (match _a with
+                | BOOLEAN      -> ( let value = value <: datatype_of_asn1_type BOOLEAN in
+                                    serialize_asn1_boolean_TLV_size value )
+
+                | NULL         -> ( let value = value <: datatype_of_asn1_type NULL in
+                                    serialize_asn1_null_TLV_size value )
+
+                | INTEGER      -> ( let value = value <: datatype_of_asn1_type INTEGER in
+                                    let length = length_of_asn1_integer value in
+                                    let len: asn1_value_int32_of_type INTEGER = u length in
+                                    serialize_asn1_integer_TLV_size value )
+
+                | OCTET_STRING -> ( let value = value <: datatype_of_asn1_type OCTET_STRING in
+                                    let length = v (dfst value) in
+                                    let len: asn1_value_int32_of_type OCTET_STRING = u length in
+                                    serialize_asn1_octet_string_TLV_size value )
+
+                | BIT_STRING   -> ( let value = value <: datatype_of_asn1_type BIT_STRING in
+                                    let length = v (Mkdtuple3?._1 value) in
+                                    let len: asn1_value_int32_of_type BIT_STRING = u length in
+                                    serialize_asn1_bit_string_TLV_size value )
+
+                | OID          -> () ) in
+                length == Seq.length (serialize (serialize_asn1_TLV_of_type _a) value)
+})
 = match _a with
   | BOOLEAN      -> ( let value = value <: datatype_of_asn1_type BOOLEAN in
                       serialize_asn1_boolean_TLV_size value
@@ -141,31 +162,21 @@ let length_of_asn1_primitive_TLV
 
   | INTEGER      -> ( let value = value <: datatype_of_asn1_type INTEGER in
                       let length = length_of_asn1_integer value in
-                      let len: asn1_int32_of_type INTEGER = u length in
+                      let len: asn1_value_int32_of_type INTEGER = u length in
                       serialize_asn1_integer_TLV_size value
                     ; 1 + length_of_asn1_length len + length )
 
   | OCTET_STRING -> ( let value = value <: datatype_of_asn1_type OCTET_STRING in
                       let length = v (dfst value) in
-                      let len: asn1_int32_of_type OCTET_STRING = u length in
+                      let len: asn1_value_int32_of_type OCTET_STRING = u length in
                       serialize_asn1_octet_string_TLV_size value
                     ; 1 + length_of_asn1_length len + length )
 
   | BIT_STRING   -> ( let value = value <: datatype_of_asn1_type BIT_STRING in
                       let length = v (Mkdtuple3?._1 value) in
-                      let len: asn1_int32_of_type BIT_STRING = u length in
+                      let len: asn1_value_int32_of_type BIT_STRING = u length in
                       serialize_asn1_bit_string_TLV_size value
                     ; 1 + length_of_asn1_length len + length )
 
   | OID          -> admit ()
 #pop-options
-
-(* TODO: Revise this*)
-noextract
-let asn1_length_inbound_of_primitive_TLV
-  (#_a: asn1_primitive_type)
-  (value: datatype_of_asn1_type _a)
-: GTot (bool)
-= let min, max = asn1_length_bound_of_type _a in
-  let length = length_of_asn1_primitive_TLV value in
-  asn1_length_inbound length asn1_length_min asn1_length_max

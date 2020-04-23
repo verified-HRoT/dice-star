@@ -16,7 +16,7 @@ let ecdsa_with_sha256_oid : datatype_of_asn1_type OCTET_STRING = (|5ul, Seq.crea
 let key_usage_oid         : datatype_of_asn1_type OCTET_STRING = (|5ul, Seq.create 5 0x00uy|)
 
 let filter_asn1_oid
-  (l: asn1_length_of_type OID)
+  (l: asn1_value_length_of_type OID)
   (ls: lbytes l)
 : GTot (bool)
 = ls = dsnd riot_oid ||
@@ -24,7 +24,7 @@ let filter_asn1_oid
   ls = dsnd key_usage_oid
 
 let synth_asn1_oid
-  (l: asn1_length_of_type OID)
+  (l: asn1_value_length_of_type OID)
   (ls: parse_filter_refine (filter_asn1_oid l))
 : GTot (datatype_of_asn1_type OID)
 = match ls with
@@ -33,7 +33,7 @@ let synth_asn1_oid
   | key_usage_oid         -> KEY_USAGE_OID
 
 let synth_asn1_oid_inverse
-  (l: asn1_length_of_type OID)
+  (l: asn1_value_length_of_type OID)
   (oid: datatype_of_asn1_type OID)
 : GTot (ls: parse_filter_refine (filter_asn1_oid l) {oid == synth_asn1_oid l ls})
 = match oid with

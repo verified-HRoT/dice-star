@@ -129,14 +129,14 @@ open ASN1.Spec.Length
 
 noextract
 let synth_asn1_boolean_TLV
-  (a: (the_asn1_type BOOLEAN * asn1_int32_of_type BOOLEAN) * datatype_of_asn1_type BOOLEAN)
+  (a: (the_asn1_type BOOLEAN * asn1_value_int32_of_type BOOLEAN) * datatype_of_asn1_type BOOLEAN)
 : GTot (datatype_of_asn1_type BOOLEAN)
 = snd a
 
 noextract
 let synth_asn1_boolean_TLV_inverse
   (x: datatype_of_asn1_type BOOLEAN)
-: GTot (a: ((the_asn1_type BOOLEAN * asn1_int32_of_type BOOLEAN) * datatype_of_asn1_type BOOLEAN){x == synth_asn1_boolean_TLV a})
+: GTot (a: ((the_asn1_type BOOLEAN * asn1_value_int32_of_type BOOLEAN) * datatype_of_asn1_type BOOLEAN){x == synth_asn1_boolean_TLV a})
 = ((BOOLEAN, 1ul), x)
 
 noextract
@@ -149,7 +149,7 @@ let parse_asn1_boolean_TLV
 : parser parse_asn1_boolean_TLV_kind (datatype_of_asn1_type BOOLEAN)
 = parse_asn1_tag_of_type BOOLEAN
   `nondep_then`
-  parse_asn1_length_of_type BOOLEAN
+  parse_asn1_value_length_of_type BOOLEAN
   `nondep_then`
   parse_asn1_boolean
   `parse_synth`
@@ -165,9 +165,9 @@ let parse_asn1_boolean_TLV_unfold
   match parse (parse_asn1_tag_of_type BOOLEAN) input_TLV with
   | None -> None
   | Some (BOOLEAN, 1) ->
-    (parser_kind_prop_equiv (parse_asn1_length_kind_of_type BOOLEAN) (parse_asn1_length_of_type BOOLEAN);
+    (parser_kind_prop_equiv (parse_asn1_length_kind_of_type BOOLEAN) (parse_asn1_value_length_of_type BOOLEAN);
      let input_LV = Seq.slice input_TLV 1 (Seq.length input_TLV) in
-     match parse (parse_asn1_length_of_type BOOLEAN) input_LV with
+     match parse (parse_asn1_value_length_of_type BOOLEAN) input_LV with
      | None -> None
      | Some (1ul, 1) ->
        (parser_kind_prop_equiv parse_asn1_boolean_kind parse_asn1_boolean;
@@ -177,22 +177,22 @@ let parse_asn1_boolean_TLV_unfold
         | Some (value, 1) -> Some (value, (1 + 1 + 1 <: consumed_length input_TLV)))))
 )
 = parser_kind_prop_equiv parse_asn1_tag_kind (parse_asn1_tag_of_type BOOLEAN);
-  parser_kind_prop_equiv (parse_asn1_length_kind_of_type BOOLEAN) (parse_asn1_length_of_type BOOLEAN);
+  parser_kind_prop_equiv (parse_asn1_length_kind_of_type BOOLEAN) (parse_asn1_value_length_of_type BOOLEAN);
   parser_kind_prop_equiv parse_asn1_boolean_kind parse_asn1_boolean;
   nondep_then_eq
   (* p1 *) (parse_asn1_tag_of_type BOOLEAN)
-  (* p2 *) (parse_asn1_length_of_type BOOLEAN)
+  (* p2 *) (parse_asn1_value_length_of_type BOOLEAN)
   (* in *) (input_TLV);
   nondep_then_eq
   (* p1 *) (parse_asn1_tag_of_type BOOLEAN
             `nondep_then`
-            parse_asn1_length_of_type BOOLEAN)
+            parse_asn1_value_length_of_type BOOLEAN)
   (* p2 *) (parse_asn1_boolean)
   (* in *) (input_TLV);
   parse_synth_eq
   (* p1 *) (parse_asn1_tag_of_type BOOLEAN
             `nondep_then`
-            parse_asn1_length_of_type BOOLEAN
+            parse_asn1_value_length_of_type BOOLEAN
             `nondep_then`
             parse_asn1_boolean)
   (* f2 *) (synth_asn1_boolean_TLV)
@@ -204,13 +204,13 @@ let serialize_asn1_boolean_TLV
 = serialize_synth
   (* p1 *) (parse_asn1_tag_of_type BOOLEAN
             `nondep_then`
-            parse_asn1_length_of_type BOOLEAN
+            parse_asn1_value_length_of_type BOOLEAN
             `nondep_then`
             parse_asn1_boolean)
   (* f2 *) (synth_asn1_boolean_TLV)
   (* s1 *) (serialize_asn1_tag_of_type BOOLEAN
             `serialize_nondep_then`
-            serialize_asn1_length_of_type BOOLEAN
+            serialize_asn1_value_length_of_type BOOLEAN
             `serialize_nondep_then`
             serialize_asn1_boolean)
   (* g1 *) (synth_asn1_boolean_TLV_inverse)
@@ -225,30 +225,30 @@ let serialize_asn1_boolean_TLV_unfold
   `Seq.equal`
  (serialize (serialize_asn1_tag_of_type BOOLEAN) BOOLEAN
   `Seq.append`
-  serialize (serialize_asn1_length_of_type BOOLEAN) 1ul
+  serialize (serialize_asn1_value_length_of_type BOOLEAN) 1ul
   `Seq.append`
   serialize serialize_asn1_boolean value)
 )
 = serialize_nondep_then_eq
   (* s1 *) (serialize_asn1_tag_of_type BOOLEAN)
-  (* s2 *) (serialize_asn1_length_of_type BOOLEAN)
+  (* s2 *) (serialize_asn1_value_length_of_type BOOLEAN)
   (* in *) (BOOLEAN, 1ul);
   serialize_nondep_then_eq
   (* s1 *) (serialize_asn1_tag_of_type BOOLEAN
             `serialize_nondep_then`
-            serialize_asn1_length_of_type BOOLEAN)
+            serialize_asn1_value_length_of_type BOOLEAN)
   (* s2 *) (serialize_asn1_boolean)
   (* in *) ((BOOLEAN, 1ul), value);
   serialize_synth_eq
   (* p1 *) (parse_asn1_tag_of_type BOOLEAN
             `nondep_then`
-            parse_asn1_length_of_type BOOLEAN
+            parse_asn1_value_length_of_type BOOLEAN
             `nondep_then`
             parse_asn1_boolean)
   (* f2 *) (synth_asn1_boolean_TLV)
   (* s1 *) (serialize_asn1_tag_of_type BOOLEAN
             `serialize_nondep_then`
-            serialize_asn1_length_of_type BOOLEAN
+            serialize_asn1_value_length_of_type BOOLEAN
             `serialize_nondep_then`
             serialize_asn1_boolean)
   (* g1 *) (synth_asn1_boolean_TLV_inverse)
