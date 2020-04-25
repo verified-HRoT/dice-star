@@ -1,4 +1,4 @@
-module ASN1.Spec.SEQUENCE
+module ASN1.Spec.Value.SEQUENCE
 
 open ASN1.Base
 open ASN1.Spec.Tag
@@ -7,6 +7,12 @@ open LowParse.Bytes
 open LowParse.Spec.FLData
 
 open FStar.Integers
+
+(* NOTE: Read after `ASN1.Spec.Tag`, `ASN1.Spec.Length`, `ASN1.Spec.Value.*` *)
+
+(* NOTE: Use `parse_fldata_strong` to construct fixed-length parsers (with the strong prefix proeprty),
+         where these fixed-length is runtimely parsed.
+ *)
 
 /// ASN.1 SEQUENCE Tag-Length parser/serializer
 ///
@@ -208,7 +214,7 @@ let parse_asn1_sequence_TLV
   (* tg *) (parser_tag_of_asn1_sequence s)
   (* p  *) (parse_asn1_sequence_value_weak s)
 
-#push-options "--query_stats --z3rlimit 16"
+#push-options "--z3rlimit 16"
 noextract
 let parse_asn1_sequence_TLV_unfold
   (#k: parser_kind)
@@ -246,7 +252,7 @@ let serialize_asn1_sequence_TLV
   (* tg *) (parser_tag_of_asn1_sequence s)
   (* s  *) (serialize_asn1_sequence_value_weak s)
 
-#push-options "--query_stats --z3rlimit 16"
+#push-options "--z3rlimit 16"
 noextract
 let serialize_asn1_sequence_TLV_unfold
   (#k: parser_kind)

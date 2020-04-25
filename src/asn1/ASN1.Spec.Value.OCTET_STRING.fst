@@ -1,4 +1,4 @@
-module ASN1.Spec.OCTET_STRING
+module ASN1.Spec.Value.OCTET_STRING
 
 open LowParse.Spec.Base
 open LowParse.Spec.Combinators
@@ -12,6 +12,32 @@ open FStar.Integers
 
 module B32 = FStar.Bytes
 
+(* NOTE: Read after `ASN1.Spec.Tag`, `ASN1.Spec.Length`, `ASN1.Spec.Value.OCTET_STRING` *)
+
+(* NOTE: This module defines:
+         1) The ASN1 `OCTET_STRING` Value Parser and Serializer
+         2) The ASN1 `OCTET_STRING` TLV Parser and Serializer
+
+         And each part is organized as:
+         1) Aux (ghost) functions with prefix `filter_` to filter out invalid input bytes
+         2) Aux (ghost) functions with prefix `synth_` to decode the valid input bytes into our
+            representation of OCTET_STRING values. These functions are injective.
+         3) Aux (ghost) functions with prefix `synth_` and suffix `_inverse` to encode our
+            representation of OCTET_STRING into bytes. These functions are the inverse of
+            corresponding synth functions.
+         4) Functions with the prefix `parse_` are parsers constructed using parser combinators and
+            aux functions.
+         5) Functions with the prefix `serialize_` are serializers constructed using serializer
+            combinators and aux functions.
+         6) Lemma with suffix `_unfold` reveals the computation of parser/serialzier.
+         7) Lemma with suffix `_size` reveals the length of a serialization.
+*)
+
+///////////////////////////////////////////////////////////
+//// ASN1 `OCTET_STRING` Value Parser and Serializer
+//////////////////////////////////////////////////////////
+
+/// Decodes input bytes into our representation of a OCTET_STRING value
 noextract
 let synth_asn1_octet_string
   (l: asn1_value_length_of_type OCTET_STRING)
@@ -19,6 +45,8 @@ let synth_asn1_octet_string
 : GTot (value: datatype_of_asn1_type OCTET_STRING{v (dfst value) == l})
 = (|u l, s32|)
 
+
+/// Encodes our representation of a OCTET_STRING into bytes
 noextract
 let synth_asn1_octet_string_inverse
   (l: asn1_value_length_of_type OCTET_STRING)
@@ -29,6 +57,9 @@ let synth_asn1_octet_string_inverse
 noextract
 let parse_asn1_octet_string_kind (l: asn1_value_length_of_type OCTET_STRING) = total_constant_size_parser_kind l
 
+///
+/// Parser
+///
 noextract
 let parse_asn1_octet_string
   (l: asn1_value_length_of_type OCTET_STRING)
@@ -37,6 +68,26 @@ let parse_asn1_octet_string
   `parse_synth`
   synth_asn1_octet_string l
 
+///
+/// Serializer
+///
+noextract
+let serialize_asn1_octet_string
+  (l: asn1_value_length_of_type OCTET_STRING)
+: serializer (parse_asn1_octet_string l)
+= serialize_synth
+  (* p1 *) (parse_flbytes l)
+  (* f2 *) (synth_asn1_octet_string l)
+  (* s1 *) (serialize_flbytes l)
+  (* g1 *) (synth_asn1_octet_string_inverse l)
+  (* Prf*) ()
+
+
+///
+/// Lemmas
+///
+
+/// Reveal the computation of parse
 noextract
 let parse_asn1_octet_string_unfold
   (l: asn1_value_length_of_type OCTET_STRING)
@@ -51,17 +102,7 @@ let parse_asn1_octet_string_unfold
   (* f2 *) (synth_asn1_octet_string l)
   (* in *) (input)
 
-noextract
-let serialize_asn1_octet_string
-  (l: asn1_value_length_of_type OCTET_STRING)
-: serializer (parse_asn1_octet_string l)
-= serialize_synth
-  (* p1 *) (parse_flbytes l)
-  (* f2 *) (synth_asn1_octet_string l)
-  (* s1 *) (serialize_flbytes l)
-  (* g1 *) (synth_asn1_octet_string_inverse l)
-  (* Prf*) ()
-
+/// Reveal the computation of serialize
 noextract
 let serialize_asn1_octet_string_unfold
   (l: asn1_value_length_of_type OCTET_STRING)
@@ -77,6 +118,7 @@ let serialize_asn1_octet_string_unfold
   (* Prf*) ()
   (* in *) (value)
 
+/// Reveal the length of a serialzation
 noextract
 let serialize_asn1_octet_string_size
   (l: asn1_value_length_of_type OCTET_STRING)
@@ -86,24 +128,12 @@ let serialize_asn1_octet_string_size
 = parser_kind_prop_equiv (parse_asn1_octet_string_kind l) (parse_asn1_octet_string l);
   serialize_asn1_octet_string_unfold l value
 
-noextract
-let parse_asn1_octet_string_weak
-  (l: asn1_value_length_of_type OCTET_STRING)
-: parser (weak_kind_of_type SEQUENCE) (value: datatype_of_asn1_type OCTET_STRING{v (dfst value) == l})
-= weak_kind_of_type SEQUENCE
-  `weaken`
-  parse_asn1_octet_string l
 
-noextract
-let serialize_asn1_octet_string_weak
-  (l: asn1_value_length_of_type OCTET_STRING)
-: serializer (parse_asn1_octet_string_weak l)
-= weak_kind_of_type SEQUENCE
-  `serialize_weaken`
-  serialize_asn1_octet_string l
+///////////////////////////////////////////////////////////
+//// ASN1 `OCTET_STRING` TLV Parser and Serializer
+///////////////////////////////////////////////////////////
 
-/// Specialized TLV
-///
+/// parser tag for the `tagged_union` combinators
 noextract
 let parser_tag_of_octet_string
   (x: datatype_of_asn1_type OCTET_STRING)
@@ -119,9 +149,18 @@ let parse_asn1_octet_string_TLV_kind
   `and_then_kind`
   weak_kind_of_type OCTET_STRING
 
+///
+/// A pair of aux parser/serializer, which explicitly coerce the `OCTET_STRING` value
+/// between the subtype used by `OCTET_STRING` value parser/serialzier and `OCTET_STRING`
+/// TLV parser/serializer.
+///
+/// NOTE: I found that have this aux parser explicitly defined will make the prove of
+///       `_unfold` lemmas simpler.
+///
 
-////////// V //////////
-(* NOTE: Have this aux parser explicitly defined will make the proofs simpler *)
+/// Convert an `OCTET_STRING` value from the subtype used by its value parser to the subtype
+/// used by its TLV parser/serializer
+/// (value : subtype_{value}) <: subtype_{TLV}
 noextract
 let synth_asn1_octet_string_V
   (tag: (the_asn1_type OCTET_STRING & asn1_value_int32_of_type OCTET_STRING))
@@ -129,6 +168,9 @@ let synth_asn1_octet_string_V
 : GTot (refine_with_tag parser_tag_of_octet_string tag)
 = value
 
+/// Convert an `OCTET_STRING` value from the subtype used by its TLV parser to the subtype
+/// used by its value parser/serializer
+/// (value : subtype_{TLV}) <: subtype_{value}
 noextract
 let synth_asn1_octet_string_V_inverse
   (tag: (the_asn1_type OCTET_STRING & asn1_value_int32_of_type OCTET_STRING))
@@ -136,14 +178,43 @@ let synth_asn1_octet_string_V_inverse
 : GTot (value: datatype_of_asn1_type OCTET_STRING { v (dfst value) == v (snd tag) /\ value' == synth_asn1_octet_string_V tag value})
 = value'
 
+
+///
+/// Aux parser
+///
 noextract
 let parse_asn1_octet_string_V
   (tag: (the_asn1_type OCTET_STRING & asn1_value_int32_of_type OCTET_STRING))
 : parser (weak_kind_of_type OCTET_STRING) (refine_with_tag parser_tag_of_octet_string tag)
-= parse_asn1_octet_string_weak (v (snd tag))
+= weak_kind_of_type OCTET_STRING
+  `weaken`
+  parse_asn1_octet_string (v (snd tag))
   `parse_synth`
   synth_asn1_octet_string_V tag
 
+///
+/// Aux serializer
+///
+noextract
+let serialize_asn1_octet_string_V
+  (tag: (the_asn1_type OCTET_STRING & asn1_value_int32_of_type OCTET_STRING))
+: serializer (parse_asn1_octet_string_V tag)
+= serialize_synth
+  (* p1 *) (weak_kind_of_type OCTET_STRING
+            `weaken`
+            parse_asn1_octet_string (v (snd tag)))
+  (* f2 *) (synth_asn1_octet_string_V tag)
+  (* s1 *) (weak_kind_of_type OCTET_STRING
+            `serialize_weaken`
+            serialize_asn1_octet_string (v (snd tag)))
+  (* g1 *) (synth_asn1_octet_string_V_inverse tag)
+  (* prf*) ()
+
+///
+/// Lemmas
+///
+
+/// Reveal the computation of parse
 noextract
 let parse_asn1_octet_string_V_unfold
   (tag: (the_asn1_type OCTET_STRING & asn1_value_int32_of_type OCTET_STRING))
@@ -154,21 +225,13 @@ let parse_asn1_octet_string_V_unfold
   | None -> None
   | Some (value, consumed) ->  Some (synth_asn1_octet_string_V tag value, consumed)))
 = parse_synth_eq
-  (* p1 *) (parse_asn1_octet_string_weak (v (snd tag)))
+  (* p1 *) (weak_kind_of_type OCTET_STRING
+            `weaken`
+            parse_asn1_octet_string (v (snd tag)))
   (* f2 *) (synth_asn1_octet_string_V tag)
   (* in *) input
 
-noextract
-let serialize_asn1_octet_string_V
-  (tag: (the_asn1_type OCTET_STRING & asn1_value_int32_of_type OCTET_STRING))
-: serializer (parse_asn1_octet_string_V tag)
-= serialize_synth
-  (* p1 *) (parse_asn1_octet_string_weak (v (snd tag)))
-  (* f2 *) (synth_asn1_octet_string_V tag)
-  (* s1 *) (serialize_asn1_octet_string_weak (v (snd tag)))
-  (* g1 *) (synth_asn1_octet_string_V_inverse tag)
-  (* prf*) ()
-
+/// Reveal the computation of serialzation
 noextract
 let serialize_asn1_octet_string_V_unfold
   (tag: (the_asn1_type OCTET_STRING & asn1_value_int32_of_type OCTET_STRING))
@@ -178,14 +241,22 @@ let serialize_asn1_octet_string_V_unfold
   serialize (serialize_asn1_octet_string (v (snd tag))) value
 )
 = serialize_synth_eq
-  (* p1 *) (parse_asn1_octet_string_weak (v (snd tag)))
+  (* p1 *) (weak_kind_of_type OCTET_STRING
+            `weaken`
+            parse_asn1_octet_string (v (snd tag)))
   (* f2 *) (synth_asn1_octet_string_V tag)
-  (* s1 *) (serialize_asn1_octet_string_weak (v (snd tag)))
+  (* s1 *) (weak_kind_of_type OCTET_STRING
+            `serialize_weaken`
+            serialize_asn1_octet_string (v (snd tag)))
   (* g1 *) (synth_asn1_octet_string_V_inverse tag)
   (* prf*) ()
   (* in *) (value)
 
-////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////
+///
+/// ASN1 `OCTET_STRING` TLV Parser
+///
 noextract
 let parse_asn1_octet_string_TLV
 : parser parse_asn1_octet_string_TLV_kind (datatype_of_asn1_type OCTET_STRING)
@@ -196,8 +267,26 @@ let parse_asn1_octet_string_TLV
   (* tg *) (parser_tag_of_octet_string)
   (* p  *) (parse_asn1_octet_string_V)
 
+///
+/// Serializer
+///
+noextract
+let serialize_asn1_octet_string_TLV
+: serializer parse_asn1_octet_string_TLV
+= serialize_tagged_union
+  (* st *) (serialize_asn1_tag_of_type OCTET_STRING
+            `serialize_nondep_then`
+            serialize_asn1_length_of_type OCTET_STRING)
+  (* tg *) (parser_tag_of_octet_string)
+  (* s  *) (serialize_asn1_octet_string_V)
+
+///
+/// Lemmas
+///
+
+/// Reveal the computation of parse
 #restart-solver
-#push-options "--query_stats --z3rlimit 32 --initial_ifuel 8"
+#push-options "--z3rlimit 32 --initial_ifuel 8"
 noextract
 let parse_asn1_octet_string_TLV_unfold
   (input: bytes)
@@ -240,17 +329,8 @@ let parse_asn1_octet_string_TLV_unfold
   (* in *) (input)
 #pop-options
 
-noextract
-let serialize_asn1_octet_string_TLV
-: serializer parse_asn1_octet_string_TLV
-= serialize_tagged_union
-  (* st *) (serialize_asn1_tag_of_type OCTET_STRING
-            `serialize_nondep_then`
-            serialize_asn1_length_of_type OCTET_STRING)
-  (* tg *) (parser_tag_of_octet_string)
-  (* s  *) (serialize_asn1_octet_string_V)
-
-#push-options "--query_stats --z3rlimit 32"
+/// Reveal the computation of serialize
+#push-options "--z3rlimit 32"
 noextract
 let serialize_asn1_octet_string_TLV_unfold
   (value: datatype_of_asn1_type OCTET_STRING)
@@ -260,7 +340,7 @@ let serialize_asn1_octet_string_TLV_unfold
   `Seq.append`
   serialize (serialize_asn1_length_of_type OCTET_STRING) (dfst value)
   `Seq.append`
-  serialize (serialize_asn1_octet_string_weak (v (dfst value))) value
+  serialize (serialize_asn1_octet_string (v (dfst value))) value
 )
 = serialize_nondep_then_eq
   (* s1 *) (serialize_asn1_tag_of_type OCTET_STRING)
@@ -276,7 +356,8 @@ let serialize_asn1_octet_string_TLV_unfold
   (* in *) (value)
 #pop-options
 
-#push-options "--query_stats --z3rlimit 16"
+/// Reveal the size of a serialzation
+#push-options "--z3rlimit 16"
 noextract
 let serialize_asn1_octet_string_TLV_size
   (value: datatype_of_asn1_type OCTET_STRING)

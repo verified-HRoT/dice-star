@@ -1,4 +1,4 @@
-module ASN1.Spec.BIT_STRING
+module ASN1.Spec.Value.BIT_STRING
 
 open LowParse.Spec.Base
 open LowParse.Spec.Combinators
@@ -11,6 +11,27 @@ open ASN1.Spec.Length
 open FStar.Integers
 
 module B32 = FStar.Bytes
+
+(* NOTE: Read after `ASN1.Spec.Tag`, `ASN1.Spec.Length`, `ASN1.Spec.Value.BIT_STRING` *)
+
+(* NOTE: This module defines:
+         1) The ASN1 `BIT_STRING` Value Parser and Serializer
+         2) The ASN1 `BIT_STRING` TLV Parser and Serializer
+
+         And each part is organized as:
+         1) Aux (ghost) functions with prefix `filter_` to filter out invalid input bytes
+         2) Aux (ghost) functions with prefix `synth_` to decode the valid input bytes into our
+            representation of BIT_STRING values. These functions are injective.
+         3) Aux (ghost) functions with prefix `synth_` and suffix `_inverse` to encode our
+            representation of BIT_STRING into bytes. These functions are the inverse of
+            corresponding synth functions.
+         4) Functions with the prefix `parse_` are parsers constructed using parser combinators and
+            aux functions.
+         5) Functions with the prefix `serialize_` are serializers constructed using serializer
+            combinators and aux functions.
+         6) Lemma with suffix `_unfold` reveals the computation of parser/serialzier.
+         7) Lemma with suffix `_size` reveals the length of a serialization.
+*)
 
 /// TEST
 ///
@@ -32,6 +53,11 @@ module B32 = FStar.Bytes
 
 // let (.[]) = B32.index
 
+/// filter valid input bytes
+/// 1) if the length of input bytes is 1 (the minimal length), then the first and
+///    the only byte, which represents the `unused_bits`, must be 0x00uy
+/// 2) otherwise, the `unused_bits` must be in [0, 7] and the last byte's last
+/// `unused_bits` bits must be zero.
 noextract
 let filter_asn1_bit_string
   (l: asn1_value_length_of_type BIT_STRING)
@@ -43,8 +69,11 @@ let filter_asn1_bit_string
   else
   ( let mask = normalize_term (pow2 (v unused_bits)) in
     0uy <= unused_bits && unused_bits <= 7uy &&
+    (* x % 0b10..0 to check whether the last ... bits is 0 *)
     0 = normalize_term ((v raw.[l - 1]) % mask) )
 
+/// Decode the valid input bytes into our representation of BIT_STRING,
+/// which is a dependent tuple of `total length, unused_bits, octets`
 noextract
 let synth_asn1_bit_string
   (l: asn1_value_length_of_type BIT_STRING)
@@ -56,7 +85,8 @@ let synth_asn1_bit_string
   let s32 = B32.hide (Seq.slice raw 1 l) in
   (|u l, unused_bits, s32|)
 
-#push-options "--query_stats --z3rlimit 16"
+/// Prove our decode function is injective
+#push-options "--z3rlimit 16"
 noextract
 let synth_asn1_bit_string_injective'
   (l: asn1_value_length_of_type BIT_STRING)
@@ -79,6 +109,7 @@ let synth_asn1_bit_string_injective
   (* f *) (synth_asn1_bit_string l)
   (*prf*) (synth_asn1_bit_string_injective' l)
 
+/// Encode our representation of BIT_STRING into bytes
 noextract
 let synth_asn1_bit_string_inverse
   (l: asn1_value_length_of_type BIT_STRING)
@@ -95,6 +126,9 @@ let synth_asn1_bit_string_inverse
 noextract
 let parse_asn1_bit_string_kind (l: asn1_value_length_of_type BIT_STRING) = constant_size_parser_kind l
 
+///
+/// ASN1 BIT_STRING Value Parser
+///
 noextract
 let parse_asn1_bit_string
   (l: asn1_value_length_of_type BIT_STRING)
@@ -109,6 +143,30 @@ let parse_asn1_bit_string
   `parse_synth`
   synth_asn1_bit_string l
 
+///
+/// ASN1 BIT_STRING Value Serialzier
+///
+noextract
+let serialize_asn1_bit_string
+  (l: asn1_value_length_of_type BIT_STRING)
+: serializer (parse_asn1_bit_string l)
+= serialize_synth
+  (* p1 *) (parse_seq_flbytes l
+            `parse_filter`
+            filter_asn1_bit_string l)
+  (* f2 *) (synth_asn1_bit_string l)
+  (* s1 *) (serialize_seq_flbytes l
+            `serialize_filter`
+            filter_asn1_bit_string l)
+  (* g1 *) (synth_asn1_bit_string_inverse l)
+  (* prf*) (synth_asn1_bit_string_injective l)
+
+
+///
+/// Lemmas
+///
+
+/// Reveal the computation of parse
 noextract
 let parse_asn1_bit_string_unfold
   (l: asn1_value_length_of_type BIT_STRING)
@@ -136,21 +194,7 @@ let parse_asn1_bit_string_unfold
   (* f *) (synth_asn1_bit_string l)
   (* in*) (input)
 
-noextract
-let serialize_asn1_bit_string
-  (l: asn1_value_length_of_type BIT_STRING)
-: serializer (parse_asn1_bit_string l)
-= serialize_synth
-  (* p1 *) (parse_seq_flbytes l
-            `parse_filter`
-            filter_asn1_bit_string l)
-  (* f2 *) (synth_asn1_bit_string l)
-  (* s1 *) (serialize_seq_flbytes l
-            `serialize_filter`
-            filter_asn1_bit_string l)
-  (* g1 *) (synth_asn1_bit_string_inverse l)
-  (* prf*) (synth_asn1_bit_string_injective l)
-
+/// Reveal the computation of serialize
 noextract
 let serialize_asn1_bit_string_unfold
   (l: asn1_value_length_of_type BIT_STRING)
@@ -172,6 +216,7 @@ let serialize_asn1_bit_string_unfold
   (* prf*) (synth_asn1_bit_string_injective l)
   (* val*) (value)
 
+/// Reveal the length of a serialzation
 noextract
 let serialize_asn1_bit_string_size
   (l: asn1_value_length_of_type BIT_STRING)
@@ -183,8 +228,11 @@ let serialize_asn1_bit_string_size
 = parser_kind_prop_equiv (parse_asn1_bit_string_kind l) (parse_asn1_bit_string l);
   serialize_asn1_bit_string_unfold l value
 
-////////// V //////////
-(* NOTE: Have this aux parser explicitly defined will make the proofs simpler *)
+///////////////////////////////////////////////////////////
+//// ASN1 `BIT_STRING` TLV Parser and Serializer
+///////////////////////////////////////////////////////////
+
+/// parser tag for the `tagged_union` combinators
 noextract
 let parser_tag_of_bit_string
   (x: datatype_of_asn1_type BIT_STRING)
@@ -192,6 +240,18 @@ let parser_tag_of_bit_string
 = let (|len, unused_bits, s32|) = x in
   (BIT_STRING, len)
 
+///
+/// A pair of aux parser/serializer, which explicitly coerce the `BIT_STRING` value
+/// between the subtype used by `BIT_STRING` value parser/serialzier and `BIT_STRING`
+/// TLV parser/serializer.
+///
+/// NOTE: I found that have this aux parser explicitly defined will make the prove of
+///       `_unfold` lemmas simpler.
+///
+
+/// Convert an `BIT_STRING` value from the subtype used by its value parser to the subtype
+/// used by its TLV parser/serializer
+/// (value : subtype_{value}) <: subtype_{TLV}
 noextract
 let synth_asn1_bit_string_V
   (tag: (the_asn1_type BIT_STRING & asn1_value_int32_of_type BIT_STRING))
@@ -201,6 +261,9 @@ let synth_asn1_bit_string_V
 : GTot (refine_with_tag parser_tag_of_bit_string tag)
 = value
 
+/// Convert an `BIT_STRING` value from the subtype used by its TLV parser to the subtype
+/// used by its value parser/serializer
+/// (value : subtype_{TLV}) <: subtype_{value}
 noextract
 let synth_asn1_bit_string_V_inverse
   (tag: (the_asn1_type BIT_STRING & asn1_value_int32_of_type BIT_STRING))
@@ -211,6 +274,9 @@ let synth_asn1_bit_string_V_inverse
                  value' == synth_asn1_bit_string_V tag value })
 = value'
 
+///
+/// Aux parser
+///
 noextract
 let parse_asn1_bit_string_V
   (tag: (the_asn1_type BIT_STRING & asn1_value_int32_of_type BIT_STRING))
@@ -221,6 +287,29 @@ let parse_asn1_bit_string_V
    `parse_synth`
    synth_asn1_bit_string_V tag
 
+///
+/// Aux serializer
+///
+noextract
+let serialize_asn1_bit_string_V
+  (tag: (the_asn1_type BIT_STRING & asn1_value_int32_of_type BIT_STRING))
+: serializer (parse_asn1_bit_string_V tag)
+= serialize_synth
+  (* p1 *) (weak_kind_of_type BIT_STRING
+            `weaken`
+            parse_asn1_bit_string (v (snd tag)))
+  (* f2 *) (synth_asn1_bit_string_V tag)
+  (* s1 *) (weak_kind_of_type BIT_STRING
+            `serialize_weaken`
+            serialize_asn1_bit_string (v (snd tag)))
+  (* g1 *) (synth_asn1_bit_string_V_inverse tag)
+  (* prf*) ()
+
+///
+/// Lemmas
+///
+
+/// Reveal the computation of parse
 noextract
 let parse_asn1_bit_string_V_unfold
   (tag: (the_asn1_type BIT_STRING & asn1_value_int32_of_type BIT_STRING))
@@ -237,21 +326,7 @@ let parse_asn1_bit_string_V_unfold
   (* f2 *) (synth_asn1_bit_string_V tag)
   (* in *) input
 
-noextract
-let serialize_asn1_bit_string_V
-  (tag: (the_asn1_type BIT_STRING & asn1_value_int32_of_type BIT_STRING))
-: serializer (parse_asn1_bit_string_V tag)
-= serialize_synth
-  (* p1 *) (weak_kind_of_type BIT_STRING
-            `weaken`
-            parse_asn1_bit_string (v (snd tag)))
-  (* f2 *) (synth_asn1_bit_string_V tag)
-  (* s1 *) (weak_kind_of_type BIT_STRING
-            `serialize_weaken`
-            serialize_asn1_bit_string (v (snd tag)))
-  (* g1 *) (synth_asn1_bit_string_V_inverse tag)
-  (* prf*) ()
-
+/// Reveal the computation of serialzation
 noextract
 let serialize_asn1_bit_string_V_unfold
   (tag: (the_asn1_type BIT_STRING & asn1_value_int32_of_type BIT_STRING))
@@ -272,7 +347,8 @@ let serialize_asn1_bit_string_V_unfold
   (* prf*) ()
   (* in *) (value)
 
-/////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////
 
 noextract
 let parse_asn1_bit_string_TLV_kind
@@ -283,6 +359,9 @@ let parse_asn1_bit_string_TLV_kind
   `and_then_kind`
   weak_kind_of_type BIT_STRING
 
+///
+/// ASN1 `BIT_STRING` TLV Parser
+///
 noextract
 let parse_asn1_bit_string_TLV
 : parser parse_asn1_bit_string_TLV_kind (datatype_of_asn1_type BIT_STRING)
@@ -293,8 +372,28 @@ let parse_asn1_bit_string_TLV
   (* tg *) (parser_tag_of_bit_string)
   (* p  *) (parse_asn1_bit_string_V)
 
+///
+/// ASN1 `BIT_STRING` TLV Serializer
+///
+#push-options "--initial_fuel 4"
+noextract
+let serialize_asn1_bit_string_TLV
+: serializer parse_asn1_bit_string_TLV
+= serialize_tagged_union
+  (* st *) (serialize_asn1_tag_of_type BIT_STRING
+            `serialize_nondep_then`
+            serialize_asn1_length_of_type BIT_STRING)
+  (* tg *) (parser_tag_of_bit_string)
+  (* s  *) (serialize_asn1_bit_string_V)
+#pop-options
+
+///
+/// Lemmas
+///
+
+/// Reveal the computation of parse
 #restart-solver
-#push-options "--query_stats --z3rlimit 32"
+#push-options "--z3rlimit 32"
 noextract
 let parse_asn1_bit_string_TLV_unfold
   (input: bytes)
@@ -338,20 +437,8 @@ let parse_asn1_bit_string_TLV_unfold
   (* in *) (input)
 #pop-options
 
-#push-options "--query_stats --initial_fuel 4"
-noextract
-let serialize_asn1_bit_string_TLV
-: serializer parse_asn1_bit_string_TLV
-= serialize_tagged_union
-  (* st *) (serialize_asn1_tag_of_type BIT_STRING
-            `serialize_nondep_then`
-            serialize_asn1_length_of_type BIT_STRING)
-  (* tg *) (parser_tag_of_bit_string)
-  (* s  *) (serialize_asn1_bit_string_V)
-#pop-options
-
-
-#push-options "--query_stats --z3rlimit 32"
+/// Reveal the computation of serialize
+#push-options "--z3rlimit 32"
 noextract
 let serialize_asn1_bit_string_TLV_unfold
   (value: datatype_of_asn1_type BIT_STRING)
@@ -378,7 +465,8 @@ let serialize_asn1_bit_string_TLV_unfold
   (* in *) (value)
 #pop-options
 
-#push-options "--query_stats --z3rlimit 16"
+/// Reveal the size of a serialzation
+#push-options "--z3rlimit 16"
 noextract
 let serialize_asn1_bit_string_TLV_size
   (value: datatype_of_asn1_type BIT_STRING)

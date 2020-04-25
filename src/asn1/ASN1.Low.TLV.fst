@@ -4,12 +4,12 @@ open ASN1.Base
 
 open ASN1.Spec.Tag
 open ASN1.Spec.Length
-open ASN1.Spec.BOOLEAN
-open ASN1.Spec.NULL
-open ASN1.Spec.INTEGER
-open ASN1.Spec.OCTET_STRING
-open ASN1.Spec.BIT_STRING
-open ASN1.Spec.SEQUENCE
+open ASN1.Spec.Value.BOOLEAN
+open ASN1.Spec.Value.NULL
+open ASN1.Spec.Value.INTEGER
+open ASN1.Spec.Value.OCTET_STRING
+open ASN1.Spec.Value.BIT_STRING
+open ASN1.Spec.Value.SEQUENCE
 open ASN1.Spec.TLV
 
 open LowParse.Low.Base
@@ -18,12 +18,12 @@ open LowParse.Low.Combinators
 open ASN1.Low.Base
 open ASN1.Low.Tag
 open ASN1.Low.Length
-open ASN1.Low.BOOLEAN
-open ASN1.Low.NULL
-open ASN1.Low.INTEGER
-open ASN1.Low.OCTET_STRING
-open ASN1.Low.BIT_STRING
-open ASN1.Low.SEQUENCE
+open ASN1.Low.Value.BOOLEAN
+open ASN1.Low.Value.NULL
+open ASN1.Low.Value.INTEGER
+open ASN1.Low.Value.OCTET_STRING
+open ASN1.Low.Value.BIT_STRING
+open ASN1.Low.Value.SEQUENCE
 
 module U8 = FStar.UInt8
 module U32 = FStar.UInt32
@@ -34,6 +34,8 @@ module B = LowStar.Buffer
 module Cast = FStar.Int.Cast
 
 open FStar.Integers
+
+(* NOTE: Read after `ASN1.Low.Tag`, `ASN1.Low.Length`, `ASN1.Low.Value.*` *)
 
 /// Len Impl of ASN.1 [VALUE] of primitive types
 ///
@@ -64,7 +66,7 @@ let len_of_asn1_primitive_value
 /// NOTE: Had updated the length range of ASN1 values to make all TLVs of
 ///       valid values are inbound. Maybe remove these `_unbounded` funcitons.
 ///
-// #push-options "--query_stats --z3rlimit 64"
+// #push-options "--z3rlimit 64"
 // let len_of_asn1_primitive_TLV_unbounded
 //   (#_a: asn1_primitive_type)
 //   (value: datatype_of_asn1_type _a)
@@ -98,7 +100,7 @@ let len_of_asn1_primitive_value
 // #pop-options
 
 
-#push-options "--query_stats --z3rlimit 32"
+#push-options "--z3rlimit 32"
 let len_of_asn1_primitive_TLV
   (#_a: asn1_primitive_type)
   (value: datatype_of_asn1_type _a)

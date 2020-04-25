@@ -1,10 +1,31 @@
-module ASN1.Spec.BOOLEAN
+module ASN1.Spec.Value.BOOLEAN
 
 open LowParse.Spec.Base
 open LowParse.Spec.Combinators
 open LowParse.Spec.Int
 
 open ASN1.Base
+
+(* NOTE: Read after `ASN1.Spec.Tag`, `ASN1.Spec.Length` *)
+
+(* NOTE: This module defines:
+         1) The ASN1 `BOOLEAN` Value Parser and Serializer
+         2) The ASN1 `BOOLEAN` TLV Parser and Serializer
+
+         And each part is organized as:
+         1) Aux (ghost) functions with prefix `filter_` to filter out invalid input bytes
+         2) Aux (ghost) functions with prefix `synth_` to decode the valid input bytes into our
+            representation of BOOLEAN values. These functions are injective.
+         3) Aux (ghost) functions with prefix `synth_` and suffix `_inverse` to encode our
+            representation of BOOLEAN into bytes. These functions are the inverse of
+            corresponding synth functions.
+         4) Functions with the prefix `parse_` are parsers constructed using parser combinators and
+            aux functions.
+         5) Functions with the prefix `serialize_` are serializers constructed using serializer
+            combinators and aux functions.
+         6) Lemma with suffix `_unfold` reveals the computation of parser/serialzier.
+         7) Lemma with suffix `_size` reveals the length of a serialization.
+*)
 
 (* BOOLEAN primitive *)
 /// filter valid input bytes
@@ -155,7 +176,7 @@ let parse_asn1_boolean_TLV
   `parse_synth`
   synth_asn1_boolean_TLV
 
-#push-options "--query_stats --z3rlimit 16 --initial_ifuel 4"
+#push-options "--z3rlimit 16 --initial_ifuel 4"
 noextract
 let parse_asn1_boolean_TLV_unfold
   (input_TLV: bytes)

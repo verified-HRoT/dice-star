@@ -6,15 +6,17 @@ open LowParse.Spec.Combinators
 open ASN1.Base
 open ASN1.Spec.Tag
 open ASN1.Spec.Length
-open ASN1.Spec.BOOLEAN
-open ASN1.Spec.NULL
-open ASN1.Spec.INTEGER
-open ASN1.Spec.OCTET_STRING
-open ASN1.Spec.BIT_STRING
-open ASN1.Spec.SEQUENCE
+open ASN1.Spec.Value.BOOLEAN
+open ASN1.Spec.Value.NULL
+open ASN1.Spec.Value.INTEGER
+open ASN1.Spec.Value.OCTET_STRING
+open ASN1.Spec.Value.BIT_STRING
+open ASN1.Spec.Value.SEQUENCE
 open LowParse.Bytes
 
 open FStar.Integers
+
+(* NOTE: Read after `ASN1.Spec.Tag`, `ASN1.Spec.Length`, `ASN1.Spec.Value.*` *)
 
 /// Interfaces to make this library easier to use, WIP
 ///
@@ -58,7 +60,7 @@ let serialize_asn1_TLV_of_type
 (* NOTE: Use this for potentially unbounded len computations. Since I have
          tighten the max asn1 value length to make all asn1 TLV of a valid
          asn1 value inbound, this may no longer needed. *)
-#push-options "--query_stats --z3rlimit 32"
+#push-options "--z3rlimit 32"
 let safe_add
   (a b: option asn1_int32)
 : Tot (c: option asn1_int32 {
@@ -74,7 +76,7 @@ let safe_add
 
 /// Length Spec of ASN.1 [VALUE] of primitive types
 ///
-#push-options "--query_stats --z3rlimit 8"
+#push-options "--z3rlimit 8"
 noextract
 let length_of_asn1_primitive_value
   (#_a: asn1_primitive_type)
@@ -118,7 +120,7 @@ let length_of_asn1_primitive_value
 
 /// Length Spec of ASN.1 Primitive [TAG, LEN, VALUE] of primitive types
 ///
-#push-options "--query_stats --z3rlimit 32"
+#push-options "--z3rlimit 32"
 noextract
 let length_of_asn1_primitive_TLV
   (#_a: asn1_primitive_type)

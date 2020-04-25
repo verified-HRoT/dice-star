@@ -1,4 +1,4 @@
-module ASN1.Spec.NULL
+module ASN1.Spec.Value.NULL
 
 open LowParse.Spec.Base
 open LowParse.Spec.Combinators
@@ -7,15 +7,33 @@ open ASN1.Base
 open ASN1.Spec.Tag
 open ASN1.Spec.Length
 
+(* NOTE: Read after `ASN1.Spec.Tag`, `ASN1.Spec.Length` *)
+(* NOTE: This module defines:
+         1) The ASN1 `NULL` Value Parser and Serializer
+         2) The ASN1 `NULL` TLV Parser and Serializer
+*)
+
+///////////////////////////////////////////////////////////////
+////  ASN1 `NULL` Value Parser/Serializer
+///////////////////////////////////////////////////////////////
+
 noextract
 let parse_asn1_null_kind = parse_ret_kind
 
+///
+/// ASN1 `NULL` value parser parses nothing and returns `()`
+/// using the `parse_ret` combinator
+///
 noextract
 let parse_asn1_null
 : parser parse_asn1_null_kind (datatype_of_asn1_type NULL)
 = parse_ret
   (* v *) ()
 
+///
+/// ASN1 `NULL` value parser serialize `()` to empty bytes
+/// using the `serialize_ret` combinator
+///
 noextract
 let serialize_asn1_null
 : serializer parse_asn1_null
@@ -23,6 +41,11 @@ let serialize_asn1_null
   (* v *) ()
   (*prf*) (fun n -> ())
 
+///
+/// Lemmas
+///
+
+/// Reveal the computation of serialize
 noextract
 let serialize_asn1_null_unfold
   (value: datatype_of_asn1_type NULL)
@@ -30,6 +53,7 @@ let serialize_asn1_null_unfold
   serialize serialize_asn1_null value == Seq.empty)
 = ()
 
+/// Reveal the size of a serialiaztion
 noextract
 let serialize_asn1_null_size
   (value: datatype_of_asn1_type NULL)
@@ -38,14 +62,18 @@ let serialize_asn1_null_size
 = parser_kind_prop_equiv parse_asn1_null_kind parse_asn1_null;
   serialize_asn1_null_unfold value
 
-/// Specialized TLV
-///
+///////////////////////////////////////////////////////////////
+////  ASN1 `NULL` TLV Parser/Serializer
+///////////////////////////////////////////////////////////////
+
+/// Synthesize the TLV of a `NULL` value
 noextract
 let synth_asn1_null_TLV
   (a: (the_asn1_type NULL * asn1_value_int32_of_type NULL) * datatype_of_asn1_type NULL)
 : GTot (datatype_of_asn1_type NULL)
 = snd a
 
+/// Synthesize th `NULL` value from a `NULL` TLV
 noextract
 let synth_asn1_null_TLV_inverse
   (x: datatype_of_asn1_type NULL)
@@ -57,6 +85,9 @@ let parse_asn1_null_TLV_kind
 : parser_kind
 = strong_parser_kind 2 2 None
 
+///
+/// `NULL` TLV parser
+///
 noextract
 let parse_asn1_null_TLV
 : parser parse_asn1_null_TLV_kind (datatype_of_asn1_type NULL)
@@ -68,6 +99,9 @@ let parse_asn1_null_TLV
   `parse_synth`
   synth_asn1_null_TLV
 
+///
+/// `NULL` TLV serialzier
+///
 noextract
 let serialize_asn1_null_TLV
 : serializer parse_asn1_null_TLV
@@ -86,6 +120,11 @@ let serialize_asn1_null_TLV
   (* g1 *) (synth_asn1_null_TLV_inverse)
   (* Prf*) ()
 
+///
+/// Lemmas
+///
+
+/// Reveal the computation of parse
 noextract
 let parse_asn1_null_TLV_unfold
   (input_TLV: bytes)
@@ -122,6 +161,7 @@ let parse_asn1_null_TLV_unfold
   (* f2 *) (synth_asn1_null_TLV)
   (* in *) (input_TLV)
 
+/// Reveal the computation of serialize
 noextract
 let serialize_asn1_null_TLV_unfold
   (value: datatype_of_asn1_type NULL)
@@ -160,6 +200,7 @@ let serialize_asn1_null_TLV_unfold
   (* Prf*) ()
   (* in *) (value)
 
+/// Reveal the length of a serialization
 noextract
 let serialize_asn1_null_TLV_size
   (value: datatype_of_asn1_type NULL)

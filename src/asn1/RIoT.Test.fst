@@ -25,7 +25,7 @@ module I = FStar.Integers
 (* TODO: Will replace this with a full test after I finished the
          length spec/impl for SEQUENCE TLV (tomorrow).*)
 #restart-solver
-#push-options "--query_stats --z3rlimit 64"
+#push-options "--z3rlimit 64"
 let main ()
 : HST.St C.exit_code
 = HST.push_frame ();

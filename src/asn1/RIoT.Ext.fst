@@ -55,8 +55,6 @@ let serialize_algorithmIdentifier_value
   (* g1 *) (synth_algorithmIdentifier_t')
   (* prf*) ()
 
-let x2: datatype_of_asn1_type NULL = ()
-
 let serialize_algorithmIdentifier_value_unfold
   (x: algorithmIdentifier_t)
 : Lemma (
@@ -103,7 +101,7 @@ let serialize_algorithmIdentifier_sequence_TLV_size
 
 /// Low
 ///
-#push-options "--query_stats --z3rlimit 32"
+#push-options "--z3rlimit 32"
 let len_of_algorithmIdentifier_value_inbound
   (x: algorithmIdentifier_t_inbound)
 : Tot (inbound_sequence_value_len_of serialize_algorithmIdentifier_value x)
@@ -158,7 +156,6 @@ let synth_subjectPublicKeyInfo_t'
 : Tot (x': subjectPublicKeyInfo_t' { x == synth_subjectPublicKeyInfo_t x' })
 = (x.algorithm, x.subjectPublicKey)
 
-#push-options "--query_stats"
 let parse_subjectPublicKeyInfo_value
 : parser _ subjectPublicKeyInfo_t
 = parse_algorithmIdentifier_sequence_TLV
@@ -243,11 +240,11 @@ let len_of_subjectPublicKeyInfo_value_inbound
   serialize_algorithmIdentifier_sequence_TLV_size x.algorithm;
   len_of_algorithmIdentifier_TLV_inbound x.algorithm +
   len_of_asn1_primitive_TLV    x.subjectPublicKey
-#pop-options
 
+#push-options "--z3rlimit 1024 --max_fuel 128 --max_ifuel 128"
 let len_of_subjectPublicKeyInfo_TLV_inbound
   (x: subjectPublicKeyInfo_t_inbound)
-// : Tot (inbound_sequence_value_len_of serialize_subjectPublicKeyInfo_sequence_TLV x)
+: Tot (inbound_sequence_value_len_of serialize_subjectPublicKeyInfo_sequence_TLV x)
 = len_of_sequence_TLV
   (* s *) serialize_subjectPublicKeyInfo_value
   (*len*) len_of_subjectPublicKeyInfo_value_inbound
@@ -465,12 +462,12 @@ let serialize_compositeDeviceID_value_unfold
 let compositeDeviceID_t_inbound
 = inbound_sequence_value_of serialize_compositeDeviceID_value
 
-(*)
 (* TLV *)
 (* FIXME: F* stuck here. *)
 let parse_compositeDeviceID_sequence_TLV
 : parser _ compositeDeviceID_t_inbound
 = parse_asn1_sequence_TLV serialize_compositeDeviceID_value
+
 
 let serialize_compositeDeviceID_sequence_TLV
 : serializer parse_compositeDeviceID_sequence_TLV

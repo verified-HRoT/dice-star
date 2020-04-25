@@ -1,4 +1,4 @@
-module ASN1.Low.SEQUENCE
+module ASN1.Low.Value.SEQUENCE
 ///
 /// ASN.1 Low
 ///
@@ -7,7 +7,7 @@ open LowParse.Low.Combinators
 open LowParse.Low.FLData
 
 open ASN1.Base
-open ASN1.Spec.SEQUENCE
+open ASN1.Spec.Value.SEQUENCE
 open ASN1.Low.Base
 open ASN1.Low.Tag
 open ASN1.Low.Length
@@ -17,7 +17,9 @@ module HST = FStar.HyperStack.ST
 module B = LowStar.Buffer
 open FStar.Integers
 
-#push-options "--query_stats --z3rlimit 16"
+(* NOTE: Read after `ASN1.Spec.Tag`, `ASN1.Spec.Length`, `ASN1.Spec.Value.*` *)
+
+#push-options "--z3rlimit 16"
 inline_for_extraction
 let len_of_sequence_TLV
   (#k: parser_kind)

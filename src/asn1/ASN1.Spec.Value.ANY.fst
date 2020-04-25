@@ -1,4 +1,4 @@
-module ASN1.Spec.ANY
+module ASN1.Spec.Value.ANY
 
 open LowParse.Spec.Base
 open LowParse.Spec.Combinators
@@ -7,6 +7,8 @@ open ASN1.Base
 open ASN1.Spec
 
 open FStar.Integers
+
+(* NOTE: WIP, please ignore this module. *)
 
 type asn1_value =
 | BOOLEAN_VALUE      of datatype_of_asn1_type BOOLEAN
@@ -99,7 +101,6 @@ let parse_asn1_value_of_type
 //   //                     synth_asn1_value_of_type _a )
 //   | OID          -> ( admit () )
 
-// #push-options "--query_stats"
 // let parse_any
 // (* FIXME: Need a inductively defined datatype. *)
 // = (parse_asn1_tag

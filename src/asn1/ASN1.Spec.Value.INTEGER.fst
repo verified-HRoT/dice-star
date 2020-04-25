@@ -1,4 +1,4 @@
-module ASN1.Spec.INTEGER
+module ASN1.Spec.Value.INTEGER
 
 open LowParse.Spec.Base
 open LowParse.Spec.Combinators
@@ -12,6 +12,27 @@ open ASN1.Spec.Length
 module E = FStar.Endianness
 open FStar.Integers
 
+(* NOTE: Read after `ASN1.Spec.Tag`, `ASN1.Spec.Length` *)
+
+(* NOTE: This module defines:
+         1) The ASN1 `INTEGER` Value Parser and Serializer
+         2) The ASN1 `INTEGER` TLV Parser and Serializer
+
+         And each part is organized as:
+         1) Aux (ghost) functions with prefix `filter_` to filter out invalid input bytes
+         2) Aux (ghost) functions with prefix `synth_` to decode the valid input bytes into our
+            representation of INTEGER values. These functions are injective.
+         3) Aux (ghost) functions with prefix `synth_` and suffix `_inverse` to encode our
+            representation of INTEGER into bytes. These functions are the inverse of
+            corresponding synth functions.
+         4) Functions with the prefix `parse_` are parsers constructed using parser combinators and
+            aux functions.
+         5) Functions with the prefix `serialize_` are serializers constructed using serializer
+            combinators and aux functions.
+         6) Lemma with suffix `_unfold` reveals the computation of parser/serialzier.
+         7) Lemma with suffix `_size` reveals the length of a serialization.
+*)
+
 (*
 NOTE: 1. Negative: `**p & 0x80 == 0`, reject
       2. Zero    : as `[0x02; 0x01; 0x00]` for INTEGER or `[0x0A; 0x01; 0x00]` fir ENUMERATED tags
@@ -22,6 +43,16 @@ NOTE: We only allow at most 4-byte positive integers ([0, 0x7FFFFFFF]). If an in
       zero, then it must be a negative integer.
 *)
 
+//////////////////////////////////////////////////////////////////////
+////       ASN1 `INTEGER` Value Parser/Serializer
+//////////////////////////////////////////////////////////////////////
+
+/// filters the valid input bytes accoring to the encoding rule
+/// 1. valid length of input bytes is [1, 4]
+/// 2. only positive integers, whether
+///    a) the most significant bit is `0` (the first byte is less than 0x80uy/0b10000000uy), or
+///    b) the first byte is a leading zero 0x00uy and the second byte's most significant bit is `1`
+///       (the second byte is greater then or equal to 0x80uy/0b10000000uy)
 noextract
 let filter_asn1_integer
   (l: asn1_value_length_of_type INTEGER) (* 1 <= l <= 4*)
@@ -55,6 +86,7 @@ let filter_asn1_integer
          else
          ( s.[0] < 0x80uy )
 
+/// Length computation function/specification for a `INTEGER` value's serialization
 noextract
 let length_of_asn1_integer
   (value: datatype_of_asn1_type INTEGER)
@@ -79,8 +111,13 @@ let length_of_asn1_integer
          `datatype_of_asn1_type` is marked as `unfold`? *)
 (* NOTE: Why I must explicitly provide #(Signed W32) everywhere? *)
 
+/// Decode the valid input bytes to our represenation of ASN1 `INTEGER` value,
+/// which is a _positive_ _signed_ 32-bit integer
+/// 1) If the first byte is less then 0x80uy, then just decode it as an integer (in Big-Endian)
+/// 2) If the first byte is a leading zero, then truncate it and decode the rest bytes as an
+///    integer (in Big-Endian)
 #restart-solver
-#push-options "--query_stats --z3rlimit 128"
+#push-options "--z3rlimit 128"
 noextract
 let synth_asn1_integer
   (l: asn1_value_length_of_type INTEGER)
@@ -169,7 +206,9 @@ let synth_asn1_integer
          ; value )
 #pop-options
 
-#push-options "--query_stats --z3rlimit 128 --max_fuel 0 --max_ifuel 0"
+
+/// Encode an integre accoding to the encoding rule
+#push-options "--z3rlimit 128 --max_fuel 0 --max_ifuel 0"
 noextract
 let synth_asn1_integer_inverse
   (l: asn1_value_length_of_type INTEGER)
@@ -262,7 +301,9 @@ let synth_asn1_integer_inverse
   ( false_elim () )
 #pop-options
 
-#push-options "--query_stats --z3rlimit 128"
+/// Prove that the our decoding function is injective when there is a leading zero
+/// in the input bytes
+#push-options "--z3rlimit 128"
 noextract
 let synth_asn1_integer_injective_with_leading_zero
   (l: asn1_value_length_of_type INTEGER)
@@ -352,7 +393,9 @@ let synth_asn1_integer_injective_with_leading_zero
            ; false_elim () ) )
 #pop-options
 
-#push-options "--query_stats --z3rlimit 128"
+/// Prove that the our decoding function is injective when there is no leading zero
+/// in the input bytes
+#push-options "--z3rlimit 128"
 noextract
 let synth_asn1_integer_injective_without_leading_zero
   (l: asn1_value_length_of_type INTEGER)
@@ -390,6 +433,7 @@ let synth_asn1_integer_injective_without_leading_zero
          ; E.be_to_n_inj s1 s2 )
 #pop-options
 
+/// Prove that the our decoding function is injective
 noextract
 let synth_asn1_integer_injective'
   (l: asn1_value_length_of_type INTEGER)
@@ -415,6 +459,10 @@ let synth_asn1_integer_injective
 noextract
 let parse_asn1_integer_kind (l: asn1_value_length_of_type INTEGER) = constant_size_parser_kind l
 
+
+///
+/// Parser
+///
 noextract
 let parse_asn1_integer
   (l: asn1_value_length_of_type INTEGER)
@@ -427,6 +475,29 @@ let parse_asn1_integer
   `parse_synth`
   synth_asn1_integer l
 
+///
+/// Serializer
+///
+noextract
+let serialize_asn1_integer
+  (l: asn1_value_length_of_type INTEGER)
+: serializer (parse_asn1_integer l)
+= serialize_synth
+  (* p1 *) (parse_seq_flbytes l
+            `parse_filter`
+            filter_asn1_integer l)
+  (* f2 *) (synth_asn1_integer l)
+  (* s1 *) (serialize_seq_flbytes l
+            `serialize_filter`
+            filter_asn1_integer l)
+  (* g1 *) (synth_asn1_integer_inverse l)
+  (* prf*) (synth_asn1_integer_injective l)
+
+///
+/// Lemmas
+///
+
+/// Reveal the computation of parse
 noextract
 let parse_asn1_integer_unfold
   (l: asn1_value_length_of_type INTEGER)
@@ -451,21 +522,7 @@ let parse_asn1_integer_unfold
   (* f *) (synth_asn1_integer l)
   (* in*) (input)
 
-noextract
-let serialize_asn1_integer
-  (l: asn1_value_length_of_type INTEGER)
-: serializer (parse_asn1_integer l)
-= serialize_synth
-  (* p1 *) (parse_seq_flbytes l
-            `parse_filter`
-            filter_asn1_integer l)
-  (* f2 *) (synth_asn1_integer l)
-  (* s1 *) (serialize_seq_flbytes l
-            `serialize_filter`
-            filter_asn1_integer l)
-  (* g1 *) (synth_asn1_integer_inverse l)
-  (* prf*) (synth_asn1_integer_injective l)
-
+/// Reveal the computaion of serialize
 noextract
 let serialize_asn1_integer_unfold
   (l: asn1_value_length_of_type INTEGER)
@@ -489,6 +546,7 @@ let serialize_asn1_integer_unfold
   (* prf*) (synth_asn1_integer_injective l)
   (* val*) (value)
 
+/// Reveal the size of a serialization
 noextract
 let serialize_asn1_integer_size
   (l: asn1_value_length_of_type INTEGER)
@@ -500,13 +558,29 @@ let serialize_asn1_integer_size
   serialize_asn1_integer_unfold l value
 
 
-///////////////////////////////////////
+///////////////////////////////////////////////////////////
+//// ASN1 aux `INTEGER` TLV Parser and Serializer
+///////////////////////////////////////////////////////////
+
+/// parser tag for the `tagged_union` combinators
 noextract
 let parser_tag_of_asn1_integer
   (value: datatype_of_asn1_type INTEGER)
 : GTot (the_asn1_type INTEGER & asn1_value_int32_of_type INTEGER)
 = (INTEGER, u (length_of_asn1_integer value))
 
+///
+/// A pair of aux parser/serializer, which explicitly coerce the `INTEGER` value
+/// between the subtype used by `INTEGER` value parser/serialzier and `INTEGER`
+/// TLV parser/serializer.
+///
+/// NOTE: I found that have this aux parser explicitly defined will make the prove of
+///       `_unfold` lemmas simpler.
+///
+
+/// Convert an `INTEGER` value from the subtype used by its value parser to the subtype
+/// used by its TLV parser/serializer
+/// (value : subtype_{value}) <: subtype_{TLV}
 noextract
 let synth_asn1_integer_V
   (tag: (the_asn1_type INTEGER & asn1_value_int32_of_type INTEGER))
@@ -514,6 +588,9 @@ let synth_asn1_integer_V
 : GTot (refine_with_tag parser_tag_of_asn1_integer tag)
 = value
 
+/// Convert an `INTEGER` value from the subtype used by its TLV parser to the subtype
+/// used by its value parser/serializer
+/// (value : subtype_{TLV}) <: subtype_{value}
 noextract
 let synth_asn1_integer_V_inverse
   (tag: (the_asn1_type INTEGER & asn1_value_int32_of_type INTEGER))
@@ -523,6 +600,9 @@ let synth_asn1_integer_V_inverse
                value' == synth_asn1_integer_V tag value })
 = value'
 
+///
+/// Aux parser
+///
 noextract
 let parse_asn1_integer_V
   (tag: (the_asn1_type INTEGER & asn1_value_int32_of_type INTEGER))
@@ -533,6 +613,29 @@ let parse_asn1_integer_V
    `parse_synth`
    synth_asn1_integer_V tag
 
+///
+/// Aux serializer
+///
+noextract
+let serialize_asn1_integer_V
+  (tag: (the_asn1_type INTEGER & asn1_value_int32_of_type INTEGER))
+: serializer (parse_asn1_integer_V tag)
+= serialize_synth
+  (* p1 *) (weak_kind_of_type INTEGER
+            `weaken`
+            parse_asn1_integer (v (snd tag)))
+  (* f2 *) (synth_asn1_integer_V tag)
+  (* s1 *) (weak_kind_of_type INTEGER
+            `serialize_weaken`
+            serialize_asn1_integer (v (snd tag)))
+  (* g1 *) (synth_asn1_integer_V_inverse tag)
+  (* prf*) ()
+
+///
+/// Lemmas
+///
+
+/// Reveal the computation of parse
 noextract
 let parse_asn1_integer_V_unfold
   (tag: (the_asn1_type INTEGER & asn1_value_int32_of_type INTEGER))
@@ -549,21 +652,7 @@ let parse_asn1_integer_V_unfold
   (* f2 *) (synth_asn1_integer_V tag)
   (* in *) input
 
-noextract
-let serialize_asn1_integer_V
-  (tag: (the_asn1_type INTEGER & asn1_value_int32_of_type INTEGER))
-: serializer (parse_asn1_integer_V tag)
-= serialize_synth
-  (* p1 *) (weak_kind_of_type INTEGER
-            `weaken`
-            parse_asn1_integer (v (snd tag)))
-  (* f2 *) (synth_asn1_integer_V tag)
-  (* s1 *) (weak_kind_of_type INTEGER
-            `serialize_weaken`
-            serialize_asn1_integer (v (snd tag)))
-  (* g1 *) (synth_asn1_integer_V_inverse tag)
-  (* prf*) ()
-
+/// Reveal the computation of serialzation
 noextract
 let serialize_asn1_integer_V_unfold
   (tag: (the_asn1_type INTEGER & asn1_value_int32_of_type INTEGER))
@@ -585,7 +674,6 @@ let serialize_asn1_integer_V_unfold
   (* in *) (value)
 
 
-//////////////////////////////////////////////////////////////////////
 noextract
 let parse_asn1_integer_TLV_kind
 : parser_kind
@@ -595,6 +683,10 @@ let parse_asn1_integer_TLV_kind
   `and_then_kind`
   weak_kind_of_type INTEGER
 
+//////////////////////////////////////////////////////////
+///
+/// ASN1 `INTEGER` TLV Parser
+///
 noextract
 let parse_asn1_integer_TLV
 : parser parse_asn1_integer_TLV_kind (datatype_of_asn1_type INTEGER)
@@ -605,8 +697,28 @@ let parse_asn1_integer_TLV
   (* tg *) (parser_tag_of_asn1_integer)
   (* p  *) (parse_asn1_integer_V)
 
+///
+/// ASN1 `INTEGER` TLV Serialzier
+///
+#push-options "--initial_fuel 4"
+noextract
+let serialize_asn1_integer_TLV
+: serializer parse_asn1_integer_TLV
+= serialize_tagged_union
+  (* st *) (serialize_asn1_tag_of_type INTEGER
+            `serialize_nondep_then`
+            serialize_asn1_length_of_type INTEGER)
+  (* tg *) (parser_tag_of_asn1_integer)
+  (* s  *) (serialize_asn1_integer_V)
+#pop-options
+
+///
+/// Lemmas
+///
+
+/// Reveal the computation of parse
 #restart-solver
-#push-options "--query_stats --z3rlimit 32 --initial_ifuel 8"
+#push-options "--z3rlimit 32 --initial_ifuel 8"
 noextract
 let parse_asn1_integer_TLV_unfold
   (input: bytes)
@@ -647,19 +759,8 @@ let parse_asn1_integer_TLV_unfold
   (* in *) (input)
 #pop-options
 
-#push-options "--query_stats --initial_fuel 4"
-noextract
-let serialize_asn1_integer_TLV
-: serializer parse_asn1_integer_TLV
-= serialize_tagged_union
-  (* st *) (serialize_asn1_tag_of_type INTEGER
-            `serialize_nondep_then`
-            serialize_asn1_length_of_type INTEGER)
-  (* tg *) (parser_tag_of_asn1_integer)
-  (* s  *) (serialize_asn1_integer_V)
-#pop-options
-
-#push-options "--query_stats --z3rlimit 32"
+/// Reveal the computation of serialize
+#push-options "--z3rlimit 32"
 noextract
 let serialize_asn1_integer_TLV_unfold
   (value: datatype_of_asn1_type INTEGER)
@@ -684,7 +785,8 @@ let serialize_asn1_integer_TLV_unfold
   (* in *) (value)
 #pop-options
 
-#push-options "--query_stats --z3rlimit 16"
+/// Reveal the size of a serialzation
+#push-options "--z3rlimit 16"
 noextract
 let serialize_asn1_integer_TLV_size
   (value: datatype_of_asn1_type INTEGER)

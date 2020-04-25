@@ -3,9 +3,9 @@ module ASN1.Spec.TLV.Generic
 open ASN1.Base
 open ASN1.Spec.Tag
 open ASN1.Spec.Length
-open ASN1.Spec.BOOLEAN
-open ASN1.Spec.NULL
-open ASN1.Spec.OCTET_STRING
+open ASN1.Spec.Value.BOOLEAN
+open ASN1.Spec.Value.NULL
+open ASN1.Spec.Value.OCTET_STRING
 open LowParse.Bytes
 
 module U32 = FStar.UInt32

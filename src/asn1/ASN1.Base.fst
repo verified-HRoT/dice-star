@@ -8,8 +8,9 @@ let byte = uint_8
 let bytes = Seq.seq byte
 let lbytes = Seq.Properties.lseq byte
 
-/// ASN1 Types
-///
+//////////////////////////////////////////////////////////////////////////
+/////                           ASN1 Types
+/////////////////////////////////////////////////////////////////////////
 type asn1_type: Type =
 | BOOLEAN
 | INTEGER
@@ -19,17 +20,19 @@ type asn1_type: Type =
 | OID
 | SEQUENCE
 
+/// A specific ASN1 type
 let the_asn1_type (a: asn1_type)
 : Tot Type
 = (a': asn1_type{a == a'})
 
+/// Non constructive ASN1 types
 let asn1_primitive_type
 = (a: asn1_type{a =!= SEQUENCE})
 
-
 ///////////////////////////////////////////////////////////////////////////
-/// ASN1 bounded mathematical integers
-///
+/////      bounded mathematical integers for ASN1 value lengths
+///// Defines the valid length/size of a ASN1 DER values
+///////////////////////////////////////////////////////////////////////////
 noextract
 let asn1_length_t = n: nat{0 <= n /\ n <= 4294967295}
 noextract
@@ -40,113 +43,113 @@ noextract
 let asn1_length_inbound (x: nat) (min max: asn1_length_t): bool
 = min <= x && x <= max
 
-(* Defining the min and max length of the serialization of _value_s, not tag-len-value tuples.
+(* Defining the min and max length of the serialization of ASN1 _value_, not Tag-Len-Value tuples. Note
+   that a ASN1 tag always take 1 byte to serialize, a ASN1 length (of value) at most take 5 bytes to
+   serialize. Thus the valid length range of ASN1 value's serialization is [asn1_length_min, asn1_length_max - 6].
+   Specifically:
    1. BOOLEAN value takes 1 byte;
-   2. INTEGER value takes 1-4 bytes (positive signed integers, see `ASN1.Spec.INTEGER` for details);
+   2. INTEGER value takes 1-4 bytes (only positive signed integers, see `ASN1.Spec.Value.INTEGER` for details);
    3. NULL value takes 0 bytes;
-   4. OCTET_STRING value could take arbitrary valid length/size of bytes;
-   5. OID is stored as OCTET_STRING, thus it could also take arbitrary valid length/size of bytes;
-   6. BIT_STRING value could take arbitrary greater-than-zero valid length/size of bytes, since it
-      always take one byte to store the `unused_bits`, see `ASN1.Spec.BIT_STRING` for details;
-   7. SEQUENCE value could take arbitrary valid length/size of bytes.
-NOTE: Making the max length be `ans1_length_max - 6` to make all TLV be inbound (Tag takes 1 byte and
-      Len takes at most 5 bytes).
-*)
-(* NOTE: Not marking them with `GTot` because many definition's total definitions need them. *)
+   4. OCTET_STRING value can take any valid ASN1 value length/size to serialize;
+   5. OID is stored as OCTET_STRING;
+   6. BIT_STRING value could take arbitrary greater-than-zero valid ASN1 value length/size of bytes, since
+      it always take one byte to store the `unused_bits`, see `ASN1.Spec.Value.BIT_STRING` for details;
+   7. SEQUENCE value could take arbitrary valid ASN1 value length/size of bytes. *)
 noextract
 let asn1_value_length_min_of_type
   (a: asn1_type)
 : asn1_length_t
 = match a with
-  | BOOLEAN      -> 1
-  | INTEGER      -> 1
-  | NULL         -> 0
-  | OCTET_STRING -> asn1_length_min
-  | OID          -> asn1_length_min
-  | BIT_STRING   -> 1
-  | SEQUENCE     -> asn1_length_min
+  | BOOLEAN      -> 1                 (* Any `BOOLEAN` value {true, false} has length 1. *)
+  | INTEGER      -> 1                 (* `INTEGER` values range in [0x00, 0x7F] has length 1. *)
+  | NULL         -> 0                 (* Any `NULL` value has nothing to serialize and has length 0. *)
+  | OCTET_STRING -> asn1_length_min   (* An empty `OCTET_STRING` [] has length 0. *)
+  | OID          -> asn1_length_min   (* `OID` is just `OCTET_STRING`. *)
+  | BIT_STRING   -> 1                 (* An empty `BIT_STRING` with a leading byte of `unused_bits` has length 0. *)
+  | SEQUENCE     -> asn1_length_min   (* An empty `SEQUENCE` has length 0. *)
 
 noextract
 let asn1_value_length_max_of_type
   (a: asn1_type)
 : asn1_length_t
 = match a with
-  | BOOLEAN      -> 1
-  | INTEGER      -> 4
-  | NULL         -> 0
-  | OCTET_STRING -> asn1_length_max - 6
-  | OID          -> asn1_length_max - 6
-  | BIT_STRING   -> asn1_length_max - 6
-  | SEQUENCE     -> asn1_length_max - 6
+  | BOOLEAN      -> 1                    (* Any `BOOLEAN` value {true, false} has length 1. *)
+  | INTEGER      -> 4                    (* `INTEGER` values range in (0x7FFFFF, 0x7FFFFFFF] has length 4. *)
+  | NULL         -> 0                    (* Any `NULL` value has nothing to serialize and has length 0. *)
+  | OCTET_STRING -> asn1_length_max - 6  (* An `OCTET_STRING` of size `asn1_length_max - 6`. *)
+  | OID          -> asn1_length_max - 6  (* `OID` is just `OCTET_STRING`. *)
+  | BIT_STRING   -> asn1_length_max - 6  (* An `BIT_STRING` of size `asn1_length_max - 7` with a leading byte of `unused_bits`. *)
+  | SEQUENCE     -> asn1_length_max - 6  (* An `SEQUENCE` whose value has length `asn1_length_max - 6` *)
 
-noextract
-let asn1_value_length_bound_of_type
-  (a: asn1_type)
-: (asn1_length_t & asn1_length_t)
-= (asn1_value_length_min_of_type a, asn1_value_length_max_of_type a)
-
+/// Helper to assert a length `l` is a valid ASN1 value length of the given type `a`
 noextract
 let asn1_value_length_inbound_of_type
-  (a: asn1_type) (x: nat)
+  (a: asn1_type) (l: nat)
 : bool
-= let min, max = asn1_value_length_bound_of_type a in
-  asn1_length_inbound x min max
+= let min, max = asn1_value_length_min_of_type a, asn1_value_length_max_of_type a in
+  asn1_length_inbound l min max
 
-/// Valid mathematical integer for a specific type
+/// Valid ASN1 Value length subtype for a given type`a`
 noextract
 let asn1_value_length_of_type
   (a: asn1_type)
 = l: asn1_length_t {asn1_value_length_inbound_of_type a l}
 
-//////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+/////      bounded mathematical integers for ASN1 TLV lengths
+///// Defines the valid length/size of a ASN1 DER Tag-Length-Value tuple
+///////////////////////////////////////////////////////////////////////////
+
+(* NOTE: The valid TLV length range of a ASN1 type is its valid value length
+         range plus the corresponding Tag-Length length.
+*)
 noextract
 let asn1_TLV_length_min_of_type
   (a: asn1_type)
 : asn1_length_t
-= match a with
-  | BOOLEAN      -> 3
-  | INTEGER      -> 3
-  | NULL         -> 2
-  | OCTET_STRING -> 2
-  | OID          -> 2
-  | BIT_STRING   -> 3
-  | SEQUENCE     -> 2
+= match a with        (* Tag Len Val *)
+  | BOOLEAN      -> 3 (*  1 + 1 + 1  *)
+  | INTEGER      -> 3 (*  1 + 1 + 1  *)
+  | NULL         -> 2 (*  1 + 1 + 0  *)
+  | OCTET_STRING -> 2 (*  1 + 1 + 0  *)
+  | OID          -> 2 (*  1 + 1 + 0  *)
+  | BIT_STRING   -> 3 (*  1 + 1 + 1  *)
+  | SEQUENCE     -> 2 (*  1 + 1 + 0  *)
 
 noextract
 let asn1_TLV_length_max_of_type
   (a: asn1_type)
 : asn1_length_t
-= match a with
-  | BOOLEAN      -> 3
-  | INTEGER      -> 6
-  | NULL         -> 2
-  | OCTET_STRING -> asn1_length_max
-  | OID          -> asn1_length_max
-  | BIT_STRING   -> asn1_length_max
-  | SEQUENCE     -> asn1_length_max
+= match a with                       (* Tag Len Val *)
+  | BOOLEAN      -> 3                (*  1 + 1 + 1  *)
+  | INTEGER      -> 6                (*  1 + 1 + 4  *)
+  | NULL         -> 2                (*  1 + 1 + 0  *)
+  | OCTET_STRING -> asn1_length_max  (*  1 + 5 + _  *)
+  | OID          -> asn1_length_max  (*  1 + 5 + _  *)
+  | BIT_STRING   -> asn1_length_max  (*  1 + 5 + _  *)
+  | SEQUENCE     -> asn1_length_max  (*  1 + 5 + _  *)
 
-noextract
-let asn1_TLV_length_bound_of_type
-  (a: asn1_type)
-: (asn1_length_t & asn1_length_t)
-= (asn1_TLV_length_min_of_type a, asn1_TLV_length_max_of_type a)
-
+/// Helper to assert a length `l` is a valid ASN1 TLV length of the given type `a`
 noextract
 let asn1_TLV_length_inbound_of_type
   (a: asn1_type) (x: nat)
 : bool
-= let min, max = asn1_TLV_length_bound_of_type a in
+= let min, max = asn1_TLV_length_min_of_type a, asn1_TLV_length_max_of_type a in
   asn1_length_inbound x min max
 
-/// Valid mathematical integer for a specific type
+/// Valid ASN1 TLV length subtype for a given type`a`
 noextract
 let asn1_TLV_length_of_type
   (a: asn1_type)
 = l: asn1_length_t {asn1_TLV_length_inbound_of_type a l}
 
-//////////////////////////////////////////////////////////////
-/// ASN1 bounded 32-bit unsigned machine integers
-///
+
+
+///////////////////////////////////////////////////////////////////////////
+/////      bounded machine integers for ASN1 TLV lengths
+///// Defines the valid length/size of a ASN1 DER Tag-Length-Value tuple
+////  Same as above, specified using the above definitions
+///////////////////////////////////////////////////////////////////////////
 let asn1_int32 = LowParse.Spec.BoundedInt.bounded_int32 asn1_length_min asn1_length_max
 let asn1_int32_min: i: asn1_int32 {forall (i': asn1_int32). i <= i'} = 0ul
 let asn1_int32_max: i: asn1_int32 {forall (i': asn1_int32). i >= i'} = 4294967295ul
@@ -176,21 +179,18 @@ let asn1_value_int32_max_of_type
   | BIT_STRING   -> asn1_int32_max - 6ul
   | SEQUENCE     -> asn1_int32_max - 6ul
 
-let asn1_value_int32_bound_of_type
-  (a: asn1_type)
-: Tot (x: (asn1_int32 & asn1_int32) {
-          let (vmin, vmax) = asn1_value_length_bound_of_type a in
-          let (min , max ) = x in
-          v min == vmin /\ v max == vmax })
-= (asn1_value_int32_min_of_type a, asn1_value_int32_max_of_type a)
-
-/// Valid mathematical integer for a specific type
+/// Valid ASN1 Value len subtype for a given type`a`
 let asn1_value_int32_of_type
   (_a: asn1_type)
 = let min, max = asn1_value_length_min_of_type _a, asn1_value_length_max_of_type _a in
   LowParse.Spec.BoundedInt.bounded_int32 min max
 
-/////////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////
+/////      bounded machine integers for ASN1 TLV lengths
+///// Defines the valid length/size of a ASN1 DER Tag-Length-Value tuple
+////  Same as the mathematical version above, specified using the above definitions
+///////////////////////////////////////////////////////////////////////////
 let asn1_TLV_int32_min_of_type
   (a: asn1_type)
 : Tot (n: asn1_int32 {v n == asn1_TLV_length_min_of_type a})
@@ -215,30 +215,21 @@ let asn1_TLV_int32_max_of_type
   | BIT_STRING   -> asn1_int32_max
   | SEQUENCE     -> asn1_int32_max
 
-let asn1_TLV_int32_bound_of_type
-  (a: asn1_type)
-: Tot (x: (asn1_int32 & asn1_int32) {
-          let (vmin, vmax) = asn1_TLV_length_bound_of_type a in
-          let (min , max ) = x in
-          v min == vmin /\ v max == vmax })
-= (asn1_TLV_int32_min_of_type a, asn1_TLV_int32_max_of_type a)
-
-/// Valid mathematical integer for a specific type
+/// Valid ASN1 TLV len subtype for a given type`a`
 let asn1_TLV_int32_of_type
   (_a: asn1_type)
 = let min, max = asn1_TLV_length_min_of_type _a, asn1_TLV_length_max_of_type _a in
   LowParse.Spec.BoundedInt.bounded_int32 min max
 
 //////////////////////////////////////////////////////////////////////
-/// A weak parser kind generator. They generates the strongest (I hope)
-/// _statically_ known parser kind for these types' parser.
+/// A weak parser kind (for ASN1 variable-length values) generator. They
+///  generates the strongest _statically_ known parser kind for these types' parser.
 ///
 let weak_kind_of_type
   (a: asn1_type)
 : LowParse.Spec.Base.parser_kind
-= let min, max = asn1_value_length_bound_of_type a in
+= let min, max = asn1_value_length_min_of_type a, asn1_value_length_max_of_type a in
   LowParse.Spec.Base.strong_parser_kind min max None
-
 
 ////////////////////////////////////////////////////////////////////////
 /// OIDs, WIP
@@ -247,13 +238,10 @@ type oid_t =
 | ECDSA_WITH_SHA256_OID
 | KEY_USAGE_OID
 
-
 ////////////////////////////////////////////////////////////////////////
-/// The representation of the value of asn1 types. They will also be used
-/// at the low-level.
-/// NOTE: Not inductively defining them.
-/// NOTE: Currently using dependent tuples. We can also switch to records.
-///
+////            Representation of ASN1 Values
+//// NOTE: They will be directly used in both spec and impl level
+////////////////////////////////////////////////////////////////////////
 let datatype_of_asn1_type (a: asn1_primitive_type): Type
 = match a with
   | BOOLEAN      -> bool

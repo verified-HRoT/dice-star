@@ -1,7 +1,7 @@
-module ASN1.Low.INTEGER
+module ASN1.Low.Value.INTEGER
 
 open ASN1.Base
-open ASN1.Spec.INTEGER
+open ASN1.Spec.Value.INTEGER
 open ASN1.Low.Base
 open LowParse.Bytes
 
@@ -16,7 +16,10 @@ module Cast = FStar.Int.Cast
 module E = LowParse.Endianness
 module LE = LowParse.Low.Endianness
 
+(* NOTE: Read after `ASN1.Spec.Tag`, `ASN1.Spec.Length` *)
+
 (* FIXME: Failed when compiling. *)
+/// Implementation of length computation of `INTEGER` value's serialization
 inline_for_extraction
 let len_of_asn1_integer
   (value: datatype_of_asn1_type INTEGER)
@@ -45,7 +48,7 @@ NOTE: Since there are no low-level machine-integer to bytes implementations
 *)
 
 #restart-solver
-#push-options "--query_stats --z3rlimit 512"
+#push-options "--z3rlimit 512"
 let serialize32_asn1_integer_backwards
   (len: asn1_value_int32_of_type INTEGER)
 : Tot (serializer32_backwards (serialize_asn1_integer (v len)))

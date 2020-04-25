@@ -1,4 +1,4 @@
-module ASN1.Spec.OID
+module ASN1.Spec.Value.OID
 
 open LowParse.Spec.Base
 open LowParse.Spec.Combinators
@@ -9,6 +9,9 @@ open ASN1.Spec.Tag
 open ASN1.Spec.Length
 
 open FStar.Integers
+
+(* NOTE: WIP, please ignore this module. *)
+
 (*)
 (* FIXME: Use real OIDs *)
 let riot_oid              : datatype_of_asn1_type OCTET_STRING = (|5ul, Seq.create 5 0x00uy|)

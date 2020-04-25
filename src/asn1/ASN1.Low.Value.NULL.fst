@@ -1,7 +1,7 @@
-module ASN1.Low.NULL
+module ASN1.Low.Value.NULL
 
 open ASN1.Base
-open ASN1.Spec.NULL
+open ASN1.Spec.Value.NULL
 open ASN1.Low.Base
 
 open FStar.Integers
@@ -11,6 +11,8 @@ module HST = FStar.HyperStack.ST
 module MB = LowStar.Monotonic.Buffer
 module B = LowStar.Buffer
 module Cast = FStar.Int.Cast
+
+(* NOTE: Read after `ASN1.Spec.Tag`, `ASN1.Spec.Length` *)
 
 inline_for_extraction
 let serialize32_asn1_null_backwards ()
