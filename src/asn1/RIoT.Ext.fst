@@ -244,7 +244,7 @@ let len_of_subjectPublicKeyInfo_value_inbound
 #push-options "--z3rlimit 1024 --max_fuel 128 --max_ifuel 128"
 let len_of_subjectPublicKeyInfo_TLV_inbound
   (x: subjectPublicKeyInfo_t_inbound)
-: Tot (inbound_sequence_value_len_of serialize_subjectPublicKeyInfo_sequence_TLV x)
+// : Tot (inbound_sequence_value_len_of serialize_subjectPublicKeyInfo_sequence_TLV x)
 = len_of_sequence_TLV
   (* s *) serialize_subjectPublicKeyInfo_value
   (*len*) len_of_subjectPublicKeyInfo_value_inbound
@@ -373,7 +373,7 @@ let serialize32_fwid_sequence
 = serialize32_asn1_sequence_TLV_backwards
   (* ls *) (serialize32_fwid_value)
   (*flen*) (len_of_fwid_value_inbound)
-
+(*)
 //////////////////////////////////
 noeq
 type compositeDeviceID_t = {
