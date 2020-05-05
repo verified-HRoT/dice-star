@@ -21,6 +21,7 @@ type asn1_type: Type =
 | SEQUENCE
 
 /// A specific ASN1 type
+inline_for_extraction
 let the_asn1_type (a: asn1_type)
 : Tot Type
 = (a': asn1_type{a == a'})
@@ -33,13 +34,13 @@ let asn1_primitive_type
 /////      bounded mathematical integers for ASN1 value lengths
 ///// Defines the valid length/size of a ASN1 DER values
 ///////////////////////////////////////////////////////////////////////////
-noextract
 let asn1_length_t = n: nat{0 <= n /\ n <= 4294967295}
-noextract
+
+inline_for_extraction
 let asn1_length_min: n: asn1_length_t {forall (n':asn1_length_t). n <= n'} = 0
-noextract
+inline_for_extraction
 let asn1_length_max: n: asn1_length_t {forall (n':asn1_length_t). n >= n'} = 4294967295
-noextract
+inline_for_extraction
 let asn1_length_inbound (x: nat) (min max: asn1_length_t): bool
 = min <= x && x <= max
 
@@ -55,7 +56,7 @@ let asn1_length_inbound (x: nat) (min max: asn1_length_t): bool
    6. BIT_STRING value could take arbitrary greater-than-zero valid ASN1 value length/size of bytes, since
       it always take one byte to store the `unused_bits`, see `ASN1.Spec.Value.BIT_STRING` for details;
    7. SEQUENCE value could take arbitrary valid ASN1 value length/size of bytes. *)
-noextract
+inline_for_extraction
 let asn1_value_length_min_of_type
   (a: asn1_type)
 : asn1_length_t
@@ -68,7 +69,7 @@ let asn1_value_length_min_of_type
   | BIT_STRING   -> 1                 (* An empty `BIT_STRING` with a leading byte of `unused_bits` has length 0. *)
   | SEQUENCE     -> asn1_length_min   (* An empty `SEQUENCE` has length 0. *)
 
-noextract
+inline_for_extraction
 let asn1_value_length_max_of_type
   (a: asn1_type)
 : asn1_length_t
@@ -150,11 +151,15 @@ let asn1_TLV_length_of_type
 ///// Defines the valid length/size of a ASN1 DER Tag-Length-Value tuple
 ////  Same as above, specified using the above definitions
 ///////////////////////////////////////////////////////////////////////////
+inline_for_extraction
 let asn1_int32 = LowParse.Spec.BoundedInt.bounded_int32 asn1_length_min asn1_length_max
+inline_for_extraction
 let asn1_int32_min: i: asn1_int32 {forall (i': asn1_int32). i <= i'} = 0ul
+inline_for_extraction
 let asn1_int32_max: i: asn1_int32 {forall (i': asn1_int32). i >= i'} = 4294967295ul
 
 (* Defining the min and max machine len of the serialization of _value_s *)
+inline_for_extraction
 let asn1_value_int32_min_of_type
   (a: asn1_type)
 : Tot (n: asn1_int32 {v n == asn1_value_length_min_of_type a})
@@ -167,6 +172,7 @@ let asn1_value_int32_min_of_type
   | BIT_STRING   -> 1ul
   | SEQUENCE     -> asn1_int32_min
 
+inline_for_extraction
 let asn1_value_int32_max_of_type
   (a: asn1_type)
 : Tot (n: asn1_int32 {v n == asn1_value_length_max_of_type a})
@@ -180,6 +186,7 @@ let asn1_value_int32_max_of_type
   | SEQUENCE     -> asn1_int32_max - 6ul
 
 /// Valid ASN1 Value len subtype for a given type`a`
+inline_for_extraction
 let asn1_value_int32_of_type
   (_a: asn1_type)
 = let min, max = asn1_value_length_min_of_type _a, asn1_value_length_max_of_type _a in

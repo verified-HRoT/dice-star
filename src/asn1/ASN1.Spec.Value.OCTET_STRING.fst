@@ -54,7 +54,7 @@ let synth_asn1_octet_string_inverse
 : GTot (s32: B32.lbytes l{ value == synth_asn1_octet_string l s32 })
 = dsnd value
 
-noextract
+inline_for_extraction
 let parse_asn1_octet_string_kind (l: asn1_value_length_of_type OCTET_STRING) = total_constant_size_parser_kind l
 
 ///
