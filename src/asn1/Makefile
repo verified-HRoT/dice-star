@@ -2,13 +2,14 @@ FSTAR_FILES=$(wildcard *.fst)
 
 OUTPUT_DIR=obj
 
-EVERPARSE_HOME = $(SOURCES_HOME)/everparse
+EVERPARSE_HOME ?= $(SOURCES_HOME)/everparse
 
 FSTAR_INCLUDES=$(FSTAR_HOME)/ulib/.cache \
   $(KREMLIN_HOME)/include \
   $(KREMLIN_HOME)/kremlib/dist/generic \
   $(KREMLIN_HOME)/kremlib \
   $(HACL_HOME)/lib \
+  $(HACL_HOME)/obj \
   $(EVERPARSE_HOME)/src/lowparse \
   $(OUTPUT_DIR)
 
