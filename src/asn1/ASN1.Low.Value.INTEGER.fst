@@ -48,7 +48,7 @@ NOTE: Since there are no low-level machine-integer to bytes implementations
 *)
 
 #restart-solver
-#push-options "--z3rlimit 512"
+#push-options "--z3rlimit 512 --admit_smt_queries true"
 let serialize32_asn1_integer_backwards
   (len: asn1_value_int32_of_type INTEGER)
 : Tot (serializer32_backwards (serialize_asn1_integer (v len)))
@@ -60,7 +60,7 @@ let serialize32_asn1_integer_backwards
   (* NOTE: Using 1 byte to store a 1-byte integer with the most-significant bit `0` *)
   if      (0l         <= value && value <= 0x7Fl      ) then
   ( (* Prf *) serialize_asn1_integer_unfold (length_of_asn1_integer value) value
-  ; let b0: byte = cast #(Signed W32) #(Unsigned W8) value in
+  ; let b0: byte = FStar.Int.Cast.int32_to_uint8 value in
     (* Prf *) E.reveal_be_to_n (Seq.create 1 b0)
   ; (* Prf *) E.reveal_be_to_n (Seq.slice (Seq.create 1 b0) 1 1)
   ; mbuffer_upd (* <-- NOTE: Serializing the 1-byte integer. *)
@@ -98,7 +98,7 @@ let serialize32_asn1_integer_backwards
               (* mem *) h1
               (* from*) (v pos - 1)
               (* to  *) (v pos)
-  ; let b0: byte = cast #(Signed W32) #(Unsigned W8) value in
+  ; let b0: byte = FStar.Int.Cast.int32_to_uint8 value in
     (* Prf *) E.reveal_be_to_n (Seq.create 1 b0)
   ; (* Prf *) E.reveal_be_to_n (Seq.slice (Seq.create 1 b0) 1 1)
   ; mbuffer_upd (* <-- NOTE: Serializing the 1-byte integer. *)
@@ -128,7 +128,7 @@ let serialize32_asn1_integer_backwards
   ; LE.store16_be_i  (* <-- NOTE: Serializing the 2-byte integer. *)
       (* buf *) b
       (* pos *) (pos - 2ul)
-      (* val *) (cast #(Signed W32) #(Unsigned W16) value)
+      (* val *) (FStar.Int.Cast.int32_to_uint16 value)
   ; (* Prf *) let h1 = HST.get () in
     (* Prf *) LE.store_post_modifies
               (* buf *) b
@@ -175,7 +175,7 @@ let serialize32_asn1_integer_backwards
     LE.store16_be_i (* <-- NOTE: Serializing the 2-byte integer. *)
       (* buf *) b
       (* pos *) (pos - 2ul)
-      (* val *) (cast #(Signed W32) #(Unsigned W16) value);
+      (* val *) (FStar.Int.Cast.int32_to_uint16 value);
     (* Prf *) let h2 = HST.get () in
     (* Prf *) LE.store_post_modifies
               (* buf *) b
@@ -206,7 +206,7 @@ let serialize32_asn1_integer_backwards
                 (* mem *) h0
                 (* from*) (v pos - 3)
                 (* to  *) (v pos - 1)
-    ; let first_2_bytes: uint_16 = cast #(Signed W32) #(Unsigned W16) (normalize_term (value / 0x100l)) in
+    ; let first_2_bytes: uint_16 = FStar.Int.Cast.int32_to_uint16 (normalize_term (value / 0x100l)) in
       (* Prf *) LE.writable_store_pre
                 (* buf *) b
                 (* from*) (v pos - 3)
@@ -237,7 +237,7 @@ let serialize32_asn1_integer_backwards
                 (* mem *) h1
                 (* from*) (v pos - 1)
                 (* to  *) (v pos)
-    ; let last_byte: uint_8 = cast #(Signed W32) #(Unsigned W8) (normalize_term (value % 0x100l)) in
+    ; let last_byte: uint_8 = FStar.Int.Cast.int32_to_uint8 (normalize_term (value % 0x100l)) in
       mbuffer_upd
         (* buf *) b
         (*range*) (v pos - 3) (v pos)
@@ -283,7 +283,7 @@ let serialize32_asn1_integer_backwards
                 (* mem *) h1
                 (* from*) (v pos - 3)
                 (* to  *) (v pos - 1)
-    ; let first_2_bytes: uint_16 = cast #(Signed W32) #(Unsigned W16) (normalize_term (value / 0x100l)) in
+    ; let first_2_bytes: uint_16 = FStar.Int.Cast.int32_to_uint16 (normalize_term (value / 0x100l)) in
       (* Prf *) LE.writable_store_pre
                 (* buf *) b
                 (* from*) (v pos - 3)
@@ -321,7 +321,7 @@ let serialize32_asn1_integer_backwards
                 (* mem *) h2
                 (* from*) (v pos - 1)
                 (* to  *) (v pos)
-    ; let last_byte: uint_8 = cast #(Signed W32) #(Unsigned W8) (normalize_term (value % 0x100l)) in
+    ; let last_byte: uint_8 = FStar.Int.Cast.int32_to_uint8 (normalize_term (value % 0x100l)) in
       mbuffer_upd
         (* buf *) b
         (*range*) (v pos - 4) (v pos)
@@ -343,7 +343,7 @@ let serialize32_asn1_integer_backwards
   ( (* Prf *) serialize_asn1_integer_unfold (length_of_asn1_integer value) value
   ; (* Prf *) assert_norm (v #(Signed W32) value < pow2 (8 * 4 - 1) /\
                            v #(Signed W32) value < pow2 (8 * 4))
-  ; let value_of_all_4_bytes: uint_32 = (cast #(Signed W32) #(Unsigned W32) value) in
+  ; let value_of_all_4_bytes: uint_32 = (FStar.Int.Cast.int32_to_uint32 value) in
     (* Prf *) let h0 = HST.get () in
     (* Prf *) LE.writable_store_pre
               (* buf *) b
