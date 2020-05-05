@@ -53,7 +53,7 @@ extract-all: $(ALL_KRML_FILES)
 KREMLIN_FLAGS = \
   -no-prefix 'RIoT.Test' \
   -fparentheses -fno-shadow -fcurly-braces \
-  -bundle Prims,C.Failure,C,C.*,FStar.*,LowStar.*,Lib.* \
+  -bundle Prims,C.Failure,C,C.*,FStar.*,LowStar.*,Lib.*,LowParse.* \
   -minimal \
   -fnoreturn-else \
   -add-include '"kremlin/internal/types.h"' \
