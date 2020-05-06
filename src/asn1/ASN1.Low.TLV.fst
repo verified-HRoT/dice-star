@@ -56,7 +56,7 @@ let len_of_asn1_primitive_value
                       dfst value )
 
   | BIT_STRING   -> ( let value = value <: datatype_of_asn1_type BIT_STRING in
-                      Mkdtuple3?._1 value )
+                      Mkbit_string_t?.len value )
 
   | OID          -> admit ()
 #pop-options

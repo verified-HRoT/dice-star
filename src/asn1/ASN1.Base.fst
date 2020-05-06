@@ -245,6 +245,18 @@ type oid_t =
 | ECDSA_WITH_SHA256_OID
 | KEY_USAGE_OID
 
+type bit_string_t = {
+  len        : asn1_value_int32_of_type BIT_STRING;
+  unused_bits: n: asn1_int32 {0 <= v n /\ v n <= 7};
+  s          : s: B32.bytes { B32.length s == v len - 1 /\
+                                             ( if B32.length s = 0 then
+                                               ( v unused_bits == 0 )
+                                               else
+                                               ( let mask: n:nat{cast_ok (Unsigned W8) n} = normalize_term (pow2 (v unused_bits)) in
+                                                 let last_byte = B32.index s (B32.length s - 1) in
+                                                 0 == normalize_term ((v last_byte) % mask)) )}
+}
+
 ////////////////////////////////////////////////////////////////////////
 ////            Representation of ASN1 Values
 //// NOTE: They will be directly used in both spec and impl level
@@ -271,13 +283,5 @@ let datatype_of_asn1_type (a: asn1_primitive_type): Type
      1. `len`: the length of both `unused_bits` and `s`;
      2. `unused_bits`: a byte, ranging [0, 7], to represent the number of unused bits in the last byte of `s`.
      3. `s`: bytes, whose last bytes' last `unused_bits` bits should be zeroed. could be an empty bytes. *)
-  | BIT_STRING   -> ( len        : asn1_value_int32_of_type BIT_STRING &
-                      unused_bits: asn1_int32 {0 <= v unused_bits /\ v unused_bits <= 7} &
-                      s          : B32.bytes { B32.length s == v len - 1 /\
-                                             ( if B32.length s = 0 then
-                                               ( v unused_bits == 0 )
-                                               else
-                                               ( let mask: n:nat{cast_ok (Unsigned W8) n} = normalize_term (pow2 (v unused_bits)) in
-                                                 let last_byte = B32.index s (B32.length s - 1) in
-                                                 0 == normalize_term ((v last_byte) % mask)) )} )
+  | BIT_STRING   -> bit_string_t
 

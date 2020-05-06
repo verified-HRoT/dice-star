@@ -88,7 +88,7 @@ let length_of_asn1_primitive_value
     | NULL         -> serialize serialize_asn1_null value
     | INTEGER      -> serialize (serialize_asn1_integer (length_of_asn1_integer (value <: datatype_of_asn1_type INTEGER))) value
     | OCTET_STRING -> serialize (serialize_asn1_octet_string (v (dfst (value <: datatype_of_asn1_type OCTET_STRING)))) value
-    | BIT_STRING   -> serialize (serialize_asn1_bit_string (v (Mkdtuple3?._1 (value <: datatype_of_asn1_type BIT_STRING)))) value
+    | BIT_STRING   -> serialize (serialize_asn1_bit_string (v (Mkbit_string_t?.len (value <: datatype_of_asn1_type BIT_STRING)))) value
     | OID          -> admit ())
   })
 = match _a with
@@ -111,7 +111,7 @@ let length_of_asn1_primitive_value
                     ; length )
 
   | BIT_STRING   -> ( let value = value <: datatype_of_asn1_type BIT_STRING in
-                      let length = v (Mkdtuple3?._1 value) in
+                      let length = v (Mkbit_string_t?.len value) in
                       serialize_asn1_bit_string_size length value
                     ; length )
 
@@ -146,7 +146,7 @@ let length_of_asn1_primitive_TLV
                                     serialize_asn1_octet_string_TLV_size value )
 
                 | BIT_STRING   -> ( let value = value <: datatype_of_asn1_type BIT_STRING in
-                                    let length = v (Mkdtuple3?._1 value) in
+                                    let length = v (Mkbit_string_t?.len value) in
                                     let len: asn1_value_int32_of_type BIT_STRING = u length in
                                     serialize_asn1_bit_string_TLV_size value )
 
@@ -175,7 +175,7 @@ let length_of_asn1_primitive_TLV
                     ; 1 + length_of_asn1_length len + length )
 
   | BIT_STRING   -> ( let value = value <: datatype_of_asn1_type BIT_STRING in
-                      let length = v (Mkdtuple3?._1 value) in
+                      let length = v (Mkbit_string_t?.len value) in
                       let len: asn1_value_int32_of_type BIT_STRING = u length in
                       serialize_asn1_bit_string_TLV_size value
                     ; 1 + length_of_asn1_length len + length )

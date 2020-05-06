@@ -49,7 +49,8 @@ let main ()
   let pubkey: b: B.buffer uint8 {B.length b == 3} = B.alloca 0b100uy 3ul in
   let subjectPublicKeyInfo: subjectPublicKeyInfo_t = {
     algorithm = algo_id;
-    subjectPublicKey = (|4ul, 2ul, B32.of_buffer 3ul pubkey|)
+                       (* FIXME: conflicting with `LowParse.Slice.slice` *)
+    subjectPublicKey = Mkbit_string_t 4ul 2ul (B32.of_buffer 3ul pubkey)
   } in
 
   (* NOTE: Prove subjectPublicKeyInfo is inbound. *)

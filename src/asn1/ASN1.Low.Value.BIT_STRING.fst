@@ -25,16 +25,14 @@ inline_for_extraction
 let serialize32_asn1_bit_string_backwards
   (len: asn1_value_int32_of_type BIT_STRING)
 : Tot (serializer32_backwards (serialize_asn1_bit_string (v len)))
-= fun (value: datatype_of_asn1_type BIT_STRING {
-            let (|len', unused_bits, s|) = value in
-            v len == v len' })
+= fun (value: datatype_of_asn1_type BIT_STRING { v len == v (Mkbit_string_t?.len value) })
     (#rrel #rel: _)
     (b: B.mbuffer byte rrel rel)
     (pos: size_t)
 ->  (* Prf *) serialize_asn1_bit_string_unfold (v len) (value);
     (* Prf *) let h0 = HST.get () in
-    let (|len, unused_bits, s32|) = value in
-    let leading_byte: byte = cast unused_bits in
+    // let (|len, unused_bits, s32|) = value in
+    let leading_byte: byte = cast value.unused_bits in
     (* Prf *) writable_weaken
               (* buf *) b
               (*range*) (v pos - v len) (v pos)
@@ -63,7 +61,7 @@ let serialize32_asn1_bit_string_backwards
               (* to  *) (v pos);
 
     store_bytes (* <-- NOTE: Serializing the following bytes. *)
-      (* src *) s32
+      (* src *) value.s
       (*range*) 0ul (len - 1ul)
       (* dst *) b
       (* pos *) (pos - len + 1ul);
@@ -76,7 +74,7 @@ let serialize32_asn1_bit_string_backwards
               (* mem *) h1
               (* mem'*) h2;
     (* Prf *) Seq.lemma_split (Seq.slice (B.as_seq h2 b) (v pos - v len) (v pos)) 1;
-(*return*) len
+(*return*) (Mkbit_string_t?.len value)
 
 inline_for_extraction
 let parser_tag_of_bit_string_impl
@@ -84,16 +82,14 @@ let parser_tag_of_bit_string_impl
 : Tot (tg: (the_asn1_type BIT_STRING & asn1_value_int32_of_type BIT_STRING) {
            tg == parser_tag_of_bit_string x
   })
-= let (|len, unused_bits, s32|) = x in
-  (BIT_STRING, len)
+= (BIT_STRING, (Mkbit_string_t?.len x))
 
 inline_for_extraction
 let synth_asn1_bit_string_V_inverse_impl
   (tag: (the_asn1_type BIT_STRING & asn1_value_int32_of_type BIT_STRING))
   (value': refine_with_tag parser_tag_of_bit_string tag)
 : Tot (value: datatype_of_asn1_type BIT_STRING {
-                 let (|len, unused_bits, s|) = value in
-                 v (snd tag) == v len /\
+                 v (snd tag) == v (Mkbit_string_t?.len value) /\
                  value == synth_asn1_bit_string_V_inverse tag value'})
 = value'
 
