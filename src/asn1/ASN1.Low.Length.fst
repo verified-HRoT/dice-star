@@ -75,14 +75,15 @@ let serialize32_asn1_length_backwards ()
              (* mem'*) h1;
 (* return *) offset
 
-inline_for_extraction
+inline_for_extraction noextract
 let serialize32_asn1_length_of_type
   (_a: asn1_type)
 : Tot (serializer32 (serialize_asn1_length_of_type _a))
 = let min, max = asn1_value_length_min_of_type _a, asn1_value_length_max_of_type _a in
   LDER.serialize32_bounded_der_length32 min max
 
-inline_for_extraction
+//marking it noextract, perhaps issue because _a isn't fixed yet??
+inline_for_extraction noextract
 let serialize32_asn1_length_of_type_backwards
   (_a: asn1_type)
 : Tot (serializer32_backwards (serialize_asn1_length_of_type _a))
