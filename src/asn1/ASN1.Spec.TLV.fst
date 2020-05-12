@@ -20,7 +20,7 @@ open FStar.Integers
 
 /// Interfaces to make this library easier to use, WIP
 ///
-inline_for_extraction
+inline_for_extraction noextract
 let parse_asn1_TLV_kind_of_type
   (_a: asn1_primitive_type)
 : parser_kind
@@ -60,19 +60,22 @@ let serialize_asn1_TLV_of_type
 (* NOTE: Use this for potentially unbounded len computations. Since I have
          tighten the max asn1 value length to make all asn1 TLV of a valid
          asn1 value inbound, this may no longer needed. *)
-#push-options "--z3rlimit 32"
-let safe_add
-  (a b: option asn1_int32)
-: Tot (c: option asn1_int32 {
-          Some?a /\ Some?b /\ Some? c ==>
-            v (Some?.v c) == v (Some?.v a) + v (Some?.v b)
-  })
-= let open FStar.Integers in
-  if (Some?a && Some? b && (Some?.v a) <= asn1_int32_max - (Some?.v b)) then
-  ( Some (Some?.v a + Some?.v b) )
-  else
-  ( None )
-#pop-options
+
+// AR: is this needed?
+
+// #push-options "--z3rlimit 32"
+// let safe_add
+//   (a b: option asn1_int32)
+// : Tot (c: option asn1_int32 {
+//           Some?a /\ Some?b /\ Some? c ==>
+//             v (Some?.v c) == v (Some?.v a) + v (Some?.v b)
+//   })
+// = let open FStar.Integers in
+//   if (Some?a && Some? b && (Some?.v a) <= asn1_int32_max - (Some?.v b)) then
+//   ( Some (Some?.v a + Some?.v b) )
+//   else
+//   ( None )
+// #pop-options
 
 /// Length Spec of ASN.1 [VALUE] of primitive types
 ///

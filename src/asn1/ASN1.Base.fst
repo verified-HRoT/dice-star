@@ -5,7 +5,11 @@ module B32 = FStar.Bytes
 
 let (.[]) = FStar.Seq.index
 let byte = uint_8
+
+inline_for_extraction noextract
 let bytes = Seq.seq byte
+
+inline_for_extraction noextract
 let lbytes = Seq.Properties.lseq byte
 
 //////////////////////////////////////////////////////////////////////////
@@ -36,11 +40,11 @@ let asn1_primitive_type
 ///////////////////////////////////////////////////////////////////////////
 let asn1_length_t = n: nat{0 <= n /\ n <= 4294967295}
 
-inline_for_extraction
+inline_for_extraction noextract
 let asn1_length_min: n: asn1_length_t {forall (n':asn1_length_t). n <= n'} = 0
-inline_for_extraction
+inline_for_extraction noextract
 let asn1_length_max: n: asn1_length_t {forall (n':asn1_length_t). n >= n'} = 4294967295
-inline_for_extraction
+inline_for_extraction noextract
 let asn1_length_inbound (x: nat) (min max: asn1_length_t): bool
 = min <= x && x <= max
 
@@ -56,7 +60,7 @@ let asn1_length_inbound (x: nat) (min max: asn1_length_t): bool
    6. BIT_STRING value could take arbitrary greater-than-zero valid ASN1 value length/size of bytes, since
       it always take one byte to store the `unused_bits`, see `ASN1.Spec.Value.BIT_STRING` for details;
    7. SEQUENCE value could take arbitrary valid ASN1 value length/size of bytes. *)
-inline_for_extraction
+inline_for_extraction noextract
 let asn1_value_length_min_of_type
   (a: asn1_type)
 : asn1_length_t
@@ -69,7 +73,7 @@ let asn1_value_length_min_of_type
   | BIT_STRING   -> 1                 (* An empty `BIT_STRING` with a leading byte of `unused_bits` has length 0. *)
   | SEQUENCE     -> asn1_length_min   (* An empty `SEQUENCE` has length 0. *)
 
-inline_for_extraction
+inline_for_extraction noextract
 let asn1_value_length_max_of_type
   (a: asn1_type)
 : asn1_length_t
@@ -236,7 +240,7 @@ let asn1_TLV_int32_of_type
 ///  generates the strongest _statically_ known parser kind for these types' parser.
 
 ///
-inline_for_extraction
+inline_for_extraction noextract
 let weak_kind_of_type
   (a: asn1_type)
 : LowParse.Spec.Base.parser_kind

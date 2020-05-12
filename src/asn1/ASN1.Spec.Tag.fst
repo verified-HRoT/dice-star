@@ -66,7 +66,7 @@ let synth_asn1_tag_inverse
   | OID          -> 0x06uy
   | SEQUENCE     -> 0x30uy
 
-inline_for_extraction
+inline_for_extraction noextract
 let parse_asn1_tag_kind = strong_parser_kind 1 1 None
 
 ///

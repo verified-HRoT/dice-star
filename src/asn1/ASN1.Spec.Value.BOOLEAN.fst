@@ -160,7 +160,7 @@ let synth_asn1_boolean_TLV_inverse
 : GTot (a: ((the_asn1_type BOOLEAN * asn1_value_int32_of_type BOOLEAN) * datatype_of_asn1_type BOOLEAN){x == synth_asn1_boolean_TLV a})
 = ((BOOLEAN, 1ul), x)
 
-inline_for_extraction
+inline_for_extraction noextract
 let parse_asn1_boolean_TLV_kind
 : parser_kind
 = strong_parser_kind 3 3 None

@@ -56,7 +56,7 @@ let length_of_asn1_length
 /// Specialized for a specific ASN1 type
 ///
 
-inline_for_extraction
+inline_for_extraction noextract
 let parse_asn1_length_kind_of_type
   (_a: asn1_type)
 : parser_kind

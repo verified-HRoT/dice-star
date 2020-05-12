@@ -80,7 +80,7 @@ let synth_asn1_null_TLV_inverse
 : GTot (a: ((the_asn1_type NULL * asn1_value_int32_of_type NULL) * datatype_of_asn1_type NULL){x == synth_asn1_null_TLV a})
 = ((NULL, 0ul), x)
 
-inline_for_extraction
+inline_for_extraction noextract
 let parse_asn1_null_TLV_kind
 : parser_kind
 = strong_parser_kind 2 2 None
