@@ -40,6 +40,7 @@ open FStar.Integers
 /// Len Impl of ASN.1 [VALUE] of primitive types
 ///
 #push-options "--z3rlimit 16"
+inline_for_extraction noextract
 let len_of_asn1_primitive_value
   (#_a: asn1_primitive_type)
   (value: datatype_of_asn1_type _a)
@@ -101,6 +102,7 @@ let len_of_asn1_primitive_value
 
 
 #push-options "--z3rlimit 32"
+inline_for_extraction noextract
 let len_of_asn1_primitive_TLV
   (#_a: asn1_primitive_type)
   (value: datatype_of_asn1_type _a)

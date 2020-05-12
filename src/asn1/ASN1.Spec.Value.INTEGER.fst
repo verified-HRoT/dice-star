@@ -456,7 +456,7 @@ let synth_asn1_integer_injective
   (* f *) (synth_asn1_integer l)
   (*prf*) (synth_asn1_integer_injective' l)
 
-inline_for_extraction
+inline_for_extraction noextract
 let parse_asn1_integer_kind (l: asn1_value_length_of_type INTEGER) = constant_size_parser_kind l
 
 

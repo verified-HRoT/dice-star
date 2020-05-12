@@ -122,7 +122,7 @@ let synth_asn1_bit_string_inverse
   B32.extensionality value.s value'.s;
   raw
 
-inline_for_extraction
+inline_for_extraction noextract
 let parse_asn1_bit_string_kind (l: asn1_value_length_of_type BIT_STRING) = constant_size_parser_kind l
 
 ///

@@ -40,7 +40,7 @@ let len_of_sequence_TLV
   1ul + len_of_asn1_length len + len
 #pop-options
 
-inline_for_extraction
+inline_for_extraction noextract
 let serialize32_fldata_strong_backwards
   (#k: parser_kind)
   (#t: Type0)
