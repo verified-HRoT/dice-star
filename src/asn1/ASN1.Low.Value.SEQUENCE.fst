@@ -35,7 +35,8 @@ let len_of_sequence_TLV
             (* NOTE: This _SHOULD_ be implied by the proposition above? *)
             v len == Seq.length (serialize (serialize_asn1_sequence_TLV s) value)
             })
-= let len = len_of_value value in
+= [@inline_let]
+  let len = len_of_value value in
   1ul + len_of_asn1_length len + len
 #pop-options
 
@@ -92,7 +93,9 @@ let serialize32_asn1_sequence_TLV_backwards
              serialize32_asn1_length_of_type_backwards SEQUENCE)
   (* tag *) (parser_tag_of_asn1_sequence_impl s len_of_data)
   (* s32 *) (fun (tag: the_asn1_type SEQUENCE & asn1_value_int32_of_type SEQUENCE)
-             -> let SEQUENCE, len = tag in
+             -> [@inline_let]
+               let len = snd tag in
+               //let SEQUENCE, len = tag in
                 (weak_kind_of_type SEQUENCE
                  `serialize32_weaken_backwards`
                 (serialize32_synth_backwards

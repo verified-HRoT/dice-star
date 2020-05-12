@@ -119,6 +119,7 @@ let len_of_algorithmIdentifier_TLV_inbound
   (*val*) x
 #pop-options
 
+inline_for_extraction
 let serialize32_algorithmIdentifier_value_backwards
 : serializer32_backwards serialize_algorithmIdentifier_value
 = serialize32_synth_backwards
