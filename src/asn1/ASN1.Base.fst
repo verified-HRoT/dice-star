@@ -189,7 +189,10 @@ let asn1_value_int32_max_of_type
 inline_for_extraction
 let asn1_value_int32_of_type
   (_a: asn1_type)
-= let min, max = asn1_value_length_min_of_type _a, asn1_value_length_max_of_type _a in
+= [@inline_let]
+  let min = asn1_value_length_min_of_type _a in
+  [@inline_let]
+  let max = asn1_value_length_max_of_type _a in
   LowParse.Spec.BoundedInt.bounded_int32 min max
 
 
