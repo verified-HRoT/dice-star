@@ -38,6 +38,7 @@ let len_of_asn1_integer
   ( 4ul )
   else if 0xFFFFFFl   < value && value <= 0x7FFFFFFFl then
   ( 4ul )
+  else 0ul  //AR: why do we need this if we change ASN1.Base:asn1_value_int32_of_type to have say min and max bound in different let, or inline them?
 
 (*
 NOTE: Since there are no low-level machine-integer to bytes implementations
@@ -47,6 +48,7 @@ NOTE: Since there are no low-level machine-integer to bytes implementations
       the first 2 bytes and the last byte separately.
 *)
 #push-options "--z3rlimit 32"
+inline_for_extraction noextract
 let serialize32_asn1_integer_backwards_1byte_without_leading_zero
   (len: asn1_value_int32_of_type INTEGER)
 : Tot (serializer32_backwards (serialize_asn1_integer (v len)
@@ -69,6 +71,7 @@ let serialize32_asn1_integer_backwards_1byte_without_leading_zero
     (* val *) b0;
 (*return*) 1ul
 
+inline_for_extraction noextract
 let serialize32_asn1_integer_backwards_2byte_with_leading_zero
   (len: asn1_value_int32_of_type INTEGER)
 : Tot (serializer32_backwards (serialize_asn1_integer (v len)
@@ -123,6 +126,7 @@ let serialize32_asn1_integer_backwards_2byte_with_leading_zero
   (* Prf *) Seq.lemma_split (Seq.slice (B.as_seq h2 b) (v pos - 2) (v pos)) 1;
 (*return*) 2ul
 
+inline_for_extraction noextract
 let serialize32_asn1_integer_backwards_2byte_without_leading_zero
   (len: asn1_value_int32_of_type INTEGER)
 : Tot (serializer32_backwards (serialize_asn1_integer (v len)
@@ -155,6 +159,7 @@ let serialize32_asn1_integer_backwards_2byte_without_leading_zero
             (* mem *) h0 h1;
 (*return*) 2ul
 
+inline_for_extraction noextract
 let serialize32_asn1_integer_backwards_3byte_with_leading_zero
   (len: asn1_value_int32_of_type INTEGER)
 : Tot (serializer32_backwards (serialize_asn1_integer (v len)
@@ -219,6 +224,7 @@ let serialize32_asn1_integer_backwards_3byte_with_leading_zero
   (* Prf *) Seq.lemma_split (Seq.slice (B.as_seq h2 b) (v pos - 3) (v pos)) 1;
 (*return*) 3ul
 
+inline_for_extraction noextract
 let serialize32_asn1_integer_backwards_3byte_without_leading_zero
   (len: asn1_value_int32_of_type INTEGER)
 : Tot (serializer32_backwards (serialize_asn1_integer (v len)
@@ -290,6 +296,7 @@ let serialize32_asn1_integer_backwards_3byte_without_leading_zero
 #pop-options
 
 #push-options "--z3rlimit 64"
+inline_for_extraction noextract
 let serialize32_asn1_integer_backwards_4byte_with_leading_zero
   (len: asn1_value_int32_of_type INTEGER)
 : Tot (serializer32_backwards (serialize_asn1_integer (v len)
@@ -384,16 +391,17 @@ let serialize32_asn1_integer_backwards_4byte_with_leading_zero
   (* Prf *) Seq.lemma_split (Seq.slice (B.as_seq h3 b) (v pos - 4) (v pos)) 3;
 (*return*) 4ul
 
+
+inline_for_extraction noextract
 let serialize32_asn1_integer_backwards_4byte_without_leading_zero
   (len: asn1_value_int32_of_type INTEGER)
 : Tot (serializer32_backwards (serialize_asn1_integer (v len)
                                `serialize_filter`
                               (fun (value: datatype_of_asn1_type INTEGER { v len == length_of_asn1_integer value })
                                  -> 0xFFFFFFl < value && value <= 0x7FFFFFFFl)))
-= fun (value)//: datatype_of_asn1_type INTEGER { v len == length_of_asn1_integer value })
-    (#rrel #rel: _)
-    (b: B.mbuffer byte rrel rel)
-    (pos: size_t)
+= fun value//: datatype_of_asn1_type INTEGER { v len == length_of_asn1_integer value })
+    #rrel #rel
+    b pos
 ->(* Prf *) serialize_asn1_integer_unfold (length_of_asn1_integer value) value;
   (* Prf *) serialize_asn1_integer_size (length_of_asn1_integer value) value;
   (* Prf *) assert_norm (v #(Signed W32) value < pow2 (8 * 4 - 1) /\
@@ -423,10 +431,10 @@ let serialize32_asn1_integer_backwards_4byte_without_leading_zero
 let serialize32_asn1_integer_backwards
   (len: asn1_value_int32_of_type INTEGER)
 : Tot (serializer32_backwards (serialize_asn1_integer (v len)))
-= fun (value: datatype_of_asn1_type INTEGER { v len == length_of_asn1_integer value })
-    (#rrel #rel: _)
-    (b: B.mbuffer byte rrel rel)
-    (pos: size_t)
+= fun value
+    #rrel #rel
+    b
+    pos
 ->
   (* Using 1 byte to store a 1-byte integer with the most-significant bit `0` *)
   if      (0l         <= value && value <= 0x7Fl      ) then
@@ -459,6 +467,7 @@ let serialize32_asn1_integer_backwards
   (* Unreachable *)
   else
   ( false_elim () )
+
 
 inline_for_extraction
 let parser_tag_of_asn1_integer_impl
