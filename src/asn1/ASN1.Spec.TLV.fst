@@ -20,7 +20,7 @@ open FStar.Integers
 
 /// Interfaces to make this library easier to use, WIP
 ///
-noextract
+inline_for_extraction
 let parse_asn1_TLV_kind_of_type
   (_a: asn1_primitive_type)
 : parser_kind
