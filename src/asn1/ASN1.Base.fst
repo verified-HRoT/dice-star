@@ -234,11 +234,17 @@ let asn1_TLV_int32_of_type
 //////////////////////////////////////////////////////////////////////
 /// A weak parser kind (for ASN1 variable-length values) generator. They
 ///  generates the strongest _statically_ known parser kind for these types' parser.
+
 ///
+inline_for_extraction
 let weak_kind_of_type
   (a: asn1_type)
 : LowParse.Spec.Base.parser_kind
-= let min, max = asn1_value_length_min_of_type a, asn1_value_length_max_of_type a in
+= 
+  [@inline_let]
+  let min = asn1_value_length_min_of_type a in
+  [@inline_let]
+  let max = asn1_value_length_max_of_type a in
   LowParse.Spec.Base.strong_parser_kind min max None
 
 ////////////////////////////////////////////////////////////////////////

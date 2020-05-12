@@ -80,7 +80,10 @@ inline_for_extraction noextract
 let serialize32_asn1_length_of_type
   (_a: asn1_type)
 : Tot (serializer32 (serialize_asn1_length_of_type _a))
-= let min, max = asn1_value_length_min_of_type _a, asn1_value_length_max_of_type _a in
+= [@inline_let]
+  let min = asn1_value_length_min_of_type _a in
+  [@inline_let]
+  let max = asn1_value_length_max_of_type _a in
   LDER.serialize32_bounded_der_length32 min max
 
 //marking it noextract, perhaps issue because _a isn't fixed yet??
@@ -92,9 +95,7 @@ let serialize32_asn1_length_of_type_backwards
     (#rrel #rel: _)
     (b: B.mbuffer byte rrel rel)
     (pos: size_t)
-->
-
-(* Prf *) serialize_asn1_length_of_type_eq _a len;
+->  (* Prf *) serialize_asn1_length_of_type_eq _a len;
    (* Prf *) serialize_asn1_length_unfold len;
    let offset = len_of_asn1_length len in
    (* Prf *) let h0 = HST.get () in

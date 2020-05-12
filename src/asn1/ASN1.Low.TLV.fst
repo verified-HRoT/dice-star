@@ -129,6 +129,7 @@ let len_of_asn1_primitive_TLV
 
 /// Interfaces
 ///
+inline_for_extraction noextract
 let serialize32_asn1_TLV_backwards_of_type
   (_a: asn1_primitive_type)
 : serializer32_backwards (serialize_asn1_TLV_of_type _a)

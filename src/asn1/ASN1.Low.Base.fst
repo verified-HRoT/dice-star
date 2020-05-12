@@ -198,6 +198,7 @@ let serialize32_tagged_union_backwards
 
 (* return *) offset_tag + offset_data
 
+inline_for_extraction
 let serialize32_weaken_backwards
   (#k: parser_kind)
   (#t: Type0)
