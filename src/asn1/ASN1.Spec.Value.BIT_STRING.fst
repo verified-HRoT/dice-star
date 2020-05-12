@@ -343,7 +343,7 @@ let serialize_asn1_bit_string_V_unfold
 
 //////////////////////////////////////////////////////////
 
-inline_for_extraction
+inline_for_extraction noextract
 let parse_asn1_bit_string_TLV_kind
 : parser_kind
 = parse_asn1_tag_kind

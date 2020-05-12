@@ -17,7 +17,7 @@ open FStar.Integers
 /// ASN.1 SEQUENCE Tag-Length parser/serializer
 ///
 ///
-inline_for_extraction
+inline_for_extraction noextract
 let parse_asn1_sequence_TL_kind
 : parser_kind
 = parse_asn1_tag_kind

@@ -140,7 +140,7 @@ let parser_tag_of_octet_string
 : GTot (the_asn1_type OCTET_STRING & asn1_value_int32_of_type OCTET_STRING)
 = (OCTET_STRING, dfst x)
 
-inline_for_extraction
+inline_for_extraction noextract
 let parse_asn1_octet_string_TLV_kind
 : parser_kind
 = parse_asn1_tag_kind

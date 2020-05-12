@@ -261,6 +261,7 @@ type bit_string_t = {
 ////            Representation of ASN1 Values
 //// NOTE: They will be directly used in both spec and impl level
 ////////////////////////////////////////////////////////////////////////
+inline_for_extraction
 let datatype_of_asn1_type (a: asn1_primitive_type): Type
 = match a with
   | BOOLEAN      -> bool
