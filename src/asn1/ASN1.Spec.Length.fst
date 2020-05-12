@@ -11,7 +11,7 @@ open ASN1.Base
 
 /// Generic
 ///
-noextract
+inline_for_extraction
 let parse_asn1_length_kind = parse_bounded_der_length32_kind asn1_length_min asn1_length_max
 
 noextract
@@ -56,7 +56,7 @@ let length_of_asn1_length
 /// Specialized for a specific ASN1 type
 ///
 
-noextract
+inline_for_extraction
 let parse_asn1_length_kind_of_type
   (_a: asn1_type)
 : parser_kind
