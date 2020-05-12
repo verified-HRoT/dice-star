@@ -674,7 +674,7 @@ let serialize_asn1_integer_V_unfold
   (* in *) (value)
 
 
-noextract
+inline_for_extraction
 let parse_asn1_integer_TLV_kind
 : parser_kind
 = parse_asn1_tag_kind
