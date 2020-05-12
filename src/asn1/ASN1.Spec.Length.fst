@@ -62,13 +62,13 @@ let parse_asn1_length_kind_of_type
 : parser_kind
 = parse_bounded_der_length32_kind (asn1_value_length_min_of_type _a) (asn1_value_length_max_of_type _a)
 
-noextract
+inline_for_extraction noextract
 let parse_asn1_length_of_type
   (_a: asn1_type)
 : parser (parse_asn1_length_kind_of_type _a) (asn1_value_int32_of_type _a)
 = parse_bounded_der_length32 (asn1_value_length_min_of_type _a) (asn1_value_length_max_of_type _a)
 
-noextract
+inline_for_extraction noextract
 let serialize_asn1_length_of_type
   (_a: asn1_type)
 : serializer (parse_asn1_length_of_type _a)
