@@ -151,7 +151,9 @@ let serialize32_nondep_then_backwards
 : Tot (serializer32_backwards (s1 `serialize_nondep_then` s2))
 = fun x #rrel #rel b pos ->
   [@inline_let]
-  let (x1, x2) = x in
+  let x1 = fst x in
+  [@inline_let]
+  let x2 = snd x in
   (* Prf *) serialize_nondep_then_eq s1 s2 x;
   (* Prf *) let posl = Ghost.hide (pos - u (Seq.length (serialize (s1 `serialize_nondep_then` s2) x))) in
   (* Prf *) let posr = Ghost.hide pos in

@@ -428,6 +428,7 @@ let serialize32_asn1_integer_backwards_4byte_without_leading_zero
             (* mem'*) h1;
 (*return*) 4ul
 
+inline_for_extraction
 let serialize32_asn1_integer_backwards
   (len: asn1_value_int32_of_type INTEGER)
 : Tot (serializer32_backwards (serialize_asn1_integer (v len)))

@@ -19,7 +19,9 @@ open FStar.Integers
 
 ///
 /// Encoding a tag into bytes at low-level, implementation of `synth_..._inverse`
+
 ///
+inline_for_extraction
 let encode_asn1_boolean
   (x: bool)
 : Tot (b: byte{b == synth_asn1_boolean_inverse x})

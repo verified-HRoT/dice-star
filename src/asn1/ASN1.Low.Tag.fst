@@ -17,7 +17,9 @@ open FStar.Integers
 
 ///
 /// Encode ASN1 tag to a byte, implementation of `synth_asn1_tag_inverse`
+
 ///
+inline_for_extraction
 let encode_asn1_tag
   (a: asn1_type)
 : Tot (b: byte{b == synth_asn1_tag_inverse a})
@@ -32,7 +34,9 @@ let encode_asn1_tag
 
 ///
 /// Low-level implemenation of ASN1 Tag's length computation function
+
 ///
+inline_for_extraction
 let len_of_asn1_tag
   (tag: asn1_type)
 : Tot (l: size_t{
@@ -67,16 +71,16 @@ let serialize32_asn1_tag_backwards ()
 ///
 /// Backwards low-level serializer for a specific asn1 tag
 ///
-inline_for_extraction
+inline_for_extraction noextract
 let serialize32_asn1_tag_of_type_backwards
   (_a: asn1_type)
 : Tot (serializer32_backwards (serialize_asn1_tag_of_type _a))
-= fun (a: the_asn1_type _a)
-    (#rrel #rel: _)
-    (b: B.mbuffer byte rrel rel)
-    (pos: size_t)
+= fun a
+    #rrel #rel
+    b
+    pos
 ->  let offset = len_of_asn1_tag a in
-    let content: byte = encode_asn1_tag a in
+   let content: byte = encode_asn1_tag a in
     (* Prf *) serialize_asn1_tag_of_type_unfold _a a;
     (* Prf *) serialize_u8_spec content;
     mbuffer_upd (* <-- NOTE: serialize the encoding of the ASN1 Tag *)
