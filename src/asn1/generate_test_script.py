@@ -16,17 +16,19 @@ module HST = FStar.HyperStack.ST
 module MB = LowStar.Monotonic.Buffer
 module B = LowStar.Buffer
 module C = C
+module B32 = FStar.Bytes
 
 open FStar.Integers
 
 open ASN1.Test.Helpers
 
+#push-options "--lax"
 let main ()
 : HST.St (C.exit_code)
 = HST.push_frame ();
   printf "Start Test\\n" done;
 
-  let dst_size = 100ul in
+  let dst_size = 500ul in
   let dst = B.alloca 0x00uy dst_size in
 '''
 
@@ -38,34 +40,42 @@ test_template ='''
   let solution = B.alloca_of_list {solution} in
   let answer_len = serialize32_asn1_TLV_backwards_of_type
                    (* ASN1 Type *) {asn1_type}
-                   (* ASN1 Value*) question
+                   (* ASN1 Value*) {question_to_write}
                    (*    dst    *) dst
                    (*    pos    *) dst_size in
   let answer = B.sub dst (dst_size - answer_len) answer_len in
   printf "Question: [{asn1_type}] {question}\\n" done;
   printf "Solution: %xuy\\n" {solution_len} solution done;
   printf "Answer  : %xuy\\n" {solution_len} answer   done;
-  printf "-----------------------------\\n" done;
 '''
 
 tail_template ='''
   HST.pop_frame ();
   printf "End Test\\n" done;
   C.EXIT_SUCCESS
+#pop-options
 '''
 
 def to_byte_list (octets):
+    assert (octets[0] == '"' and octets[-0] == '"')
+    octets = octets[1:-1]
     byte_list = "["
     i = 0
-    while (i < len(tokens[4])):
-        octet = tokens[4][i:i+2]
+    while (i < len(octets)):
+        octet = octets[i:i+2]
         byte_list += ("0x{}uy; ".format(octet))
         i = i + 2
-    byte_list = byte_list[:-2] + "]"
+    if i == 0:
+        byte_list = byte_list + "]"
+    else:
+        byte_list = byte_list[:-2] + "]"
     return (byte_list)
 
 def byte_list_len (byte_list):
-    return "{}ul".format(len(byte_list.split(";")))
+    if byte_list == "[]":
+        return "0ul"
+    else:
+        return "{}ul".format(len(byte_list[1:-1].split(";")))
 
 if __name__ == "__main__":
     test_suites = "ASN1.test_suites.data"
@@ -81,18 +91,50 @@ if __name__ == "__main__":
 
                 no = no + 1
                 
-                line = line.replace("\"", "")
-                tokens = line.replace("\"", "").split("\n")[0].split(" ")
+                line = line
+                tokens = line.split("\n")[0].split(" ")
 
-                solution = to_byte_list(tokens[4])
-                solution_len = byte_list_len(solution)
+                if tokens[2] == "OCTET_STRING":
+                    solution = to_byte_list(tokens[4])
+                    solution_len = byte_list_len(solution)
+                    question = to_byte_list(tokens[3])
+                    question_len = byte_list_len(question)
 
-                out.write (test_template.format(
-                    no        = no,
-                    raw       = line.strip("\n"),
-                    asn1_type = tokens[2],
-                    question  = tokens[3],
-                    solution_len = solution_len,
-                    solution  = solution))
+                    out.write (test_template.format(
+                        no        = no,
+                        raw       = line.replace('"',"").replace("\n",""),
+                        asn1_type = tokens[2],
+                        question  = "B.alloca_of_list {}".format(question),
+                        question_to_write = "(|{len}, B32.of_buffer {len} question|)".format(len = question_len),
+                        solution_len = solution_len,
+                        solution  = solution))
+                
+                elif tokens[2] == "BIT_STRING":
+                        solution = to_byte_list(tokens[5])
+                        solution_len = byte_list_len(solution)
+                        question = to_byte_list(tokens[4])
+                        question_len = byte_list_len(question)
+                        out.write (test_template.format(
+                        no        = no,
+                        raw       = line.replace('"',"").replace("\n",""),
+                        asn1_type = tokens[2],
+                        question  = "B.alloca_of_list {}".format(question),
+                        question_to_write = "(Mkbit_string_t {len} {unused_bits} (B32.of_buffer {octets_len} question))".format(len = str(int(question_len.replace("ul", "")) + 1) + "ul",
+                                                                                                                               unused_bits = tokens[3] + "ul",
+                                                                                                                               octets_len = question_len),
+                        solution_len = solution_len,
+                        solution  = solution))
+
+                else:
+                    solution = to_byte_list(tokens[4])
+                    solution_len = byte_list_len(solution)
+                    out.write (test_template.format(
+                        no        = no,
+                        raw       = line.replace('"',"").replace("\n",""),
+                        asn1_type = tokens[2],
+                        question  = tokens[3],
+                        question_to_write = "question",
+                        solution_len = solution_len,
+                        solution  = solution))
         
         out.write (tail_template)

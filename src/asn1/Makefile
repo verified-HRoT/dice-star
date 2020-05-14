@@ -77,7 +77,7 @@ compile-all:
 		ASN1.Test.Helpers.c
 
 clean:
-	rm -rf .depend obj asn1.exe
+	rm -rf .depend obj asn1_test.exe
 
 %.fst-in %.fsti-in: 
 	@echo $(addprefix --include , $(FSTAR_INCLUDES))
