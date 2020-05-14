@@ -83,7 +83,7 @@ let synth_asn1_boolean_TLV_inverse_impl
 ///
 /// Backwards low-level serializer which takes a BOOLEAN value and serializes its TLV tuple.
 ///
-inline_for_extraction
+// inline_for_extraction
 let serialize32_asn1_boolean_TLV_backwards ()
 : Tot (serializer32_backwards serialize_asn1_boolean_TLV)
 = serialize32_synth_backwards

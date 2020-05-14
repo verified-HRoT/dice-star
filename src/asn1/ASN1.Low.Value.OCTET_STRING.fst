@@ -73,7 +73,7 @@ let synth_asn1_octet_string_V_inverse_impl
 : Tot (value: datatype_of_asn1_type OCTET_STRING { v (dfst value) == v (snd tag) /\ value == synth_asn1_octet_string_V_inverse tag value'})
 = value'
 
-inline_for_extraction
+// inline_for_extraction
 let serialize32_asn1_octet_string_TLV_backwards ()
 : Tot (serializer32_backwards serialize_asn1_octet_string_TLV)
 = serialize32_tagged_union_backwards

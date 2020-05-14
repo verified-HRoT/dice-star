@@ -491,7 +491,7 @@ let synth_asn1_integer_V_inverse_impl
 open ASN1.Low.Tag
 open ASN1.Low.Length
 
-inline_for_extraction
+// inline_for_extraction
 let serialize32_asn1_integer_TLV_backwards ()
 : Tot (serializer32_backwards (serialize_asn1_integer_TLV))
 = serialize32_tagged_union_backwards

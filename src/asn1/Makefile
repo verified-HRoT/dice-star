@@ -51,19 +51,21 @@ verify-all: $(ALL_CHECKED_FILES)
 extract-all: $(ALL_KRML_FILES)
 
 KREMLIN_FLAGS = \
-  -no-prefix 'RIoT.Test' \
+  -no-prefix 'ASN1.Test' \
+  -no-prefix 'ASN1.Test.Helpers' \
   -fparentheses -fno-shadow -fcurly-braces \
   -bundle Prims,C.Failure,C,C.*,FStar.*,LowStar.*,Lib.*,LowParse.* \
   -minimal \
   -fnoreturn-else \
   -add-include '"kremlin/internal/types.h"' \
   -add-include '"kremlin/lowstar_endianness.h"' \
+  -add-include '"LowStar_Printf.h"' \
   -add-include '<string.h>' \
   $(addprefix -I , $(FSTAR_INCLUDES)) \
   -drop WasmSupport \
   -tmpdir $(OUTPUT_DIR) \
   -verbose \
-  -o riot.exe
+  -o asn1_test.exe
 
 KRML=$(KREMLIN_HOME)/krml
 
@@ -71,7 +73,8 @@ KRML=$(KREMLIN_HOME)/krml
 compile-all:
 	$(KRML) \
 	  $(KREMLIN_FLAGS) \
-	  $(ALL_KRML_FILES)
+	  $(ALL_KRML_FILES) \
+		ASN1.Test.Helpers.c
 
 clean:
 	rm -rf .depend obj asn1.exe

@@ -96,7 +96,7 @@ let synth_asn1_bit_string_V_inverse_impl
                  value == synth_asn1_bit_string_V_inverse tag value'})
 = value'
 
-inline_for_extraction
+// inline_for_extraction
 let serialize32_asn1_bit_string_TLV_backwards ()
 : Tot (serializer32_backwards (serialize_asn1_bit_string_TLV))
 = serialize32_tagged_union_backwards

@@ -34,7 +34,7 @@ let synth_asn1_null_TLV_inverse_impl
 : Tot (a: ((the_asn1_type NULL & asn1_value_int32_of_type NULL) & datatype_of_asn1_type NULL){a == synth_asn1_null_TLV_inverse x})
 = ((NULL, 0ul), x)
 
-inline_for_extraction
+// inline_for_extraction
 let serialize32_asn1_null_TLV_backwards ()
 : Tot (serializer32_backwards serialize_asn1_null_TLV)
 = serialize32_synth_backwards
