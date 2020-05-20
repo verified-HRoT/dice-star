@@ -21,8 +21,6 @@ module B32 = FStar.Bytes
 (* NOTE: Read after `ASN1.Spec.Tag`, `ASN1.Spec.Length`, `ASN1.Spec.Value.OCTET_STRING` *)
 
 #push-options "--z3rlimit 64"
-
-#push-options "--admit_smt_queries true"
 inline_for_extraction
 let serialize32_asn1_bit_string_backwards
   (len: asn1_value_int32_of_type BIT_STRING)
@@ -77,7 +75,7 @@ let serialize32_asn1_bit_string_backwards
               (* mem'*) h2;
     (* Prf *) Seq.lemma_split (Seq.slice (B.as_seq h2 b) (v pos - v len) (v pos)) 1;
 (*return*) (Mkbit_string_t?.len value)
-#pop-options //admit_smt_queries
+#pop-options
 
 inline_for_extraction
 let parser_tag_of_bit_string_impl

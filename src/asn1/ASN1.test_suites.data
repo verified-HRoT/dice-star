@@ -1,3 +1,5 @@
+ASN.1 Write INTEGER 32767l "02027fff"
+
 ASN.1 Write NULL () "0500"
 
 ASN.1 Write BOOLEAN false "010100"

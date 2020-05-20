@@ -9,6 +9,7 @@ open ASN1.Spec.Value.NULL
 open ASN1.Spec.Value.INTEGER
 open ASN1.Spec.Value.OCTET_STRING
 open ASN1.Spec.Value.BIT_STRING
+open ASN1.Spec.Value.OID
 open ASN1.Spec.Value.SEQUENCE
 open ASN1.Spec.TLV
 
@@ -23,6 +24,7 @@ open ASN1.Low.Value.NULL
 open ASN1.Low.Value.INTEGER
 open ASN1.Low.Value.OCTET_STRING
 open ASN1.Low.Value.BIT_STRING
+open ASN1.Low.Value.OID
 open ASN1.Low.Value.SEQUENCE
 
 module U8 = FStar.UInt8
@@ -59,7 +61,8 @@ let len_of_asn1_primitive_value
   | BIT_STRING   -> ( let value = value <: datatype_of_asn1_type BIT_STRING in
                       Mkbit_string_t?.len value )
 
-  | OID          -> admit ()
+  | OID          -> ( let value = value <: datatype_of_asn1_type OID in
+                      len_of_oid_buffer value )
 #pop-options
 
 
@@ -101,7 +104,7 @@ let len_of_asn1_primitive_value
 // #pop-options
 
 
-#push-options "--z3rlimit 32"
+#push-options "--query_stats --z3rlimit 64"
 inline_for_extraction noextract
 let len_of_asn1_primitive_TLV
   (#_a: asn1_primitive_type)
@@ -118,7 +121,8 @@ let len_of_asn1_primitive_TLV
                                 ; serialize_asn1_octet_string_TLV_unfold (value <: datatype_of_asn1_type OCTET_STRING) )
               | BIT_STRING   -> ( serialize_asn1_bit_string_TLV_size     (value <: datatype_of_asn1_type BIT_STRING  )
                                 ; serialize_asn1_bit_string_TLV_unfold   (value <: datatype_of_asn1_type BIT_STRING  ) )
-              | OID          -> ( admit() ) );
+              | OID          -> ( serialize_asn1_oid_TLV_size            (value <: datatype_of_asn1_type OID         )
+                                ; serialize_asn1_oid_TLV_unfold          (value <: datatype_of_asn1_type OID         ) ) );
 
   let value_len = len_of_asn1_primitive_value value in
 
@@ -141,7 +145,7 @@ let serialize32_asn1_TLV_backwards_of_type
   | INTEGER      -> serialize32_asn1_integer_TLV_backwards      ()
   | OCTET_STRING -> serialize32_asn1_octet_string_TLV_backwards ()
   | BIT_STRING   -> serialize32_asn1_bit_string_TLV_backwards   ()
-  | OID          -> admit ()
+  | OID          -> serialize32_asn1_oid_TLV_backwards          ()
 
 
 /// type of a valid (inbound) sequence value

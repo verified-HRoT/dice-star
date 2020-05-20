@@ -51,7 +51,6 @@ let serializer32_backwards
     B.live h' b /\
     Seq.slice (B.as_seq h' b) (v (pos - offset)) (v pos) `Seq.equal` sx)
 
-
 inline_for_extraction
 let frame_serializer32_backwards
   (#k: parser_kind)

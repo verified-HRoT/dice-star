@@ -47,6 +47,8 @@ test_template ='''
   printf "Question: [{asn1_type}] {question}\\n" done;
   printf "Solution: %xuy\\n" {solution_len} solution done;
   printf "Answer  : %xuy\\n" {solution_len} answer   done;
+
+  mbedtls_parse_{asn1_type} dst dst_size (dst_size - answer_len);
 '''
 
 tail_template ='''
@@ -90,7 +92,7 @@ if __name__ == "__main__":
                     continue
 
                 no = no + 1
-                
+
                 line = line
                 tokens = line.split("\n")[0].split(" ")
 
@@ -108,7 +110,7 @@ if __name__ == "__main__":
                         question_to_write = "(|{len}, B32.of_buffer {len} question|)".format(len = question_len),
                         solution_len = solution_len,
                         solution  = solution))
-                
+
                 elif tokens[2] == "BIT_STRING":
                         solution = to_byte_list(tokens[5])
                         solution_len = byte_list_len(solution)
@@ -136,5 +138,5 @@ if __name__ == "__main__":
                         question_to_write = "question",
                         solution_len = solution_len,
                         solution  = solution))
-        
+
         out.write (tail_template)

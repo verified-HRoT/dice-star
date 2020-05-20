@@ -30,6 +30,86 @@ val buffer_eq
     B.(modifies loc_none h0 h1 /\
        r == (as_seq h0 b1 = as_seq h1 b1)) )
 
+val mbedtls_parse_BOOLEAN
+  (buf: B.buffer uint_8)
+  (len: size_t)
+  (pos: size_t)
+: HST.Stack (unit)
+  (requires fun h ->
+    B.live h buf /\
+    B.length buf == v len /\
+    0ul <= pos /\ pos < len)
+  (ensures fun h r h1 ->
+    // let seq = Seq.slice (B.as_seq h buf) (v pos) (v len) in
+    // let px = parse (parse_asn1_TLV_of_type BOOLEAN) seq in
+    B.modifies B.loc_none h h1
+    // (Some? px ==> (let (x, l) = Some?.v px in x == r /\ l == 3))
+    )
+
+val mbedtls_parse_INTEGER
+  (buf: B.buffer uint_8)
+  (len: size_t)
+  (pos: size_t)
+: HST.Stack (unit)
+  (requires fun h ->
+    B.live h buf /\
+    B.length buf == v len /\
+    0ul <= pos /\ pos < len)
+  (ensures fun h r h1 ->
+    // let seq = Seq.slice (B.as_seq h buf) (v pos) (v len) in
+    // let px = parse (parse_asn1_TLV_of_type INTEGER) seq in
+    B.modifies B.loc_none h h1
+    // (Some? px ==> (let (x, l) = Some?.v px in x == r))
+    )
+
+val mbedtls_parse_NULL
+  (buf: B.buffer uint_8)
+  (len: size_t)
+  (pos: size_t)
+: HST.Stack (unit)
+  (requires fun h ->
+    B.live h buf /\
+    B.length buf == v len /\
+    0ul <= pos /\ pos < len)
+  (ensures fun h r h1 ->
+    // let seq = Seq.slice (B.as_seq h buf) (v pos) (v len) in
+    // let px = parse (parse_asn1_TLV_of_type NULL) seq in
+    B.modifies B.loc_none h h1
+    // (Some? px ==> (let (x, l) = Some?.v px in x == r /\ l == 0))
+    )
+
+val mbedtls_parse_OCTET_STRING
+  (buf: B.buffer uint_8)
+  (len: size_t)
+  (pos: size_t)
+: HST.Stack (unit)
+  (requires fun h ->
+    B.live h buf /\
+    B.length buf == v len /\
+    0ul <= pos /\ pos < len)
+  (ensures fun h r h1 ->
+    // let seq = Seq.slice (B.as_seq h buf) (v pos) (v len) in
+    // let px = parse (parse_asn1_TLV_of_type OCTET_STRING) seq in
+    B.modifies B.loc_none h h1
+    // (Some? px ==> (let (x, l) = Some?.v px in x == r))
+    )
+
+val mbedtls_parse_BIT_STRING
+  (buf: B.buffer uint_8)
+  (len: size_t)
+  (pos: size_t)
+: HST.Stack (unit)
+  (requires fun h ->
+    B.live h buf /\
+    B.length buf == v len /\
+    0ul <= pos /\ pos < len)
+  (ensures fun h r h1 ->
+    // let seq = Seq.slice (B.as_seq h buf) (v pos) (v len) in
+    // let px = parse (parse_asn1_TLV_of_type BIT_STRING) seq in
+    B.modifies B.loc_none h h1
+    // (Some? px ==> (let (x, l) = Some?.v px in x == r))
+    )
+
 // let test_asn1_serializer
 //   (a: asn1_primitive_type)
 //   (dst_size: uint_32)

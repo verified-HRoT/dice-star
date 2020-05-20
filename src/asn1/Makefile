@@ -53,6 +53,9 @@ extract-all: $(ALL_KRML_FILES)
 KREMLIN_FLAGS = \
   -no-prefix 'ASN1.Test' \
   -no-prefix 'ASN1.Test.Helpers' \
+  -ldopt -lmbedcrypto \
+  -ldopt -lmbedtls \
+  -ldopt -lmbedx509 \
   -fparentheses -fno-shadow -fcurly-braces \
   -bundle Prims,C.Failure,C,C.*,FStar.*,LowStar.*,Lib.*,LowParse.* \
   -minimal \

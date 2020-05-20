@@ -244,7 +244,7 @@ inline_for_extraction noextract
 let weak_kind_of_type
   (a: asn1_type)
 : LowParse.Spec.Base.parser_kind
-= 
+=
   [@inline_let]
   let min = asn1_value_length_min_of_type a in
   [@inline_let]
@@ -254,9 +254,19 @@ let weak_kind_of_type
 ////////////////////////////////////////////////////////////////////////
 /// OIDs, WIP
 type oid_t =
-| RIOT_OID
-| ECDSA_WITH_SHA256_OID
-| KEY_USAGE_OID
+| OID_RIOT
+| OID_AT_CN
+| OID_AT_COUNTRY
+| OID_AT_ORGANIZATION
+| OID_CLIENT_AUTH
+| OID_AUTHORITY_KEY_IDENTIFIER
+| OID_KEY_USAGE
+| OID_EXTENDED_KEY_USAGE
+| OID_BASIC_CONSTRAINTS
+| OID_DIGEST_SHA224
+| OID_DIGEST_SHA256
+| OID_DIGEST_SHA384
+| OID_DIGEST_SHA512
 
 type bit_string_t = {
   len        : asn1_value_int32_of_type BIT_STRING;

@@ -11,6 +11,7 @@ open ASN1.Spec.Value.NULL
 open ASN1.Spec.Value.INTEGER
 open ASN1.Spec.Value.OCTET_STRING
 open ASN1.Spec.Value.BIT_STRING
+open ASN1.Spec.Value.OID
 open ASN1.Spec.Value.SEQUENCE
 open LowParse.Bytes
 
@@ -30,7 +31,7 @@ let parse_asn1_TLV_kind_of_type
   | INTEGER      -> parse_asn1_integer_TLV_kind
   | OCTET_STRING -> parse_asn1_octet_string_TLV_kind
   | BIT_STRING   -> parse_asn1_bit_string_TLV_kind
-  | OID          -> admit ()
+  | OID          -> parse_asn1_oid_TLV_kind
 
 noextract
 let parse_asn1_TLV_of_type
@@ -42,7 +43,7 @@ let parse_asn1_TLV_of_type
   | INTEGER      -> parse_asn1_integer_TLV
   | OCTET_STRING -> parse_asn1_octet_string_TLV
   | BIT_STRING   -> parse_asn1_bit_string_TLV
-  | OID          -> admit ()
+  | OID          -> parse_asn1_oid_TLV
 
 noextract
 let serialize_asn1_TLV_of_type
@@ -54,7 +55,7 @@ let serialize_asn1_TLV_of_type
   | INTEGER      -> serialize_asn1_integer_TLV
   | OCTET_STRING -> serialize_asn1_octet_string_TLV
   | BIT_STRING   -> serialize_asn1_bit_string_TLV
-  | OID          -> admit ()
+  | OID          -> serialize_asn1_oid_TLV
 
 
 (* NOTE: Use this for potentially unbounded len computations. Since I have
@@ -92,7 +93,7 @@ let length_of_asn1_primitive_value
     | INTEGER      -> serialize (serialize_asn1_integer (length_of_asn1_integer (value <: datatype_of_asn1_type INTEGER))) value
     | OCTET_STRING -> serialize (serialize_asn1_octet_string (v (dfst (value <: datatype_of_asn1_type OCTET_STRING)))) value
     | BIT_STRING   -> serialize (serialize_asn1_bit_string (v (Mkbit_string_t?.len (value <: datatype_of_asn1_type BIT_STRING)))) value
-    | OID          -> admit ())
+    | OID          -> serialize (serialize_asn1_oid (length_of_oid (value <: datatype_of_asn1_type OID))) value )
   })
 = match _a with
   | BOOLEAN      -> ( let value = value <: datatype_of_asn1_type BOOLEAN in
@@ -118,12 +119,15 @@ let length_of_asn1_primitive_value
                       serialize_asn1_bit_string_size length value
                     ; length )
 
-  | OID          -> admit ()
+  | OID          -> ( let value = value <: datatype_of_asn1_type OID in
+                      let length = length_of_oid value in
+                      serialize_asn1_oid_size length value
+                    ; length )
 #pop-options
 
 /// Length Spec of ASN.1 Primitive [TAG, LEN, VALUE] of primitive types
 ///
-#push-options "--z3rlimit 32"
+#push-options "--query_stats --z3rlimit 32"
 noextract
 let length_of_asn1_primitive_TLV
   (#_a: asn1_primitive_type)
@@ -153,7 +157,9 @@ let length_of_asn1_primitive_TLV
                                     let len: asn1_value_int32_of_type BIT_STRING = u length in
                                     serialize_asn1_bit_string_TLV_size value )
 
-                | OID          -> () ) in
+                | OID          -> ( let value = value <: datatype_of_asn1_type OID in
+                                    let length = length_of_oid value in
+                                    serialize_asn1_oid_size length value )) in
                 length == Seq.length (serialize (serialize_asn1_TLV_of_type _a) value)
 })
 = match _a with
@@ -183,5 +189,9 @@ let length_of_asn1_primitive_TLV
                       serialize_asn1_bit_string_TLV_size value
                     ; 1 + length_of_asn1_length len + length )
 
-  | OID          -> admit ()
+  | OID          -> ( let value = value <: datatype_of_asn1_type OID in
+                      let length = length_of_oid value in
+                      let len: asn1_value_int32_of_type OID = u length in
+                      serialize_asn1_oid_TLV_size value
+                    ; 1 + length_of_asn1_length len + length )
 #pop-options

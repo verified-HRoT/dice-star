@@ -18,25 +18,6 @@ module B32 = FStar.Bytes
 (* NOTE: Read after `ASN1.Spec.Tag`, `ASN1.Spec.Length` *)
 
 inline_for_extraction
-let serialize32_asn1_octet_string
-  (len: asn1_value_int32_of_type OCTET_STRING)
-: Tot (serializer32 (serialize_asn1_octet_string (v len)))
-= fun (value: datatype_of_asn1_type OCTET_STRING { v (dfst value) == v len })
-    (#rrel #rel: _)
-    (b: B.mbuffer byte rrel rel)
-    (pos: size_t)
-->  (* Prf *) serialize_asn1_octet_string_unfold (v len) (value);
-
-    store_bytes
-    (* src *) (dsnd value)
-    (* from*) 0ul
-    (* to  *) len
-    (* dst *) b
-    (* pos *) pos;
-
-(* retuen *) len
-
-inline_for_extraction
 let serialize32_asn1_octet_string_backwards
   (len: asn1_value_int32_of_type OCTET_STRING)
 : Tot (serializer32_backwards (serialize_asn1_octet_string (v len)))
