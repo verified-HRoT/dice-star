@@ -10,7 +10,8 @@ open LowParse.Spec.SeqBytes.Base
 
 open FStar.Integers
 
-let ( @ ) = List.append
+unfold
+let ( @ ) = List.Tot.Base.append
 
 (* Top level OID tuples
   =====================
@@ -194,10 +195,9 @@ noextract let oid_DIGEST_ALG_SHA512 = oid_NIST_ALG @ [0x02uy; 0x03uy]
 noextract let oid_RIOT = oid_INTERNET @ [0x04uy; 0x01uy; 0x82uy; 0x37uy; 0x59uy; 0x03uy; 0x01uy]
 
 (* Known OIDs *)
-#push-options "--z3rlimit 64 --fuel 32 --ifuel 1"
 noextract
-let known_oids_as_list: l: list _ {List.Tot.Base.no_repeats_p (normalize_term l)}
-= [ oid_RIOT;
+let known_oids_as_list =
+  [ oid_RIOT;
     oid_AT_CN;
     oid_AT_COUNTRY;
     oid_AT_ORGANIZATION;
@@ -210,30 +210,141 @@ let known_oids_as_list: l: list _ {List.Tot.Base.no_repeats_p (normalize_term l)
     oid_DIGEST_ALG_SHA256;
     oid_DIGEST_ALG_SHA384;
     oid_DIGEST_ALG_SHA512 ]
-#pop-options
 
+module T = FStar.Tactics
+
+#push-options "--fuel 0 --ifuel 0"
+
+(*
+ * This proof goes through as is,
+ * the normalize_term marker in the postcondition unfolds known_oids_as_list
+ * ALL THE WAY, until the oid list constants
+ *
+ * And so, Z3 only has to reason about the inequality of list constants,
+ * which it can do efficiently without any fuel or ifuel
+ *)
 let lemma_oids_as_list_pairwise_ineq ()
-: Lemma (
-  BigOps.pairwise_and (fun a b -> a =!= b) (normalize_term known_oids_as_list))
+: Lemma (BigOps.pairwise_and (fun a b -> a =!= b) (normalize_term known_oids_as_list))
 = ()
 
-#push-options "--z3rlimit 64 --fuel 32 --ifuel 1"
-noextract
-let known_oids_as_seq: l: list _ {List.Tot.Base.no_repeats_p (normalize_term l)}
-= (List.Tot.map Seq.createL known_oids_as_list)
 
-// let lemma_oids_as_seq_pairwise_ineq ()
-// : Lemma (
-//   BigOps.pairwise_and (fun a b -> a =!= b) (normalize_term known_oids_as_seq))
-// = assert (List.Tot.Base.no_repeats_p (known_oids_as_seq))
+(*
+ * For proving the same thing about the known_oid_as_seq,
+ * we have to be a little careful about normalization
+ *
+ * Specifically, we don't want to normalize createL or seq_of_list,
+ * that's not going to lead us anywhere
+ *
+ * Instead the plan is to reason about them using lemma_list_seq_bij
+ *)
+
+
+(*
+ * We write known_oids_as_seq as a List.map,
+ * but postprocess it what a tactic so that its definition is expanded
+ * to what is in the comments below
+ *)
+
+let norm_list_map () =
+  T.norm [iota; zeta; delta_only [`%FStar.List.Tot.Base.map; `%known_oids_as_list]];
+  T.trefl ()
+
+[@@ (T.postprocess_with norm_list_map)]
+noextract
+let known_oids_as_seq = FStar.List.Tot.Base.map Seq.createL known_oids_as_list
+
+(*
+ * known_oids_as_seq is actually:
+ * [  Seq.createL oid_RIOT;
+ *    Seq.createL oid_AT_CN;
+ *    Seq.createL oid_AT_COUNTRY;
+ *    Seq.createL oid_AT_ORGANIZATION;
+ *    Seq.createL oid_CLIENT_AUTH;
+ *    Seq.createL oid_AUTHORITY_KEY_IDENTIFIER;
+ *    Seq.createL oid_KEY_USAGE;
+ *    Seq.createL oid_EXTENDED_KEY_USAGE;
+ *    Seq.createL oid_BASIC_CONSTRAINTS;
+ *    Seq.createL oid_DIGEST_ALG_SHA224;
+ *    Seq.createL oid_DIGEST_ALG_SHA256;
+ *    Seq.createL oid_DIGEST_ALG_SHA384;
+ *    Seq.createL oid_DIGEST_ALG_SHA512 ]
+ *)
+
+
+(*
+ * Now prove the lemma
+ *
+ * In the arguments to the lemma, we only normalize known_oids_as_seq
+ * so that pairwise_and can unfold the list into pairwise inequalities
+ *
+ * Anymore normalization and we will be in trouble
+ *)
+
+#push-options "--warn_error -271"
+let lemma_oids_as_seq_pairwise_ineq ()
+: Lemma (
+  BigOps.pairwise_and (fun a b -> a =!= b)
+    (Pervasives.norm [delta_only [`%known_oids_as_seq]] known_oids_as_seq)
+  )
+
+by (T.norm ([iota; zeta; delta_only [  //before sending the VC to the solver, unfold all the oids to list constants
+  `%op_At;
+  `%FStar.List.Tot.Base.append;
+  `%oid_head_ISO_MEMBER_BODIES;
+  `%oid_head_ISO_IDENTIFIED_ORG;
+  `%oid_head_ISO_CCITT_DS;
+  `%oid_head_ISO_ITU_COUNTRY;
+  `%oid_node_COUNTRY_US;
+  `%oid_node_ORGANIZATION;
+  `%oid_ISO_ITU_US_ORG;
+  `%oid_node_ISO_ORG_GOV;
+  `%oid_GOV;
+  `%oid_ID_CE;
+  `%oid_NIST_ALG;
+  `%oid_INTERNET;
+  `%oid_PKIX;
+  `%oid_AT;
+  `%oid_AT_CN;
+  `%oid_AT_COUNTRY;
+  `%oid_AT_ORGANIZATION;
+  `%oid_DOMAIN_COMPONENT;
+  `%oid_AUTHORITY_KEY_IDENTIFIER;
+  `%oid_KEY_USAGE;
+  `%oid_EXTENDED_KEY_USAGE;
+  `%oid_BASIC_CONSTRAINTS;
+  `%oid_KP;
+  `%oid_CLIENT_AUTH;
+  `%oid_DIGEST_ALG_SHA224;
+  `%oid_DIGEST_ALG_SHA256;
+  `%oid_DIGEST_ALG_SHA384;
+  `%oid_DIGEST_ALG_SHA512;
+  `%oid_RIOT; ] ]))
+
+= let aux (#a:Type) (l:list a)
+    : Lemma (Seq.seq_to_list (Seq.seq_of_list l) == l)
+      [SMTPat ()] = Seq.lemma_list_seq_bij l in
+  ()
 #pop-options
 
-#push-options "--query_stats --z3rlimit 128 --fuel 16"
+#pop-options //fuel 0 ifuel 0
+
+
+(*
+ * Two comments:
+ *
+ * We prove the FStar.List.Tot.Base.mem s known_oids_as_seq as a separate lemma below
+ *
+ * Why do we need this `has_type` thing, `has_type` is an internal F* thing,
+ * client programs should not use it
+ *)
+
+#push-options "--fuel 0 --ifuel 1"  //need ifuel 1 to prove pattern exhaustiveness
 noextract
 let oid_seq_of
   (oid: oid_t)
-: Tot (s: bytes { List.mem s known_oids_as_seq /\
+: Tot (s: bytes { //FStar.List.Tot.Base.mem s known_oids_as_seq /\
                   Seq.length s `has_type` asn1_value_length_of_type OID })
+
 = match oid with
   | OID_RIOT                     -> Seq.createL oid_RIOT
   | OID_AT_CN                    -> Seq.createL oid_AT_CN
@@ -249,6 +360,27 @@ let oid_seq_of
   | OID_DIGEST_SHA384            -> Seq.createL oid_DIGEST_ALG_SHA384
   | OID_DIGEST_SHA512            -> Seq.createL oid_DIGEST_ALG_SHA512
 #pop-options
+
+
+
+(*
+ * To prove this lemma, we just explode List.Tot.mem,
+ * after that solver can do its thing
+ *)
+#push-options "--fuel 0 --ifuel 0"
+let known_oids_as_seq_contains_oid_seq_of (oid:oid_t)
+: Lemma
+  (FStar.List.Tot.Base.mem (oid_seq_of oid) known_oids_as_seq)
+
+= assert (FStar.List.Tot.Base.mem (oid_seq_of oid) known_oids_as_seq) by
+    (T.norm [iota; zeta_full; delta_only [
+       `%FStar.List.Tot.Base.mem;
+       `%known_oids_as_seq ] ])
+#pop-options
+
+(*
+ * AR: TODO: Adapt proofs below
+ *)
 
 noextract
 let length_of_oid
