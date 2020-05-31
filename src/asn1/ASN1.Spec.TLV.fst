@@ -57,27 +57,6 @@ let serialize_asn1_TLV_of_type
   | BIT_STRING   -> serialize_asn1_bit_string_TLV
   | OID          -> serialize_asn1_oid_TLV
 
-
-(* NOTE: Use this for potentially unbounded len computations. Since I have
-         tighten the max asn1 value length to make all asn1 TLV of a valid
-         asn1 value inbound, this may no longer needed. *)
-
-// AR: is this needed?
-
-// #push-options "--z3rlimit 32"
-// let safe_add
-//   (a b: option asn1_int32)
-// : Tot (c: option asn1_int32 {
-//           Some?a /\ Some?b /\ Some? c ==>
-//             v (Some?.v c) == v (Some?.v a) + v (Some?.v b)
-//   })
-// = let open FStar.Integers in
-//   if (Some?a && Some? b && (Some?.v a) <= asn1_int32_max - (Some?.v b)) then
-//   ( Some (Some?.v a + Some?.v b) )
-//   else
-//   ( None )
-// #pop-options
-
 /// Length Spec of ASN.1 [VALUE] of primitive types
 ///
 #push-options "--z3rlimit 8"
@@ -92,36 +71,36 @@ let length_of_asn1_primitive_value
     | NULL         -> serialize serialize_asn1_null value
     | INTEGER      -> serialize (serialize_asn1_integer (length_of_asn1_integer (value <: datatype_of_asn1_type INTEGER))) value
     | OCTET_STRING -> serialize (serialize_asn1_octet_string (v (dfst (value <: datatype_of_asn1_type OCTET_STRING)))) value
-    | BIT_STRING   -> serialize (serialize_asn1_bit_string (v (Mkbit_string_t?.len (value <: datatype_of_asn1_type BIT_STRING)))) value
+    | BIT_STRING   -> serialize (serialize_asn1_bit_string (v (Mkbit_string_t?.bs_len (value <: datatype_of_asn1_type BIT_STRING)))) value
     | OID          -> serialize (serialize_asn1_oid (length_of_oid (value <: datatype_of_asn1_type OID))) value )
   })
 = match _a with
   | BOOLEAN      -> ( let value = value <: datatype_of_asn1_type BOOLEAN in
-                      serialize_asn1_boolean_size value
+                      lemma_serialize_asn1_boolean_size value
                     ; 1 )
 
   | NULL         -> ( let value = value <: datatype_of_asn1_type NULL in
-                      serialize_asn1_null_size value
+                      lemma_serialize_asn1_null_size value
                     ; 0 )
 
   | INTEGER      -> ( let value = value <: datatype_of_asn1_type INTEGER in
                       let length = length_of_asn1_integer value in
-                      serialize_asn1_integer_size length value
+                      lemma_serialize_asn1_integer_size length value
                     ; length )
 
   | OCTET_STRING -> ( let value = value <: datatype_of_asn1_type OCTET_STRING in
                       let length = v (dfst value) in
-                      serialize_asn1_octet_string_size length value
+                      lemma_serialize_asn1_octet_string_size length value
                     ; length )
 
   | BIT_STRING   -> ( let value = value <: datatype_of_asn1_type BIT_STRING in
-                      let length = v (Mkbit_string_t?.len value) in
-                      serialize_asn1_bit_string_size length value
+                      let length = v (Mkbit_string_t?.bs_len value) in
+                      lemma_serialize_asn1_bit_string_size length value
                     ; length )
 
   | OID          -> ( let value = value <: datatype_of_asn1_type OID in
                       let length = length_of_oid value in
-                      serialize_asn1_oid_size length value
+                      lemma_serialize_asn1_oid_size length value
                     ; length )
 #pop-options
 
@@ -137,61 +116,61 @@ let length_of_asn1_primitive_TLV
                let _ =
                (match _a with
                 | BOOLEAN      -> ( let value = value <: datatype_of_asn1_type BOOLEAN in
-                                    serialize_asn1_boolean_TLV_size value )
+                                    lemma_serialize_asn1_boolean_TLV_size value )
 
                 | NULL         -> ( let value = value <: datatype_of_asn1_type NULL in
-                                    serialize_asn1_null_TLV_size value )
+                                    lemma_serialize_asn1_null_TLV_size value )
 
                 | INTEGER      -> ( let value = value <: datatype_of_asn1_type INTEGER in
                                     let length = length_of_asn1_integer value in
                                     let len: asn1_value_int32_of_type INTEGER = u length in
-                                    serialize_asn1_integer_TLV_size value )
+                                    lemma_serialize_asn1_integer_TLV_size value )
 
                 | OCTET_STRING -> ( let value = value <: datatype_of_asn1_type OCTET_STRING in
                                     let length = v (dfst value) in
                                     let len: asn1_value_int32_of_type OCTET_STRING = u length in
-                                    serialize_asn1_octet_string_TLV_size value )
+                                    lemma_serialize_asn1_octet_string_TLV_size value )
 
                 | BIT_STRING   -> ( let value = value <: datatype_of_asn1_type BIT_STRING in
-                                    let length = v (Mkbit_string_t?.len value) in
+                                    let length = v (Mkbit_string_t?.bs_len value) in
                                     let len: asn1_value_int32_of_type BIT_STRING = u length in
-                                    serialize_asn1_bit_string_TLV_size value )
+                                    lemma_serialize_asn1_bit_string_TLV_size value )
 
                 | OID          -> ( let value = value <: datatype_of_asn1_type OID in
                                     let length = length_of_oid value in
-                                    serialize_asn1_oid_size length value )) in
+                                    lemma_serialize_asn1_oid_size length value )) in
                 length == Seq.length (serialize (serialize_asn1_TLV_of_type _a) value)
 })
 = match _a with
   | BOOLEAN      -> ( let value = value <: datatype_of_asn1_type BOOLEAN in
-                      serialize_asn1_boolean_TLV_size value
+                      lemma_serialize_asn1_boolean_TLV_size value
                     ; 3 )
 
   | NULL         -> ( let value = value <: datatype_of_asn1_type NULL in
-                      serialize_asn1_null_TLV_size value
+                      lemma_serialize_asn1_null_TLV_size value
                     ; 2 )
 
   | INTEGER      -> ( let value = value <: datatype_of_asn1_type INTEGER in
                       let length = length_of_asn1_integer value in
                       let len: asn1_value_int32_of_type INTEGER = u length in
-                      serialize_asn1_integer_TLV_size value
+                      lemma_serialize_asn1_integer_TLV_size value
                     ; 1 + length_of_asn1_length len + length )
 
   | OCTET_STRING -> ( let value = value <: datatype_of_asn1_type OCTET_STRING in
                       let length = v (dfst value) in
                       let len: asn1_value_int32_of_type OCTET_STRING = u length in
-                      serialize_asn1_octet_string_TLV_size value
+                      lemma_serialize_asn1_octet_string_TLV_size value
                     ; 1 + length_of_asn1_length len + length )
 
   | BIT_STRING   -> ( let value = value <: datatype_of_asn1_type BIT_STRING in
-                      let length = v (Mkbit_string_t?.len value) in
+                      let length = v (Mkbit_string_t?.bs_len value) in
                       let len: asn1_value_int32_of_type BIT_STRING = u length in
-                      serialize_asn1_bit_string_TLV_size value
+                      lemma_serialize_asn1_bit_string_TLV_size value
                     ; 1 + length_of_asn1_length len + length )
 
   | OID          -> ( let value = value <: datatype_of_asn1_type OID in
                       let length = length_of_oid value in
                       let len: asn1_value_int32_of_type OID = u length in
-                      serialize_asn1_oid_TLV_size value
+                      lemma_serialize_asn1_oid_TLV_size value
                     ; 1 + length_of_asn1_length len + length )
 #pop-options

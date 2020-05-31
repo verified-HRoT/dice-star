@@ -25,7 +25,7 @@ let serialize32_asn1_octet_string_backwards
     (#rrel #rel: _)
     (b: B.mbuffer byte rrel rel)
     (pos: size_t)
-->  (* Prf *) serialize_asn1_octet_string_unfold (v len) (value);
+->  (* Prf *) lemma_serialize_asn1_octet_string_unfold (v len) (value);
 
     store_bytes
     (* src *) (dsnd value)

@@ -235,7 +235,7 @@ let serialize32_synth_backwards
   (g1: t2 -> GTot t1)
   (g1' : (x2: t2) -> Tot (x1: t1 { x1 == g1 x2 } ))
   (u: squash (synth_injective f2 /\ synth_inverse f2 g1))
-: Tot (serializer32_backwards (serialize_synth p1 f2 s1 g1 ()))
+: Tot (serializer32_backwards (serialize_synth p1 f2 s1 g1 u))
 = fun x #rrel #rel input pos ->
   [@inline_let] let _ =
     serialize_synth_eq p1 f2 s1 g1 () x

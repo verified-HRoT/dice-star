@@ -20,35 +20,16 @@ module CB = LowStar.ConstBuffer
 
 module G = FStar.Ghost
 
-open IB
-
-// let test (b:ibuffer int) (s:G.erased (Seq.seq int))
-// : Lemma
-//   (requires witnessed b (cpred (G.reveal s)))
-//   (ensures witnessed b (seq_eq s))
-// = assert (0 + v (len b) <= length b);
-//   assert (mgsub (immutable_preorder int) b 0ul (len b) == b);
-//   witnessed_functorial b b 0ul (len b) (cpred (G.reveal s)) (seq_eq (s))
-
-let test
-  (len: size_t)
-  (seq: lbytes (v len))
-  (ib: IB.libuffer byte (v len) seq {IB.recallable ib /\ IB.frameOf ib == HS.root} )
-: HST.St (unit)
-= IB.recall ib;
-  IB.recall_contents ib seq;
-  let x = 1 in
-()
-
 (* FIXME: Notes about `IB` and Ghost seq:
    NOTE: `IB.cpred` vs `IB.seq_eq`, `IB.recall_contents` vs `IB.recall_value`
    We may want to use the following `oid_seq` to represent a
    immutable buffer, but now the `IB` library is not universally
-   using ghost seq, because HACL* is dependent on the legacy `IB`
+   using ghost seq, becau se HACL* is dependent on the legacy `IB`
    which is using (witnessing, recalling over) (total) seq. The
    allocation function `IB.igcmalloc_of_list` is one of those
    blocked by HACL*.
 *)
+
 noeq
 type oid_buffer_t = {
   oid_len: asn1_value_int32_of_type OID;
@@ -68,54 +49,9 @@ let oid_AUTHORITY_KEY_IDENTIFIER_as_buffer = IB.igcmalloc_of_list HS.root oid_AU
 let oid_KEY_USAGE_as_buffer                = IB.igcmalloc_of_list HS.root oid_KEY_USAGE
 let oid_EXTENDED_KEY_USAGE_as_buffer       = IB.igcmalloc_of_list HS.root oid_EXTENDED_KEY_USAGE
 let oid_BASIC_CONSTRAINTS_as_buffer        = IB.igcmalloc_of_list HS.root oid_BASIC_CONSTRAINTS
-
-// let oid_DIGEST_ALG_SHA224_as_buffer: oid_buffer_t
-// = { oid_len = 9ul;
-//     oid_seq = G.hide (Seq.createL oid_DIGEST_ALG_SHA224);
-//     oid_buf = IB.igcmalloc_of_list HS.root oid_DIGEST_ALG_SHA224 }
-let oid_DIGEST_ALG_SHA224_as_buffer
-= IB.igcmalloc_of_list HS.root oid_DIGEST_ALG_SHA224
-
-// let oid_DIGEST_ALG_SHA256_as_buffer: oid_buffer_t
-// = { oid_len = 9ul;
-//     oid_seq = G.hide (Seq.createL oid_DIGEST_ALG_SHA256);
-//     oid_buf = IB.igcmalloc_of_list HS.root oid_DIGEST_ALG_SHA256 }
-let oid_DIGEST_ALG_SHA256_as_buffer
-= IB.igcmalloc_of_list HS.root oid_DIGEST_ALG_SHA256
-
-// let oid_DIGEST_ALG_SHA384_as_buffer: oid_buffer_t
-// = { oid_len = 9ul;
-//     oid_seq = G.hide (Seq.createL oid_DIGEST_ALG_SHA384);
-//     oid_buf = IB.igcmalloc_of_list HS.root oid_DIGEST_ALG_SHA384 }
-let oid_DIGEST_ALG_SHA384_as_buffer
-= IB.igcmalloc_of_list HS.root oid_DIGEST_ALG_SHA384
-
-// let oid_DIGEST_ALG_SHA512_as_buffer: oid_buffer_t
-// = { oid_len = 9ul;
-//     oid_seq = G.hide (Seq.createL oid_DIGEST_ALG_SHA512);
-//     oid_buf = IB.igcmalloc_of_list HS.root oid_DIGEST_ALG_SHA512 }
-let oid_DIGEST_ALG_SHA512_as_buffer
-= IB.igcmalloc_of_list HS.root oid_DIGEST_ALG_SHA512
-
-(* NOTE: We may remove this if we are not implementing the parser. *)
-noextract
-let list_of_oid_buffers
-= [ oid_RIOT_as_buffer;
-    oid_AT_CN_as_buffer;
-    oid_AT_COUNTRY_as_buffer;
-    oid_AT_ORGANIZATION_as_buffer;
-    oid_CLIENT_AUTH_as_buffer;
-    oid_AUTHORITY_KEY_IDENTIFIER_as_buffer;
-    oid_KEY_USAGE_as_buffer;
-    oid_EXTENDED_KEY_USAGE_as_buffer;
-    oid_BASIC_CONSTRAINTS_as_buffer;
-    oid_DIGEST_ALG_SHA224_as_buffer;
-    oid_DIGEST_ALG_SHA256_as_buffer;
-    oid_DIGEST_ALG_SHA384_as_buffer;
-    oid_DIGEST_ALG_SHA512_as_buffer
-]
-let known_oids_as_buffer = IB.igcmalloc_of_list HS.root list_of_oid_buffers
-
+let oid_EC_ALG_UNRESTRICTED_as_buffer      = IB.igcmalloc_of_list HS.root oid_EC_ALG_UNRESTRICTED
+let oid_EC_GRP_SECP256R1_as_buffer         = IB.igcmalloc_of_list HS.root oid_EC_GRP_SECP256R1
+let oid_DIGEST_ALG_SHA256_as_buffer        = IB.igcmalloc_of_list HS.root oid_DIGEST_ALG_SHA256
 
 (* FIXME: A workaround
    To not extract any (total) seq, we split the `oid_buffer_t` into three
@@ -125,6 +61,7 @@ let known_oids_as_buffer = IB.igcmalloc_of_list HS.root list_of_oid_buffers
    will be marded as `noextract`.
 *)
 
+(* FIXME: The order will affect Z3 for some reason. *)
 let oid_buffer_of_oid
   (oid: oid_t)
 = match oid with
@@ -137,91 +74,112 @@ let oid_buffer_of_oid
   | OID_KEY_USAGE                -> oid_KEY_USAGE_as_buffer
   | OID_EXTENDED_KEY_USAGE       -> oid_EXTENDED_KEY_USAGE_as_buffer
   | OID_BASIC_CONSTRAINTS        -> oid_BASIC_CONSTRAINTS_as_buffer
-  | OID_DIGEST_SHA224            -> oid_DIGEST_ALG_SHA224_as_buffer
+  | OID_EC_ALG_UNRESTRICTED      -> oid_EC_ALG_UNRESTRICTED_as_buffer
+  | OID_EC_GRP_SECP256R1         -> oid_EC_GRP_SECP256R1_as_buffer
   | OID_DIGEST_SHA256            -> oid_DIGEST_ALG_SHA256_as_buffer
-  | OID_DIGEST_SHA384            -> oid_DIGEST_ALG_SHA384_as_buffer
-  | OID_DIGEST_SHA512            -> oid_DIGEST_ALG_SHA512_as_buffer
 
 let len_of_oid_buffer
   (oid: oid_t)
 : Tot (len: asn1_value_int32_of_type OID
-      { v len == B.length (oid_buffer_of_oid oid) })
-      // { v len == Seq.length (normalize_term (oid_seq_of oid)) })
+      { v len == B.length (oid_buffer_of_oid oid) /\
+        v len == length_of_oid oid })
 = match oid with
-  | OID_DIGEST_SHA224 -> 9ul
-  | OID_DIGEST_SHA256 -> 9ul
-  | OID_DIGEST_SHA384 -> 9ul
-  | OID_DIGEST_SHA512 -> 9ul
-  | _ -> admit()
+  | OID_RIOT                     -> 9ul //oid_RIOT_as_buffer
+  | OID_AT_CN                    -> 3ul //oid_AT_CN_as_buffer
+  | OID_AT_COUNTRY               -> 3ul //oid_AT_COUNTRY_as_buffer
+  | OID_AT_ORGANIZATION          -> 3ul //oid_AT_ORGANIZATION_as_buffer
+  | OID_CLIENT_AUTH              -> 7ul //oid_CLIENT_AUTH_as_buffer
+  | OID_AUTHORITY_KEY_IDENTIFIER -> 3ul //oid_AUTHORITY_KEY_IDENTIFIER_as_buffer
+  | OID_KEY_USAGE                -> 3ul //oid_KEY_USAGE_as_buffer
+  | OID_EXTENDED_KEY_USAGE       -> 3ul //oid_EXTENDED_KEY_USAGE_as_buffer
+  | OID_BASIC_CONSTRAINTS        -> 3ul //oid_BASIC_CONSTRAINTS_as_buffer
+  | OID_EC_ALG_UNRESTRICTED      -> 5ul //oid_EC_ALG_UNRESTRICTED_as_buffer
+  | OID_EC_GRP_SECP256R1         -> 6ul //oid_EC_GRP_SECP256R1_as_buffer
+  | OID_DIGEST_SHA256            -> 9ul //oid_DIGEST_ALG_SHA256_as_buffer
 
 noextract
 let seq_of_oid_buffer
   (oid: oid_t)
 : Tot (s: bytes {List.mem s known_oids_as_seq /\
-                 B.witnessed (oid_buffer_of_oid oid) (IB.cpred s)})
-= oid_seq_of oid
+                 B.witnessed (oid_buffer_of_oid oid) (IB.cpred s) /\
+                 Seq.length s == length_of_oid oid})
+= lemma_known_oids_as_seq_contains_oid_seq_of oid;
+  oid_seq_of oid
 
-(*)
-inline_for_extraction
-let blit_from_ib
-  (src_seq: G.erased bytes) (* How to erase it? *)
-  (src: IB.ibuffer byte {B.frameOf src == HS.root /\ B.recallable src})
-  (src_from src_to: size_t)
-  (#rrel #rel: _)
-  (dst: B.mbuffer byte rrel rel)
-  (dst_pos: size_t)
-: HST.Stack unit
-  (requires (fun h ->
-    B.live h dst /\
-    v src_from <= v src_to /\ v src_to <= B.length src /\
-    v dst_pos + (v src_to - v src_from) <= B.length dst /\
-    // U32.v src_from <= U32.v src_to /\ U32.v src_to <= BY.length src /\
-    // U32.v dst_pos + (U32.v src_to - U32.v src_from) <= B.length dst /\
-    writable dst (v dst_pos) (v dst_pos + (v src_to - v src_from)) h
-  ))
-  (ensures (fun h _ h' ->
-    B.modifies (B.loc_buffer_from_to dst dst_pos (dst_pos + (src_to - src_from))) h h' /\
-    Seq.slice (B.as_seq h' dst) (v dst_pos) (v dst_pos + (v src_to - v src_from)) == Seq.slice (B.as_seq h src) (v src_from) (v src_to)
-  ))
-= let h0 = HST.get () in
-  HST.push_frame ();
-  let h1 = HST.get () in
-  let bi: B.pointer size_t = B.alloca 0ul 1ul in
-  let h2 = HST.get () in
-  let len = src_to - src_from in
-  C.Loops.do_while
-    (fun h stop ->
-      B.modifies (B.loc_union (B.loc_region_only true (HS.get_tip h1)) (B.loc_buffer_from_to dst dst_pos (dst_pos + len))) h2 h /\
-      B.live h bi /\ (
-      let i = Seq.index (B.as_seq h bi) 0 in
-      v i <= v len /\
-      writable dst (v dst_pos) (v dst_pos + v len) h /\
-      Seq.slice (B.as_seq h dst) (v dst_pos) (v dst_pos + v i) `Seq.equal` Seq.slice (B.as_seq h src) (v src_from) (v src_from + v i) /\
-      (stop == true ==> i == len)
-    ))
-    (fun _ ->
-      let i = B.index bi 0ul in
-      if i = len
-      then true
-      else begin
-        B.recall src;
-        IB.recall_value src src_seq;
-        let x = B.index src (src_from + i) in
-        mbuffer_upd dst (Ghost.hide (v dst_pos)) (Ghost.hide (v dst_pos + v len)) (dst_pos + i) x;
-        let i': size_t = i + 1ul in
-        B.upd bi 0ul i';
-        let h' = HST.get () in
-        Seq.lemma_split (Seq.slice (B.as_seq h' dst) (v dst_pos) (v dst_pos + v i')) (v i);
-        i' = len
-      end
-    )
-    ;
-  HST.pop_frame ()
-#pop-options
-*)
+// #push-options "--query_stats --z3rlimit 32"
+// inline_for_extraction
+// let blit_from_ib
+//   (len: size_t)
+//   (src_seq: lbytes (v len))
+//   (src: IB.libuffer byte (v len) src_seq {B.frameOf src == HS.root /\ B.recallable src})
+//   (src_from src_to: size_t)
+//   (#rrel #rel: _)
+//   (dst: B.mbuffer byte rrel rel)
+//   (dst_pos: size_t)
+// : HST.Stack unit
+//   (requires (fun h ->
+//     B.live h dst /\
+//     v src_from <= v src_to /\ v src_to <= B.length src /\
+//     v dst_pos + (v src_to - v src_from) <= B.length dst /\
+//     writable dst (v dst_pos) (v dst_pos + (v src_to - v src_from)) h
+//   ))
+//   (ensures (fun h _ h' ->
+//     B.modifies (B.loc_buffer_from_to dst dst_pos (dst_pos + (src_to - src_from))) h h' /\
+//     Seq.slice (B.as_seq h' dst) (v dst_pos) (v dst_pos + (v src_to - v src_from)) == Seq.slice (B.as_seq h src) (v src_from) (v src_to)
+//   ))
+// = let h0 = HST.get () in
+//   HST.push_frame ();
+//   let h1 = HST.get () in
+//   let bi: B.pointer size_t = B.alloca 0ul 1ul in
+//   let h2 = HST.get () in
+//   let len = src_to - src_from in
+//   C.Loops.do_while
+//     (fun h stop ->
+//       B.modifies (B.loc_union (B.loc_region_only true (HS.get_tip h1)) (B.loc_buffer_from_to dst dst_pos (dst_pos + len))) h2 h /\
+//       B.live h bi /\ (
+//       let i = Seq.index (B.as_seq h bi) 0 in
+//       v i <= v len /\
+//       writable dst (v dst_pos) (v dst_pos + v len) h /\
+//       Seq.slice (B.as_seq h dst) (v dst_pos) (v dst_pos + v i) `Seq.equal` Seq.slice (B.as_seq h src) (v src_from) (v src_from + v i) /\
+//       (stop == true ==> i == len)
+//     ))
+//     (fun _ ->
+//       let i = B.index bi 0ul in
+//       if i = len
+//       then true
+//       else begin
+//         (**) let h = HST.get () in
+//         (**) assume (Seq.slice (B.as_seq h dst) (v dst_pos) (v dst_pos + v (B.as_seq h bi).[0])
+//                      `Seq.equal`
+//                      Seq.slice (B.as_seq h src) (v src_from) (v src_from + v (B.as_seq h bi).[0]));
+//         (**) B.recall src;
+//         (**) IB.recall_contents src src_seq;
+//         (**) let h = HST.get () in
+//         let x = B.index src (src_from + i) in
+//         mbuffer_upd dst (Ghost.hide (v dst_pos)) (Ghost.hide (v dst_pos + v len)) (dst_pos + i) x;
+
+//         let i': size_t = i + 1ul in
+//         B.upd bi 0ul i';
+
+//         (**) let h' = HST.get () in
+//         (**) IB.recall_contents src src_seq;
+//         (**) Seq.lemma_split (Seq.slice (B.as_seq h' dst) (v dst_pos) (v dst_pos + v i')) (v i);
+//         (**) assert ((B.as_seq h' dst).[v (dst_pos + i)] == (B.as_seq h' src).[v (src_from + i)]);
+//         (**) let h = HST.get () in
+//         (**) assert (Seq.slice (B.as_seq h dst) (v dst_pos) (v dst_pos + v (B.as_seq h bi).[0])
+//                      `Seq.equal`
+//                      Seq.slice (B.as_seq h src) (v src_from) (v src_from + v (B.as_seq h bi).[0]));
+//         admit ();
+//         i' = len
+//       end
+//     )
+//     ;
+//   HST.pop_frame ()
+// #pop-options
+
 
 #restart-solver
-#push-options "--query_stats --z3rlimit 16"
+#push-options "--query_stats --z3rlimit 32"
 inline_for_extraction
 let serialize32_asn1_oid_backwards
   (len: asn1_value_int32_of_type OID)
@@ -230,8 +188,8 @@ let serialize32_asn1_oid_backwards
     (#rrel #rel: _)
     (b: B.mbuffer byte rrel rel)
     (pos: size_t)
--> (* Prf *) serialize_asn1_oid_unfold (v len) oid;
-   (* Prf *) serialize_asn1_oid_size (v len) oid;
+-> (* Prf *) lemma_serialize_asn1_oid_unfold (v len) oid;
+   (* Prf *) lemma_serialize_asn1_oid_size (v len) oid;
    let oid_buffer = oid_buffer_of_oid oid in
    (* Prf *) B.recall oid_buffer;
    (* Prf *) IB.recall_contents oid_buffer (seq_of_oid_buffer oid);
@@ -246,6 +204,61 @@ let serialize32_asn1_oid_backwards
 
 (* return *) offset
 #pop-options
+
+  (*WIP: modifies proof is the last piece.*)
+   // (* Prf *) let h0 = HST.get () in
+   // C.Loops.for
+   //   (* start*) 0ul
+   //   (* end  *) offset
+   //   (* inv  *) (fun (h: HS.mem) (i: nat) ->
+   //                 let s_src = B.as_seq h oid_buffer in
+   //                 let s_dst = B.as_seq h b in
+   //                 //0 < i /\ i < v offset /\ //within_bounds (Unsigned W32) i /\
+   //                 // B.live h b /\ B.modifies (B.loc_buffer_from_to b (pos - offset) (pos - offset + u i)) h0 h /\
+   //                 writable b (v pos - v offset) (v pos) h /\
+   //                 i <= Seq.length s_src /\s_src == seq_of_oid_buffer oid /\
+   //                 Seq.slice s_src 0 i `Seq.equal` Seq.slice s_dst (v pos - v offset) (v pos - v offset + i)
+   //                 )
+   //   (* body *) (fun i32 ->
+   //                 (* Prf *) let h1 = HST.get () in
+   //                 (* Prf *) IB.recall oid_buffer;
+   //                 (* Prf *) IB.recall_contents oid_buffer (seq_of_oid_buffer oid);
+   //                 let x = B.index oid_buffer i32 in
+   //                 mbuffer_upd
+   //                   (* buf *) b
+   //                   (*range*) (v pos - v offset) (v pos)
+   //                   (* pos *) (pos - offset + i32)
+   //                   (* val *) x;
+   //                 (* Prf *) IB.recall_contents oid_buffer (seq_of_oid_buffer oid);
+   //                 (* Prf *) let h2 = HST.get () in
+   //                 (* Prf *) assert (writable b (v pos - v offset) (v pos) h2 /\ B.live h2 b);
+   //                 (* Prf *) B.modifies_buffer_from_to_elim
+   //                           (* buf *) b
+   //                           (*frame*) (pos - offset) (pos - offset + i32)
+   //                           (* new *) (B.loc_buffer_from_to b (pos - offset + i32) (pos - offset + i32 + 1ul))
+   //                           (* mem *) h1 h2;
+   //                 (* Prf *) Seq.lemma_split
+   //                           (* s *) (Seq.slice (B.as_seq h2 b) (v pos - v offset) (v pos - v offset + v i32 + 1))
+   //                           (*pos*) (v i32);
+   //                 (* Prf *) Seq.lemma_split
+   //                           (* s *) (Seq.slice (B.as_seq h2 oid_buffer) 0 (v i32 + 1))
+   //                           (*pos*) (v i32);
+   //                           assert (let s_src = B.as_seq h2 oid_buffer in
+   //                                   let s_dst = B.as_seq h2 b in
+   //                                   Seq.slice s_src 0 (v i32) `Seq.equal` Seq.slice s_dst (v pos - v offset) (v pos - v offset + v i32));
+   //                 (* Prf *) assert (let s_src = B.as_seq h2 oid_buffer in
+   //                                   let s_dst = B.as_seq h2 b in
+   //                                   s_dst.[v pos - v offset + v i32] == s_src.[v i32] /\
+   //                                   Seq.slice s_src 0 (v i32) `Seq.equal` Seq.slice s_dst (v pos - v offset) (v pos - v offset + v i32) /\
+   //                                   Seq.slice s_src 0 (v i32 + 1) `Seq.equal` Seq.slice s_dst (v pos - v offset) (v pos - v offset + v i32 + 1) /\
+   //                                   // B.modifies (B.loc_buffer_from_to b (pos - offset) (pos - offset + i32 + 1)) h0 h2 /\
+   //                                   True );
+   //                           assume (B.modifies (B.loc_buffer_from_to b (pos - offset) (pos - offset + i32)) h0 h2);
+   //                           assume (B.modifies (B.loc_buffer_from_to b (pos - offset + 1) (pos - offset + i32)) h0 h2);
+   //                           // assert (B.modifies (B.loc_buffer_from_to b (pos - offset) (pos - offset + i32 + 1ul)) h0 h2);
+   //                           admit ()
+   //                           // B.modifies_loc_buffer_from_to_intro
+   //              );
 
    // (* Prf *) assert (
    //   let s = B.as_seq h b in
@@ -283,7 +296,6 @@ let parser_tag_of_oid_impl
       { tg == parser_tag_of_oid x })
 = (OID, len_of_oid_buffer x)
 
-#push-options "--query_stats --z3rlimit 32"
 inline_for_extraction
 let synth_asn1_oid_V_inverse_impl
   (tg: (the_asn1_type OID & asn1_value_int32_of_type OID))
@@ -292,7 +304,6 @@ let synth_asn1_oid_V_inverse_impl
       { length_of_oid value == v (snd tg) /\
         value == synth_asn1_oid_V_inverse tg value' })
 = value'
-#pop-options
 
 let serialize32_asn1_oid_TLV_backwards ()
 : Tot (serializer32_backwards serialize_asn1_oid_TLV)
@@ -309,3 +320,21 @@ let serialize32_asn1_oid_TLV_backwards ()
                      (* g1  *) (synth_asn1_oid_V_inverse x)
                      (* g1' *) (synth_asn1_oid_V_inverse_impl x)
                      (* Prf *) ()))
+
+let serialize32_asn1_oid_TLV_of_backwards
+  (oid: datatype_of_asn1_type OID)
+: serializer32_backwards (serialize_asn1_oid_TLV_of oid)
+= serialize32_asn1_oid_TLV_backwards ()
+  `serialize32_filter_backwards`
+  filter_asn1_oid_TLV_of oid
+
+let serialize32_envelop_OID_with_backwards
+  (oid: datatype_of_asn1_type OID)
+  (#k: parser_kind)
+  (#t: Type0)
+  (#p: parser k t)
+  (#s: serializer p)
+  (s32: serializer32_backwards s)
+= serialize32_asn1_oid_TLV_of_backwards oid
+  `serialize32_nondep_then_backwards`
+  s32

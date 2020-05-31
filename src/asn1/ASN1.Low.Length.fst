@@ -23,7 +23,7 @@ inline_for_extraction
 let len_of_asn1_length
   (len: asn1_int32)
 : Tot (offset: size_t{v offset == Seq.length (serialize serialize_asn1_length len)})
-= serialize_asn1_length_unfold len;
+= lemma_serialize_asn1_length_unfold len;
   let x = SDER.tag_of_der_length32_impl len in
   if x < 128uy then
   ( 1ul )
@@ -96,7 +96,7 @@ let serialize32_asn1_length_of_type_backwards
     (b: B.mbuffer byte rrel rel)
     (pos: size_t)
 ->  (* Prf *) serialize_asn1_length_of_type_eq _a len;
-   (* Prf *) serialize_asn1_length_unfold len;
+   (* Prf *) lemma_serialize_asn1_length_unfold len;
    let offset = len_of_asn1_length len in
    (* Prf *) let h0 = HST.get () in
    let offset = serialize32_asn1_length_of_type _a len b (pos - offset) in

@@ -38,8 +38,8 @@ let len_of_asn1_boolean
 : Tot (l: size_t{
   v l == Seq.length (serialize serialize_asn1_boolean b) /\
   v l == 1})
-= serialize_asn1_boolean_unfold b;
-  serialize_asn1_boolean_size b;
+= lemma_serialize_asn1_boolean_unfold b;
+  lemma_serialize_asn1_boolean_size b;
   1ul
 
 ///
@@ -54,7 +54,7 @@ let serialize32_asn1_boolean_backwards ()
     (pos: size_t)
 ->  let offset = len_of_asn1_boolean x in
     let content: byte = encode_asn1_boolean x in
-    (* Prf *) serialize_asn1_boolean_unfold x;
+    (* Prf *) lemma_serialize_asn1_boolean_unfold x;
     (* Prf *) serialize_u8_spec content;
     mbuffer_upd (* <-- NOTE: serialize the encoding of a BOOLEAN value *)
       (* buf *) b

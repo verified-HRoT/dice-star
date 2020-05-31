@@ -47,7 +47,7 @@ let serialize_asn1_null
 
 /// Reveal the computation of serialize
 noextract
-let serialize_asn1_null_unfold
+let lemma_serialize_asn1_null_unfold
   (value: datatype_of_asn1_type NULL)
 : Lemma (
   serialize serialize_asn1_null value == Seq.empty)
@@ -55,12 +55,12 @@ let serialize_asn1_null_unfold
 
 /// Reveal the size of a serialiaztion
 noextract
-let serialize_asn1_null_size
+let lemma_serialize_asn1_null_size
   (value: datatype_of_asn1_type NULL)
 : Lemma (
   Seq.length (serialize serialize_asn1_null value) == 0)
 = parser_kind_prop_equiv parse_asn1_null_kind parse_asn1_null;
-  serialize_asn1_null_unfold value
+  lemma_serialize_asn1_null_unfold value
 
 ///////////////////////////////////////////////////////////////
 ////  ASN1 `NULL` TLV Parser/Serializer
@@ -126,7 +126,7 @@ let serialize_asn1_null_TLV
 
 /// Reveal the computation of parse
 noextract
-let parse_asn1_null_TLV_unfold
+let lemma_parse_asn1_null_TLV_unfold
   (input_TLV: bytes)
 : Lemma (
   parse parse_asn1_null_TLV input_TLV ==
@@ -163,7 +163,7 @@ let parse_asn1_null_TLV_unfold
 
 /// Reveal the computation of serialize
 noextract
-let serialize_asn1_null_TLV_unfold
+let lemma_serialize_asn1_null_TLV_unfold
   (value: datatype_of_asn1_type NULL)
 : Lemma (
   serialize serialize_asn1_null_TLV value
@@ -202,8 +202,8 @@ let serialize_asn1_null_TLV_unfold
 
 /// Reveal the length of a serialization
 noextract
-let serialize_asn1_null_TLV_size
+let lemma_serialize_asn1_null_TLV_size
   (value: datatype_of_asn1_type NULL)
 : Lemma (
   Seq.length (serialize serialize_asn1_null_TLV value) == 2)
-= serialize_asn1_null_TLV_unfold value
+= lemma_serialize_asn1_null_TLV_unfold value

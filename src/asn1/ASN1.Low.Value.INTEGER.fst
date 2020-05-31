@@ -59,8 +59,8 @@ let serialize32_asn1_integer_backwards_1byte_without_leading_zero
     (#rrel #rel: _)
     (b: B.mbuffer byte rrel rel)
     (pos: size_t)
-->(* Prf *) serialize_asn1_integer_unfold (length_of_asn1_integer value) value;
-  (* Prf *) serialize_asn1_integer_size (length_of_asn1_integer value) value;
+->(* Prf *) lemma_serialize_asn1_integer_unfold (length_of_asn1_integer value) value;
+  (* Prf *) lemma_serialize_asn1_integer_size (length_of_asn1_integer value) value;
   let b0: byte = FStar.Int.Cast.int32_to_uint8 value in
   (* Prf *) E.reveal_be_to_n (Seq.create 1 b0);
   (* Prf *) E.reveal_be_to_n (Seq.slice (Seq.create 1 b0) 1 1);
@@ -82,8 +82,8 @@ let serialize32_asn1_integer_backwards_2byte_with_leading_zero
     (#rrel #rel: _)
     (b: B.mbuffer byte rrel rel)
     (pos: size_t)
-->(* Prf *) serialize_asn1_integer_unfold (length_of_asn1_integer value) value;
-  (* Prf *) serialize_asn1_integer_size (length_of_asn1_integer value) value;
+->(* Prf *) lemma_serialize_asn1_integer_unfold (length_of_asn1_integer value) value;
+  (* Prf *) lemma_serialize_asn1_integer_size (length_of_asn1_integer value) value;
   (* Prf *) let h0 = HST.get () in
   (* Prf *) writable_weaken
             (* buf *) b
@@ -137,8 +137,8 @@ let serialize32_asn1_integer_backwards_2byte_without_leading_zero
     (#rrel #rel: _)
     (b: B.mbuffer byte rrel rel)
     (pos: size_t)
-->(* Prf *) serialize_asn1_integer_unfold (length_of_asn1_integer value) value;
-  (* Prf *) serialize_asn1_integer_size (length_of_asn1_integer value) value;
+->(* Prf *) lemma_serialize_asn1_integer_unfold (length_of_asn1_integer value) value;
+  (* Prf *) lemma_serialize_asn1_integer_size (length_of_asn1_integer value) value;
   (* Prf *) let h0 = HST.get () in
   (* Prf *) LE.writable_store_pre
             (* buf *) b
@@ -170,8 +170,8 @@ let serialize32_asn1_integer_backwards_3byte_with_leading_zero
     (#rrel #rel: _)
     (b: B.mbuffer byte rrel rel)
     (pos: size_t)
-->(* Prf *) serialize_asn1_integer_unfold (length_of_asn1_integer value) value;
-  (* Prf *) serialize_asn1_integer_size (length_of_asn1_integer value) value;
+->(* Prf *) lemma_serialize_asn1_integer_unfold (length_of_asn1_integer value) value;
+  (* Prf *) lemma_serialize_asn1_integer_size (length_of_asn1_integer value) value;
   (* Prf *) let h0 = HST.get () in
   (* Prf *) writable_weaken
             (* buf *) b
@@ -235,8 +235,8 @@ let serialize32_asn1_integer_backwards_3byte_without_leading_zero
     (#rrel #rel: _)
     (b: B.mbuffer byte rrel rel)
     (pos: size_t)
-->(* Prf *) serialize_asn1_integer_unfold (length_of_asn1_integer value) value;
-  (* Prf *) serialize_asn1_integer_size (length_of_asn1_integer value) value;
+->(* Prf *) lemma_serialize_asn1_integer_unfold (length_of_asn1_integer value) value;
+  (* Prf *) lemma_serialize_asn1_integer_size (length_of_asn1_integer value) value;
   (* Prf *) assert_norm (v #(Signed W32) value < pow2 (8 * 3 - 1) /\
                          v #(Signed W32) value < pow2 (8 * 3));
   (* Prf *) E.reveal_n_to_be 3 (v #(Signed W32) value);
@@ -307,8 +307,8 @@ let serialize32_asn1_integer_backwards_4byte_with_leading_zero
     (#rrel #rel: _)
     (b: B.mbuffer byte rrel rel)
     (pos: size_t)
-->(* Prf *) serialize_asn1_integer_unfold (length_of_asn1_integer value) value;
-  (* Prf *) serialize_asn1_integer_size (length_of_asn1_integer value) value;
+->(* Prf *) lemma_serialize_asn1_integer_unfold (length_of_asn1_integer value) value;
+  (* Prf *) lemma_serialize_asn1_integer_size (length_of_asn1_integer value) value;
   (* Prf *) assert_norm (v #(Signed W32) value < pow2 (8 * 3));
   (* Prf *) E.reveal_n_to_be 3 (v #(Signed W32) value);
   (* Prf *) let h0 = HST.get () in
@@ -402,8 +402,8 @@ let serialize32_asn1_integer_backwards_4byte_without_leading_zero
 = fun value//: datatype_of_asn1_type INTEGER { v len == length_of_asn1_integer value })
     #rrel #rel
     b pos
-->(* Prf *) serialize_asn1_integer_unfold (length_of_asn1_integer value) value;
-  (* Prf *) serialize_asn1_integer_size (length_of_asn1_integer value) value;
+->(* Prf *) lemma_serialize_asn1_integer_unfold (length_of_asn1_integer value) value;
+  (* Prf *) lemma_serialize_asn1_integer_size (length_of_asn1_integer value) value;
   (* Prf *) assert_norm (v #(Signed W32) value < pow2 (8 * 4 - 1) /\
                          v #(Signed W32) value < pow2 (8 * 4));
   let value_of_all_4_bytes: uint_32 = (FStar.Int.Cast.int32_to_uint32 value) in

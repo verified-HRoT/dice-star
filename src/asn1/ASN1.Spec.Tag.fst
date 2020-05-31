@@ -104,7 +104,7 @@ let serialize_asn1_tag
 
 /// Reveal the computation of parse
 noextract
-let parse_asn1_tag_unfold
+let lemma_parse_asn1_tag_unfold
   (input: bytes)
 : Lemma (
   parse parse_asn1_tag input ==
@@ -138,7 +138,7 @@ let parse_asn1_tag_unfold
 
 /// Reveal the computation of serialization
 noextract
-let serialize_asn1_tag_unfold
+let lemma_serialize_asn1_tag_unfold
   (a: asn1_type)
 : Lemma (
   serialize serialize_u8 (synth_asn1_tag_inverse a)
@@ -163,12 +163,12 @@ let serialize_asn1_tag_unfold
 
 /// Useful lemma about the length of serializations
 noextract
-let serialize_asn1_tag_size
+let lemma_serialize_asn1_tag_size
   (a: asn1_type)
 : Lemma (
   Seq.length (serialize serialize_asn1_tag a) == 1)
 = parser_kind_prop_equiv parse_asn1_tag_kind parse_asn1_tag;
-  serialize_asn1_tag_unfold a
+  lemma_serialize_asn1_tag_unfold a
 
 ///////////////////////////////////////////////////////
 ////  Specialied parser for a specific ASN1 type
@@ -247,7 +247,7 @@ let serialize_asn1_tag_of_type
 
 /// Reveals the computations of parse
 noextract
-let parse_asn1_tag_of_type_unfold
+let lemma_parse_asn1_tag_of_type_unfold
   (a: asn1_type)
   (input: bytes)
 : Lemma (
@@ -282,7 +282,7 @@ let parse_asn1_tag_of_type_unfold
 
 /// Reveals the computation of serialize
 noextract
-let serialize_asn1_tag_of_type_unfold
+let lemma_serialize_asn1_tag_of_type_unfold
   (a: asn1_type)
   (a': the_asn1_type a)
 : Lemma (
@@ -308,10 +308,10 @@ let serialize_asn1_tag_of_type_unfold
 
 /// Reveals the size of a serialization
 noextract
-let serialize_asn1_tag_of_type_size
+let lemma_serialize_asn1_tag_of_type_size
   (_a: asn1_type)
   (a : the_asn1_type _a)
 : Lemma (
   Seq.length (serialize (serialize_asn1_tag_of_type _a) a) == 1)
 = parser_kind_prop_equiv parse_asn1_tag_kind (parse_asn1_tag_of_type _a);
-  serialize_asn1_tag_of_type_unfold _a a
+  lemma_serialize_asn1_tag_of_type_unfold _a a

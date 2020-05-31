@@ -59,50 +59,11 @@ let len_of_asn1_primitive_value
                       dfst value )
 
   | BIT_STRING   -> ( let value = value <: datatype_of_asn1_type BIT_STRING in
-                      Mkbit_string_t?.len value )
+                      Mkbit_string_t?.bs_len value )
 
   | OID          -> ( let value = value <: datatype_of_asn1_type OID in
                       len_of_oid_buffer value )
 #pop-options
-
-
-/// Length Spec of ASN.1 Primitive [TAG, LEN, VALUE] of primitive types
-/// NOTE: Had updated the length range of ASN1 values to make all TLVs of
-///       valid values are inbound. Maybe remove these `_unbounded` funcitons.
-///
-// #push-options "--z3rlimit 64"
-// let len_of_asn1_primitive_TLV_unbounded
-//   (#_a: asn1_primitive_type)
-//   (value: datatype_of_asn1_type _a)
-// : Tot (len: option asn1_int32 {
-//          Some? len ==>
-//            (v (Some?.v len) == length_of_asn1_primitive_TLV value)
-//   })
-// = (* Prf *) ( match _a with
-//               | BOOLEAN      -> ( serialize_asn1_boolean_TLV_size        (value <: datatype_of_asn1_type BOOLEAN     )
-//                                 ; serialize_asn1_boolean_TLV_unfold      (value <: datatype_of_asn1_type BOOLEAN     ) )
-//               | NULL         -> ( serialize_asn1_null_TLV_size           (value <: datatype_of_asn1_type NULL        )
-//                                 ; serialize_asn1_null_TLV_unfold         (value <: datatype_of_asn1_type NULL        ) )
-//               | INTEGER      -> ( serialize_asn1_integer_TLV_size        (value <: datatype_of_asn1_type INTEGER     )
-//                                 ; serialize_asn1_integer_TLV_unfold      (value <: datatype_of_asn1_type INTEGER     ) )
-//               | OCTET_STRING -> ( serialize_asn1_octet_string_TLV_size   (value <: datatype_of_asn1_type OCTET_STRING)
-//                                 ; serialize_asn1_octet_string_TLV_unfold (value <: datatype_of_asn1_type OCTET_STRING) )
-//               | BIT_STRING   -> ( serialize_asn1_bit_string_TLV_size     (value <: datatype_of_asn1_type BIT_STRING  )
-//                                 ; serialize_asn1_bit_string_TLV_unfold   (value <: datatype_of_asn1_type BIT_STRING  ) )
-//               | OID          -> ( admit() ) );
-
-//   let value_len = len_of_asn1_primitive_value value in
-//   (* Prf *) assert (v value_len == length_of_asn1_primitive_value value);
-
-//   let len_len = len_of_asn1_length value_len in
-
-//   let tag_len = 1ul in
-
-//   (* Prf *) assert (v tag_len + v len_len + v value_len == Seq.length (serialize (serialize_asn1_TLV_of_type _a) value));
-
-// (* return *) Some tag_len `safe_add` Some len_len `safe_add` Some value_len
-// #pop-options
-
 
 #push-options "--query_stats --z3rlimit 64"
 inline_for_extraction noextract
@@ -111,18 +72,18 @@ let len_of_asn1_primitive_TLV
   (value: datatype_of_asn1_type _a)
 : Tot (len: asn1_TLV_int32_of_type _a { v len == length_of_asn1_primitive_TLV value })
 = (* Prf *) ( match _a with
-              | BOOLEAN      -> ( serialize_asn1_boolean_TLV_size        (value <: datatype_of_asn1_type BOOLEAN     )
-                                ; serialize_asn1_boolean_TLV_unfold      (value <: datatype_of_asn1_type BOOLEAN     ) )
-              | NULL         -> ( serialize_asn1_null_TLV_size           (value <: datatype_of_asn1_type NULL        )
-                                ; serialize_asn1_null_TLV_unfold         (value <: datatype_of_asn1_type NULL        ) )
-              | INTEGER      -> ( serialize_asn1_integer_TLV_size        (value <: datatype_of_asn1_type INTEGER     )
-                                ; serialize_asn1_integer_TLV_unfold      (value <: datatype_of_asn1_type INTEGER     ) )
-              | OCTET_STRING -> ( serialize_asn1_octet_string_TLV_size   (value <: datatype_of_asn1_type OCTET_STRING)
-                                ; serialize_asn1_octet_string_TLV_unfold (value <: datatype_of_asn1_type OCTET_STRING) )
-              | BIT_STRING   -> ( serialize_asn1_bit_string_TLV_size     (value <: datatype_of_asn1_type BIT_STRING  )
-                                ; serialize_asn1_bit_string_TLV_unfold   (value <: datatype_of_asn1_type BIT_STRING  ) )
-              | OID          -> ( serialize_asn1_oid_TLV_size            (value <: datatype_of_asn1_type OID         )
-                                ; serialize_asn1_oid_TLV_unfold          (value <: datatype_of_asn1_type OID         ) ) );
+              | BOOLEAN      -> ( lemma_serialize_asn1_boolean_TLV_size        (value <: datatype_of_asn1_type BOOLEAN     )
+                                ; lemma_serialize_asn1_boolean_TLV_unfold      (value <: datatype_of_asn1_type BOOLEAN     ) )
+              | NULL         -> ( lemma_serialize_asn1_null_TLV_size           (value <: datatype_of_asn1_type NULL        )
+                                ; lemma_serialize_asn1_null_TLV_unfold         (value <: datatype_of_asn1_type NULL        ) )
+              | INTEGER      -> ( lemma_serialize_asn1_integer_TLV_size        (value <: datatype_of_asn1_type INTEGER     )
+                                ; lemma_serialize_asn1_integer_TLV_unfold      (value <: datatype_of_asn1_type INTEGER     ) )
+              | OCTET_STRING -> ( lemma_serialize_asn1_octet_string_TLV_size   (value <: datatype_of_asn1_type OCTET_STRING)
+                                ; lemma_serialize_asn1_octet_string_TLV_unfold (value <: datatype_of_asn1_type OCTET_STRING) )
+              | BIT_STRING   -> ( lemma_serialize_asn1_bit_string_TLV_size     (value <: datatype_of_asn1_type BIT_STRING  )
+                                ; lemma_serialize_asn1_bit_string_TLV_unfold   (value <: datatype_of_asn1_type BIT_STRING  ) )
+              | OID          -> ( lemma_serialize_asn1_oid_TLV_size            (value <: datatype_of_asn1_type OID         )
+                                ; lemma_serialize_asn1_oid_TLV_unfold          (value <: datatype_of_asn1_type OID         ) ) );
 
   let value_len = len_of_asn1_primitive_value value in
 
@@ -146,22 +107,3 @@ let serialize32_asn1_TLV_backwards_of_type
   | OCTET_STRING -> serialize32_asn1_octet_string_TLV_backwards ()
   | BIT_STRING   -> serialize32_asn1_bit_string_TLV_backwards   ()
   | OID          -> serialize32_asn1_oid_TLV_backwards          ()
-
-
-/// type of a valid (inbound) sequence value
-///
-let inbound_sequence_value_of
-  (#k: parser_kind)
-  (#t: Type0)
-  (#p: parser k t)
-  (s: serializer p)
-= x: t{ asn1_value_length_inbound_of_type SEQUENCE (Seq.length (serialize s x)) }
-
-/// type of a valid sequence value's len
-let inbound_sequence_value_len_of
-  (#k: parser_kind)
-  (#t: Type0)
-  (#p: parser k t)
-  (s: serializer p)
-  (x: t)
-= len: asn1_value_int32_of_type SEQUENCE { v len == Seq.length (serialize s x) }

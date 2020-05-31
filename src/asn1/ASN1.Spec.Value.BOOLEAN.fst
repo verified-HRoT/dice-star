@@ -66,7 +66,7 @@ let parse_asn1_boolean
   synth_asn1_boolean
 
 noextract
-let parse_asn1_boolean_unfold
+let lemma_parse_asn1_boolean_unfold
   (input: bytes)
 : Lemma (
   parse parse_asn1_boolean input ==
@@ -110,7 +110,7 @@ let serialize_asn1_boolean
   (* prf*) ()
 
 noextract
-let serialize_asn1_boolean_unfold
+let lemma_serialize_asn1_boolean_unfold
   (b: datatype_of_asn1_type BOOLEAN)
 : Lemma (
   serialize serialize_u8 (synth_asn1_boolean_inverse b)
@@ -134,12 +134,12 @@ let serialize_asn1_boolean_unfold
   (* in *) (b)
 
 noextract
-let serialize_asn1_boolean_size
+let lemma_serialize_asn1_boolean_size
   (b: datatype_of_asn1_type BOOLEAN)
 : Lemma (
   Seq.length (serialize serialize_asn1_boolean b) == 1)
 = parser_kind_prop_equiv parse_asn1_boolean_kind parse_asn1_boolean;
-  serialize_asn1_boolean_unfold b
+  lemma_serialize_asn1_boolean_unfold b
 
 
 /// Specialized TLV
@@ -178,7 +178,7 @@ let parse_asn1_boolean_TLV
 
 #push-options "--z3rlimit 16 --initial_ifuel 4"
 noextract
-let parse_asn1_boolean_TLV_unfold
+let lemma_parse_asn1_boolean_TLV_unfold
   (input_TLV: bytes)
 : Lemma (
   parse parse_asn1_boolean_TLV input_TLV ==
@@ -239,7 +239,7 @@ let serialize_asn1_boolean_TLV
 
 (* NOTE: How far should we unfold the computation? *)
 noextract
-let serialize_asn1_boolean_TLV_unfold
+let lemma_serialize_asn1_boolean_TLV_unfold
   (value: datatype_of_asn1_type BOOLEAN)
 : Lemma (
   serialize serialize_asn1_boolean_TLV value
@@ -278,9 +278,9 @@ let serialize_asn1_boolean_TLV_unfold
 
 (* NOTE: Should we just combine this lemma into `_unfold` lemmas? *)
 noextract
-let serialize_asn1_boolean_TLV_size
+let lemma_serialize_asn1_boolean_TLV_size
   (value: datatype_of_asn1_type BOOLEAN)
 : Lemma (
   Seq.length (serialize serialize_asn1_boolean_TLV value) == 3)
 = parser_kind_prop_equiv parse_asn1_boolean_TLV_kind parse_asn1_boolean_TLV;
-  serialize_asn1_boolean_TLV_unfold value
+  lemma_serialize_asn1_boolean_TLV_unfold value

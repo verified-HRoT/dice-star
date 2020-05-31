@@ -499,7 +499,7 @@ let serialize_asn1_integer
 
 /// Reveal the computation of parse
 noextract
-let parse_asn1_integer_unfold
+let lemma_parse_asn1_integer_unfold
   (l: asn1_value_length_of_type INTEGER)
   (input: bytes)
 : Lemma (
@@ -524,7 +524,7 @@ let parse_asn1_integer_unfold
 
 /// Reveal the computaion of serialize
 noextract
-let serialize_asn1_integer_unfold
+let lemma_serialize_asn1_integer_unfold
   (l: asn1_value_length_of_type INTEGER)
   (value: datatype_of_asn1_type INTEGER { l == length_of_asn1_integer value })
 : Lemma (
@@ -548,14 +548,14 @@ let serialize_asn1_integer_unfold
 
 /// Reveal the size of a serialization
 noextract
-let serialize_asn1_integer_size
+let lemma_serialize_asn1_integer_size
   (l: asn1_value_length_of_type INTEGER)
   (value: datatype_of_asn1_type INTEGER { l == length_of_asn1_integer value })
 : Lemma (
   Seq.length (serialize (serialize_asn1_integer l) value) ==
   length_of_asn1_integer value)
 = parser_kind_prop_equiv (parse_asn1_integer_kind l) (parse_asn1_integer l);
-  serialize_asn1_integer_unfold l value
+  lemma_serialize_asn1_integer_unfold l value
 
 
 ///////////////////////////////////////////////////////////
@@ -637,7 +637,7 @@ let serialize_asn1_integer_V
 
 /// Reveal the computation of parse
 noextract
-let parse_asn1_integer_V_unfold
+let lemma_parse_asn1_integer_V_unfold
   (tag: (the_asn1_type INTEGER & asn1_value_int32_of_type INTEGER))
   (input: bytes)
 : Lemma (
@@ -654,7 +654,7 @@ let parse_asn1_integer_V_unfold
 
 /// Reveal the computation of serialzation
 noextract
-let serialize_asn1_integer_V_unfold
+let lemma_serialize_asn1_integer_V_unfold
   (tag: (the_asn1_type INTEGER & asn1_value_int32_of_type INTEGER))
   (value: refine_with_tag parser_tag_of_asn1_integer tag)
 : Lemma (
@@ -720,7 +720,7 @@ let serialize_asn1_integer_TLV
 #restart-solver
 #push-options "--z3rlimit 32 --initial_ifuel 8"
 noextract
-let parse_asn1_integer_TLV_unfold
+let lemma_parse_asn1_integer_TLV_unfold
   (input: bytes)
 : Lemma (
   parse parse_asn1_integer_TLV input ==
@@ -748,7 +748,7 @@ let parse_asn1_integer_TLV_unfold
                           parse_asn1_length_of_type INTEGER) input in
   if (Some? parser_tag) then
   ( let Some (parser_tag, length) = parser_tag in
-    parse_asn1_integer_V_unfold parser_tag (Seq.slice input length (Seq.length input)) );
+    lemma_parse_asn1_integer_V_unfold parser_tag (Seq.slice input length (Seq.length input)) );
 
   parse_tagged_union_eq
   (* pt *) (parse_asn1_tag_of_type INTEGER
@@ -762,7 +762,7 @@ let parse_asn1_integer_TLV_unfold
 /// Reveal the computation of serialize
 #push-options "--z3rlimit 32"
 noextract
-let serialize_asn1_integer_TLV_unfold
+let lemma_serialize_asn1_integer_TLV_unfold
   (value: datatype_of_asn1_type INTEGER)
 : Lemma (
   serialize serialize_asn1_integer_TLV value ==
@@ -775,7 +775,7 @@ let serialize_asn1_integer_TLV_unfold
   (* s1 *) (serialize_asn1_tag_of_type INTEGER)
   (* s2 *) (serialize_asn1_length_of_type INTEGER)
   (* in *) (parser_tag_of_asn1_integer value);
-  serialize_asn1_integer_V_unfold (parser_tag_of_asn1_integer value) value;
+  lemma_serialize_asn1_integer_V_unfold (parser_tag_of_asn1_integer value) value;
   serialize_tagged_union_eq
   (* st *) (serialize_asn1_tag_of_type INTEGER
             `serialize_nondep_then`
@@ -788,7 +788,7 @@ let serialize_asn1_integer_TLV_unfold
 /// Reveal the size of a serialzation
 #push-options "--z3rlimit 16"
 noextract
-let serialize_asn1_integer_TLV_size
+let lemma_serialize_asn1_integer_TLV_size
   (value: datatype_of_asn1_type INTEGER)
 : Lemma (
   let length = length_of_asn1_integer value in
@@ -798,9 +798,9 @@ let serialize_asn1_integer_TLV_size
 )
 = let length = length_of_asn1_integer value in
   let len: asn1_value_int32_of_type INTEGER = u length in
-  serialize_asn1_integer_TLV_unfold value;
-  serialize_asn1_tag_of_type_size INTEGER INTEGER;
-  serialize_asn1_length_size len;
+  lemma_serialize_asn1_integer_TLV_unfold value;
+  lemma_serialize_asn1_tag_of_type_size INTEGER INTEGER;
+  lemma_serialize_asn1_length_size len;
   serialize_asn1_length_of_type_eq INTEGER len;
-  serialize_asn1_integer_size length value
+  lemma_serialize_asn1_integer_size length value
 #pop-options

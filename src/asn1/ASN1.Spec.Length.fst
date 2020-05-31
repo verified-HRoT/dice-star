@@ -20,7 +20,7 @@ let parse_asn1_length
 = parse_bounded_der_length32 asn1_length_min asn1_length_max
 
 noextract
-let parse_asn1_length_unfold = parse_bounded_der_length32_unfold asn1_length_min asn1_length_max
+let lemma_parse_asn1_length_unfold = parse_bounded_der_length32_unfold asn1_length_min asn1_length_max
 
 noextract
 let serialize_asn1_length
@@ -28,18 +28,18 @@ let serialize_asn1_length
 = serialize_bounded_der_length32 asn1_length_min asn1_length_max
 
 noextract
-let serialize_asn1_length_unfold = serialize_bounded_der_length32_unfold asn1_length_min asn1_length_max
+let lemma_serialize_asn1_length_unfold = serialize_bounded_der_length32_unfold asn1_length_min asn1_length_max
 
 noextract
-let serialize_asn1_length_size = serialize_bounded_der_length32_size asn1_length_min asn1_length_max
+let lemma_serialize_asn1_length_size = serialize_bounded_der_length32_size asn1_length_min asn1_length_max
 
 #push-options "--z3rlimit 16"
 noextract
 let length_of_asn1_length
   (len: asn1_int32)
 : GTot (length: asn1_length_t{length == Seq.length (serialize serialize_asn1_length len)})
-= serialize_asn1_length_unfold len;
-  serialize_asn1_length_size len;
+= lemma_serialize_asn1_length_unfold len;
+  lemma_serialize_asn1_length_size len;
   let x = tag_of_der_length32 len in
   if x < 128uy then
   ( 1 )
@@ -77,24 +77,24 @@ let serialize_asn1_length_of_type
 /// NOTE: Since we cannot simply define them (the refinement in the return types will lose),
 ///       not definint them for now.
 // noextract
-// let parse_asn1_length_of_type_unfold
+// let lemma_parse_asn1_length_of_type_unfold
 //   (_a: asn1_type)
 //   (input: bytes)
 // = parse_bounded_der_length32_unfold (asn1_value_length_min_of_type _a) (asn1_value_length_max_of_type _a) input
 
 // noextract
-// let serialize_asn1_length_of_type_unfold
+// let lemma_serialize_asn1_length_of_type_unfold
 //   (_a: asn1_type)
 //   (len: asn1_value_int32_of_type _a)
 // = serialize_bounded_der_length32_unfold (asn1_value_length_min_of_type _a) (asn1_value_length_max_of_type _a) len
 
 // noextract
-// let serialize_asn1_length_of_type_size
+// let lemma_serialize_asn1_length_of_type_size
 //   (_a: asn1_type)
 //   (len: asn1_value_int32_of_type _a)
 // = serialize_bounded_der_length32_size (asn1_value_length_min_of_type _a) (asn1_value_length_max_of_type _a) len
 
-/// NOTE: Use this with `serialize_asn1_length_unfold/size` when you need to prove something in the serialization.
+/// NOTE: Use this with `lemma_serialize_asn1_length_unfold/size` when you need to prove something in the serialization.
 noextract
 let serialize_asn1_length_of_type_eq
   (_a: asn1_type)
@@ -103,7 +103,7 @@ let serialize_asn1_length_of_type_eq
   serialize serialize_asn1_length len ==
   serialize (serialize_asn1_length_of_type _a) len
 )
-= serialize_asn1_length_unfold len;
+= lemma_serialize_asn1_length_unfold len;
   let min, max = asn1_value_length_min_of_type _a, asn1_value_length_max_of_type _a in
   serialize_bounded_der_length32_unfold min max len
 

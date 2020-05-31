@@ -263,19 +263,21 @@ type oid_t =
 | OID_KEY_USAGE
 | OID_EXTENDED_KEY_USAGE
 | OID_BASIC_CONSTRAINTS
-| OID_DIGEST_SHA224
+// | OID_DIGEST_SHA224
 | OID_DIGEST_SHA256
-| OID_DIGEST_SHA384
-| OID_DIGEST_SHA512
+// | OID_DIGEST_SHA384
+// | OID_DIGEST_SHA512
+| OID_EC_ALG_UNRESTRICTED
+| OID_EC_GRP_SECP256R1
 
 type bit_string_t = {
-  len        : asn1_value_int32_of_type BIT_STRING;
-  unused_bits: n: asn1_int32 {0 <= v n /\ v n <= 7};
-  s          : s: B32.bytes { B32.length s == v len - 1 /\
+  bs_len        : asn1_value_int32_of_type BIT_STRING;
+  bs_unused_bits: n: asn1_int32 {0 <= v n /\ v n <= 7};
+  bs_s          : s: B32.bytes { B32.length s == v bs_len - 1 /\
                                              ( if B32.length s = 0 then
-                                               ( v unused_bits == 0 )
+                                               ( v bs_unused_bits == 0 )
                                                else
-                                               ( let mask: n:nat{cast_ok (Unsigned W8) n} = normalize_term (pow2 (v unused_bits)) in
+                                               ( let mask: n:nat{cast_ok (Unsigned W8) n} = normalize_term (pow2 (v bs_unused_bits)) in
                                                  let last_byte = B32.index s (B32.length s - 1) in
                                                  0 == normalize_term ((v last_byte) % mask)) )}
 }

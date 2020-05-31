@@ -42,8 +42,8 @@ let len_of_asn1_tag
 : Tot (l: size_t{
   v l == Seq.length (serialize serialize_asn1_tag tag) /\
   v l == 1})
-= (* Prf *) serialize_asn1_tag_unfold tag;
-  (* Prf *) serialize_asn1_tag_size tag;
+= (* Prf *) lemma_serialize_asn1_tag_unfold tag;
+  (* Prf *) lemma_serialize_asn1_tag_size tag;
   1ul
 
 ///
@@ -58,7 +58,7 @@ let serialize32_asn1_tag_backwards ()
     (pos: size_t)
 ->  let offset = len_of_asn1_tag a in
     let content: byte = encode_asn1_tag a in
-    (* Prf *) serialize_asn1_tag_unfold a;
+    (* Prf *) lemma_serialize_asn1_tag_unfold a;
     (* Prf *) serialize_u8_spec content;
     mbuffer_upd (* <-- NOTE: serialize the encoding of the ASN1 Tag *)
       (* buf *) b
@@ -81,7 +81,7 @@ let serialize32_asn1_tag_of_type_backwards
     pos
 ->  let offset = len_of_asn1_tag a in
    let content: byte = encode_asn1_tag a in
-    (* Prf *) serialize_asn1_tag_of_type_unfold _a a;
+    (* Prf *) lemma_serialize_asn1_tag_of_type_unfold _a a;
     (* Prf *) serialize_u8_spec content;
     mbuffer_upd (* <-- NOTE: serialize the encoding of the ASN1 Tag *)
       (* buf *) b
