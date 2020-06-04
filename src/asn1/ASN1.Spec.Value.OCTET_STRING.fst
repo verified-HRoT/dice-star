@@ -1,7 +1,6 @@
 module ASN1.Spec.Value.OCTET_STRING
 
-open LowParse.Spec.Base
-open LowParse.Spec.Combinators
+open ASN1.Spec.Base
 open LowParse.Spec.Bytes
 
 open ASN1.Base

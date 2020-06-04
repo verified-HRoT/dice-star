@@ -1,7 +1,6 @@
 module ASN1.Spec.TLV
 
-open LowParse.Spec.Base
-open LowParse.Spec.Combinators
+open ASN1.Spec.Base
 
 open ASN1.Base
 open ASN1.Spec.Tag

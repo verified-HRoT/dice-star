@@ -8,7 +8,20 @@ FSTAR_INCLUDES=$(FSTAR_HOME)/ulib/.cache \
   $(KREMLIN_HOME)/include \
   $(KREMLIN_HOME)/kremlib/dist/generic \
   $(KREMLIN_HOME)/kremlib \
+  $(HACL_HOME)/specs \
+  $(HACL_HOME)/specs/lemmas \
+  $(HACL_HOME)/specs/ecdsap256sha2 \
+  $(HACL_HOME)/vale/specs/hardware \
+  $(HACL_HOME)/vale/specs/defs \
+  $(HACL_HOME)/code/meta \
+  $(HACL_HOME)/code/hash \
+  $(HACL_HOME)/code/hkdf \
+  $(HACL_HOME)/code/hmac\
+  $(HACL_HOME)/code/curve25519 \
+  $(HACL_HOME)/code/ed25519 \
+  $(HACL_HOME)/code/ecdsap256sha2 \
   $(HACL_HOME)/lib \
+  $(HACL_HOME)/providers/evercrypt \
   $(HACL_HOME)/obj \
   $(EVERPARSE_HOME)/src/lowparse \
   $(OUTPUT_DIR)
@@ -20,7 +33,7 @@ FSTAR_FLAGS=--cache_checked_modules \
   --cache_dir $(OUTPUT_DIR) \
   --use_hints \
   --record_hints \
-  --already_cached 'Prims FStar LowStar C LowParse Spec Lib'
+  --already_cached 'Prims FStar LowStar C LowParse Spec Lib Hacl'
 
 FSTAR=$(FSTAR_HOME)/bin/fstar.exe $(FSTAR_FLAGS) $(OTHERFLAGS)
 

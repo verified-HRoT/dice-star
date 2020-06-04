@@ -1,7 +1,6 @@
 module ASN1.Spec.Value.BOOLEAN
 
-open LowParse.Spec.Base
-open LowParse.Spec.Combinators
+open ASN1.Spec.Base
 open LowParse.Spec.Int
 
 open ASN1.Base

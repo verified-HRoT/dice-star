@@ -292,7 +292,7 @@ let datatype_of_asn1_type (a: asn1_primitive_type): Type
   | BOOLEAN      -> bool
 
   (* Positive 32-bit _signed_ integer. *)
-  | INTEGER      -> ( i: int_32{v i >= 0} )
+  | INTEGER      -> ( i: int_32{v i > 0} )
 
   | NULL         -> unit
 

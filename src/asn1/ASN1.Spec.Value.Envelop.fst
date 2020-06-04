@@ -1,6 +1,7 @@
 module ASN1.Spec.Value.Envelop
 
 open ASN1.Base
+open ASN1.Spec.Base
 open ASN1.Spec.Tag
 open ASN1.Spec.Length
 open LowParse.Bytes
@@ -14,6 +15,15 @@ open FStar.Integers
          where these fixed-length is runtimely parsed.
  *)
 
+unfold
+let inbound_envelop_tag_with_value_of
+  (#k: parser_kind)
+  (#t: Type0)
+  (#p: parser k t)
+  (a: asn1_type)
+  (s: serializer p)
+= x: t{ asn1_value_length_inbound_of_type a (Seq.length (serialize s x)) }
+
 /// Tagging function
 ///
 noextract
@@ -23,7 +33,7 @@ let parser_tag_of_asn1_envelop_tag_with
   (#p: parser k t)
   (a: asn1_type)
   (s: serializer p)
-  (data: t { asn1_value_length_inbound_of_type a (Seq.length (serialize s data)) } )
+  (data: inbound_envelop_tag_with_value_of a s )
 : GTot (the_asn1_type a & asn1_value_int32_of_type a)
 = (a, u (Seq.length (serialize s data)))
 
@@ -173,7 +183,7 @@ let parse_asn1_envelop_tag_with_TLV
   (#p: parser k t)
   (a: asn1_type)
   (s: serializer p)
-: parser (parse_asn1_envelop_tag_with_TLV_kind a) (x: t{ asn1_value_length_inbound_of_type a (Seq.length (serialize s x)) })
+: parser (parse_asn1_envelop_tag_with_TLV_kind a) (inbound_envelop_tag_with_value_of a s)
 = parse_tagged_union
   (* pt *) (parse_asn1_tag_of_type a
             `nondep_then`
@@ -203,7 +213,7 @@ let lemma_serialize_asn1_envelop_tag_with_TLV_unfold
   (#p: parser k t)
   (a: asn1_type)
   (s: serializer p)
-  (value: t{ asn1_value_length_inbound_of_type a (Seq.length (serialize s value)) })
+  (value: inbound_envelop_tag_with_value_of a s)
 : Lemma (
   serialize (serialize_asn1_envelop_tag_with_TLV a s) value ==
   serialize (serialize_asn1_tag_of_type a) a
@@ -239,7 +249,7 @@ let lemma_serialize_asn1_envelop_tag_with_TLV_size
   (#p: parser k t)
   (a: asn1_type)
   (s: serializer p)
-  (value: t{ asn1_value_length_inbound_of_type a (Seq.length (serialize s value)) })
+  (value: inbound_envelop_tag_with_value_of a s)
 : Lemma (
   let length: asn1_value_length_of_type a = Seq.length (serialize s value) in
   let len: asn1_value_int32_of_type a = u length in
@@ -252,14 +262,14 @@ let lemma_serialize_asn1_envelop_tag_with_TLV_size
   lemma_serialize_asn1_length_size len;
   serialize_asn1_length_of_type_eq a len
 
-noextract
-let length_of_envelop_tag_with_TLV
+noextract unfold
+let length_of_asn1_envelop_tag_with_TLV
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
   (a: asn1_type)
   (s: serializer p)
-  (value: t{ asn1_value_length_inbound_of_type a (Seq.length (serialize s value)) })
+  (value: inbound_envelop_tag_with_value_of a s)
 : GTot (l: asn1_TLV_length_of_type a { l == Seq.length (serialize (serialize_asn1_envelop_tag_with_TLV a s) value) })
 = let length = Seq.length (serialize s value) in
   let len: asn1_int32 = u length in
@@ -267,12 +277,3 @@ let length_of_envelop_tag_with_TLV
   lemma_serialize_asn1_envelop_tag_with_TLV_size a s value;
   1 + length_of_asn1_length len + length
 #pop-options
-
-unfold
-let inbound_envelop_tag_with_value_of
-  (#k: parser_kind)
-  (#t: Type0)
-  (#p: parser k t)
-  (a: asn1_type)
-  (s: serializer p)
-= x: t{ asn1_value_length_inbound_of_type a (Seq.length (serialize s x)) }

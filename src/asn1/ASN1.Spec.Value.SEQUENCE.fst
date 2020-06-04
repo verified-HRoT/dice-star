@@ -1,6 +1,6 @@
 module ASN1.Spec.Value.SEQUENCE
 
-open LowParse.Spec.Base
+open ASN1.Spec.Base
 
 open ASN1.Base
 open ASN1.Spec.Tag
@@ -44,7 +44,7 @@ let length_of_asn1_sequence_TLV
   (#t: Type0)
   (#p: parser k t)
   (s: serializer p)
-= length_of_envelop_tag_with_TLV SEQUENCE s
+= length_of_asn1_envelop_tag_with_TLV SEQUENCE s
 
 unfold
 let inbound_sequence_value_of

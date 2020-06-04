@@ -51,6 +51,20 @@ let serializer32_backwards
     B.live h' b /\
     Seq.slice (B.as_seq h' b) (v (pos - offset)) (v pos) `Seq.equal` sx)
 
+unfold
+let coerce_serializer32_backwards
+  (#t2: Type0)
+  (#k: parser_kind)
+  (#t1: Type0)
+  (#p1: parser k t1)
+  (#p2: parser k t2)
+  (#s1: serializer p1)
+  (s2: serializer p2)
+  (s32: serializer32_backwards s1)
+  (u: unit { t2 == t1 /\ p2 == coerce_parser t2 p1 /\ s2 == ASN1.Spec.Base.coerce_parser_serializer p2 s1 ()} )
+: Tot (serializer32_backwards (s2))
+= s32
+
 inline_for_extraction
 let frame_serializer32_backwards
   (#k: parser_kind)

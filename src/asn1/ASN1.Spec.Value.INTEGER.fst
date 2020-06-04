@@ -1,7 +1,6 @@
 module ASN1.Spec.Value.INTEGER
 
-open LowParse.Spec.Base
-open LowParse.Spec.Combinators
+open ASN1.Spec.Base
 open LowParse.Spec.Int
 open LowParse.Spec.SeqBytes.Base
 
@@ -303,7 +302,7 @@ let synth_asn1_integer_inverse
 
 /// Prove that the our decoding function is injective when there is a leading zero
 /// in the input bytes
-#push-options "--z3rlimit 128"
+#push-options "--z3rlimit 192"
 noextract
 let synth_asn1_integer_injective_with_leading_zero
   (l: asn1_value_length_of_type INTEGER)

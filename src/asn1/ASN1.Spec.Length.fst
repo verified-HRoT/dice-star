@@ -1,7 +1,6 @@
 module ASN1.Spec.Length
 
-open LowParse.Spec.Base
-open LowParse.Spec.Combinators
+open ASN1.Spec.Base
 open LowParse.Spec.DER
 open FStar.Integers
 

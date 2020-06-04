@@ -1,4 +1,4 @@
-module X509.Extension
+module X509.BasicFields.Extension
 
 open LowParse.Spec.Base
 open LowParse.Spec.Combinators
@@ -159,7 +159,8 @@ let x509_extension_t_inbound
   (#t: Type0)
   (#p: parser k t)
   (s: serializer p)
-= inbound_sequence_value_of s
+= inbound_sequence_value_of
+  (* s *) (serialize_x509_extension s)
 
 /// SEQUENCE TLV
 
@@ -169,6 +170,7 @@ let parse_x509_extension_sequence_TLV
   (#t: Type0)
   (#p: parser k t)
   (s: serializer p)
+: parser _ (x509_extension_t_inbound s)
 = parse_asn1_sequence_TLV
   (* s *) (serialize_x509_extension s)
 
