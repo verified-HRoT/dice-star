@@ -166,6 +166,7 @@ let lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size
          of SEQUENCE "envelop".
 *)
 
+#push-options "--query_stats --z3rlimit 32"
 let lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size_exact
   (alg: cryptoAlg {alg == ED25519})
   (x: subjectPublicKeyInfo_t_inbound alg)
@@ -173,17 +174,17 @@ let lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size_exact
   match alg with
   | ED25519   -> ( length_of_opaque_serialization (serialize_subjectPublicKeyInfo_sequence_TLV alg) x == 44 )
 )
-= admit()
-  // match alg with
-  // | ED25519   -> ( (* reveal the SEQUENCE envelop *)
-  //                  lemma_serialize_subjectPublicKeyInfo_sequence_TLV_unfold alg x;
-  //                  lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size   alg x;
-  //                    (* reveal the SEQUENCE body *)
-  //                    lemma_serialize_subjectPublicKeyInfo_size alg x;
-  //                    (**) lemma_serialize_algorithmIdentifier_sequence_TLV_size_exact alg x.subjectPubKey_alg;
-  //                  // assert ( let bs: pubkey_t ED25519 = x.subjectPubKey in
-  //                  //          length_of_asn1_primitive_TLV bs == 35 );
-  //                  admit() )
+=
+  match alg with
+  | ED25519   -> ( (* reveal the SEQUENCE envelop *)
+                   lemma_serialize_subjectPublicKeyInfo_sequence_TLV_unfold alg x;
+                   lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size   alg x;
+                     (* reveal the SEQUENCE body *)
+                     lemma_serialize_subjectPublicKeyInfo_size alg x;
+                     (**) lemma_serialize_algorithmIdentifier_sequence_TLV_size_exact alg x.subjectPubKey_alg;
+                     assert ( let bs: pubkey_t ED25519 = x.subjectPubKey in
+                              length_of_asn1_primitive_TLV bs == 35 );
+                     () )
 
 /// Low
 ///
