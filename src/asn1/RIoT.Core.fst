@@ -34,15 +34,18 @@ open RIoT.Declassify
 
 module B32 = FStar.Bytes
 
-let salt_len: a:size_t{(v a) > 0 /\ Spec.Agile.HMAC.keysized alg (v a)}
-  = 32ul
-(* ZT: Hacl.HKDF.fsti and Spec.Agile.HKDF.fsti
-       have different spec, I choose the smaller
-       one `pow2 32` here*)
-let info_len: a:size_t{(v a) > 0 /\ hash_length SHA2_256 + v a + 1 + block_length SHA2_256 <= pow2 32}
-  = 32ul
-let okm_len : a:size_t{(v a) > 0}
-  = 32ul
+#set-options "--query_stats --z3rlimit 16 --initial_fuel 8 --initial_ifuel 2"
+let _ = assert (length_of_oid OID_EC_GRP_SECP256R1 == 6)
+
+// let salt_len: a:size_t{(v a) > 0 /\ Spec.Agile.HMAC.keysized alg (v a)}
+//   = 32ul
+// (* ZT: Hacl.HKDF.fsti and Spec.Agile.HKDF.fsti
+//        have different spec, I choose the smaller
+//        one `pow2 32` here*)
+// let info_len: a:size_t{(v a) > 0 /\ hash_length SHA2_256 + v a + 1 + block_length SHA2_256 <= pow2 32}
+//   = 32ul
+// let okm_len : a:size_t{(v a) > 0}
+//   = 32ul
 
 let riot_label_DeviceID: ib:IB.libuffer uint8 2 (Seq.createL [u8 0; u8 0])
                          { IB.frameOf ib == HS.root /\ IB.recallable ib }
@@ -54,7 +57,8 @@ let riot_label_AliasKey: ib:IB.libuffer uint8 2 (Seq.createL [u8 1; u8 1])
 // assume val s: Seq.lseq uint8 3
 // let x: B32.lbytes32 3ul = B32.hide s
 
-#push-options "--query_stats --z3rlimit 128 --initial_fuel 8 --initial_ifuel 2"
+#restart-solver
+#push-options "--query_stats --z3rlimit 256 --initial_fuel 8 --max_fuel 8 --initial_ifuel 4"
 let riot_main
   (cdi : B.lbuffer uint8 32)
   (fwid: B.lbuffer uint8 32)
@@ -84,21 +88,30 @@ let riot_main
     let aliasKey_pub, aliasKey_priv = riot_derive_key_pair_spec 32ul adigest 2ul (B.as_seq h riot_label_DeviceID) in
     let deviceID_pub32: B32.lbytes32 32ul = B32.hide deviceID_pub in
     let fwid32: B32.lbytes32 32ul = B32.hide (declassify_secret_bytes 32 (B.as_seq h fwid)) in
-    let compositeDeviceID = x509_get_compositeDeviceID riot_ver deviceID_pub32 fwid32 in
+    let riot_extension = x509_get_riot_extension riot_ver deviceID_pub32 fwid32 in
+    let riot_extension_sx = serialize_x509_extension_sequence_TLV serialize_compositeDeviceID_sequence_TLV
+                            `serialize`
+                            riot_extension in
     (* AliasKey Certificate TBS *)
-    let aliasKey_crt_tbs = Seq.slice (B.as_seq h aliasKey_crt) 0 (v aliasKey_crt_pos) in
-                           // `Seq.append` (* FIXME *)
-                           // (serialize_compositeDeviceID_sequence_TLV `serialize` compositeDeviceID) in
+    let aliasKey_crt_tbs = Seq.slice (B.as_seq h aliasKey_crt) 0 (v aliasKey_crt_pos)
+                           `Seq.append` (* FIXME: Here, we need to require that `tbs`'s length is acceptable by the signing fun *)
+                           riot_extension_sx in
+    let _ = lemma_serialize_x509_extension_size serialize_compositeDeviceID_sequence_TLV riot_extension;
+            (**) lemma_serialize_asn1_oid_TLV_size riot_extension.x509_extID;
+            (**) lemma_serialize_asn1_boolean_TLV_size riot_extension.x509_extCritical;
+            (**) lemma_serialize_compositeDeviceID_sequence_TLV_size_exact riot_extension.x509_extValue;
+            lemma_serialize_x509_extension_sequence_TLV_size serialize_compositeDeviceID_sequence_TLV riot_extension in
     let aliasKey_crt_tbs = classify_public_bytes (Seq.length aliasKey_crt_tbs) aliasKey_crt_tbs in
-    let aliasKey_crt_sig = Spec.Ed25519.sign deviceID_priv aliasKey_crt_tbs in
-    let aliasKey_crt_sig = declassify_secret_bytes 64 aliasKey_crt_sig in
-    let aliasKey_crt_sig_bs = {bs_len = 65ul; bs_unused_bits = 0ul; bs_s = B32.hide aliasKey_crt_sig} in
+    Seq.length aliasKey_crt_tbs + 64 <= max_size_t /\
+   (let aliasKey_crt_sig = Spec.Ed25519.sign deviceID_priv aliasKey_crt_tbs in
+    let aliasKey_crt_sig32: B32.lbytes32 64ul = B32.hide (declassify_secret_bytes 64 aliasKey_crt_sig) in
+    let aliasKey_crt_sig_bs = {bs_len = 65ul; bs_unused_bits = 0ul; bs_s = aliasKey_crt_sig32} in
     (* AliasKey Certificate Signature *)
-    let aliasKey_crt_sig_sx = (OID_EC_ALG_UNRESTRICTED (*FIXME*) `serialize_envelop_OID_with` serialize_asn1_bit_string_TLV)
-                              `serialize`
-                              (lemma_serialize_asn1_bit_string_TLV_size aliasKey_crt_sig_bs;
-                               (OID_EC_ALG_UNRESTRICTED, aliasKey_crt_sig_bs)) in
-    v aliasKey_crt_len - v aliasKey_crt_pos >= 50))
+    // let aliasKey_crt_sig_sx = (OID_EC_ALG_UNRESTRICTED (*FIXME*) `serialize_envelop_OID_with` serialize_asn1_bit_string_TLV)
+    //                           `serialize`
+    //                           (lemma_serialize_asn1_bit_string_TLV_size aliasKey_crt_sig_bs;
+    //                            (OID_EC_ALG_UNRESTRICTED, aliasKey_crt_sig_bs)) in
+    v aliasKey_crt_len - v aliasKey_crt_pos >= 50)))
     // length_of_opaque_serialization serialize_compositeDeviceID_sequence_TLV (x509_get_compositeDeviceID) ))
   (ensures  fun h0 _ h1 ->
     True)

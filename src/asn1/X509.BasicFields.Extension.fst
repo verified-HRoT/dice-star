@@ -190,8 +190,11 @@ let lemma_serialize_x509_extension_sequence_TLV_unfold
   (#t: Type0)
   (#p: parser k t)
   (s: serializer p)
+  (x: x509_extension_t_inbound s)
+: Lemma ( prop_serialize_asn1_sequence_TLV_unfold (serialize_x509_extension s) x )
 = lemma_serialize_asn1_sequence_TLV_unfold
   (* s *) (serialize_x509_extension s)
+  x
 
 unfold
 let lemma_serialize_x509_extension_sequence_TLV_size
@@ -199,8 +202,11 @@ let lemma_serialize_x509_extension_sequence_TLV_size
   (#t: Type0)
   (#p: parser k t)
   (s: serializer p)
+  (x: x509_extension_t_inbound s)
+: Lemma ( prop_serialize_asn1_sequence_TLV_size (serialize_x509_extension s) x )
 = lemma_serialize_asn1_sequence_TLV_size
   (* s *) (serialize_x509_extension s)
+  x
 
 open ASN1.Low
 

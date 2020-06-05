@@ -269,6 +269,8 @@ type oid_t =
 // | OID_DIGEST_SHA512
 | OID_EC_ALG_UNRESTRICTED
 | OID_EC_GRP_SECP256R1
+| OID_ED25519
+| OID_X25519
 
 type bit_string_t = {
   bs_len        : asn1_value_int32_of_type BIT_STRING;

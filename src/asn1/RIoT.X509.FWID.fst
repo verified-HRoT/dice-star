@@ -6,19 +6,27 @@ open LowParse.Low.Base
 open ASN1.Spec
 open ASN1.Low
 
-open X509.Crypto
-open X509.BasicFields
-open X509.ExtFields
+// open X509.Crypto
+// open X509.BasicFields
+// open X509.ExtFields
+
+open FStar.Integers
 
 (* FWID
   ======
 *)
-noeq
 type fwid_t = {
-  fwid_hashAlg: datatype_of_asn1_type OID; (* OID *)
-  fwid_value  : datatype_of_asn1_type OCTET_STRING
+  fwid_hashAlg: x:datatype_of_asn1_type OID {x == OID_DIGEST_SHA256}; (* OID *)
+  fwid_value  : x:datatype_of_asn1_type OCTET_STRING {v (dfst x) == 32}
 }
-let fwid_t' = (datatype_of_asn1_type OID & datatype_of_asn1_type OCTET_STRING)
+
+let filter_fwid
+  (x': datatype_of_asn1_type OID `tuple2` datatype_of_asn1_type OCTET_STRING)
+: GTot bool
+= fst x' = OID_DIGEST_SHA256 &&
+  v (dfst (snd x')) = 32
+
+let fwid_t' = parse_filter_refine filter_fwid
 
 (* Serialier spec *)
 let synth_fwid_t
@@ -37,6 +45,8 @@ let parse_fwid
 = parse_asn1_TLV_of_type OID
   `nondep_then`
   parse_asn1_TLV_of_type OCTET_STRING
+  `parse_filter`
+  filter_fwid
   `parse_synth`
   synth_fwid_t
 
@@ -45,11 +55,15 @@ let serialize_fwid
 = serialize_synth
   (* p1 *) (parse_asn1_TLV_of_type OID
             `nondep_then`
-            parse_asn1_TLV_of_type OCTET_STRING)
+            parse_asn1_TLV_of_type OCTET_STRING
+            `parse_filter`
+            filter_fwid)
   (* f2 *) (synth_fwid_t)
   (* s1 *) (serialize_asn1_TLV_of_type OID
             `serialize_nondep_then`
-            serialize_asn1_TLV_of_type OCTET_STRING)
+            serialize_asn1_TLV_of_type OCTET_STRING
+            `serialize_filter`
+            filter_fwid)
   (* g1 *) (synth_fwid_t')
   (* prf*) ()
 
@@ -68,23 +82,32 @@ let lemma_serialize_fwid_unfold
   serialize_synth_eq
   (* p1 *) (parse_asn1_TLV_of_type OID
             `nondep_then`
-            parse_asn1_TLV_of_type OCTET_STRING)
+            parse_asn1_TLV_of_type OCTET_STRING
+            `parse_filter`
+            filter_fwid)
   (* f2 *) (synth_fwid_t)
   (* s1 *) (serialize_asn1_TLV_of_type OID
             `serialize_nondep_then`
-            serialize_asn1_TLV_of_type OCTET_STRING)
+            serialize_asn1_TLV_of_type OCTET_STRING
+            `serialize_filter`
+            filter_fwid)
   (* g1 *) (synth_fwid_t')
   (* prf*) ()
   (* in *) x
 
+#push-options "--z3rlimit 32"
 let lemma_serialize_fwid_size
   (x: fwid_t)
 : Lemma (
   Seq.length (serialize serialize_fwid x) ==
   length_of_asn1_primitive_TLV x.fwid_hashAlg +
-  length_of_asn1_primitive_TLV x.fwid_value
+  length_of_asn1_primitive_TLV x.fwid_value /\
+  Seq.length (serialize serialize_fwid x) == 45
 )
-= lemma_serialize_fwid_unfold x
+= lemma_serialize_fwid_unfold x;
+  assert_norm (length_of_asn1_primitive_TLV x.fwid_hashAlg == 11);
+  assert_norm (length_of_asn1_primitive_TLV x.fwid_value == 34)
+#pop-options
 
 (* inbound sub type*)
 let fwid_t_inbound
@@ -100,10 +123,31 @@ let serialize_fwid_sequence_TLV
 = serialize_asn1_sequence_TLV serialize_fwid
 
 let lemma_serialize_fwid_sequence_TLV_unfold
-= lemma_serialize_asn1_sequence_TLV_unfold serialize_fwid
+  (x: fwid_t_inbound)
+: Lemma ( prop_serialize_asn1_sequence_TLV_unfold serialize_fwid x )
+= lemma_serialize_asn1_sequence_TLV_unfold serialize_fwid x
 
 let lemma_serialize_fwid_sequence_TLV_size
-= lemma_serialize_asn1_sequence_TLV_size serialize_fwid
+  (x: fwid_t_inbound)
+: Lemma ( prop_serialize_asn1_sequence_TLV_size serialize_fwid x )
+= lemma_serialize_asn1_sequence_TLV_size serialize_fwid x
+
+// #push-options "--query_stats --z3rlimit 96 --initial_fuel 8 --initial_ifuel 2"
+let lemma_serialize_fwid_sequence_TLV_size_exact
+  (x: fwid_t_inbound)
+: Lemma (
+  length_of_opaque_serialization serialize_fwid x == 47
+)
+= admit()
+
+  // assert_norm ( length_of_asn1_length (u 45) == 1 );
+  // lemma_serialize_fwid_sequence_TLV_unfold x;
+  // lemma_serialize_fwid_sequence_TLV_size x;
+  // lemma_serialize_fwid_size x
+  // assert_norm (
+  //   (length_of_opaque_serialization serialize_fwid x) == 45 /\
+  //   length_of_asn1_length (u (length_of_opaque_serialization serialize_fwid x)) == 1)
+
 
 (* Low *)
 let serialize32_fwid_backwards
@@ -111,7 +155,9 @@ let serialize32_fwid_backwards
 = serialize32_synth_backwards
   (* ls *) (serialize32_asn1_TLV_backwards_of_type OID
             `serialize32_nondep_then_backwards`
-            serialize32_asn1_TLV_backwards_of_type OCTET_STRING)
+            serialize32_asn1_TLV_backwards_of_type OCTET_STRING
+            `serialize32_filter_backwards`
+            filter_fwid)
   (* f2 *) (synth_fwid_t)
   (* g1 *) (synth_fwid_t')
   (* g1'*) (synth_fwid_t')

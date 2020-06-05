@@ -126,6 +126,21 @@ let serialize_asn1_envelop_tag_with
   (* g1 *) (synth_asn1_envelop_tag_with_inverse a s tag)
   (* prf*) ()
 
+// noextract
+// let prop_serialize_asn1_envelop_tag_with_unfold
+//   (#k: parser_kind)
+//   (#t: Type0)
+//   (#p: parser k t)
+//   (a: asn1_type)
+//   (s: serializer p)
+//   (tag: the_asn1_type a & asn1_value_int32_of_type a)
+//   (value: refine_with_tag (parser_tag_of_asn1_envelop_tag_with a s) tag)
+// : Type0
+// = serialize
+//     (serialize_fldata_strong s (v (snd tag)))
+//     (synth_asn1_envelop_tag_with_inverse a s tag value)
+//   == serialize (serialize_asn1_envelop_tag_with a s tag) value
+
 noextract
 let lemma_serialize_asn1_envelop_tag_with_unfold
   (#k: parser_kind)
@@ -207,6 +222,21 @@ let serialize_asn1_envelop_tag_with_TLV
   (* s  *) (serialize_asn1_envelop_tag_with_weak a s)
 
 #push-options "--query_stats --z3rlimit 32"
+let prop_serialize_asn1_envelop_tag_with_TLV_unfold
+  (#k: parser_kind)
+  (#t: Type0)
+  (#p: parser k t)
+  (a: asn1_type)
+  (s: serializer p)
+  (value: inbound_envelop_tag_with_value_of a s)
+: Type0
+= serialize (serialize_asn1_envelop_tag_with_TLV a s) value ==
+  serialize (serialize_asn1_tag_of_type a) a
+  `Seq.append`
+  serialize (serialize_asn1_length_of_type a) (u (length_of_opaque_serialization (serialize_asn1_envelop_tag_with a s (parser_tag_of_asn1_envelop_tag_with a s value)) value))
+  `Seq.append`
+  serialize (serialize_asn1_envelop_tag_with a s (parser_tag_of_asn1_envelop_tag_with a s value)) value
+
 let lemma_serialize_asn1_envelop_tag_with_TLV_unfold
   (#k: parser_kind)
   (#t: Type0)
@@ -214,21 +244,7 @@ let lemma_serialize_asn1_envelop_tag_with_TLV_unfold
   (a: asn1_type)
   (s: serializer p)
   (value: inbound_envelop_tag_with_value_of a s)
-: Lemma (
-  serialize (serialize_asn1_envelop_tag_with_TLV a s) value ==
-  serialize (serialize_asn1_tag_of_type a) a
-  `Seq.append`
-  serialize (serialize_asn1_length_of_type a) (u (Seq.length (serialize (serialize_asn1_envelop_tag_with a s (parser_tag_of_asn1_envelop_tag_with a s value)) value)))
-  `Seq.append`
-  serialize (serialize_asn1_envelop_tag_with a s (parser_tag_of_asn1_envelop_tag_with a s value)) value
-  // /\
-  // serialize (serialize_asn1_envelop_tag_with_tlv a s) value ==
-  // serialize (serialize_asn1_tag_of_type sequence) sequence
-  // `seq.append`
-  // serialize (serialize_asn1_length_of_type sequence) (u (seq.length (serialize s value)))
-  // `seq.append`
-  // serialize s value
-)
+: Lemma ( prop_serialize_asn1_envelop_tag_with_TLV_unfold a s value )
 = //lemma_serialize_asn1_envelop_tag_with_unfold s (parser_tag_of_asn1_envelop_tag_with s value) value;
   serialize_nondep_then_eq
   (* s1 *) (serialize_asn1_tag_of_type a)
@@ -242,7 +258,20 @@ let lemma_serialize_asn1_envelop_tag_with_TLV_unfold
   (* s  *) (serialize_asn1_envelop_tag_with_weak a s)
   (* val*) (value)
 
-noextract
+
+let prop_serialize_asn1_envelop_tag_with_TLV_size
+  (#k: parser_kind)
+  (#t: Type0)
+  (#p: parser k t)
+  (a: asn1_type)
+  (s: serializer p)
+  (value: inbound_envelop_tag_with_value_of a s)
+: Type0
+= let length: asn1_value_length_of_type a = Seq.length (serialize s value) in
+  let len: asn1_value_int32_of_type a = u length in
+  Seq.length (serialize (serialize_asn1_envelop_tag_with_TLV a s) value) ==
+  1 + length_of_asn1_length len + length
+
 let lemma_serialize_asn1_envelop_tag_with_TLV_size
   (#k: parser_kind)
   (#t: Type0)
@@ -250,11 +279,7 @@ let lemma_serialize_asn1_envelop_tag_with_TLV_size
   (a: asn1_type)
   (s: serializer p)
   (value: inbound_envelop_tag_with_value_of a s)
-: Lemma (
-  let length: asn1_value_length_of_type a = Seq.length (serialize s value) in
-  let len: asn1_value_int32_of_type a = u length in
-  Seq.length (serialize (serialize_asn1_envelop_tag_with_TLV a s) value) ==
-  1 + length_of_asn1_length len + length)
+: Lemma ( prop_serialize_asn1_envelop_tag_with_TLV_size a s value )
 = let length: asn1_value_length_of_type a = Seq.length (serialize s value) in
   let len: asn1_value_int32_of_type a = u length in
   lemma_serialize_asn1_envelop_tag_with_TLV_unfold a s value;

@@ -52,6 +52,8 @@ let oid_BASIC_CONSTRAINTS_as_buffer        = IB.igcmalloc_of_list HS.root oid_BA
 let oid_EC_ALG_UNRESTRICTED_as_buffer      = IB.igcmalloc_of_list HS.root oid_EC_ALG_UNRESTRICTED
 let oid_EC_GRP_SECP256R1_as_buffer         = IB.igcmalloc_of_list HS.root oid_EC_GRP_SECP256R1
 let oid_DIGEST_ALG_SHA256_as_buffer        = IB.igcmalloc_of_list HS.root oid_DIGEST_ALG_SHA256
+let oid_ED25519_as_bufffer                 = IB.igcmalloc_of_list HS.root oid_ED25519
+let oid_X25519_as_bufffer                  = IB.igcmalloc_of_list HS.root oid_X25519
 
 (* FIXME: A workaround
    To not extract any (total) seq, we split the `oid_buffer_t` into three
@@ -76,6 +78,8 @@ let oid_buffer_of_oid
   | OID_BASIC_CONSTRAINTS        -> oid_BASIC_CONSTRAINTS_as_buffer
   | OID_EC_ALG_UNRESTRICTED      -> oid_EC_ALG_UNRESTRICTED_as_buffer
   | OID_EC_GRP_SECP256R1         -> oid_EC_GRP_SECP256R1_as_buffer
+  | OID_ED25519                  -> oid_ED25519_as_bufffer
+  | OID_X25519                   -> oid_X25519_as_bufffer
   | OID_DIGEST_SHA256            -> oid_DIGEST_ALG_SHA256_as_buffer
 
 let len_of_oid_buffer
@@ -95,6 +99,8 @@ let len_of_oid_buffer
   | OID_BASIC_CONSTRAINTS        -> 3ul //oid_BASIC_CONSTRAINTS_as_buffer
   | OID_EC_ALG_UNRESTRICTED      -> 5ul //oid_EC_ALG_UNRESTRICTED_as_buffer
   | OID_EC_GRP_SECP256R1         -> 6ul //oid_EC_GRP_SECP256R1_as_buffer
+  | OID_ED25519                  -> 3ul
+  | OID_X25519                   -> 3ul
   | OID_DIGEST_SHA256            -> 9ul //oid_DIGEST_ALG_SHA256_as_buffer
 
 noextract

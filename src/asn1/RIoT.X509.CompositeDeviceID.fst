@@ -13,7 +13,6 @@ open RIoT.X509.Base
 open RIoT.X509.FWID
 
 (* CompositeDeviceID *)
-noeq
 type compositeDeviceID_t
 = { riot_version : datatype_of_asn1_type INTEGER;
     riot_deviceID: subjectPublicKeyInfo_t_inbound alg_DeviceID;
@@ -116,38 +115,39 @@ let lemma_serialize_compositeDeviceID_unfold
     // lemma_serialize_fwid_sequence_TLV_unfold x.riot_fwid;
     // lemma_serialize_fwid_unfold              x.riot_fwid
 
+#push-options "--query_stats --z3rlimit 32"
 let lemma_serialize_compositeDeviceID_size
   (x: compositeDeviceID_t)
 : Lemma (
   length_of_opaque_serialization (serialize_compositeDeviceID) x ==
   length_of_asn1_primitive_TLV x.riot_version +
   length_of_opaque_serialization (serialize_subjectPublicKeyInfo_sequence_TLV alg_DeviceID) x.riot_deviceID +
-  length_of_opaque_serialization serialize_fwid_sequence_TLV x.riot_fwid /\
-  (* subjectPublicKeyInfo size *)
-  length_of_opaque_serialization (serialize_subjectPublicKeyInfo alg_DeviceID) x.riot_deviceID ==
-  length_of_asn1_sequence_TLV (serialize_algorithmIdentifier alg_DeviceID) x.riot_deviceID.subjectPubKey_alg +
-  length_of_asn1_primitive_TLV x.riot_deviceID.subjectPubKey /\
-  (* algorithmIdentifier size*)
-  ( match alg_DeviceID with
-    | ECDSA_P256 -> length_of_opaque_serialization (serialize_algorithmIdentifier alg_DeviceID) x.riot_deviceID.subjectPubKey_alg ==
-                    length_of_asn1_primitive_TLV x.riot_deviceID.subjectPubKey_alg.alg_id_oid_ecdsa +
-                    length_of_asn1_primitive_TLV x.riot_deviceID.subjectPubKey_alg.alg_id_oid_p256 ) /\
-  (* FWID size *)
-  length_of_opaque_serialization serialize_fwid x.riot_fwid ==
-  length_of_asn1_primitive_TLV x.riot_fwid.fwid_hashAlg +
-  length_of_asn1_primitive_TLV x.riot_fwid.fwid_value
+  length_of_opaque_serialization serialize_fwid_sequence_TLV x.riot_fwid
+  // (* subjectPublicKeyInfo size *)
+  // length_of_opaque_serialization (serialize_subjectPublicKeyInfo alg_DeviceID) x.riot_deviceID ==
+  // length_of_asn1_sequence_TLV (serialize_algorithmIdentifier alg_DeviceID) x.riot_deviceID.subjectPubKey_alg +
+  // length_of_asn1_primitive_TLV x.riot_deviceID.subjectPubKey /\
+  // (* algorithmIdentifier size*)
+  // ( match alg_DeviceID with
+  //   | ECDSA_P256 -> length_of_opaque_serialization (serialize_algorithmIdentifier alg_DeviceID) x.riot_deviceID.subjectPubKey_alg ==
+  //                   length_of_asn1_primitive_TLV x.riot_deviceID.subjectPubKey_alg.alg_id_oid_ecdsa +
+  //                   length_of_asn1_primitive_TLV x.riot_deviceID.subjectPubKey_alg.alg_id_oid_p256 ) /\
+  // (* FWID size *)
+  // length_of_opaque_serialization serialize_fwid x.riot_fwid ==
+  // length_of_asn1_primitive_TLV x.riot_fwid.fwid_hashAlg +
+  // length_of_asn1_primitive_TLV x.riot_fwid.fwid_value
 )
-= lemma_serialize_compositeDeviceID_unfold x;
-    lemma_serialize_subjectPublicKeyInfo_sequence_TLV_unfold alg_DeviceID x.riot_deviceID;
-    lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size   alg_DeviceID x.riot_deviceID;
-    lemma_serialize_subjectPublicKeyInfo_unfold              alg_DeviceID x.riot_deviceID;
-    lemma_serialize_subjectPublicKeyInfo_size                alg_DeviceID x.riot_deviceID;
-      lemma_serialize_algorithmIdentifier_sequence_TLV_unfold alg_DeviceID x.riot_deviceID.subjectPubKey_alg;
-      lemma_serialize_algorithmIdentifier_sequence_TLV_size   alg_DeviceID x.riot_deviceID.subjectPubKey_alg;
-      lemma_serialize_algorithmIdentifier_size                alg_DeviceID x.riot_deviceID.subjectPubKey_alg;
-    lemma_serialize_fwid_sequence_TLV_unfold x.riot_fwid;
-    lemma_serialize_fwid_sequence_TLV_size   x.riot_fwid;
-    lemma_serialize_fwid_size                x.riot_fwid
+= lemma_serialize_compositeDeviceID_unfold x
+    // lemma_serialize_subjectPublicKeyInfo_sequence_TLV_unfold alg_DeviceID x.riot_deviceID;
+    // lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size   alg_DeviceID x.riot_deviceID;
+    // lemma_serialize_subjectPublicKeyInfo_unfold              alg_DeviceID x.riot_deviceID;
+    // lemma_serialize_subjectPublicKeyInfo_size                alg_DeviceID x.riot_deviceID;
+    //   lemma_serialize_algorithmIdentifier_sequence_TLV_unfold alg_DeviceID x.riot_deviceID.subjectPubKey_alg;
+    //   lemma_serialize_algorithmIdentifier_sequence_TLV_size   alg_DeviceID x.riot_deviceID.subjectPubKey_alg;
+    //   lemma_serialize_algorithmIdentifier_size                alg_DeviceID x.riot_deviceID.subjectPubKey_alg;
+    // lemma_serialize_fwid_sequence_TLV_unfold x.riot_fwid;
+    // lemma_serialize_fwid_sequence_TLV_size   x.riot_fwid;
+    // lemma_serialize_fwid_size                x.riot_fwid
 
 (* inbound sub type*)
 let compositeDeviceID_t_inbound
@@ -169,10 +169,22 @@ let serialize_compositeDeviceID_sequence_TLV
 
 (* manually unfolding `lemma_serialize_asn1_sequence_TLV_size` to avoid stuck here.  *)
 let lemma_serialize_compositeDeviceID_sequence_TLV_unfold
-= lemma_serialize_asn1_envelop_tag_with_TLV_unfold SEQUENCE (serialize_compositeDeviceID)
+  (x: compositeDeviceID_t_inbound)
+: Lemma ( prop_serialize_asn1_sequence_TLV_unfold serialize_compositeDeviceID x )
+= lemma_serialize_asn1_sequence_TLV_unfold serialize_compositeDeviceID x
 
 let lemma_serialize_compositeDeviceID_sequence_TLV_size
-= lemma_serialize_asn1_sequence_TLV_size (serialize_compositeDeviceID)
+  (x: compositeDeviceID_t_inbound)
+: Lemma ( prop_serialize_asn1_sequence_TLV_size serialize_compositeDeviceID x )
+= lemma_serialize_asn1_sequence_TLV_size serialize_compositeDeviceID x
+
+let lemma_serialize_compositeDeviceID_sequence_TLV_size_exact
+  (x: compositeDeviceID_t_inbound)
+: Lemma (
+  length_of_opaque_serialization serialize_compositeDeviceID x ==
+  length_of_asn1_primitive_TLV x.riot_version + 93
+)
+= admit()//lemma_serialize_asn1_sequence_TLV_size serialize_compositeDeviceID x
 
 let serialize32_compositeDeviceID
 : serializer32_backwards (serialize_compositeDeviceID)

@@ -239,6 +239,13 @@ noextract let oid_EC_ALG_UNRESTRICTED = oid_ANSI_X9_62 @ [0x02uy; 0x01uy]
 
 let oid_EC_GRP_SECP256R1 = oid_ANSI_X9_62 @ [0x03uy; 0x01uy; 0x07uy]
 
+
+let oid_EDWARDS_CURVE_ALGS = oid_head_ISO_IDENTIFIED_ORG @ [0x65uy]
+
+let oid_ED25519 = oid_EDWARDS_CURVE_ALGS @ [0x70uy]
+
+let oid_X25519 = oid_EDWARDS_CURVE_ALGS @ [0x6Euy]
+
 (* RIoT OID
   =========
 1.3.6.1.4.1.311.89.3.1
@@ -263,7 +270,9 @@ let known_oids_as_list =
     // oid_DIGEST_ALG_SHA384;
     // oid_DIGEST_ALG_SHA512;
     oid_EC_ALG_UNRESTRICTED;
-    oid_EC_GRP_SECP256R1
+    oid_EC_GRP_SECP256R1;
+    oid_ED25519;
+    oid_X25519
     ]
 
 module T = FStar.Tactics
@@ -377,7 +386,10 @@ by (T.norm ([iota; zeta; delta_only [  //before sending the VC to the solver, un
   `%oid_node_ORG_ANSI_X9_62;
   `%oid_ANSI_X9_62;
   `%oid_EC_ALG_UNRESTRICTED;
-  `%oid_EC_GRP_SECP256R1] ]))
+  `%oid_EC_GRP_SECP256R1;
+  `%oid_EDWARDS_CURVE_ALGS;
+  `%oid_ED25519;
+  `%oid_X25519] ]))
 
 = let aux (#a:Type) (l:list a)
     : Lemma (Seq.seq_to_list (Seq.seq_of_list l) == l)
@@ -420,6 +432,8 @@ let oid_seq_of
   // | OID_DIGEST_SHA512            -> Seq.createL oid_DIGEST_ALG_SHA512
   | OID_EC_ALG_UNRESTRICTED      -> Seq.createL oid_EC_ALG_UNRESTRICTED
   | OID_EC_GRP_SECP256R1         -> Seq.createL oid_EC_GRP_SECP256R1
+  | OID_ED25519                  -> Seq.createL oid_ED25519
+  | OID_X25519                   -> Seq.createL oid_X25519
 #pop-options
 
 
@@ -461,6 +475,8 @@ let length_of_oid
   | OID_DIGEST_SHA256            -> assert_norm (List.length oid_DIGEST_ALG_SHA256 == 9); 9
   | OID_EC_ALG_UNRESTRICTED      -> assert_norm (List.length oid_EC_ALG_UNRESTRICTED == 5); 5
   | OID_EC_GRP_SECP256R1         -> assert_norm (List.length oid_EC_GRP_SECP256R1 == 6); 6
+  | OID_ED25519                  -> assert_norm (List.length oid_ED25519 == 3); 3
+  | OID_X25519                   -> assert_norm (List.length oid_X25519 == 3); 3
 
 noextract
 let filter_asn1_oid
@@ -507,6 +523,10 @@ let synth_asn1_oid
   ( OID_EC_ALG_UNRESTRICTED )
   else if ( oid_seq = Seq.createL oid_EC_GRP_SECP256R1 ) then
   ( OID_EC_GRP_SECP256R1 )
+  else if ( oid_seq = Seq.createL oid_ED25519 ) then
+  ( OID_ED25519 )
+  else if ( oid_seq = Seq.createL oid_X25519 ) then
+  ( OID_X25519 )
   else
   ( false_elim() )
 #pop-options

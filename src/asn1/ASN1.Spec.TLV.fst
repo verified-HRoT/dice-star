@@ -173,3 +173,13 @@ let length_of_asn1_primitive_TLV
                       lemma_serialize_asn1_oid_TLV_size value
                     ; 1 + length_of_asn1_length len + length )
 #pop-options
+
+unfold
+let length_of_TLV
+  (a: asn1_type)
+  (l: asn1_value_length_of_type a)
+: GTot (asn1_TLV_length_of_type a)
+= 1 + length_of_asn1_length (u l) + l
+
+let _ =
+assert_norm (length_of_asn1_primitive_value (Mkbit_string_t 33ul 1ul (magic())) == 33)
