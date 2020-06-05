@@ -144,6 +144,28 @@ let lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size
 : Lemma ( prop_serialize_asn1_sequence_TLV_size (serialize_subjectPublicKeyInfo alg) x )
 = lemma_serialize_asn1_sequence_TLV_size (serialize_subjectPublicKeyInfo alg) x
 
+(* NOTE: For a subjectPublicKeyInfo for Ed25519, it consists
+         1) a 1-byte tag
+         2) a 1-byte length (the value field's length can be represented by 1 byte)
+         3) a 7-byte algorithmIdentifier for Ed25519, whose length has been proved is 7,
+            see `lemma_serialize_algorithmIdentifier_sequence_TLV_size_exact`
+         4) a 35-byte bit string TLV (1 byte for tag, 1 byte for length, 33 bytes for a 32-byte bit string),
+            see `length_of_asn1_primitive_value` (without tag and length) and `length_of_asn1_primitive_TLV`
+            for the length calc.
+         Thus the total length should be 1 + 1 + 7 + 35 = 44 bytes.
+   NOTE: For the use of lemmas:
+         For primitive types
+         1) lemma_serialize_..._unfold will reveal one level of the serialization.
+            For example, `lemma_serialize_asn1_bit_string_TLV_unfold bs` proves
+            that serialization of bs's TLV == serialization of tag appends serialization
+            of length appends serialization of value (the bs)
+         2) lemma_serialize_..._size will reveal the size of a TLV equals to the sum of
+            the serializations of Tag, Length and Value
+         For SEQUENCE, which takes a serializer `s` of the SEQUENCE body, envelops it as
+         a SEQUENCE TLV `lemma_serialize_...sequence_TLV_unfold/size` reveals this level
+         of SEQUENCE "envelop".
+*)
+
 let lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size_exact
   (alg: cryptoAlg {alg == ED25519})
   (x: subjectPublicKeyInfo_t_inbound alg)
@@ -153,11 +175,13 @@ let lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size_exact
 )
 = admit()
   // match alg with
-  // | ED25519   -> ( lemma_serialize_subjectPublicKeyInfo_sequence_TLV_unfold alg x;
+  // | ED25519   -> ( (* reveal the SEQUENCE envelop *)
+  //                  lemma_serialize_subjectPublicKeyInfo_sequence_TLV_unfold alg x;
   //                  lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size   alg x;
+  //                    (* reveal the SEQUENCE body *)
   //                    lemma_serialize_subjectPublicKeyInfo_size alg x;
   //                    (**) lemma_serialize_algorithmIdentifier_sequence_TLV_size_exact alg x.subjectPubKey_alg;
-  //                  // assume ( let bs: pubkey_t ED25519 = x.subjectPubKey in
+  //                  // assert ( let bs: pubkey_t ED25519 = x.subjectPubKey in
   //                  //          length_of_asn1_primitive_TLV bs == 35 );
   //                  admit() )
 
