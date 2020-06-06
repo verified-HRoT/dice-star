@@ -210,3 +210,38 @@ let serialize32_subjectPublicKeyInfo_sequence_TLV_backwards
 : serializer32_backwards (serialize_subjectPublicKeyInfo_sequence_TLV alg)
 = serialize32_asn1_sequence_TLV_backwards
   (* ls *) (serialize32_subjectPublicKeyInfo_backwards alg)
+
+(* helpers *)
+let _ = assert (length_of_oid OID_EC_GRP_SECP256R1 == 6)
+
+module B32 = FStar.Bytes
+open X509.Crypto.AlgorithmIdentifier
+let subjectPublicKeyInfo_raw_t
+  (alg: cryptoAlg{alg == ED25519})
+= match alg with
+  | ED25519   -> B32.lbytes32 32ul
+
+#push-options "--query_stats --z3rlimit 8 --fuel 2 --ifuel 1"
+let x509_get_subjectPublicKeyInfo
+  (pubkey_alg: cryptoAlg {pubkey_alg == ED25519} )
+  (pubkey: B32.lbytes32 32ul)
+: Tot (subjectPublicKeyInfo_t_inbound pubkey_alg)
+=
+  lemma_trivial_bit_string_is_valid 33ul pubkey;
+  let pubkey_bs: pubkey_t pubkey_alg = Mkbit_string_t 33ul 0ul pubkey in
+
+  if (pubkey_alg = ED25519) then
+  ( let alg_id: algorithmIdentifier_t_inbound pubkey_alg = x509_get_algorithmIdentifier pubkey_alg in
+    (* Prf *) lemma_serialize_algorithmIdentifier_sequence_TLV_size_exact pubkey_alg alg_id;
+
+    let aliasPublicKeyInfo: subjectPublicKeyInfo_t pubkey_alg = {
+       subjectPubKey_alg = alg_id;
+       subjectPubKey     = pubkey_bs
+    } in
+    (* Prf *) lemma_serialize_subjectPublicKeyInfo_size pubkey_alg aliasPublicKeyInfo;
+    (* Prf *) (**) lemma_serialize_asn1_bit_string_TLV_size aliasPublicKeyInfo.subjectPubKey;
+
+    (* return *) aliasPublicKeyInfo )
+  else
+  ( false_elim() )
+#pop-options

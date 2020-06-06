@@ -10,7 +10,6 @@ open X509.Base
 
 module B32 = FStar.Bytes
 
-noeq
 type x509_extension_t
   (#k: parser_kind)
   (#t: Type0)
@@ -283,3 +282,5 @@ let serialize32_x509_extension_sequence_TLV_backwards
 : serializer32_backwards (serialize_x509_extension_sequence_TLV oid s)
 = serialize32_asn1_sequence_TLV_backwards
   (* s32 *) (serialize32_x509_extension_backwards oid s32)
+
+let _ = assert (length_of_oid OID_EC_GRP_SECP256R1 == 6)

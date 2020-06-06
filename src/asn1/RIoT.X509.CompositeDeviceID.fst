@@ -197,3 +197,29 @@ let serialize32_compositeDeviceID_sequence_TLV_backwards
   (* s32 *) (serialize32_asn1_sequence_TLV_backwards
              (* ls *) (serialize32_compositeDeviceID_backwards))
   (* prf *) ()
+
+(* helpers *)
+module B32 = FStar.Bytes
+
+#push-options "--z3rlimit 8 --fuel 2 --ifuel 1"
+let x509_get_compositeDeviceID
+  (version: datatype_of_asn1_type INTEGER)
+  (deviceKeyPub: B32.lbytes32 32ul)
+  (fwid: B32.lbytes32 32ul)
+: Tot (compositeDeviceID_t_inbound)
+= let deviceIDPublicKeyInfo: subjectPublicKeyInfo_t_inbound alg_DeviceID = x509_get_subjectPublicKeyInfo alg_DeviceID deviceKeyPub in
+  (* Prf *) lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size_exact alg_DeviceID deviceIDPublicKeyInfo;
+
+  let fwid: fwid_t_inbound = x509_get_fwid fwid in
+  (* Prf *) lemma_serialize_fwid_sequence_TLV_size_exact fwid;
+
+  let compositeDeviceID: compositeDeviceID_t = {
+    riot_version  = version;
+    riot_deviceID = deviceIDPublicKeyInfo;
+    riot_fwid     = fwid
+  } in
+  (* Prf *) lemma_serialize_compositeDeviceID_size compositeDeviceID;
+  (* Prf *) (**) lemma_serialize_asn1_integer_TLV_size compositeDeviceID.riot_version;
+
+(* return *) compositeDeviceID
+#pop-options

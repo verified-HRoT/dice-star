@@ -139,3 +139,5 @@ let serialize32_x509_basic_constraints_sequence_TLV_backwards
   (* s32 *) (OID_BASIC_CONSTRAINTS
              `serialize32_envelop_OID_with_backwards`
              serialize32_x509_basic_constraints_backwards hasLenField)
+
+let _ = assert (length_of_oid OID_EC_GRP_SECP256R1 == 6)

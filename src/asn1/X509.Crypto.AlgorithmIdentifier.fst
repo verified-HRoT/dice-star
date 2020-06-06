@@ -304,3 +304,20 @@ let serialize32_algorithmIdentifier_sequence_TLV_backwards
                     (* s32 *) (serialize32_algorithmIdentifier_backwards alg) )
   | ED25519    -> ( serialize32_asn1_sequence_TLV_backwards
                     (* s32 *) (serialize32_algorithmIdentifier_backwards alg) )
+
+(* helpers *)
+let _ = assert (length_of_oid OID_EC_GRP_SECP256R1 == 6)
+
+#push-options "--z3rlimit 4 --fuel 2 --ifuel 1"
+noextract inline_for_extraction
+let x509_get_algorithmIdentifier
+  (alg: cryptoAlg {alg == ED25519})
+: Tot (algorithmIdentifier_t_inbound alg)
+=
+  match alg with
+  | ED25519 -> ( let algID: algorithmIdentifier_t alg = { algID_ed25519 = OID_ED25519 } in
+                 (* Prf *) lemma_serialize_algorithmIdentifier_size alg algID;
+                 (* Prf *) (**) lemma_serialize_asn1_oid_TLV_size algID.algID_ed25519;
+                 (* return *) algID )
+#pop-options
+

@@ -33,7 +33,7 @@ FSTAR_FLAGS=--cache_checked_modules \
   --cache_dir $(OUTPUT_DIR) \
   --use_hints \
   --record_hints \
-  --already_cached 'Prims FStar LowStar C LowParse Spec Lib Hacl'
+  --already_cached 'Prims FStar LowStar C LowParse Spec Lib Hacl EverCrypt'
 
 FSTAR=$(FSTAR_HOME)/bin/fstar.exe $(FSTAR_FLAGS) $(OTHERFLAGS)
 

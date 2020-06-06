@@ -164,3 +164,22 @@ let serialize32_fwid_sequence_TLV_backwards
 : serializer32_backwards serialize_fwid_sequence_TLV
 = serialize32_asn1_sequence_TLV_backwards
   (* ls *) (serialize32_fwid_backwards)
+
+module B32 = FStar.Bytes
+
+(* helpers *)
+#push-options "--z3rlimit 4 --fuel 2 --ifuel 1"
+let x509_get_fwid
+  (fwid: B32.lbytes32 32ul)
+: Tot (fwid_t_inbound)
+=
+  let fwid: fwid_t = {
+    fwid_hashAlg = OID_DIGEST_SHA256;
+    fwid_value   = (|32ul, fwid|)
+  } in
+  (* Prf *) lemma_serialize_fwid_size fwid;
+  (* Prf *) (**) lemma_serialize_asn1_oid_TLV_size fwid.fwid_hashAlg;
+  (* Prf *) (**) lemma_serialize_asn1_octet_string_TLV_size fwid.fwid_value;
+
+(* return *) fwid
+#pop-options

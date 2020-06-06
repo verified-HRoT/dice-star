@@ -131,7 +131,6 @@ let synth_asn1_integer
          ; let value = u #(Signed W32) (E.be_to_n s) in
            assert_norm (0x00l <= value /\ value <= 0x7Fl)
          ; value )
-
   | 2 -> (* 1-byte integer with the most-significant bit `1` *)
          if s.[0] = 0x00uy then
          ( let s = Seq.slice s 1 l in

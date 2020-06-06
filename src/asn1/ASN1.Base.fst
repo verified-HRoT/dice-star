@@ -272,17 +272,34 @@ type oid_t =
 | OID_ED25519
 | OID_X25519
 
+unfold
+let valid_bit_string_s_pred
+  (len: asn1_value_int32_of_type BIT_STRING)
+  (unused_bits: asn1_int32 {0 <= v unused_bits /\ v unused_bits <= 7})
+  (s: B32.bytes)
+: Type0
+= B32.length s == v len - 1 /\
+  ( if B32.length s = 0 then
+    ( v unused_bits == 0 )
+    else
+    ( let mask: n:nat{cast_ok (Unsigned W8) n} = (pow2 (v unused_bits)) in
+      let last_byte = B32.index s (B32.length s - 1) in
+      0 == ((v last_byte) % mask)) )
+
 type bit_string_t = {
   bs_len        : asn1_value_int32_of_type BIT_STRING;
   bs_unused_bits: n: asn1_int32 {0 <= v n /\ v n <= 7};
-  bs_s          : s: B32.bytes { B32.length s == v bs_len - 1 /\
-                                             ( if B32.length s = 0 then
-                                               ( v bs_unused_bits == 0 )
-                                               else
-                                               ( let mask: n:nat{cast_ok (Unsigned W8) n} = normalize_term (pow2 (v bs_unused_bits)) in
-                                                 let last_byte = B32.index s (B32.length s - 1) in
-                                                 0 == normalize_term ((v last_byte) % mask)) )}
+  bs_s          : s: B32.bytes { valid_bit_string_s_pred bs_len bs_unused_bits s }
 }
+
+unfold
+let lemma_trivial_bit_string_is_valid
+  (len: asn1_value_int32_of_type BIT_STRING)
+  (s: B32.lbytes32 (len - 1ul))
+: Lemma (
+  valid_bit_string_s_pred len 0ul s
+)
+= ()
 
 ////////////////////////////////////////////////////////////////////////
 ////            Representation of ASN1 Values
@@ -294,7 +311,7 @@ let datatype_of_asn1_type (a: asn1_primitive_type): Type
   | BOOLEAN      -> bool
 
   (* Positive 32-bit _signed_ integer. *)
-  | INTEGER      -> ( i: int_32{v i > 0} )
+  | INTEGER      -> ( i: int_32{v i >= 0} )
 
   | NULL         -> unit
 

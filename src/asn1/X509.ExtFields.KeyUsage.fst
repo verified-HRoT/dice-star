@@ -27,7 +27,7 @@ open FStar.Integers
 #define MBEDTLS_X509_KU_ENCIPHER_ONLY                (0x01)  /* bit 7 */
 #define MBEDTLS_X509_KU_DECIPHER_ONLY              (0x8000)  /* bit 8 */
 *)
-
+(*)
 let key_usage_t = i: datatype_of_asn1_type INTEGER
                      { 0l < i /\ (* at least one usage *)
                       (i <= 0xFFl \/ i / 0x100l == 0x80l) }

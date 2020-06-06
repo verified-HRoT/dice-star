@@ -164,7 +164,7 @@ let riot_derive_key_pair_spec
                        (* len *) (hash_length alg) in
 
   (* Derive public key from private key using Ed25519 (FIXME: Or Curve25519?) *)
-  let public_key = declassify_secret_bytes 32 (Spec.Ed25519.secret_to_public private_key) in
+  let public_key = declassify_secret_bytes (Spec.Ed25519.secret_to_public private_key) in
 
 (* return *) (public_key, private_key)
 

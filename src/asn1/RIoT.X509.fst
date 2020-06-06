@@ -7,94 +7,111 @@ open X509
 include RIoT.X509.Base
 include RIoT.X509.FWID
 include RIoT.X509.CompositeDeviceID
-// include RIoT.X509.Extension
+include RIoT.X509.Extension
 open FStar.Integers
 
 (* ZT: Some tests to indicate if the proof performance has been
        affected by some definitions from ASN1.* or Hacl.* *)
-// #set-options "--z3rlimit 8"
-// let _ = assert (length_of_oid OID_EC_GRP_SECP256R1 == 6)
-// let _ = assert (length_of_asn1_primitive_TLV (Mkbit_string_t 33ul 0ul (magic())) == 35)
+#set-options "--z3rlimit 16"
+let _ = assert (length_of_oid OID_EC_GRP_SECP256R1 == 6)
+let _ = assert (length_of_asn1_primitive_value (Mkbit_string_t 33ul 0ul (magic())) == 33)
 
 open X509.Base
 open ASN1.Spec.Base
 
-#push-options "--z3rlimit 4 --fuel 2 --ifuel 1"
-noextract inline_for_extraction
-let x509_get_algorithmIdentifier
-  (alg: cryptoAlg {alg == ED25519})
-: Tot (algorithmIdentifier_t_inbound alg)
+open Lib.IntTypes
+open RIoT.Base
+open RIoT.Declassify
+open Spec.Hash.Definitions
+
+let bytes_pub  = Seq.seq pub_uint8
+let lbytes_pub = Seq.lseq pub_uint8
+let bytes_sec  = Seq.seq uint8
+let lbytes_sec = Seq.lseq uint8
+let hkdf_lbl_len_t = len: size_t { (* for Hacl.HKDF.expand_st *)
+                          hash_length alg + v len + 1 + block_length alg < pow2 32 /\
+                          (* for Spec.Aigle.HKDF.expand *)
+                          hash_length alg + v len + 1 + block_length alg < max_input_length alg }
+
+#restart-solver
+#push-options "--query_stats --z3rlimit 64 --initial_fuel 2 --initial_ifuel 2"
+let x509_get_aliasKey_crt_tbs_spec
+  (cdi: lbytes_sec 32)
+  (fwid: lbytes_sec 32)
+  (riot_ver: datatype_of_asn1_type INTEGER)
+  (riot_label_DeviceID_len: hkdf_lbl_len_t)
+  (riot_label_DeviceID: lbytes_sec (v riot_label_DeviceID_len))
+  (aliasKey_crt_len: size_t)
+  (aliasKey_crt_pos: size_t { 0 <= v aliasKey_crt_pos /\
+                              v aliasKey_crt_pos <= v aliasKey_crt_len })
+  (aliasKey_crt: lbytes_pub (v aliasKey_crt_len))
+: GTot (s: bytes_pub { Seq.length s == v aliasKey_crt_pos + length_of_asn1_primitive_TLV riot_ver + 111 /\
+                       Seq.length s <= v aliasKey_crt_pos + 117 })
+= let cdigest = Spec.Agile.Hash.hash alg cdi in
+  let deviceID_pub, deviceID_priv = riot_derive_key_pair_spec
+                                    (* ikm *) 32ul cdigest
+                                    (* lbl *) riot_label_DeviceID_len riot_label_DeviceID in
+  let adigest = Spec.Agile.HMAC.hmac alg cdigest fwid in
+  let aliasKey_pub, aliasKey_priv = riot_derive_key_pair_spec
+                                    (* ikm *) 32ul adigest
+                                    (* lbl *) riot_label_DeviceID_len riot_label_DeviceID in
+  let deviceID_pub32: B32.lbytes32 32ul = B32.hide deviceID_pub in
+  let fwid32: B32.lbytes32 32ul = B32.hide (declassify_secret_bytes fwid) in
+  let riot_extension = x509_get_riot_extension riot_ver deviceID_pub32 fwid32 in
+  let riot_extension_sx = serialize_riot_extension_sequence_TLV `serialize` riot_extension in
+  (* AliasKey Certificate TBS *)
+  let aliasKey_crt_tbs = Seq.slice aliasKey_crt 0 (v aliasKey_crt_pos)
+                         `Seq.append` (* FIXME: Here, we need to require that `tbs`'s length is acceptable by the signing func *)
+                         riot_extension_sx in
+  lemma_serialize_riot_extension_sequence_TLV_size_exact riot_extension;
+
+(* return *) aliasKey_crt_tbs
+
+#push-options "--z3rlimit 16 --fuel 2 --ifuel 2"
+let x509_get_aliasKey_crt_tbs_sig_sx_spec
+  (deviceID_priv: lbytes_sec 32)
+  (aliasKey_crt_tbs: bytes_pub {64 + Seq.length aliasKey_crt_tbs <= max_size_t})
+: GTot (lbytes_pub 69)
 =
-  match alg with
-  | ED25519 -> ( let algID: algorithmIdentifier_t alg = { algID_ed25519 = OID_ED25519 } in
-                 (* Prf *) lemma_serialize_algorithmIdentifier_size alg algID;
-                 (* Prf *) (**) lemma_serialize_asn1_oid_TLV_size algID.algID_ed25519;
-                 (* return *) algID )
+  let aliasKey_crt_tbs_sec = classify_public_bytes aliasKey_crt_tbs in
+  let aliasKey_crt_tbs_sig = Spec.Ed25519.sign deviceID_priv aliasKey_crt_tbs_sec in
+  let aliasKey_crt_tbs_sig32 = B32.hide (declassify_secret_bytes aliasKey_crt_tbs_sig) in
+  let aliasKey_crt_tbs_sig_bs = x509_get_signature ED25519 aliasKey_crt_tbs_sig32 in
+  let aliasKey_crt_tbs_sig_sx = serialize_x509_signature_sequence_TLV ED25519
+                                `serialize`
+                                aliasKey_crt_tbs_sig_bs in
+  (* Prf *) lemma_serialize_x509_signature_sequence_TLV_size_exact ED25519 aliasKey_crt_tbs_sig_bs;
+
+(* return *) aliasKey_crt_tbs_sig_sx
 #pop-options
+
+#push-options "--z3rlimit 32 --initial_fuel 2 --initial_ifuel 2"
+let x509_get_aliasKey_crt_spec
+  (aliasKey_crt_tbs: bytes_pub)
+  (aliasKey_crt_tbs_sig_sx: lbytes_pub 69)
+: GTot (aliasKey_crt: bytes_pub { Seq.length aliasKey_crt == Seq.length aliasKey_crt_tbs + 76 })
+=
+  let aliasKey_crt_tbs_sig_algId = x509_get_algorithmIdentifier ED25519 in
+  let aliasKey_crt_tbs_sig_algId_sx = serialize_algorithmIdentifier_sequence_TLV ED25519
+                                      `serialize`
+                                      aliasKey_crt_tbs_sig_algId in
+  (* Prf *) lemma_serialize_algorithmIdentifier_sequence_TLV_size_exact ED25519 aliasKey_crt_tbs_sig_algId;
+
+  let aliasKey_crt = aliasKey_crt_tbs
+                     `Seq.append`
+                     aliasKey_crt_tbs_sig_algId_sx
+                     `Seq.append`
+                     aliasKey_crt_tbs_sig_sx in
+
+  // assert ( Seq.length aliasKey_crt ==
+  //          Seq.length aliasKey_crt_tbs +
+  //          Seq.length aliasKey_crt_tbs_sig_algId_sx +
+  //          Seq.length aliasKey_crt_tbs_sig_sx );
+
+(* return *) aliasKey_crt
+#pop-options
+
 (*)
-#push-options "--query_stats --z3rlimit 8 --fuel 2 --ifuel 1"
-let x509_get_subjectPublicKeyInfo
-  (pubkey_alg: cryptoAlg {pubkey_alg == ED25519} )
-  (pubkey: B32.lbytes32 32ul)
-: Tot (subjectPublicKeyInfo_t_inbound pubkey_alg)
-=
-  let pubkey_bs: pubkey_t pubkey_alg = Mkbit_string_t 33ul 0ul pubkey in
-
-  if (pubkey_alg = ED25519) then
-  ( let alg_id: algorithmIdentifier_t_inbound pubkey_alg = x509_get_algorithmIdentifier pubkey_alg in
-    (* Prf *) lemma_serialize_algorithmIdentifier_sequence_TLV_size_exact pubkey_alg alg_id;
-
-    let aliasPublicKeyInfo: subjectPublicKeyInfo_t pubkey_alg = {
-       subjectPubKey_alg = alg_id;
-       subjectPubKey     = pubkey_bs
-    } in
-    (* Prf *) lemma_serialize_subjectPublicKeyInfo_size pubkey_alg aliasPublicKeyInfo;
-    (* Prf *) (**) lemma_serialize_asn1_bit_string_TLV_size aliasPublicKeyInfo.subjectPubKey;
-
-    (* return *) aliasPublicKeyInfo )
-  else
-  ( false_elim() )
-#pop-options
-
-#push-options "--query_stats --z3rlimit 4 --fuel 2 --ifuel 1"
-let x509_get_fwid
-  (fwid: B32.lbytes32 32ul)
-: Tot (fwid_t_inbound)
-=
-  let fwid: fwid_t = {
-    fwid_hashAlg = OID_DIGEST_SHA256;
-    fwid_value   = (|32ul, fwid|)
-  } in
-  (* Prf *) lemma_serialize_fwid_size fwid;
-  (* Prf *) (**) lemma_serialize_asn1_oid_TLV_size fwid.fwid_hashAlg;
-  (* Prf *) (**) lemma_serialize_asn1_octet_string_TLV_size fwid.fwid_value;
-
-(* return *) fwid
-#pop-options
-
-#push-options "--query_stats --z3rlimit 16 --fuel 2 --ifuel 1"
-let x509_get_compositeDeviceID
-  (version: datatype_of_asn1_type INTEGER)
-  (deviceKeyPub: B32.lbytes32 32ul)
-  (fwid: B32.lbytes32 32ul)
-: Tot (compositeDeviceID_t_inbound)
-= let deviceIDPublicKeyInfo: subjectPublicKeyInfo_t_inbound alg_DeviceID = x509_get_subjectPublicKeyInfo alg_DeviceID deviceKeyPub in
-  (* Prf *) lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size_exact alg_DeviceID deviceIDPublicKeyInfo;
-
-  let fwid: fwid_t_inbound = x509_get_fwid fwid in
-  (* Prf *) lemma_serialize_fwid_sequence_TLV_size_exact fwid;
-
-  let compositeDeviceID: compositeDeviceID_t = {
-    riot_version  = version;
-    riot_deviceID = deviceIDPublicKeyInfo;
-    riot_fwid     = fwid
-  } in
-  (* Prf *) lemma_serialize_compositeDeviceID_size compositeDeviceID;
-  (* Prf *) (**) lemma_serialize_asn1_integer_TLV_size compositeDeviceID.riot_version;
-
-(* return *) compositeDeviceID
-#pop-options
-
 #restart-solver
 #push-options "--query_stats --z3rlimit 128 --fuel 16 --ifuel 4"
 let x509_get_riot_extension
