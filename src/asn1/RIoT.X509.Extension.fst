@@ -12,6 +12,11 @@ unfold
 let riot_extension_t
 = x509_extension_t OID_RIOT serialize_compositeDeviceID_sequence_TLV
 
+(* ZT: They will fail with rilimit 3 *)
+#set-options "--z3rlimit 8"
+let _ = assert (length_of_oid OID_EC_GRP_SECP256R1 == 6)
+let _ = assert (length_of_asn1_primitive_TLV (Mkbit_string_t 33ul 0ul (magic())) == 35)
+
 unfold
 let parse_riot_extension
 : parser parse_x509_extension_kind riot_extension_t
@@ -21,10 +26,6 @@ unfold
 let serialize_riot_extension
 : serializer parse_riot_extension
 = serialize_x509_extension OID_RIOT serialize_compositeDeviceID_sequence_TLV
-
-#set-options "--z3rlimit 8"
-let _ = assert (length_of_oid OID_EC_GRP_SECP256R1 == 6)
-let _ = assert (length_of_asn1_primitive_TLV (Mkbit_string_t 33ul 0ul (magic())) == 35)
 
 let lemma_serialize_riot_extension_unfold
 = lemma_serialize_x509_extension_unfold OID_RIOT serialize_compositeDeviceID_sequence_TLV
