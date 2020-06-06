@@ -132,22 +132,19 @@ let lemma_serialize_fwid_sequence_TLV_size
 : Lemma ( prop_serialize_asn1_sequence_TLV_size serialize_fwid x )
 = lemma_serialize_asn1_sequence_TLV_size serialize_fwid x
 
-#push-options "--query_stats --z3rlimit 32"// --initial_fuel 8 --initial_ifuel 2"
+/// 1 + 1 + 45
+#restart-solver
+#push-options "--z3rlimit 32 --fuel 4 --ifuel 4"
 let lemma_serialize_fwid_sequence_TLV_size_exact
   (x: fwid_t_inbound)
 : Lemma (
-  length_of_opaque_serialization serialize_fwid x == 47
+  length_of_opaque_serialization serialize_fwid_sequence_TLV x == 47
 )
 =
-  //lemma_serialize_fwid_sequence_TLV_unfold x;
-  //lemma_serialize_fwid_sequence_TLV_size x;
-  lemma_serialize_fwid_size x;
-  assert_norm (
-    Seq.length (serialize serialize_fwid x) == 45);
-    // /\
-    // length_of_asn1_length (u (length_of_opaque_serialization serialize_fwid x)) == 1);
- admit()
-
+  lemma_serialize_fwid_sequence_TLV_unfold x;
+  lemma_serialize_fwid_sequence_TLV_size x;
+  lemma_serialize_fwid_size x
+#pop-options
 
 (* Low *)
 let serialize32_fwid_backwards

@@ -11,56 +11,55 @@ open FStar.Integers
 
 (* ZT: Some tests to indicate if the proof performance has been
        affected by some definitions from ASN1.* or Hacl.* *)
+#set-options "--z3rlimit 8"
 let _ = assert (length_of_oid OID_EC_GRP_SECP256R1 == 6)
 let _ = assert (length_of_asn1_primitive_TLV (Mkbit_string_t 33ul 0ul (magic())) == 35)
 
-#push-options "--query_stats --z3rlimit 16 --initial_fuel 2 --initial_ifuel 1"
-let x509_get_public_key_info
+open X509.Base
+open ASN1.Spec.Base
+
+#push-options "--z3rlimit 4 --fuel 2 --ifuel 1"
+noextract inline_for_extraction
+let x509_get_algorithmIdentifier
+  (alg: cryptoAlg {alg == ED25519})
+: Tot (algorithmIdentifier_t_inbound alg)
+=
+  match alg with
+  | ED25519 -> ( let algID: algorithmIdentifier_t alg = { algID_ed25519 = OID_ED25519 } in
+                 (* Prf *) lemma_serialize_algorithmIdentifier_size alg algID;
+                 (* Prf *) (**) lemma_serialize_asn1_oid_TLV_size algID.algID_ed25519;
+                 (* return *) algID )
+#pop-options
+
+#push-options "--query_stats --z3rlimit 8 --fuel 2 --ifuel 1"
+let x509_get_subjectPublicKeyInfo
   (pubkey_alg: cryptoAlg {pubkey_alg == ED25519} )
   (pubkey: B32.lbytes32 32ul)
 : Tot (subjectPublicKeyInfo_t_inbound pubkey_alg)
-= let pubkey_bs: pubkey_t pubkey_alg = Mkbit_string_t 33ul 0ul pubkey in
+=
+  let pubkey_bs: pubkey_t pubkey_alg = Mkbit_string_t 33ul 0ul pubkey in
+
   if (pubkey_alg = ED25519) then
-  ( let alg_id: algorithmIdentifier_t pubkey_alg = {
-       algID_ed25519 = OID_ED25519
-    } in
-    (* Prf *) lemma_serialize_algorithmIdentifier_unfold pubkey_alg alg_id;
-    (* Prf *) lemma_serialize_asn1_oid_TLV_size alg_id.algID_ed25519;
-    // (* Prf *) lemma_serialize_algorithmIdentifier_sequence_TLV_size pubkey_alg alg_id;
+  ( let alg_id: algorithmIdentifier_t_inbound pubkey_alg = x509_get_algorithmIdentifier pubkey_alg in
     (* Prf *) lemma_serialize_algorithmIdentifier_sequence_TLV_size_exact pubkey_alg alg_id;
 
-    let aliasPublicKeyInfo: subjectPublicKeyInfo_t pubkey_alg = {// 1 + 1 + (17 + 35) = 54
-       subjectPubKey_alg = alg_id;                             // 17
+    let aliasPublicKeyInfo: subjectPublicKeyInfo_t pubkey_alg = {
+       subjectPubKey_alg = alg_id;
        subjectPubKey     = pubkey_bs
-    } in                // 1 + 1 + 33 = 35
-  (* Prf *) lemma_serialize_subjectPublicKeyInfo_unfold pubkey_alg aliasPublicKeyInfo;
-  (* Prf *) lemma_serialize_subjectPublicKeyInfo_size pubkey_alg aliasPublicKeyInfo;
-  (* Prf *) lemma_serialize_asn1_bit_string_TLV_size aliasPublicKeyInfo.subjectPubKey;
-  // (* Prf *) lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size pubkey_alg aliasPublicKeyInfo;
-  (* Prf *) lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size_exact pubkey_alg aliasPublicKeyInfo;
+    } in
+    (* Prf *) lemma_serialize_subjectPublicKeyInfo_size pubkey_alg aliasPublicKeyInfo;
+    (* Prf *) (**) lemma_serialize_asn1_bit_string_TLV_size aliasPublicKeyInfo.subjectPubKey;
 
-  (* return *) aliasPublicKeyInfo )
+    (* return *) aliasPublicKeyInfo )
   else
   ( false_elim() )
 #pop-options
 
-#push-options "--query_stats --z3rlimit 192 --initial_fuel 16 --max_fuel 32 --initial_ifuel 2"
-let x509_get_riot_extension
-  (version: datatype_of_asn1_type INTEGER)
-  (deviceKeyPub: B32.lbytes32 32ul)
+#push-options "--query_stats --z3rlimit 4 --fuel 2 --ifuel 1"
+let x509_get_fwid
   (fwid: B32.lbytes32 32ul)
-: Tot (x509_extension_t_inbound serialize_compositeDeviceID_sequence_TLV)
-= let deviceIDPublicKeyInfo: subjectPublicKeyInfo_t alg_DeviceID = x509_get_public_key_info alg_DeviceID deviceKeyPub in
-  // (* Prf *) lemma_serialize_subjectPublicKeyInfo_unfold alg_DeviceID deviceIDPublicKeyInfo;
-  // (* Prf *) lemma_serialize_subjectPublicKeyInfo_size alg_DeviceID deviceIDPublicKeyInfo;
-  // (* Prf *)      lemma_serialize_algorithmIdentifier_unfold alg_DeviceID deviceIDPublicKeyInfo.subjectPubKey_alg;
-  // (* Prf *)      (**) lemma_serialize_asn1_oid_TLV_size deviceIDPublicKeyInfo.subjectPubKey_alg.algID_ed25519;
-  // (* Prf *)      lemma_serialize_algorithmIdentifier_sequence_TLV_size alg_DeviceID deviceIDPublicKeyInfo.subjectPubKey_alg;
-  // (* Prf *)      lemma_serialize_algorithmIdentifier_sequence_TLV_size_exact alg_DeviceID deviceIDPublicKeyInfo.subjectPubKey_alg;
-  // (* Prf *) (**) lemma_serialize_asn1_bit_string_TLV_size deviceIDPublicKeyInfo.subjectPubKey;
-  // (* Prf *) lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size alg_DeviceID deviceIDPublicKeyInfo;
-  (* Prf *) lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size_exact alg_DeviceID deviceIDPublicKeyInfo;
-
+: Tot (fwid_t_inbound)
+=
   let fwid: fwid_t = {
     fwid_hashAlg = OID_DIGEST_SHA256;
     fwid_value   = (|32ul, fwid|)
@@ -68,7 +67,21 @@ let x509_get_riot_extension
   (* Prf *) lemma_serialize_fwid_size fwid;
   (* Prf *) (**) lemma_serialize_asn1_oid_TLV_size fwid.fwid_hashAlg;
   (* Prf *) (**) lemma_serialize_asn1_octet_string_TLV_size fwid.fwid_value;
-  (* Prf *) lemma_serialize_fwid_sequence_TLV_size fwid;
+
+(* return *) fwid
+#pop-options
+
+
+#push-options "--query_stats --z3rlimit 16 --fuel 2 --ifuel 1"
+let x509_get_compositeDeviceID
+  (version: datatype_of_asn1_type INTEGER)
+  (deviceKeyPub: B32.lbytes32 32ul)
+  (fwid: B32.lbytes32 32ul)
+: Tot (compositeDeviceID_t_inbound)
+= let deviceIDPublicKeyInfo: subjectPublicKeyInfo_t_inbound alg_DeviceID = x509_get_subjectPublicKeyInfo alg_DeviceID deviceKeyPub in
+  (* Prf *) lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size_exact alg_DeviceID deviceIDPublicKeyInfo;
+
+  let fwid: fwid_t_inbound = x509_get_fwid fwid in
   (* Prf *) lemma_serialize_fwid_sequence_TLV_size_exact fwid;
 
   let compositeDeviceID: compositeDeviceID_t = {
@@ -78,7 +91,19 @@ let x509_get_riot_extension
   } in
   (* Prf *) lemma_serialize_compositeDeviceID_size compositeDeviceID;
   (* Prf *) (**) lemma_serialize_asn1_integer_TLV_size compositeDeviceID.riot_version;
-  (* Prf *) lemma_serialize_compositeDeviceID_sequence_TLV_size compositeDeviceID;
+
+(* return *) compositeDeviceID
+#pop-options
+
+#restart-solver
+#push-options "--query_stats --z3rlimit 128 --fuel 16 --ifuel 4"
+let x509_get_riot_extension
+  (version: datatype_of_asn1_type INTEGER)
+  (deviceKeyPub: B32.lbytes32 32ul)
+  (fwid: B32.lbytes32 32ul)
+: Tot (x509_extension_t_inbound serialize_compositeDeviceID_sequence_TLV)
+=
+  let compositeDeviceID: compositeDeviceID_t_inbound = x509_get_compositeDeviceID version deviceKeyPub fwid in
   (* Prf *) lemma_serialize_compositeDeviceID_sequence_TLV_size_exact compositeDeviceID;
 
   let riot_extension: x509_extension_t serialize_compositeDeviceID_sequence_TLV = {
@@ -94,15 +119,45 @@ let x509_get_riot_extension
             (* x *) riot_extension;
   (* Prf *) (**) lemma_serialize_asn1_oid_TLV_size riot_extension.x509_extID;
   (* Prf *) (**) lemma_serialize_asn1_boolean_TLV_size riot_extension.x509_extCritical;
-  // assert_norm (length_of_asn1_primitive_TLV riot_extension.x509_extID == 11);
-  // assert_norm (length_of_asn1_primitive_TLV riot_extension.x509_extCritical == 3);
+  // assume (length_of_asn1_primitive_TLV riot_extension.x509_extID == 11); ()
+  // assume (length_of_asn1_primitive_TLV riot_extension.x509_extCritical == 3);
   // assert_norm (length_of_asn1_primitive_TLV riot_extension.x509_extValue.riot_version <= 6);
   // assert_norm (length_of_opaque_serialization serialize_fwid_sequence_TLV riot_extension.x509_extValue.riot_fwid == 47);
-  (* Prf *) lemma_serialize_x509_extension_sequence_TLV_size
-            (* s *) serialize_compositeDeviceID_sequence_TLV
-            (* x *) riot_extension;
+  // (* Prf *) lemma_serialize_x509_extension_sequence_TLV_size
+  //           (* s *) serialize_compositeDeviceID_sequence_TLV
+  //           (* x *) riot_extension;
 
 (*return*) riot_extension
+#pop-options
+
+
+#push-options "--query_stats --z3rlimit 32 --fuel 8 --ifuel 4"
+let lemma_serialize_riot_extension_oid
+  (x: x509_extension_t serialize_compositeDeviceID_sequence_TLV)
+: Lemma (
+  // length_of_asn1_primitive_TLV x.x509_extID == 11
+  x.x509_extID == OID_RIOT
+)
+= ()
+
+let lemma_serialize_riot_extension_size_exact
+  (x: x509_extension_t serialize_compositeDeviceID_sequence_TLV)
+: Lemma (
+  length_of_opaque_serialization (serialize_x509_extension serialize_compositeDeviceID_sequence_TLV) x ==
+  length_of_asn1_primitive_TLV x.x509_extValue.riot_version + 109 // (93 +1+1) + 11 + 3 +1+1
+)
+= //lemma_serialize_x509_extension_sequence_TLV_size serialize_compositeDeviceID_sequence_TLV x;
+  lemma_serialize_x509_extension_size              serialize_compositeDeviceID_sequence_TLV x;
+  assert (length_of_opaque_serialization (serialize_x509_extension serialize_compositeDeviceID_sequence_TLV) x ==
+          length_of_asn1_primitive_TLV x.x509_extID +
+          length_of_asn1_primitive_TLV x.x509_extCritical +
+          length_of_TLV OCTET_STRING (length_of_opaque_serialization serialize_compositeDeviceID_sequence_TLV x.x509_extValue));
+  (**) lemma_serialize_asn1_oid_TLV_size                         x.x509_extID;
+  // (**) lemma_serialize_asn1_boolean_TLV_size                     x.x509_extCritical;
+  // (**) lemma_serialize_compositeDeviceID_sequence_TLV_size_exact x.x509_extValue;
+  assert (length_of_asn1_primitive_TLV x.x509_extID == 11);
+  admit();
+()
 #pop-options
 
 open Lib.IntTypes

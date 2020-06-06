@@ -15,8 +15,9 @@ type x509_extension_t
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
+  (oid: datatype_of_asn1_type OID)
   (s: serializer p)
-= { x509_extID      : datatype_of_asn1_type OID;
+= { x509_extID      : x:datatype_of_asn1_type OID {x == oid};
     x509_extCritical: datatype_of_asn1_type BOOLEAN;
     x509_extValue   : OCTET_STRING `inbound_envelop_tag_with_value_of` s }
 
@@ -25,8 +26,9 @@ let x509_extension_t'
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
+  (oid: datatype_of_asn1_type OID)
   (s: serializer p)
-= datatype_of_asn1_type OID
+= x: datatype_of_asn1_type OID {x == oid}
   `tuple2`
   datatype_of_asn1_type BOOLEAN
   `tuple2`
@@ -36,9 +38,10 @@ let synth_x509_extension_t
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
+  (oid: datatype_of_asn1_type OID)
   (s: serializer p)
-  (x': x509_extension_t' s)
-: GTot (x509_extension_t s)
+  (x': x509_extension_t' oid s)
+: GTot (x509_extension_t oid s)
 = { x509_extID       = fst (fst x');
     x509_extCritical = snd (fst x');
     x509_extValue    = snd x' }
@@ -47,18 +50,27 @@ let synth_x509_extension_t'
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
+  (oid: datatype_of_asn1_type OID)
   (s: serializer p)
-  (x: x509_extension_t s)
-: GTot (x': x509_extension_t' s { x == synth_x509_extension_t s x' })
+  (x: x509_extension_t oid s)
+: GTot (x': x509_extension_t' oid s { x == synth_x509_extension_t oid s x' })
 = (x.x509_extID, x.x509_extCritical), x.x509_extValue
+
+let parse_x509_extension_kind
+= parse_asn1_TLV_kind_of_type OID
+  `and_then_kind`
+  parse_asn1_TLV_kind_of_type BOOLEAN
+  `and_then_kind`
+  parse_asn1_envelop_tag_with_TLV_kind OCTET_STRING
 
 let parse_x509_extension
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
+  (oid: datatype_of_asn1_type OID)
   (s: serializer p)
-: parser _ (x509_extension_t s)
-= parse_asn1_TLV_of_type OID
+: parser parse_x509_extension_kind (x509_extension_t oid s)
+= parse_asn1_oid_TLV_of oid
   `nondep_then`
   parse_asn1_TLV_of_type BOOLEAN
   `nondep_then`
@@ -149,9 +161,15 @@ let lemma_serialize_x509_extension_size
   Seq.length (serialize (serialize_x509_extension s) x) ==
   length_of_asn1_primitive_TLV x.x509_extID +
   length_of_asn1_primitive_TLV x.x509_extCritical +
-  Seq.length (serialize (OCTET_STRING `serialize_asn1_envelop_tag_with_TLV` s) x.x509_extValue)
+  length_of_TLV OCTET_STRING (length_of_opaque_serialization s x.x509_extValue) /\
+  length_of_asn1_primitive_TLV x.x509_extCritical == 3
 )
-= lemma_serialize_x509_extension_unfold s x
+= lemma_serialize_x509_extension_unfold s x;
+  lemma_serialize_asn1_envelop_tag_with_TLV_size
+    OCTET_STRING
+    s
+    x.x509_extValue;
+  lemma_serialize_asn1_boolean_TLV_size x.x509_extCritical
 
 unfold
 let x509_extension_t_inbound
@@ -164,13 +182,16 @@ let x509_extension_t_inbound
 
 /// SEQUENCE TLV
 
+let parse_x509_extension_sequence_TLV_kind
+= parse_asn1_envelop_tag_with_TLV_kind SEQUENCE
+
 unfold
 let parse_x509_extension_sequence_TLV
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
   (s: serializer p)
-: parser _ (x509_extension_t_inbound s)
+: parser parse_x509_extension_sequence_TLV_kind (x509_extension_t_inbound s)
 = parse_asn1_sequence_TLV
   (* s *) (serialize_x509_extension s)
 

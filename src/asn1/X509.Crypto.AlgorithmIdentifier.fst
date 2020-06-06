@@ -251,6 +251,7 @@ let lemma_serialize_algorithmIdentifier_sequence_TLV_size
   | ECDSA_P256 -> ( lemma_serialize_asn1_sequence_TLV_size (serialize_algorithmIdentifier alg) x )
   | ED25519    -> ( lemma_serialize_asn1_sequence_TLV_size (serialize_algorithmIdentifier alg) x )
 
+#push-options "--query_stats --z3rlimit 32 --fuel 4 --ifuel 4"
 let lemma_serialize_algorithmIdentifier_sequence_TLV_size_exact
   (alg: cryptoAlg {alg == ED25519})
   (x: algorithmIdentifier_t alg)
@@ -266,6 +267,7 @@ let lemma_serialize_algorithmIdentifier_sequence_TLV_size_exact
                     lemma_serialize_asn1_sequence_TLV_size   (serialize_algorithmIdentifier alg) x;
                     // lemma_serialize_algorithmIdentifier_size alg x;
                     assert_norm (length_of_TLV OID (length_of_opaque_serialization (serialize_algorithmIdentifier alg) x) == 7) )
+#pop-options
 
 /// Low
 ///

@@ -1,0 +1,37 @@
+module RIoT.X509.Extension
+
+open ASN1.Spec
+open X509.BasicFields.Extension
+open RIoT.X509.CompositeDeviceID
+
+unfold
+let riot_extension_t
+= x509_extension_t serialize_compositeDeviceID_sequence_TLV
+
+let parse_riot_extension
+: parser parse_x509_extension_kind riot_extension_t
+= parse_x509_extension serialize_compositeDeviceID_sequence_TLV
+
+let serialize_riot_extension
+: serializer parse_riot_extension
+= serialize_x509_extension serialize_compositeDeviceID_sequence_TLV
+
+
+let riot_extension_t_inbound
+= x509_extension_t_inbound serialize_compositeDeviceID_sequence_TLV
+
+let parse_riot_extension_sequence_TLV
+: parser parse_x509_extension_sequence_TLV_kind riot_extension_t_inbound
+= assert (x509_extension_t_inbound serialize_compositeDeviceID_sequence_TLV == riot_extension_t_inbound);
+  riot_extension_t_inbound
+  `coerce_parser`
+  parse_x509_extension_sequence_TLV serialize_compositeDeviceID_sequence_TLV
+
+let serialize_riot_extension_sequence_TLV
+: serializer parse_riot_extension_sequence_TLV
+= serialize_x509_extension_sequence_TLV serialize_compositeDeviceID_sequence_TLV
+
+(*)
+let serialize_riot_extension_sequence_TLV
+: serializer parse_riot_extension_sequence_TLV
+= serialize_x509_extension_sequence_TLV serialize_x509_extension_sequence_TLV

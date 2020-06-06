@@ -185,6 +185,7 @@ let lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size_exact
                      assert ( let bs: pubkey_t ED25519 = x.subjectPubKey in
                               length_of_asn1_primitive_TLV bs == 35 );
                      () )
+#pop-options
 
 /// Low
 ///
