@@ -7,13 +7,14 @@ open X509
 include RIoT.X509.Base
 include RIoT.X509.FWID
 include RIoT.X509.CompositeDeviceID
+// include RIoT.X509.Extension
 open FStar.Integers
 
 (* ZT: Some tests to indicate if the proof performance has been
        affected by some definitions from ASN1.* or Hacl.* *)
-#set-options "--z3rlimit 8"
-let _ = assert (length_of_oid OID_EC_GRP_SECP256R1 == 6)
-let _ = assert (length_of_asn1_primitive_TLV (Mkbit_string_t 33ul 0ul (magic())) == 35)
+// #set-options "--z3rlimit 8"
+// let _ = assert (length_of_oid OID_EC_GRP_SECP256R1 == 6)
+// let _ = assert (length_of_asn1_primitive_TLV (Mkbit_string_t 33ul 0ul (magic())) == 35)
 
 open X509.Base
 open ASN1.Spec.Base
@@ -30,7 +31,7 @@ let x509_get_algorithmIdentifier
                  (* Prf *) (**) lemma_serialize_asn1_oid_TLV_size algID.algID_ed25519;
                  (* return *) algID )
 #pop-options
-
+(*)
 #push-options "--query_stats --z3rlimit 8 --fuel 2 --ifuel 1"
 let x509_get_subjectPublicKeyInfo
   (pubkey_alg: cryptoAlg {pubkey_alg == ED25519} )
@@ -70,7 +71,6 @@ let x509_get_fwid
 
 (* return *) fwid
 #pop-options
-
 
 #push-options "--query_stats --z3rlimit 16 --fuel 2 --ifuel 1"
 let x509_get_compositeDeviceID

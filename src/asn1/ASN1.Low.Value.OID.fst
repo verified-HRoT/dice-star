@@ -330,9 +330,14 @@ let serialize32_asn1_oid_TLV_backwards ()
 let serialize32_asn1_oid_TLV_of_backwards
   (oid: datatype_of_asn1_type OID)
 : serializer32_backwards (serialize_asn1_oid_TLV_of oid)
-= serialize32_asn1_oid_TLV_backwards ()
-  `serialize32_filter_backwards`
-  filter_asn1_oid_TLV_of oid
+= serialize32_synth_backwards
+  (* s1 *) (serialize32_asn1_oid_TLV_backwards ()
+            `serialize32_filter_backwards`
+            filter_asn1_oid_TLV_of oid)
+  (* f2 *) (fun x -> x <: x: datatype_of_asn1_type OID {x == oid})
+  (* g1 *) (fun x -> x <: parse_filter_refine (filter_asn1_oid_TLV_of oid))
+  (* g1'*) (fun x -> x <: parse_filter_refine (filter_asn1_oid_TLV_of oid))
+  (* prf*) ()
 
 let serialize32_envelop_OID_with_backwards
   (oid: datatype_of_asn1_type OID)

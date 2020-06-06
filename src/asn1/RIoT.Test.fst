@@ -39,7 +39,7 @@ let sig_t = B.lbuffer uint8 64
        affected by some definitions from ASN1.* or Hacl.* *)
 let _ = assert (length_of_oid OID_EC_GRP_SECP256R1 == 6)
 let _ = assert (length_of_asn1_primitive_TLV (Mkbit_string_t 33ul 0ul (magic())) == 35)
-
+(*)
 #restart-solver
 #push-options "--query_stats --z3rlimit 128 --initial_fuel 8"
 let x509GetAliasCertTBS

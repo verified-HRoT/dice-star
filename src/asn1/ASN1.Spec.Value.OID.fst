@@ -746,11 +746,21 @@ let filter_asn1_oid_TLV_of
 = x = oid
 
 noextract
+let synth_asn1_oid_TLV_of
+  (oid: datatype_of_asn1_type OID)
+  (x: parse_filter_refine (filter_asn1_oid_TLV_of oid))
+: GTot (x: datatype_of_asn1_type OID {x == oid})
+= x
+
+noextract
 let parse_asn1_oid_TLV_of
   (oid: datatype_of_asn1_type OID)
+: parser _ (x: datatype_of_asn1_type OID {x == oid})
 = parse_asn1_oid_TLV
   `parse_filter`
   filter_asn1_oid_TLV_of oid
+  `parse_synth`
+  (fun x -> x <: x: datatype_of_asn1_type OID {x == oid})
 
 ///
 /// Serializer
@@ -769,9 +779,16 @@ noextract
 let serialize_asn1_oid_TLV_of
   (oid: datatype_of_asn1_type OID)
 : serializer (parse_asn1_oid_TLV_of oid)
-= serialize_asn1_oid_TLV
-  `serialize_filter`
-  filter_asn1_oid_TLV_of oid
+= serialize_synth
+  (* p1 *) (parse_asn1_oid_TLV
+            `parse_filter`
+            filter_asn1_oid_TLV_of oid)
+  (* f2 *) (fun x -> x <: x: datatype_of_asn1_type OID {x == oid})
+  (* s1 *) (serialize_asn1_oid_TLV
+            `serialize_filter`
+            filter_asn1_oid_TLV_of oid)
+  (* g1 *) (fun x -> x <: parse_filter_refine (filter_asn1_oid_TLV_of oid))
+  (* prf*) ()
 
 ///
 /// Lemmas
@@ -848,6 +865,31 @@ let lemma_serialize_asn1_oid_TLV_unfold
   (* tg *) (parser_tag_of_oid)
   (* s  *) (serialize_asn1_oid_V)
   (* in *) (value)
+
+noextract
+let lemma_serialize_asn1_oid_TLV_of_unfold
+  (oid: datatype_of_asn1_type OID)
+  (value: datatype_of_asn1_type OID{value == oid})
+: Lemma (
+  serialize (serialize_asn1_oid_TLV_of oid) value ==
+  serialize (serialize_asn1_tag_of_type OID) OID
+  `Seq.append`
+  serialize (serialize_asn1_length_of_type OID) (u (length_of_oid value))
+  `Seq.append`
+  serialize (serialize_asn1_oid (length_of_oid value)) value
+)
+= lemma_serialize_asn1_oid_TLV_unfold oid;
+  serialize_synth_eq
+  (* p1 *) (parse_asn1_oid_TLV
+            `parse_filter`
+            filter_asn1_oid_TLV_of oid)
+  (* f2 *) (fun x -> x <: x: datatype_of_asn1_type OID {x == oid})
+  (* s1 *) (serialize_asn1_oid_TLV
+            `serialize_filter`
+            filter_asn1_oid_TLV_of oid)
+  (* g1 *) (fun x -> x <: parse_filter_refine (filter_asn1_oid_TLV_of oid))
+  (* prf*) ()
+  (* in *) value
 #pop-options
 
 /// Reveal the size of a serialzation
@@ -864,6 +906,17 @@ let lemma_serialize_asn1_oid_TLV_size
   lemma_serialize_asn1_length_size (u (length_of_oid value));
   serialize_asn1_length_of_type_eq OID (u (length_of_oid value));
   lemma_serialize_asn1_oid_size (length_of_oid value) value
+
+noextract
+let lemma_serialize_asn1_oid_TLV_of_size
+  (oid: datatype_of_asn1_type OID)
+  (value: datatype_of_asn1_type OID{value == oid})
+: Lemma (
+  Seq.length (serialize (serialize_asn1_oid_TLV_of oid) value) ==
+  1 + length_of_asn1_length (u (length_of_oid value)) + length_of_oid value
+)
+= lemma_serialize_asn1_oid_TLV_of_unfold oid value;
+  lemma_serialize_asn1_oid_TLV_size value
 #pop-options
 
 (* Useful combinators to construct simple OID-enveloped sequence *)

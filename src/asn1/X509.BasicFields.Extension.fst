@@ -78,107 +78,114 @@ let parse_x509_extension
   `parse_asn1_envelop_tag_with_TLV`
   s)
   `parse_synth`
-  synth_x509_extension_t s
+  synth_x509_extension_t oid s
 
 let serialize_x509_extension
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
+  (oid: datatype_of_asn1_type OID)
   (s: serializer p)
-: serializer (parse_x509_extension s)
+: serializer (parse_x509_extension oid s)
 = serialize_synth
-  (* p1 *) (parse_asn1_TLV_of_type OID
+  (* p1 *) (parse_asn1_oid_TLV_of oid
             `nondep_then`
             parse_asn1_TLV_of_type BOOLEAN
             `nondep_then`
            (OCTET_STRING
             `parse_asn1_envelop_tag_with_TLV`
             s))
-  (* f2 *) (synth_x509_extension_t s)
-  (* s1 *) (serialize_asn1_TLV_of_type OID
+  (* f2 *) (synth_x509_extension_t oid s)
+  (* s1 *) (serialize_asn1_oid_TLV_of oid
             `serialize_nondep_then`
             serialize_asn1_TLV_of_type BOOLEAN
             `serialize_nondep_then`
            (OCTET_STRING
             `serialize_asn1_envelop_tag_with_TLV`
             s))
-  (* g1 *) (synth_x509_extension_t' s)
+  (* g1 *) (synth_x509_extension_t' oid s)
   (* prf*) ()
 
 let lemma_serialize_x509_extension_unfold
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
+  (oid: datatype_of_asn1_type OID)
   (s: serializer p)
-  (x: x509_extension_t s)
+  (x: x509_extension_t oid s)
 : Lemma (
-  serialize (serialize_x509_extension s) x ==
-  serialize (serialize_asn1_TLV_of_type OID) x.x509_extID
+  serialize (serialize_x509_extension oid s) x ==
+  serialize (serialize_asn1_oid_TLV_of oid) x.x509_extID
   `Seq.append`
   serialize (serialize_asn1_TLV_of_type BOOLEAN) x.x509_extCritical
   `Seq.append`
   serialize (OCTET_STRING `serialize_asn1_envelop_tag_with_TLV` s) x.x509_extValue
 )
 = serialize_nondep_then_eq
-  (* s1 *) (serialize_asn1_TLV_of_type OID)
+  (* s1 *) (serialize_asn1_oid_TLV_of oid)
   (* s2 *) (serialize_asn1_TLV_of_type BOOLEAN)
-  (* in *) (fst (synth_x509_extension_t' s x));
+  (* in *) (fst (synth_x509_extension_t' oid s x));
   serialize_nondep_then_eq
-  (* s1 *) (serialize_asn1_TLV_of_type OID
+  (* s1 *) (serialize_asn1_oid_TLV_of oid
             `serialize_nondep_then`
             serialize_asn1_TLV_of_type BOOLEAN)
   (* s2 *) (OCTET_STRING
             `serialize_asn1_envelop_tag_with_TLV`
             s)
-  (* in *) (synth_x509_extension_t' s x);
+  (* in *) (synth_x509_extension_t' oid s x);
   serialize_synth_eq
-  (* p1 *) (parse_asn1_TLV_of_type OID
+  (* p1 *) (parse_asn1_oid_TLV_of oid
             `nondep_then`
             parse_asn1_TLV_of_type BOOLEAN
             `nondep_then`
            (OCTET_STRING
             `parse_asn1_envelop_tag_with_TLV`
             s))
-  (* f2 *) (synth_x509_extension_t s)
-  (* s1 *) (serialize_asn1_TLV_of_type OID
+  (* f2 *) (synth_x509_extension_t oid s)
+  (* s1 *) (serialize_asn1_oid_TLV_of oid
             `serialize_nondep_then`
             serialize_asn1_TLV_of_type BOOLEAN
             `serialize_nondep_then`
            (OCTET_STRING
             `serialize_asn1_envelop_tag_with_TLV`
             s))
-  (* g1 *) (synth_x509_extension_t' s)
+  (* g1 *) (synth_x509_extension_t' oid s)
   (* prf*) ()
   (* in *) x
 
+#push-options "--z3rlimit 32 --fuel 4 --ifuel 4"
 let lemma_serialize_x509_extension_size
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
+  (oid: datatype_of_asn1_type OID)
   (s: serializer p)
-  (x: x509_extension_t s)
+  (x: x509_extension_t oid s)
 : Lemma (
-  Seq.length (serialize (serialize_x509_extension s) x) ==
+  Seq.length (serialize (serialize_x509_extension oid s) x) ==
   length_of_asn1_primitive_TLV x.x509_extID +
   length_of_asn1_primitive_TLV x.x509_extCritical +
   length_of_TLV OCTET_STRING (length_of_opaque_serialization s x.x509_extValue) /\
   length_of_asn1_primitive_TLV x.x509_extCritical == 3
 )
-= lemma_serialize_x509_extension_unfold s x;
+= lemma_serialize_x509_extension_unfold oid s x;
+  lemma_serialize_asn1_oid_TLV_of_size oid x.x509_extID;
   lemma_serialize_asn1_envelop_tag_with_TLV_size
     OCTET_STRING
     s
     x.x509_extValue;
   lemma_serialize_asn1_boolean_TLV_size x.x509_extCritical
+#pop-options
 
 unfold
 let x509_extension_t_inbound
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
+  (oid: datatype_of_asn1_type OID)
   (s: serializer p)
 = inbound_sequence_value_of
-  (* s *) (serialize_x509_extension s)
+  (* s *) (serialize_x509_extension oid s)
 
 /// SEQUENCE TLV
 
@@ -190,31 +197,34 @@ let parse_x509_extension_sequence_TLV
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
+  (oid: datatype_of_asn1_type OID)
   (s: serializer p)
-: parser parse_x509_extension_sequence_TLV_kind (x509_extension_t_inbound s)
+: parser parse_x509_extension_sequence_TLV_kind (x509_extension_t_inbound oid s)
 = parse_asn1_sequence_TLV
-  (* s *) (serialize_x509_extension s)
+  (* s *) (serialize_x509_extension oid s)
 
 unfold
 let serialize_x509_extension_sequence_TLV
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
+  (oid: datatype_of_asn1_type OID)
   (s: serializer p)
-: serializer (parse_x509_extension_sequence_TLV s)
+: serializer (parse_x509_extension_sequence_TLV oid s)
 = serialize_asn1_sequence_TLV
-  (* s *) (serialize_x509_extension s)
+  (* s *) (serialize_x509_extension oid s)
 
 unfold
 let lemma_serialize_x509_extension_sequence_TLV_unfold
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
+  (oid: datatype_of_asn1_type OID)
   (s: serializer p)
-  (x: x509_extension_t_inbound s)
-: Lemma ( prop_serialize_asn1_sequence_TLV_unfold (serialize_x509_extension s) x )
+  (x: x509_extension_t_inbound oid s)
+: Lemma ( prop_serialize_asn1_sequence_TLV_unfold (serialize_x509_extension oid s) x )
 = lemma_serialize_asn1_sequence_TLV_unfold
-  (* s *) (serialize_x509_extension s)
+  (* s *) (serialize_x509_extension oid s)
   x
 
 unfold
@@ -222,11 +232,12 @@ let lemma_serialize_x509_extension_sequence_TLV_size
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
+  (oid: datatype_of_asn1_type OID)
   (s: serializer p)
-  (x: x509_extension_t_inbound s)
-: Lemma ( prop_serialize_asn1_sequence_TLV_size (serialize_x509_extension s) x )
+  (x: x509_extension_t_inbound oid s)
+: Lemma ( prop_serialize_asn1_sequence_TLV_size (serialize_x509_extension oid s) x )
 = lemma_serialize_asn1_sequence_TLV_size
-  (* s *) (serialize_x509_extension s)
+  (* s *) (serialize_x509_extension oid s)
   x
 
 open ASN1.Low
@@ -235,9 +246,10 @@ let synth_x509_extension_t'_impl
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
+  (oid: datatype_of_asn1_type OID)
   (s: serializer p)
-  (x: x509_extension_t s)
-: Tot (x': x509_extension_t' s { x' == synth_x509_extension_t' s x })
+  (x: x509_extension_t oid s)
+: Tot (x': x509_extension_t' oid s { x' == synth_x509_extension_t' oid s x })
 = (x.x509_extID, x.x509_extCritical), x.x509_extValue
 
 let serialize32_x509_extension_backwards
@@ -245,19 +257,20 @@ let serialize32_x509_extension_backwards
   (#t: Type0)
   (#p: parser k t)
   (#s: serializer p)
+  (oid: datatype_of_asn1_type OID)
   (s32: serializer32_backwards s)
-: serializer32_backwards (serialize_x509_extension s)
+: serializer32_backwards (serialize_x509_extension oid s)
 = serialize32_synth_backwards
-  (* s32*) (serialize32_asn1_TLV_backwards_of_type OID
+  (* s32*) (serialize32_asn1_oid_TLV_of_backwards oid
             `serialize32_nondep_then_backwards`
             serialize32_asn1_TLV_backwards_of_type BOOLEAN
             `serialize32_nondep_then_backwards`
            (OCTET_STRING
             `serialize32_asn1_envelop_tag_with_TLV_backwards`
             s32))
-  (* f2 *) (synth_x509_extension_t s)
-  (* g1 *) (synth_x509_extension_t' s)
-  (* g1'*) (synth_x509_extension_t'_impl s)
+  (* f2 *) (synth_x509_extension_t oid s)
+  (* g1 *) (synth_x509_extension_t' oid s)
+  (* g1'*) (synth_x509_extension_t'_impl oid s)
   (* prf*) ()
 
 let serialize32_x509_extension_sequence_TLV_backwards
@@ -265,7 +278,8 @@ let serialize32_x509_extension_sequence_TLV_backwards
   (#t: Type0)
   (#p: parser k t)
   (#s: serializer p)
+  (oid: datatype_of_asn1_type OID)
   (s32: serializer32_backwards s)
-: serializer32_backwards (serialize_x509_extension_sequence_TLV s)
+: serializer32_backwards (serialize_x509_extension_sequence_TLV oid s)
 = serialize32_asn1_sequence_TLV_backwards
-  (* s32 *) (serialize32_x509_extension_backwards s32)
+  (* s32 *) (serialize32_x509_extension_backwards oid s32)

@@ -177,7 +177,7 @@ let lemma_serialize_compositeDeviceID_sequence_TLV_size_exact
             length_of_opaque_serialization serialize_compositeDeviceID x)
 #pop-options
 
-let serialize32_compositeDeviceID
+let serialize32_compositeDeviceID_backwards
 : serializer32_backwards (serialize_compositeDeviceID)
 = serialize32_synth_backwards
   (* ls *) (serialize32_asn1_TLV_backwards_of_type INTEGER
@@ -195,5 +195,5 @@ let serialize32_compositeDeviceID_sequence_TLV_backwards
 = coerce_serializer32_backwards
   (* s2  *) (serialize_compositeDeviceID_sequence_TLV)
   (* s32 *) (serialize32_asn1_sequence_TLV_backwards
-             (* ls *) (serialize32_compositeDeviceID))
+             (* ls *) (serialize32_compositeDeviceID_backwards))
   (* prf *) ()
