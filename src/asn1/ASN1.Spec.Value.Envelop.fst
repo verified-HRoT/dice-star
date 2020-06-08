@@ -127,7 +127,7 @@ let serialize_asn1_envelop_tag_with
   (* prf*) ()
 
 // noextract
-// let prop_serialize_asn1_envelop_tag_with_unfold
+// let predicate_serialize_asn1_envelop_tag_with_unfold
 //   (#k: parser_kind)
 //   (#t: Type0)
 //   (#p: parser k t)
@@ -222,7 +222,7 @@ let serialize_asn1_envelop_tag_with_TLV
   (* s  *) (serialize_asn1_envelop_tag_with_weak a s)
 
 #push-options "--query_stats --z3rlimit 32"
-let prop_serialize_asn1_envelop_tag_with_TLV_unfold
+let predicate_serialize_asn1_envelop_tag_with_TLV_unfold
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
@@ -244,7 +244,7 @@ let lemma_serialize_asn1_envelop_tag_with_TLV_unfold
   (a: asn1_type)
   (s: serializer p)
   (value: inbound_envelop_tag_with_value_of a s)
-: Lemma ( prop_serialize_asn1_envelop_tag_with_TLV_unfold a s value )
+: Lemma ( predicate_serialize_asn1_envelop_tag_with_TLV_unfold a s value )
 = //lemma_serialize_asn1_envelop_tag_with_unfold s (parser_tag_of_asn1_envelop_tag_with s value) value;
   serialize_nondep_then_eq
   (* s1 *) (serialize_asn1_tag_of_type a)
@@ -259,7 +259,7 @@ let lemma_serialize_asn1_envelop_tag_with_TLV_unfold
   (* val*) (value)
 
 
-let prop_serialize_asn1_envelop_tag_with_TLV_size
+let predicate_serialize_asn1_envelop_tag_with_TLV_size
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
@@ -279,7 +279,7 @@ let lemma_serialize_asn1_envelop_tag_with_TLV_size
   (a: asn1_type)
   (s: serializer p)
   (value: inbound_envelop_tag_with_value_of a s)
-: Lemma ( prop_serialize_asn1_envelop_tag_with_TLV_size a s value )
+: Lemma ( predicate_serialize_asn1_envelop_tag_with_TLV_size a s value )
 = let length: asn1_value_length_of_type a = Seq.length (serialize s value) in
   let len: asn1_value_int32_of_type a = u length in
   lemma_serialize_asn1_envelop_tag_with_TLV_unfold a s value;

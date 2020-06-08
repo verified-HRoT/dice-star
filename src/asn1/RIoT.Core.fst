@@ -76,7 +76,7 @@ let valid_ed25519_sign_mag_length
 let riot_main
   (cdi : B.lbuffer uint8 32)
   (fwid: B.lbuffer uint8 32)
-  (riot_ver: datatype_of_asn1_type INTEGER)
+  (riot_version: datatype_of_asn1_type INTEGER)
   (aliasKey_crt_len: size_t)
   (aliasKey_crt_pos: size_t)
   (aliasKey_crt: B.lbuffer pub_uint8 (v aliasKey_crt_len))
@@ -107,7 +107,7 @@ let riot_main
     let            aliasKey_crt_tbs = x509_get_aliasKey_crt_tbs_spec
                                         (B.as_seq h cdi)
                                         (B.as_seq h fwid)
-                                        (riot_ver)
+                                        (riot_version)
                                         (deviceID_pub)
                                         (aliasKey_pub)
                                         (aliasKey_crt_len)
@@ -131,7 +131,7 @@ let () = ()
 let riot_main
   (cdi : B.lbuffer uint8 32)
   (fwid: B.lbuffer uint8 32)
-  (riot_ver: datatype_of_asn1_type INTEGER)
+  (riot_version: datatype_of_asn1_type INTEGER)
   (aliasKey_crt_len: size_t)
   (aliasKey_crt_pos: size_t)
   (aliasKey_crt: B.lbuffer pub_uint8 (v aliasKey_crt_len))
@@ -157,7 +157,7 @@ let riot_main
     let aliasKey_pub, aliasKey_priv = riot_derive_key_pair_spec 32ul adigest 2ul (B.as_seq h riot_label_DeviceID) in
     let deviceID_pub32: B32.lbytes32 32ul = B32.hide deviceID_pub in
     let fwid32: B32.lbytes32 32ul = B32.hide (declassify_secret_bytes 32 (B.as_seq h fwid)) in
-    let riot_extension = x509_get_riot_extension riot_ver deviceID_pub32 fwid32 in
+    let riot_extension = x509_get_riot_extension riot_version deviceID_pub32 fwid32 in
     let riot_extension_sx = serialize_x509_extension_sequence_TLV serialize_compositeDeviceID_sequence_TLV
                             `serialize`
                             riot_extension in

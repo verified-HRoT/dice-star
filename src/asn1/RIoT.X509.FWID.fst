@@ -124,12 +124,12 @@ let serialize_fwid_sequence_TLV
 
 let lemma_serialize_fwid_sequence_TLV_unfold
   (x: fwid_t_inbound)
-: Lemma ( prop_serialize_asn1_sequence_TLV_unfold serialize_fwid x )
+: Lemma ( predicate_serialize_asn1_sequence_TLV_unfold serialize_fwid x )
 = lemma_serialize_asn1_sequence_TLV_unfold serialize_fwid x
 
 let lemma_serialize_fwid_sequence_TLV_size
   (x: fwid_t_inbound)
-: Lemma ( prop_serialize_asn1_sequence_TLV_size serialize_fwid x )
+: Lemma ( predicate_serialize_asn1_sequence_TLV_size serialize_fwid x )
 = lemma_serialize_asn1_sequence_TLV_size serialize_fwid x
 
 /// 1 + 1 + 45

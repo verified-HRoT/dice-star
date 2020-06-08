@@ -1,5 +1,5 @@
 module RIoT.X509.Base
 open X509.Base
 
-let alg_DeviceID = ED25519
-let alg_AliasKey = ED25519
+let alg_DeviceID = AlgID_Ed25519
+let alg_AliasKey = AlgID_Ed25519

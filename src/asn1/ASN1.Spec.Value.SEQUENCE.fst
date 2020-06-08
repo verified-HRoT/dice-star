@@ -32,12 +32,12 @@ let serialize_asn1_sequence_TLV
 = serialize_asn1_envelop_tag_with_TLV SEQUENCE s
 
 unfold
-let prop_serialize_asn1_sequence_TLV_unfold
+let predicate_serialize_asn1_sequence_TLV_unfold
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
   (s: serializer p)
-= prop_serialize_asn1_envelop_tag_with_TLV_unfold SEQUENCE s
+= predicate_serialize_asn1_envelop_tag_with_TLV_unfold SEQUENCE s
 
 unfold
 let lemma_serialize_asn1_sequence_TLV_unfold
@@ -46,16 +46,16 @@ let lemma_serialize_asn1_sequence_TLV_unfold
   (#p: parser k t)
   (s: serializer p)
   (x: inbound_sequence_value_of s)
-: Lemma ( prop_serialize_asn1_sequence_TLV_unfold s x )
+: Lemma ( predicate_serialize_asn1_sequence_TLV_unfold s x )
 = lemma_serialize_asn1_envelop_tag_with_TLV_unfold SEQUENCE s x
 
 unfold
-let prop_serialize_asn1_sequence_TLV_size
+let predicate_serialize_asn1_sequence_TLV_size
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
   (s: serializer p)
-= prop_serialize_asn1_envelop_tag_with_TLV_size SEQUENCE s
+= predicate_serialize_asn1_envelop_tag_with_TLV_size SEQUENCE s
 
 unfold
 let lemma_serialize_asn1_sequence_TLV_size
@@ -64,7 +64,7 @@ let lemma_serialize_asn1_sequence_TLV_size
   (#p: parser k t)
   (s: serializer p)
   (x: inbound_sequence_value_of s)
-: Lemma ( prop_serialize_asn1_sequence_TLV_size s x )
+: Lemma ( predicate_serialize_asn1_sequence_TLV_size s x )
 = lemma_serialize_asn1_envelop_tag_with_TLV_size SEQUENCE s x
 
 unfold noextract

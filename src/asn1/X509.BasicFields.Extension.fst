@@ -221,7 +221,7 @@ let lemma_serialize_x509_extension_sequence_TLV_unfold
   (oid: datatype_of_asn1_type OID)
   (s: serializer p)
   (x: x509_extension_t_inbound oid s)
-: Lemma ( prop_serialize_asn1_sequence_TLV_unfold (serialize_x509_extension oid s) x )
+: Lemma ( predicate_serialize_asn1_sequence_TLV_unfold (serialize_x509_extension oid s) x )
 = lemma_serialize_asn1_sequence_TLV_unfold
   (* s *) (serialize_x509_extension oid s)
   x
@@ -234,7 +234,7 @@ let lemma_serialize_x509_extension_sequence_TLV_size
   (oid: datatype_of_asn1_type OID)
   (s: serializer p)
   (x: x509_extension_t_inbound oid s)
-: Lemma ( prop_serialize_asn1_sequence_TLV_size (serialize_x509_extension oid s) x )
+: Lemma ( predicate_serialize_asn1_sequence_TLV_size (serialize_x509_extension oid s) x )
 = lemma_serialize_asn1_sequence_TLV_size
   (* s *) (serialize_x509_extension oid s)
   x

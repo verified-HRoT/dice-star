@@ -151,12 +151,12 @@ let serialize_compositeDeviceID_sequence_TLV
 (* manually unfolding `lemma_serialize_asn1_sequence_TLV_size` to avoid stuck here.  *)
 let lemma_serialize_compositeDeviceID_sequence_TLV_unfold
   (x: compositeDeviceID_t_inbound)
-: Lemma ( prop_serialize_asn1_sequence_TLV_unfold serialize_compositeDeviceID x )
+: Lemma ( predicate_serialize_asn1_sequence_TLV_unfold serialize_compositeDeviceID x )
 = lemma_serialize_asn1_sequence_TLV_unfold serialize_compositeDeviceID x
 
 let lemma_serialize_compositeDeviceID_sequence_TLV_size
   (x: compositeDeviceID_t_inbound)
-: Lemma ( prop_serialize_asn1_sequence_TLV_size serialize_compositeDeviceID x )
+: Lemma ( predicate_serialize_asn1_sequence_TLV_size serialize_compositeDeviceID x )
 = lemma_serialize_asn1_sequence_TLV_size serialize_compositeDeviceID x
 
 open FStar.Integers
