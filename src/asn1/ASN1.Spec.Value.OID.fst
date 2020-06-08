@@ -485,7 +485,13 @@ let filter_asn1_oid
 : GTot bool
 = List.mem oid_seq known_oids_as_seq
 
-#push-options "--z3rlimit 16 --fuel 16"
+let rec list_mem_memP (#a:eqtype) (x:a) (l:list a)
+: Lemma (FStar.List.Tot.mem x l <==> FStar.List.Tot.memP x l)
+= match l with
+  | [] -> ()
+  | hd::tl -> if hd = x then () else list_mem_memP x tl
+
+#push-options "--fuel 0 --ifuel 0"
 noextract
 let synth_asn1_oid
   (l: asn1_value_length_of_type OID)
@@ -493,6 +499,11 @@ let synth_asn1_oid
 : GTot (oid: oid_t { length_of_oid oid == l})
 = lemma_oids_as_seq_pairwise_ineq ();
   let oid_seq = oid_seq <: s:bytes {List.mem s known_oids_as_seq} in
+
+  list_mem_memP oid_seq known_oids_as_seq;
+  norm_spec [iota; zeta; delta_only [`%FStar.List.Tot.memP; `%known_oids_as_seq]]
+    (FStar.List.Tot.memP oid_seq known_oids_as_seq);
+
   if      ( oid_seq = Seq.createL oid_RIOT ) then
   ( OID_RIOT )
   else if ( oid_seq = Seq.createL oid_AT_CN ) then
@@ -531,24 +542,21 @@ let synth_asn1_oid
   ( false_elim() )
 #pop-options
 
-#push-options "--query_stats --z3rlimit 64 --fuel 16"
-let synth_asn1_oid_injective'
-  (l: asn1_value_length_of_type OID)
-  (s1 s2: parse_filter_refine (filter_asn1_oid l))
-: Lemma
-  (requires synth_asn1_oid l s1 == synth_asn1_oid l s2)
-  (ensures s1 == s2)
-= ()
+#push-options "--warn_error -271"
+let synth_asn1_oid_injective (l:asn1_value_length_of_type OID)
+: Lemma (synth_injective (synth_asn1_oid l))
+= let aux x x'
+    : Lemma
+      (requires synth_asn1_oid l x == synth_asn1_oid l x')
+      (ensures x == x')
+      [SMTPat ()]
+    = list_mem_memP x known_oids_as_seq;
+      norm_spec [iota; zeta; delta_only [`%FStar.List.Tot.memP; `%known_oids_as_seq]] (FStar.List.Tot.memP x known_oids_as_seq);
+      list_mem_memP x' known_oids_as_seq;
+      norm_spec [iota; zeta; delta_only [`%FStar.List.Tot.memP; `%known_oids_as_seq]] (FStar.List.Tot.memP x' known_oids_as_seq);
+      lemma_oids_as_seq_pairwise_ineq () in
+  ()
 #pop-options
-
-let synth_asn1_oid_injective
-  (l: asn1_value_length_of_type OID)
-: Lemma (
-  synth_injective (synth_asn1_oid l)
-)
-= synth_injective_intro'
-  (* f *) (synth_asn1_oid l)
-  (*prf*) (synth_asn1_oid_injective' l)
 
 noextract
 let synth_asn1_oid_inverse
@@ -636,7 +644,6 @@ let synth_asn1_oid_V
 : GTot (refine_with_tag parser_tag_of_oid tag)
 = value
 
-(* FIXME: Broke after adding more OIDs. *)
 noextract
 let synth_asn1_oid_V_inverse
   (tag: (the_asn1_type OID & asn1_value_int32_of_type OID))
