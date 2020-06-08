@@ -113,11 +113,11 @@ module B32 = FStar.Bytes
 #push-options "--query_stats --z3rlimit 64 --fuel 8 --ifuel 4"
 let x509_get_riot_extension
   (version: datatype_of_asn1_type INTEGER)
-  (deviceKeyPub: B32.lbytes32 32ul)
   (fwid: B32.lbytes32 32ul)
+  (deviceIDPub: B32.lbytes32 32ul)
 : Tot (riot_extension_t_inbound)
 =
-  let compositeDeviceID: compositeDeviceID_t_inbound = x509_get_compositeDeviceID version deviceKeyPub fwid in
+  let compositeDeviceID: compositeDeviceID_t_inbound = x509_get_compositeDeviceID version deviceIDPub fwid in
   (* Prf *) lemma_serialize_compositeDeviceID_sequence_TLV_size_exact compositeDeviceID;
 
   let riot_extension: riot_extension_t = {

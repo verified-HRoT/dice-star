@@ -36,7 +36,9 @@ let lemma_serialize_asn1_length_size = serialize_bounded_der_length32_size asn1_
 noextract
 let length_of_asn1_length
   (len: asn1_int32)
-: GTot (length: asn1_length_t{length == Seq.length (serialize serialize_asn1_length len)})
+: GTot (length: asn1_length_t
+       { length == Seq.length (serialize serialize_asn1_length len) /\
+         length <= 5 })
 = lemma_serialize_asn1_length_unfold len;
   lemma_serialize_asn1_length_size len;
   let x = tag_of_der_length32 len in

@@ -63,6 +63,22 @@ unfold let cdi_len = digest_len
 unfold type signature_t = B.lbuffer uint8 64
 unfold type key_t = B.lbuffer uint8 32
 
+unfold
+let valid_hkdf_ikm_len
+  (len: size_t)
+= (* for Hacl.HKDF.extract_st *)
+  v len + block_length alg < pow2 32 /\
+  (* for Spec.Agile.HKDF.extract *)
+  v len + block_length alg <= max_input_length alg
+
+unfold
+let valid_hkdf_lbl_len
+  (len: size_t)
+= (* for Hacl.HKDF.expand_st *)
+  hash_length alg + v len + 1 + block_length alg < pow2 32 /\
+  (* for Spec.Aigle.HKDF.expand *)
+  hash_length alg + v len + 1 + block_length alg < max_input_length alg
+
 (*                           RFC 5869: HKDF
   =======================================================================
 2.2.  Step 1: Extract
@@ -137,15 +153,9 @@ unfold type key_t = B.lbuffer uint8 32
 *)
 
 let riot_derive_key_pair_spec
-  (ikm_len: size_t { (* for Hacl.HKDF.extract_st *)
-                     v ikm_len + block_length alg < pow2 32 /\
-                     (* for Spec.Agile.HKDF.extract *)
-                     v ikm_len + block_length alg <= max_input_length alg })
+  (ikm_len: size_t { valid_hkdf_ikm_len ikm_len })
   (ikm: Seq.lseq uint8 (v ikm_len))
-  (lbl_len: size_t { (* for Hacl.HKDF.expand_st *)
-                     hash_length alg + v lbl_len + 1 + block_length alg < pow2 32 /\
-                     (* for Spec.Aigle.HKDF.expand *)
-                     hash_length alg + v lbl_len + 1 + block_length alg < max_input_length alg })
+  (lbl_len: size_t { valid_hkdf_lbl_len lbl_len })
   (lbl: Seq.lseq uint8 (v lbl_len))
 : GTot (Seq.lseq pub_uint8 32 & Seq.lseq uint8 32)
 = let alg = SHA2_256 in
@@ -230,6 +240,127 @@ let riot_derive_key_pair
     (* len *) 32ul
     (* src *) secret_public_key
     (* dst *) public_key;
+  HST.pop_frame ()
+#pop-options
 
+
+let bytes_pub  = Seq.seq pub_uint8
+let lbytes_pub = Seq.lseq pub_uint8
+let bytes_sec  = Seq.seq uint8
+let lbytes_sec = Seq.lseq uint8
+
+
+(* DeviceID Derivation *)
+#push-options "--z3rlimit 32 --initial_fuel 2 --initial_ifuel 2"
+let riot_derive_DeviceID_spec
+  (cdi: lbytes_sec 32)
+  (riot_label_DeviceID_len: size_t {valid_hkdf_lbl_len riot_label_DeviceID_len})
+  (riot_label_DeviceID: lbytes_sec (v riot_label_DeviceID_len))
+: GTot (lbytes_pub 32 & lbytes_sec 32)
+= let cdigest = Spec.Agile.Hash.hash alg cdi in
+  riot_derive_key_pair_spec
+    (* ikm *) 32ul cdigest
+    (* lbl *) riot_label_DeviceID_len riot_label_DeviceID
+#pop-options
+
+(* ZT: failed to use StackInline *)
+#restart-solver
+#push-options "--query_stats --z3rlimit 32 --fuel 2 --ifuel 2"
+let riot_derive_DeviceID
+  (deviceID_pub: B.lbuffer pub_uint8 32)
+  (deviceID_priv: B.lbuffer uint8 32)
+  // (cdi_len: hashable_len)
+  (cdi: B.lbuffer uint8 32)
+  (riot_label_DeviceID_len: size_t {valid_hkdf_lbl_len riot_label_DeviceID_len})
+  (riot_label_DeviceID: B.lbuffer uint8 (v riot_label_DeviceID_len))
+: HST.Stack (unit)
+  (requires fun h ->
+    B.(all_live h [buf deviceID_pub;
+                   buf deviceID_priv;
+                   buf cdi;
+                   buf riot_label_DeviceID]) /\
+    B.(all_disjoint [loc_buffer deviceID_pub;
+                     loc_buffer deviceID_priv;
+                     loc_buffer cdi;
+                     loc_buffer riot_label_DeviceID]))
+  (ensures fun h0 _ h1 ->
+    B.(modifies (loc_buffer deviceID_pub `loc_union` loc_buffer deviceID_priv) h0 h1) /\
+    ((B.as_seq h1 deviceID_pub <: lbytes_pub 32), (B.as_seq h1 deviceID_priv <: lbytes_sec 32)) ==
+    riot_derive_DeviceID_spec (B.as_seq h1 cdi) riot_label_DeviceID_len (B.as_seq h1 riot_label_DeviceID)
+   )
+= HST.push_frame ();
+  let cDigest = B.alloca (u8 0) 32ul in
+  riot_hash alg
+    cdi 32ul
+    cDigest;
+  riot_derive_key_pair
+    deviceID_pub
+    deviceID_priv
+    32ul cDigest
+    riot_label_DeviceID_len riot_label_DeviceID;
+  HST.pop_frame ()
+#pop-options
+
+(* AliasKey Derivation *)
+#push-options "--query_stats --z3rlimit 32 --fuel 2 --ifuel 2"
+let riot_derive_AliasKey_spec
+  (cdi: lbytes_sec 32)
+  (fwid: lbytes_sec 32)
+  (riot_label_AliasKey_len: size_t {valid_hkdf_lbl_len riot_label_AliasKey_len})
+  (riot_label_AliasKey: lbytes_sec (v riot_label_AliasKey_len))
+: GTot (lbytes_pub 32 & lbytes_sec 32)
+= let cdigest = Spec.Agile.Hash.hash alg cdi in
+  let adigest = Spec.Agile.HMAC.hmac alg cdigest fwid in
+  riot_derive_key_pair_spec
+    (* ikm *) 32ul adigest
+    (* lbl *) riot_label_AliasKey_len riot_label_AliasKey
+#pop-options
+
+#push-options "--query_stats --z3rlimit 32 --fuel 2 --ifuel 2"
+let riot_derive_AliasKey
+  (aliasKey_pub: B.lbuffer pub_uint8 32)
+  (aliasKey_priv: B.lbuffer uint8 32)
+  // (cdi_len: hashable_len)
+  (cdi: B.lbuffer uint8 32)
+  (fwid: B.lbuffer uint8 32)
+  (riot_label_AliasKey_len: size_t {valid_hkdf_lbl_len riot_label_AliasKey_len})
+  (riot_label_AliasKey: B.lbuffer uint8 (v riot_label_AliasKey_len))
+: HST.Stack (unit)
+  (requires fun h ->
+    B.(all_live h [buf aliasKey_pub;
+                   buf aliasKey_priv;
+                   buf cdi;
+                   buf fwid;
+                   buf riot_label_AliasKey]) /\
+    B.(all_disjoint [loc_buffer aliasKey_pub;
+                     loc_buffer aliasKey_priv;
+                     loc_buffer cdi;
+                     loc_buffer fwid;
+                     loc_buffer riot_label_AliasKey]))
+  (ensures fun h0 _ h1 ->
+    B.(modifies (loc_buffer aliasKey_pub `loc_union` loc_buffer aliasKey_priv) h0 h1) /\
+    ((B.as_seq h1 aliasKey_pub <: lbytes_pub 32),
+     (B.as_seq h1 aliasKey_priv <: lbytes_sec 32)) == riot_derive_AliasKey_spec
+                                                        (B.as_seq h1 cdi)
+                                                        (B.as_seq h1 fwid)
+                                                        riot_label_AliasKey_len
+                                                        (B.as_seq h1 riot_label_AliasKey) /\
+    True
+    )
+= HST.push_frame ();
+  let cDigest = B.alloca (u8 0) 32ul in
+  riot_hash alg
+    cdi 32ul
+    cDigest;
+  let aDigest = B.alloca (u8 0) 32ul in
+  riot_hmac alg
+    aDigest
+    cDigest 32ul
+    fwid    32ul;
+  riot_derive_key_pair
+    aliasKey_pub
+    aliasKey_priv
+    32ul aDigest
+    riot_label_AliasKey_len riot_label_AliasKey;
   HST.pop_frame ()
 #pop-options

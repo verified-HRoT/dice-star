@@ -47,16 +47,85 @@ let _ = assert (length_of_oid OID_EC_GRP_SECP256R1 == 6)
 // let okm_len : a:size_t{(v a) > 0}
 //   = 32ul
 
-let riot_label_DeviceID: ib:IB.libuffer uint8 2 (Seq.createL [u8 0; u8 0])
-                         { IB.frameOf ib == HS.root /\ IB.recallable ib }
-= IB.igcmalloc_of_list HS.root [u8 0; u8 0]
-let riot_label_AliasKey: ib:IB.libuffer uint8 2 (Seq.createL [u8 1; u8 1])
-                         { IB.frameOf ib == HS.root /\ IB.recallable ib }
-= IB.igcmalloc_of_list HS.root [u8 1; u8 1]
 
+#push-options "--z3rlimit 32"
+let riot_label_DeviceID: ib:IB.libuffer uint8 2 (Seq.createL [u8 0; u8 0])
+                         { IB.frameOf ib == HS.root /\
+                           IB.recallable ib /\
+                           valid_hkdf_lbl_len (B.len ib) }
+= assert_norm (valid_hkdf_lbl_len 2ul);
+  IB.igcmalloc_of_list HS.root [u8 0; u8 0]
+
+let riot_label_AliasKey: ib:IB.libuffer uint8 2 (Seq.createL [u8 1; u8 1])
+                         { IB.frameOf ib == HS.root /\
+                           IB.recallable ib /\
+                           valid_hkdf_lbl_len (B.len ib) }
+= assert_norm (valid_hkdf_lbl_len 2ul);
+  IB.igcmalloc_of_list HS.root [u8 1; u8 1]
+#push-options
 // assume val s: Seq.lseq uint8 3
 // let x: B32.lbytes32 3ul = B32.hide s
 
+
+let valid_ed25519_sign_mag_length
+  (l: nat)
+= 64 + l <= max_size_t
+
+#restart-solver
+#push-options "--query_stats --z3rlimit 32 --fuel 4 --ifuel 2"
+let riot_main
+  (cdi : B.lbuffer uint8 32)
+  (fwid: B.lbuffer uint8 32)
+  (riot_ver: datatype_of_asn1_type INTEGER)
+  (aliasKey_crt_len: size_t)
+  (aliasKey_crt_pos: size_t)
+  (aliasKey_crt: B.lbuffer pub_uint8 (v aliasKey_crt_len))
+  (aliasKey_pub: B.lbuffer pub_uint8 32)
+  (aliasKey_priv: B.lbuffer uint8 32)
+: HST.Stack unit
+  (requires fun h ->
+    B.(all_live h [buf cdi;
+                   buf fwid;
+                   buf aliasKey_pub;
+                   buf aliasKey_priv;
+                   buf aliasKey_crt]) /\
+    B.(all_disjoint [loc_buffer cdi;
+                     loc_buffer fwid;
+                     loc_buffer aliasKey_pub;
+                     loc_buffer aliasKey_priv;
+                     loc_buffer aliasKey_crt]) /\
+    (* pre *) 0 <= v aliasKey_crt_pos /\ v aliasKey_crt_pos <= v aliasKey_crt_len /\
+   (let deviceID_pub, deviceID_priv = riot_derive_DeviceID_spec
+                                        (B.as_seq h cdi)
+                                        (B.len riot_label_DeviceID)
+                                        (B.as_seq h riot_label_DeviceID) in
+    let aliasKey_pub, aliasKey_priv = riot_derive_AliasKey_spec
+                                        (B.as_seq h cdi)
+                                        (B.as_seq h fwid)
+                                        (B.len riot_label_AliasKey)
+                                        (B.as_seq h riot_label_AliasKey) in
+    let            aliasKey_crt_tbs = x509_get_aliasKey_crt_tbs_spec
+                                        (B.as_seq h cdi)
+                                        (B.as_seq h fwid)
+                                        (riot_ver)
+                                        (deviceID_pub)
+                                        (aliasKey_pub)
+                                        (aliasKey_crt_len)
+                                        (aliasKey_crt_pos)
+                                        (B.as_seq h aliasKey_crt) in
+     (* `aliasKey_crt_tbs` has an Ed25519 signable length -- pre condition for `aliasKey_crt_pos` *)
+     (* pre *) valid_ed25519_sign_mag_length (Seq.length aliasKey_crt_tbs) /\
+    (let               aliasKey_crt = x509_get_aliasKey_crt_spec
+                                        (deviceID_priv)
+                                        (aliasKey_crt_tbs) in
+     (* `aliasKey_crt` buffer has enough space *)
+     (* pre *) Seq.length aliasKey_crt <= - v aliasKey_crt_pos )))
+   (ensures fun h0 _ h1 -> True)
+= ()
+
+let () = ()
+
+(*)
 #restart-solver
 #push-options "--query_stats --z3rlimit 256 --initial_fuel 8 --max_fuel 8 --initial_ifuel 4"
 let riot_main

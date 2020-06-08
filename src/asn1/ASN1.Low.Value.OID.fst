@@ -185,7 +185,7 @@ let seq_of_oid_buffer
 
 
 #restart-solver
-#push-options "--query_stats --z3rlimit 32"
+#push-options "--query_stats --z3rlimit 64 --fuel 2 --ifuel 1"
 inline_for_extraction
 let serialize32_asn1_oid_backwards
   (len: asn1_value_int32_of_type OID)

@@ -8,6 +8,8 @@ include RIoT.X509.Base
 include RIoT.X509.FWID
 include RIoT.X509.CompositeDeviceID
 include RIoT.X509.Extension
+include RIoT.X509.AliasKeyTBS
+include RIoT.X509.AliasKeyCRT
 open FStar.Integers
 
 (* ZT: Some tests to indicate if the proof performance has been
@@ -24,48 +26,126 @@ open RIoT.Base
 open RIoT.Declassify
 open Spec.Hash.Definitions
 
+module B = LowStar.Buffer
+module IB = LowStar.ImmutableBuffer
+module HS  = FStar.HyperStack
+module HST = FStar.HyperStack.ST
+
 let bytes_pub  = Seq.seq pub_uint8
 let lbytes_pub = Seq.lseq pub_uint8
 let bytes_sec  = Seq.seq uint8
 let lbytes_sec = Seq.lseq uint8
-let hkdf_lbl_len_t = len: size_t { (* for Hacl.HKDF.expand_st *)
-                          hash_length alg + v len + 1 + block_length alg < pow2 32 /\
-                          (* for Spec.Aigle.HKDF.expand *)
-                          hash_length alg + v len + 1 + block_length alg < max_input_length alg }
 
 #restart-solver
 #push-options "--query_stats --z3rlimit 64 --initial_fuel 2 --initial_ifuel 2"
 let x509_get_aliasKey_crt_tbs_spec
-  (cdi: lbytes_sec 32)
   (fwid: lbytes_sec 32)
   (riot_ver: datatype_of_asn1_type INTEGER)
-  (riot_label_DeviceID_len: hkdf_lbl_len_t)
-  (riot_label_DeviceID: lbytes_sec (v riot_label_DeviceID_len))
+  (deviceID_pub: lbytes_pub 32)
+  (aliasKey_pub: lbytes_pub 32)
   (aliasKey_crt_len: size_t)
   (aliasKey_crt_pos: size_t { 0 <= v aliasKey_crt_pos /\
                               v aliasKey_crt_pos <= v aliasKey_crt_len })
   (aliasKey_crt: lbytes_pub (v aliasKey_crt_len))
-: GTot (s: bytes_pub { Seq.length s == v aliasKey_crt_pos + length_of_asn1_primitive_TLV riot_ver + 111 /\
-                       Seq.length s <= v aliasKey_crt_pos + 117 })
-= let cdigest = Spec.Agile.Hash.hash alg cdi in
-  let deviceID_pub, deviceID_priv = riot_derive_key_pair_spec
-                                    (* ikm *) 32ul cdigest
-                                    (* lbl *) riot_label_DeviceID_len riot_label_DeviceID in
-  let adigest = Spec.Agile.HMAC.hmac alg cdigest fwid in
-  let aliasKey_pub, aliasKey_priv = riot_derive_key_pair_spec
-                                    (* ikm *) 32ul adigest
-                                    (* lbl *) riot_label_DeviceID_len riot_label_DeviceID in
+: GTot (s: bytes_pub { Seq.length s == v aliasKey_crt_pos + length_of_asn1_primitive_TLV riot_ver + 155 /\
+                       Seq.length s <= v aliasKey_crt_pos + 161 })
+=
+  (* RIoT Extension *)
+  (*   Wrap `bytes` to `B32.bytes` *)
   let deviceID_pub32: B32.lbytes32 32ul = B32.hide deviceID_pub in
-  let fwid32: B32.lbytes32 32ul = B32.hide (declassify_secret_bytes fwid) in
-  let riot_extension = x509_get_riot_extension riot_ver deviceID_pub32 fwid32 in
+  let fwid32        : B32.lbytes32 32ul = B32.hide (declassify_secret_bytes fwid) in
+  (*   Construct `riot_extension` to serialize *)
+  let riot_extension    = x509_get_riot_extension riot_ver fwid32 deviceID_pub32 in
+  (*   Get serialization of `riot_extension` *)
   let riot_extension_sx = serialize_riot_extension_sequence_TLV `serialize` riot_extension in
+  (* Prf *) lemma_serialize_riot_extension_sequence_TLV_size_exact riot_extension;
+
+  (* AliasKey SubjectPublicKeyInfo *)
+  (*   Wrap `bytes` to `B32.bytes` *)
+  let aliasKey_pub32: B32.lbytes32 32ul = B32.hide aliasKey_pub in
+  let aliasKey_pub_info    = x509_get_subjectPublicKeyInfo alg_AliasKey aliasKey_pub32 in
+  let aliasKey_pub_info_sx = serialize_subjectPublicKeyInfo_sequence_TLV alg_AliasKey `serialize` aliasKey_pub_info in
+  (* Prf *) lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size_exact alg_AliasKey aliasKey_pub_info;
+
   (* AliasKey Certificate TBS *)
   let aliasKey_crt_tbs = Seq.slice aliasKey_crt 0 (v aliasKey_crt_pos)
-                         `Seq.append` (* FIXME: Here, we need to require that `tbs`'s length is acceptable by the signing func *)
+                         `Seq.append`
+                         aliasKey_pub_info_sx
+                         `Seq.append`
                          riot_extension_sx in
-  lemma_serialize_riot_extension_sequence_TLV_size_exact riot_extension;
 
 (* return *) aliasKey_crt_tbs
+#pop-options
+
+
+let valid_ed25519_sign_mag_length
+  (l: nat)
+= 64 + l <= max_size_t
+
+#push-options "--query_stats --z3rlimit 64 --fuel 4 --ifuel 4"
+let x509_get_aliasKey_crt_tbs
+  (fwid: B.lbuffer uint8 32)
+  (riot_ver: datatype_of_asn1_type INTEGER)
+  (deviceID_pub: B.lbuffer pub_uint8 32)
+  (aliasKey_pub: B.lbuffer pub_uint8 32)
+  (aliasKey_crt_len: size_t)
+  (aliasKey_crt_pos: size_t { 0 <= v aliasKey_crt_pos /\
+                              v aliasKey_crt_pos <= v aliasKey_crt_len })
+  (aliasKey_crt: B.lbuffer pub_uint8 (v aliasKey_crt_len))
+: HST.Stack unit
+  (requires fun h ->
+    B.(all_live h [buf fwid;
+                   buf deviceID_pub;
+                   buf aliasKey_pub;
+                   buf aliasKey_crt]) /\
+    B.(all_disjoint [loc_buffer fwid;
+                     loc_buffer deviceID_pub;
+                     loc_buffer aliasKey_pub;
+                     loc_buffer aliasKey_crt]) /\
+    (* pre *) 0 <= v aliasKey_crt_pos /\ v aliasKey_crt_pos <= v aliasKey_crt_len /\
+    (* pre: buffer has enough space *)
+   (let            aliasKey_crt_tbs = x509_get_aliasKey_crt_tbs_spec
+                                        (B.as_seq h fwid)
+                                        (riot_ver)
+                                        (B.as_seq h deviceID_pub)
+                                        (B.as_seq h aliasKey_pub)
+                                        (aliasKey_crt_len)
+                                        (aliasKey_crt_pos)
+                                        (B.as_seq h aliasKey_crt) in
+     (* pre *) Seq.length (aliasKey_crt_tbs) <= v aliasKey_crt_len)
+   )
+  (ensures fun h0 _ h1 ->
+    True
+  )
+=
+  HST.push_frame ();
+
+  (* RIoT Extension *)
+  (*   Wrap `bytes` to `B32.bytes` *)
+  let deviceID_pub32: B32.lbytes32 32ul = B32.of_buffer 32ul deviceID_pub in
+  let fwid_pub      : B.lbuffer pub_uint8 32 = B.alloca 0x00uy 32ul in
+  declassify_secret_buffer 32ul fwid fwid_pub;
+  let fwid_pub32        : B32.lbytes32 32ul = B32.of_buffer 32ul fwid_pub in
+  (*   Construct `riot_extension` to serialize *)
+  let riot_extension    = x509_get_riot_extension riot_ver deviceID_pub32 fwid_pub32 in
+
+  let offset = serialize32_riot_extension_sequence_TLV_backwards
+                 riot_extension
+                 aliasKey_crt
+                 aliasKey_crt_len in
+
+  let aliasKey_pub32: B32.lbytes32 32ul = B32.of_buffer 32ul aliasKey_pub in
+  let aliasKey_pub_info    = x509_get_subjectPublicKeyInfo alg_AliasKey aliasKey_pub32 in
+
+  let offset = serialize32_subjectPublicKeyInfo_sequence_TLV_backwards
+
+                 aliasKey_pub_info
+                 aliasKey_crt
+                 (aliasKey_crt_len - offset) in
+
+  HST.pop_frame ()
+#pop-options
+
 
 #push-options "--z3rlimit 16 --fuel 2 --ifuel 2"
 let x509_get_aliasKey_crt_tbs_sig_sx_spec
@@ -87,10 +167,13 @@ let x509_get_aliasKey_crt_tbs_sig_sx_spec
 
 #push-options "--z3rlimit 32 --initial_fuel 2 --initial_ifuel 2"
 let x509_get_aliasKey_crt_spec
-  (aliasKey_crt_tbs: bytes_pub)
-  (aliasKey_crt_tbs_sig_sx: lbytes_pub 69)
+  (deviceID_priv: lbytes_sec 32)
+  (aliasKey_crt_tbs: bytes_pub {64 + Seq.length aliasKey_crt_tbs <= max_size_t})
 : GTot (aliasKey_crt: bytes_pub { Seq.length aliasKey_crt == Seq.length aliasKey_crt_tbs + 76 })
 =
+  let aliasKey_crt_tbs_sig_sx = x509_get_aliasKey_crt_tbs_sig_sx_spec
+                                  deviceID_priv
+                                  aliasKey_crt_tbs in
   let aliasKey_crt_tbs_sig_algId = x509_get_algorithmIdentifier ED25519 in
   let aliasKey_crt_tbs_sig_algId_sx = serialize_algorithmIdentifier_sequence_TLV ED25519
                                       `serialize`
