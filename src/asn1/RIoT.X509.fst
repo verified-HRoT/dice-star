@@ -81,14 +81,11 @@ let create_aliasKeyTBS_spec
   (aliasKey_pub: lbytes_pub 32)
 : GTot (aliasKeyTBS_t_inbound template_len)
 =
+(* Create AliasKeyTBS *)
   let aliasKeyTBS_template32: B32.lbytes32 template_len = B32.hide aliasKeyTBS_template in
-  (*   Wrap `bytes` to `B32.bytes` *)
   let deviceID_pub32: B32.lbytes32 32ul = B32.hide deviceID_pub in
   let fwid32        : B32.lbytes32 32ul = B32.hide (declassify_secret_bytes fwid) in
-  (*   Wrap `bytes` to `B32.bytes` *)
   let aliasKey_pub32: B32.lbytes32 32ul = B32.hide aliasKey_pub in
-
-  (* AliasKey Certificate TBS *)
   let aliasKeyTBS: aliasKeyTBS_t_inbound template_len = x509_get_AliasKeyTBS
                                                         template_len
                                                         aliasKeyTBS_template32
@@ -104,16 +101,16 @@ let create_aliasKeyTBS_spec
 
 (* ZT: Maybe FIXME: The large rlimit is required by the `modifies` clause. *)
 #restart-solver
-#push-options "--query_stats --z3rlimit 512 --fuel 10 --ifuel 6"
+#push-options "--query_stats --z3rlimit 256 --fuel 2 --ifuel 1"
 let create_aliasKeyTBS
-  (fwid: B.lbuffer uint8 32)
+  (fwid: B.lbuffer byte_sec 32)
   (riot_version: datatype_of_asn1_type INTEGER)
-  (deviceID_pub: B.lbuffer pub_uint8 32)
-  (aliasKey_pub: B.lbuffer pub_uint8 32)
+  (deviceID_pub: B.lbuffer byte_pub 32)
+  (aliasKey_pub: B.lbuffer byte_pub 32)
   (aliasKeyTBS_template_len: size_t)
-  (aliasKeyTBS_template: B.lbuffer pub_uint8 (v aliasKeyTBS_template_len))
+  (aliasKeyTBS_template: B.lbuffer byte_pub (v aliasKeyTBS_template_len))
   (aliasKeyTBS_len: size_t)
-  (aliasKeyTBS_buf: B.lbuffer pub_uint8 (v aliasKeyTBS_len))
+  (aliasKeyTBS_buf: B.lbuffer byte_pub (v aliasKeyTBS_len))
 : HST.Stack unit
   (requires fun h ->
     B.(all_live h [buf fwid;
@@ -144,16 +141,13 @@ let create_aliasKeyTBS
 =
   HST.push_frame ();
 
-  let aliasKeyTBS_template = B.sub aliasKeyTBS_template 0ul aliasKeyTBS_template_len in
+(* Create AliasKeyTBS *)
   let aliasKeyTBS_template32: B32.lbytes32 aliasKeyTBS_template_len = B32.of_buffer aliasKeyTBS_template_len aliasKeyTBS_template in
-
-  let fwid_pub      : B.lbuffer pub_uint8 32 = B.alloca 0x00uy 32ul in
+  let fwid_pub      : B.lbuffer byte_pub 32 = B.alloca 0x00uy 32ul in
   declassify_secret_buffer 32ul fwid fwid_pub;
-  let fwid_pub32        : B32.lbytes32 32ul = B32.of_buffer 32ul fwid_pub in
-
+  let fwid_pub32    : B32.lbytes32 32ul = B32.of_buffer 32ul fwid_pub in
   let deviceID_pub32: B32.lbytes32 32ul = B32.of_buffer 32ul deviceID_pub in
   let aliasKey_pub32: B32.lbytes32 32ul = B32.of_buffer 32ul aliasKey_pub in
-
   let aliasKeyTBS: aliasKeyTBS_t_inbound aliasKeyTBS_template_len = x509_get_AliasKeyTBS
                                                                     aliasKeyTBS_template_len
                                                                     aliasKeyTBS_template32
@@ -164,6 +158,7 @@ let create_aliasKeyTBS
 
   (* Prf *) lemma_serialize_aliasKeyTBS_sequence_TLV_size_exact aliasKeyTBS_template_len aliasKeyTBS;
 
+(* Serialize AliasKeyTBS *)
   let offset = serialize32_aliasKeyTBS_sequence_TLV_backwards
                  aliasKeyTBS_template_len
                  aliasKeyTBS
@@ -191,7 +186,7 @@ let valid_aliasKeyCRT_ingredients
   v tbs_len + 76 <= asn1_value_length_max_of_type SEQUENCE
 
 #restart-solver
-#push-options "--query_stats --z3rlimit 32 --fuel 4 --ifuel 4"
+#push-options "--z3rlimit 32 --fuel 2 --ifuel 1"
 let sign_and_finalize_aliasKeyCRT_spec
   (deviceID_priv: lbytes_sec 32)
   (aliasKeyTBS_len: size_t
@@ -200,13 +195,18 @@ let sign_and_finalize_aliasKeyCRT_spec
 : GTot (aliasKeyCRT_t_inbound aliasKeyTBS_len)
 =
 
-  let aliasKeyTBS_seq32  : B32.lbytes32 aliasKeyTBS_len = B32.hide aliasKeyTBS_seq in
-
+(* Classify AliasKeyTBS *)
   let aliasKeyTBS_seq_sec: lbytes_sec (v aliasKeyTBS_len) = classify_public_bytes aliasKeyTBS_seq in
-  let aliasKeyTBS_sig_sec: lbytes_sec 64 = Spec.Ed25519.sign deviceID_priv aliasKeyTBS_seq_sec in
-  let aliasKeyTBS_sig    : lbytes_pub 64 = declassify_secret_bytes aliasKeyTBS_sig_sec in
-  let aliasKeyTBS_sig32  : x509_signature_raw_t alg_AliasKey = B32.hide aliasKeyTBS_sig in
 
+(* Sign AliasKeyTBS *)
+  let aliasKeyTBS_sig_sec: lbytes_sec 64 = Spec.Ed25519.sign deviceID_priv aliasKeyTBS_seq_sec in
+
+(* Declassify AliasKeyTBS *)
+  let aliasKeyTBS_sig    : lbytes_pub 64 = declassify_secret_bytes aliasKeyTBS_sig_sec in
+
+(* Create AliasKeyCRT with AliasKeyTBS and Signature *)
+  let aliasKeyTBS_seq32  : B32.lbytes32 aliasKeyTBS_len = B32.hide aliasKeyTBS_seq in
+  let aliasKeyTBS_sig32  : x509_signature_raw_t alg_AliasKey = B32.hide aliasKeyTBS_sig in
   let aliasKeyCRT: aliasKeyCRT_t_inbound aliasKeyTBS_len = x509_get_AliasKeyCRT
                                                              aliasKeyTBS_len
                                                              aliasKeyTBS_seq32
@@ -215,14 +215,15 @@ let sign_and_finalize_aliasKeyCRT_spec
 (* return *) aliasKeyCRT
 #pop-options
 
+(**)
 #restart-solver
-#push-options "--query_stats --z3rlimit 512 --fuel 10 --ifuel 6"
+#push-options "--query_stats --z3rlimit 256 --fuel 2 --ifuel 2"
 let sign_and_finalize_aliasKeyCRT
-  (deviceID_priv: B.lbuffer uint8 32)
+  (deviceID_priv: B.lbuffer byte_sec 32)
   (aliasKeyTBS_len: size_t)
-  (aliasKeyTBS_buf: B.lbuffer pub_uint8 (v aliasKeyTBS_len))
+  (aliasKeyTBS_buf: B.lbuffer byte_pub (v aliasKeyTBS_len))
   (aliasKeyCRT_len: size_t)
-  (aliasKeyCRT_buf: B.lbuffer pub_uint8 (v aliasKeyCRT_len))
+  (aliasKeyCRT_buf: B.lbuffer byte_pub (v aliasKeyCRT_len))
 : HST.Stack unit
   (requires fun h ->
     B.(all_live h [buf deviceID_priv;
@@ -243,40 +244,44 @@ let sign_and_finalize_aliasKeyCRT
                                                                       (aliasKeyTBS_len)
                                                                       (B.as_seq h0 aliasKeyTBS_buf) in
     (* Prf *) lemma_serialize_aliasKeyCRT_sequence_TLV_size_exact aliasKeyTBS_len aliasKeyCRT;
-    (* Post *) B.(modifies (loc_buffer aliasKeyCRT_buf) h0 h1) /\
-    (* Post *) B.as_seq h1 aliasKeyCRT_buf == serialize_aliasKeyCRT_sequence_TLV aliasKeyTBS_len `serialize` aliasKeyCRT
+    B.(modifies (loc_buffer aliasKeyCRT_buf) h0 h1) /\
+    B.as_seq h1 aliasKeyCRT_buf == serialize_aliasKeyCRT_sequence_TLV aliasKeyTBS_len `serialize` aliasKeyCRT
   )
 =
   HST.push_frame ();
 
-  let aliasKeyTBS_buf32: B32.lbytes32 aliasKeyTBS_len = B32.of_buffer aliasKeyTBS_len aliasKeyTBS_buf in
-
-  let aliasKeyTBS_buf_sec: B.lbuffer uint8 (v aliasKeyTBS_len) = B.alloca (u8 0x00) aliasKeyTBS_len in
+(* Classify AliasKeyTBS *)
+  let aliasKeyTBS_buf_sec: B.lbuffer byte_sec (v aliasKeyTBS_len) = B.alloca (u8 0x00) aliasKeyTBS_len in
   classify_public_buffer
     (* len *) aliasKeyTBS_len
     (* src *) aliasKeyTBS_buf
     (* dst *) aliasKeyTBS_buf_sec;
 
-  let aliasKeyTBS_sig_sec: B.lbuffer uint8 64 = B.alloca (u8 0x00) 64ul in
+(* Sign Classified AliasKeyTBS *)
+  let aliasKeyTBS_sig_sec: B.lbuffer byte_sec 64 = B.alloca (u8 0x00) 64ul in
   Ed25519.sign
     (* sig *) aliasKeyTBS_sig_sec
     (* key *) deviceID_priv
     (* len *) aliasKeyTBS_len
     (* msg *) aliasKeyTBS_buf_sec;
 
-  let aliasKeyTBS_sig: B.lbuffer pub_uint8 64 = B.alloca 0x00uy 64ul in
+(* Declassify AliasKeyTBS Signature *)
+  let aliasKeyTBS_sig: B.lbuffer byte_pub 64 = B.alloca 0x00uy 64ul in
   declassify_secret_buffer
     (* len *) 64ul
     (* src *) aliasKeyTBS_sig_sec
     (* dst *) aliasKeyTBS_sig;
-  let aliasKeyTBS_sig32: x509_signature_raw_t alg_AliasKey = B32.of_buffer 64ul aliasKeyTBS_sig in
 
+(* Finalize AliasKeyCRT with AliasKeyTBS and Signature *)
+  let aliasKeyTBS_buf32: B32.lbytes32 aliasKeyTBS_len = B32.of_buffer aliasKeyTBS_len aliasKeyTBS_buf in
+  let aliasKeyTBS_sig32: x509_signature_raw_t alg_AliasKey = B32.of_buffer 64ul aliasKeyTBS_sig in
   let aliasKeyCRT: aliasKeyCRT_t_inbound aliasKeyTBS_len = x509_get_AliasKeyCRT
                                                              aliasKeyTBS_len
                                                              aliasKeyTBS_buf32
                                                              aliasKeyTBS_sig32 in
   (* Prf *) lemma_serialize_aliasKeyCRT_sequence_TLV_size_exact aliasKeyTBS_len aliasKeyCRT;
 
+(* Serialize AliasKeyCRT *)
   let offset = serialize32_aliasKeyCRT_sequence_TLV_backwards
                  aliasKeyTBS_len
                  aliasKeyCRT

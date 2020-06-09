@@ -73,7 +73,7 @@ let valid_ed25519_sign_mag_length
 = 64 + l <= max_size_t
 
 #restart-solver
-#push-options "--query_stats --z3rlimit 256 --fuel 8 --ifuel 4"
+#push-options "--query_stats --z3rlimit 512 --fuel 2 --ifuel 1"
 let riot_main
 (* inputs *)
   (cdi : B.lbuffer byte_sec 32)
@@ -84,10 +84,10 @@ let riot_main
   (deviceID_label_len: size_t)
   (deviceID_label: B.lbuffer byte_sec (v deviceID_label_len))
   (aliasKey_label_len: size_t)
-  (aliasKey_label: B.lbuffer byte_sec (v deviceID_label_len))
+  (aliasKey_label: B.lbuffer byte_sec (v aliasKey_label_len))
 (* outputs *)
   (aliasKeyCRT_len: size_t)
-  (aliasKeyCRT: B.lbuffer byte_pub (v aliasKeyCRT_len))
+  (aliasKeyCRT_buf: B.lbuffer byte_pub (v aliasKeyCRT_len))
   (aliasKey_pub: B.lbuffer byte_pub 32)
   (aliasKey_priv: B.lbuffer uint8 32)
 : HST.Stack unit
@@ -97,7 +97,7 @@ let riot_main
                    buf aliasKeyTBS_template;
                    buf deviceID_label;
                    buf aliasKey_label;
-                   buf aliasKeyCRT;
+                   buf aliasKeyCRT_buf;
                    buf aliasKey_pub;
                    buf aliasKey_priv]) /\
     B.(all_disjoint [loc_buffer cdi;
@@ -105,7 +105,7 @@ let riot_main
                      loc_buffer aliasKeyTBS_template;
                      loc_buffer deviceID_label;
                      loc_buffer aliasKey_label;
-                     loc_buffer aliasKeyCRT;
+                     loc_buffer aliasKeyCRT_buf;
                      loc_buffer aliasKey_pub;
                      loc_buffer aliasKey_priv]) /\
    valid_hkdf_lbl_len deviceID_label_len /\
@@ -114,16 +114,41 @@ let riot_main
    valid_aliasKeyCRT_ingredients (len_of_AliasKeyTBS aliasKeyTBS_template_len version) /\
    v aliasKeyCRT_len == length_of_AliasKeyCRT (len_of_AliasKeyTBS aliasKeyTBS_template_len version)
    )
-   (ensures fun h0 _ h1 ->
-     B.(modifies (loc_buffer aliasKeyCRT `loc_union` loc_buffer aliasKey_pub `loc_union` loc_buffer aliasKey_priv) h0 h1)
+   (ensures fun h0 _ h1 -> True /\
+     B.(modifies (loc_buffer aliasKeyCRT_buf `loc_union` loc_buffer aliasKey_pub `loc_union` loc_buffer aliasKey_priv) h0 h1) /\
+    ((B.as_seq h1 aliasKey_pub  <: lbytes_pub 32),
+     (B.as_seq h1 aliasKey_priv <: lbytes_sec 32)) == derive_AliasKey_spec
+                                                        (B.as_seq h0 cdi)
+                                                        (B.as_seq h0 fwid)
+                                                        aliasKey_label_len                                                        (B.as_seq h0 aliasKey_label) /\
+    (let deviceID_pub_seq, deviceID_priv_seq = derive_DeviceID_spec
+                                                 (B.as_seq h0 cdi)
+                                                 (deviceID_label_len)
+                                                 (B.as_seq h0 deviceID_label) in
+     let aliasKeyTBS: aliasKeyTBS_t_inbound aliasKeyTBS_template_len = create_aliasKeyTBS_spec
+                                                                         (aliasKeyTBS_template_len)
+                                                                         (B.as_seq h0 aliasKeyTBS_template)
+                                                                         (version)
+                                                                         (B.as_seq h0 fwid)
+                                                                         (deviceID_pub_seq)
+                                                                         (B.as_seq h0 aliasKey_pub)
+                                                                         in
+     let aliasKeyTBS_seq = serialize_aliasKeyTBS_sequence_TLV aliasKeyTBS_template_len `serialize` aliasKeyTBS in
+     let aliasKeyTBS_len = len_of_AliasKeyTBS aliasKeyTBS_template_len version in
+     (* Prf *) lemma_serialize_aliasKeyTBS_sequence_TLV_size_exact aliasKeyTBS_template_len aliasKeyTBS;
+    (let aliasKeyCRT: aliasKeyCRT_t_inbound aliasKeyTBS_len = sign_and_finalize_aliasKeyCRT_spec
+                                                                (deviceID_priv_seq)
+                                                                (aliasKeyTBS_len)
+                                                                (aliasKeyTBS_seq) in
+     B.as_seq h1 aliasKeyCRT_buf == serialize_aliasKeyCRT_sequence_TLV aliasKeyTBS_len `serialize` aliasKeyCRT)) /\
+     True
    )
-= HST.push_frame ();
-
-(* Allocate DeviceID *)
-  let deviceID_pub : B.lbuffer byte_pub 32 = B.alloca 0x00uy    32ul in
-  let deviceID_priv: B.lbuffer byte_sec 32 = B.alloca (u8 0x00) 32ul in
+=
+ HST.push_frame ();
 
 (* Derive DeviceID *)
+  let deviceID_pub : B.lbuffer byte_pub 32 = B.alloca 0x00uy    32ul in
+  let deviceID_priv: B.lbuffer byte_sec 32 = B.alloca (u8 0x00) 32ul in
   derive_DeviceID
     (* pub *) deviceID_pub
     (* priv*) deviceID_priv
@@ -132,15 +157,15 @@ let riot_main
 
 (* Derive AliasKey *)
   derive_AliasKey
-    (* pub *) deviceID_pub
-    (* priv*) deviceID_priv
+    (* pub *) aliasKey_pub
+    (* priv*) aliasKey_priv
     (* cdi *) cdi
     (* fwid*) fwid
-    (* lbl *) deviceID_label_len deviceID_label;
+    (* lbl *) aliasKey_label_len aliasKey_label;
 
 (* Create AliasKeyTBS *)
   let aliasKeyTBS_len: asn1_TLV_int32_of_type SEQUENCE = len_of_AliasKeyTBS aliasKeyTBS_template_len version in
-  let aliasKeyTBS: B.lbuffer byte_pub (v aliasKeyTBS_len) = B.alloca 0x00uy aliasKeyTBS_len in
+  let aliasKeyTBS_buf: B.lbuffer byte_pub (v aliasKeyTBS_len) = B.alloca 0x00uy aliasKeyTBS_len in
   create_aliasKeyTBS
     (* fwid   *) fwid
     (* version*) version
@@ -149,15 +174,15 @@ let riot_main
     (*template*) aliasKeyTBS_template_len
                  aliasKeyTBS_template
     (*   tbs  *) aliasKeyTBS_len
-                 aliasKeyTBS;
+                 aliasKeyTBS_buf;
 
-(* Sign AliasKeyTBS and Finalize AliasKeyCRT*)
+(* Sign AliasKeyTBS and Finalize AliasKeyCRT *)
   sign_and_finalize_aliasKeyCRT
     (*signing key*) deviceID_priv
     (*AliasKeyTBS*) aliasKeyTBS_len
-                    aliasKeyTBS
+                    aliasKeyTBS_buf
     (*AliasKeyCRT*) aliasKeyCRT_len
-                    aliasKeyCRT;
+                    aliasKeyCRT_buf;
 
   HST.pop_frame()
 #pop-options

@@ -109,7 +109,7 @@ let lemma_serialize_aliasKeyTBS_unfold
   (* in *) x
 
 #restart-solver
-#push-options "--query_stats --z3rlimit 256 --fuel 8 --ifuel 4"
+#push-options "--query_stats --z3rlimit 64 --fuel 2 --ifuel 2"
 let lemma_serialize_aliasKeyTBS_size
   (header_len: asn1_int32)
   (x: aliasKeyTBS_t header_len)
@@ -122,8 +122,6 @@ let lemma_serialize_aliasKeyTBS_size
   (* exact size *)
   length_of_opaque_serialization (serialize_aliasKeyTBS header_len) x
   == v header_len + length_of_asn1_primitive_TLV x.aliasKeyTBS_riot_extension.x509_extValue.riot_version + 155 /\
-  // length_of_opaque_serialization (serialize_aliasKeyTBS header_len) x
-  // == length_of_AliasKeyTBS_payload header_len x.aliasKeyTBS_riot_extension.x509_extValue.riot_version /\
   (* upper bound *)
   length_of_opaque_serialization (serialize_aliasKeyTBS header_len) x
   <= v header_len + 161
@@ -167,7 +165,7 @@ let lemma_serialize_aliasKeyTBS_sequence_TLV_size
 = lemma_serialize_asn1_sequence_TLV_size (serialize_aliasKeyTBS header_len) x
 
 #restart-solver
-#push-options "--query_stats --z3rlimit 256 --fuel 8 --ifuel 4"
+#push-options "--query_stats --z3rlimit 64 --fuel 2 --ifuel 1"
 let lemma_serialize_aliasKeyTBS_sequence_TLV_size_exact
   (header_len: asn1_int32)
   (x: aliasKeyTBS_t_inbound header_len)
@@ -185,28 +183,6 @@ let lemma_serialize_aliasKeyTBS_sequence_TLV_size_exact
 = lemma_serialize_aliasKeyTBS_sequence_TLV_size header_len x;
     lemma_serialize_aliasKeyTBS_size header_len x
 #pop-options
-
-// #restart-solver
-// #push-options "--query_stats --z3rlimit 256 --fuel 16 --ifuel 8"
-// let lemma_serialize_aliasKeyTBS_sequence_TLV_size_exact
-//   (header_len: asn1_int32)
-//   (x: aliasKeyTBS_t_inbound header_len)
-// : Lemma (
-//   let length = v header_len + length_of_asn1_primitive_TLV x.aliasKeyTBS_riot_extension.x509_extValue.riot_version + 155 in
-//   length_of_AliasKeyTBS_payload header_len x.aliasKeyTBS_riot_extension.x509_extValue.riot_version
-//   == length_of_opaque_serialization (serialize_aliasKeyTBS header_len) x /\
-//   // (* exact size *)
-//   // length_of_opaque_serialization (serialize_aliasKeyTBS_sequence_TLV header_len) x
-//   // == v header_len + length_of_asn1_primitive_TLV x.aliasKeyTBS_riot_extension.x509_extValue.riot_version + 156 +
-//   //    length_of_asn1_length (len_of_AliasKeyTBS_payload header_len x.aliasKeyTBS_riot_extension.x509_extValue.riot_version) /\
-//   // (* upper bound *)
-//   // length_of_opaque_serialization (serialize_aliasKeyTBS_sequence_TLV header_len) x
-//   // <= v header_len + 167 /\
-//   True
-// )
-// = lemma_serialize_aliasKeyTBS_sequence_TLV_size header_len x;
-//     lemma_serialize_aliasKeyTBS_size header_len x
-// #pop-options
 
 (* low *)
 
@@ -237,7 +213,7 @@ let serialize32_aliasKeyTBS_sequence_TLV_backwards
 (* helpers *)
 
 #restart-solver
-#push-options "--z3rlimit 32 --initial_fuel 2 --ifuel 4"
+#push-options "--z3rlimit 32"
 let x509_get_AliasKeyTBS
   (header_len: asn1_int32)
   (aliasKeyTBS_template: B32.lbytes32 header_len)
@@ -279,8 +255,6 @@ let length_of_AliasKeyTBS_payload
             { v header_len + length_of_asn1_primitive_TLV version + 155
               <= asn1_value_length_max_of_type SEQUENCE })
 : GTot (asn1_value_length_of_type SEQUENCE)
-           // { forall (x: aliasKeyTBS_t_inbound header_len).
-           //     x.aliasKeyTBS_riot_extension.x509_extValue.riot_version == version ==> True })
 = v header_len + length_of_asn1_primitive_TLV version + 155
 
 unfold
@@ -304,7 +278,6 @@ let length_of_AliasKeyTBS
   length_of_asn1_length (u (length_of_AliasKeyTBS_payload header_len version)) +
   length_of_AliasKeyTBS_payload header_len version
 
-#push-options "--z3rlimit 64 --fuel 4 --ifuel 4"
 unfold
 let len_of_AliasKeyTBS
   (header_len: asn1_int32)

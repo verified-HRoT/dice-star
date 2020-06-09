@@ -345,7 +345,7 @@ let derive_AliasKey
                      loc_buffer riot_label_AliasKey]))
   (ensures fun h0 _ h1 ->
     B.(modifies (loc_buffer aliasKey_pub `loc_union` loc_buffer aliasKey_priv) h0 h1) /\
-    ((B.as_seq h1 aliasKey_pub <: lbytes_pub 32),
+    ((B.as_seq h1 aliasKey_pub  <: lbytes_pub 32),
      (B.as_seq h1 aliasKey_priv <: lbytes_sec 32)) == derive_AliasKey_spec
                                                         (B.as_seq h1 cdi)
                                                         (B.as_seq h1 fwid)
