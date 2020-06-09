@@ -231,3 +231,35 @@ let x509_get_AliasKeyCRT
 
 (* return *) aliasKeyCRT
 #pop-options
+
+#push-options "--z3rlimit 32 --fuel 4 --ifuel 4"
+unfold
+let length_of_AliasKeyCRT_payload
+  (tbs_len: asn1_int32 {v tbs_len + 76 <= asn1_value_length_max_of_type SEQUENCE})
+: GTot (asn1_value_length_of_type SEQUENCE)
+= v tbs_len + 76
+
+unfold
+let len_of_AliasKeyCRT_payload
+  (tbs_len: asn1_int32 {v tbs_len + 76 <= asn1_value_length_max_of_type SEQUENCE})
+: Tot (len: asn1_value_int32_of_type SEQUENCE
+             { v len == length_of_AliasKeyCRT_payload tbs_len })
+= tbs_len + 76ul
+
+unfold
+let length_of_AliasKeyCRT
+  (tbs_len: asn1_int32 {v tbs_len + 76 <= asn1_value_length_max_of_type SEQUENCE})
+: GTot (asn1_TLV_length_of_type SEQUENCE)
+= 1 +
+  length_of_asn1_length (u (length_of_AliasKeyCRT_payload tbs_len)) +
+  length_of_AliasKeyCRT_payload tbs_len
+
+unfold
+let len_of_AliasKeyCRT
+  (tbs_len: asn1_int32 {v tbs_len + 76 <= asn1_value_length_max_of_type SEQUENCE})
+: Tot (len: asn1_TLV_int32_of_type SEQUENCE
+            { v len == length_of_AliasKeyCRT tbs_len })
+= 1ul +
+  len_of_asn1_length (len_of_AliasKeyCRT_payload tbs_len) +
+  len_of_AliasKeyCRT_payload tbs_len
+#pop-options

@@ -15,7 +15,7 @@ open LowParse.Spec.SeqBytes.Base
 open LowParse.Spec.Bytes
 
 type aliasKeyTBS_t (header_len: asn1_int32) = {
-  aliasKeyTBS_header: B32.lbytes32 header_len;
+  aliasKeyTBS_template: B32.lbytes32 header_len;
   aliasKeyTBS_aliasKey_pub: subjectPublicKeyInfo_t_inbound alg_AliasKey;
   aliasKeyTBS_riot_extension: riot_extension_t_inbound;
 }
@@ -30,7 +30,7 @@ let synth_aliasKeyTBS_t
   (header_len: asn1_int32)
   (x': aliasKeyTBS_t' header_len)
 : GTot (aliasKeyTBS_t header_len)
-= { aliasKeyTBS_header         = fst (fst x');
+= { aliasKeyTBS_template         = fst (fst x');
     aliasKeyTBS_aliasKey_pub   = snd (fst x');
     aliasKeyTBS_riot_extension = snd x' }
 
@@ -38,7 +38,7 @@ let synth_aliasKeyTBS_t'
   (header_len: asn1_int32)
   (x: aliasKeyTBS_t header_len)
 : Tot (x': aliasKeyTBS_t' header_len { x == synth_aliasKeyTBS_t header_len x' })
-= (x.aliasKeyTBS_header,
+= (x.aliasKeyTBS_template,
    x.aliasKeyTBS_aliasKey_pub),
    x.aliasKeyTBS_riot_extension
 
@@ -76,7 +76,7 @@ let lemma_serialize_aliasKeyTBS_unfold
   (x: aliasKeyTBS_t header_len)
 : Lemma (
   serialize_aliasKeyTBS header_len `serialize` x ==
- (serialize_flbytes32 header_len `serialize` x.aliasKeyTBS_header)
+ (serialize_flbytes32 header_len `serialize` x.aliasKeyTBS_template)
   `Seq.append`
  (serialize_subjectPublicKeyInfo_sequence_TLV alg_AliasKey `serialize` x.aliasKeyTBS_aliasKey_pub)
   `Seq.append`
@@ -116,7 +116,7 @@ let lemma_serialize_aliasKeyTBS_size
 : Lemma (
   (* unfold *)
   length_of_opaque_serialization (serialize_aliasKeyTBS header_len) x ==
-  length_of_opaque_serialization (serialize_flbytes32 header_len) x.aliasKeyTBS_header +
+  length_of_opaque_serialization (serialize_flbytes32 header_len) x.aliasKeyTBS_template +
   length_of_opaque_serialization (serialize_subjectPublicKeyInfo_sequence_TLV alg_AliasKey) x.aliasKeyTBS_aliasKey_pub +
   length_of_opaque_serialization (serialize_riot_extension_sequence_TLV) x.aliasKeyTBS_riot_extension /\
   (* exact size *)
@@ -240,7 +240,7 @@ let serialize32_aliasKeyTBS_sequence_TLV_backwards
 #push-options "--z3rlimit 32 --initial_fuel 2 --ifuel 4"
 let x509_get_AliasKeyTBS
   (header_len: asn1_int32)
-  (aliasKeyTBS_header: B32.lbytes32 header_len)
+  (aliasKeyTBS_template: B32.lbytes32 header_len)
   (version: datatype_of_asn1_type INTEGER
             { v header_len + length_of_asn1_primitive_TLV version + 155
              <= asn1_value_length_max_of_type SEQUENCE })
@@ -261,26 +261,29 @@ let x509_get_AliasKeyTBS
   (* Prf *) lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size_exact alg_AliasKey aliasKeyPubInfo;
 
   let aliasKeyTBS: aliasKeyTBS_t header_len = {
-    aliasKeyTBS_header         = aliasKeyTBS_header;
+    aliasKeyTBS_template       = aliasKeyTBS_template;
     aliasKeyTBS_aliasKey_pub   = aliasKeyPubInfo;
     aliasKeyTBS_riot_extension = riot_extension
   } in
   (* Prf *) lemma_serialize_aliasKeyTBS_unfold header_len aliasKeyTBS;
   (* Prf *) lemma_serialize_aliasKeyTBS_size   header_len aliasKeyTBS;
-  (* Prf *) (**) lemma_serialize_flbytes32_size header_len aliasKeyTBS.aliasKeyTBS_header;
+  (* Prf *) (**) lemma_serialize_flbytes32_size header_len aliasKeyTBS.aliasKeyTBS_template;
 
 (*return*) aliasKeyTBS
 #pop-options
 
-(*)
+unfold
 let length_of_AliasKeyTBS_payload
   (header_len: asn1_int32)
   (version: datatype_of_asn1_type INTEGER
             { v header_len + length_of_asn1_primitive_TLV version + 155
               <= asn1_value_length_max_of_type SEQUENCE })
 : GTot (asn1_value_length_of_type SEQUENCE)
+           // { forall (x: aliasKeyTBS_t_inbound header_len).
+           //     x.aliasKeyTBS_riot_extension.x509_extValue.riot_version == version ==> True })
 = v header_len + length_of_asn1_primitive_TLV version + 155
 
+unfold
 let len_of_AliasKeyTBS_payload
   (header_len: asn1_int32)
   (version: datatype_of_asn1_type INTEGER
@@ -290,6 +293,7 @@ let len_of_AliasKeyTBS_payload
              { v len == length_of_AliasKeyTBS_payload header_len version })
 = header_len + len_of_asn1_primitive_TLV version + 155ul
 
+unfold
 let length_of_AliasKeyTBS
   (header_len: asn1_int32)
   (version: datatype_of_asn1_type INTEGER
@@ -301,6 +305,7 @@ let length_of_AliasKeyTBS
   length_of_AliasKeyTBS_payload header_len version
 
 #push-options "--z3rlimit 64 --fuel 4 --ifuel 4"
+unfold
 let len_of_AliasKeyTBS
   (header_len: asn1_int32)
   (version: datatype_of_asn1_type INTEGER

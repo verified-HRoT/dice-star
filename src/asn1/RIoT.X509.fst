@@ -33,29 +33,55 @@ module HST = FStar.HyperStack.ST
 
 module Ed25519 = Hacl.Ed25519
 
-let bytes_pub  = Seq.seq pub_uint8
-let lbytes_pub = Seq.lseq pub_uint8
-let bytes_sec  = Seq.seq uint8
-let lbytes_sec = Seq.lseq uint8
+
+(* Create AliasKey To-Be-Signed Certificate
+  =======================================
+  RFC 5280:
+     TBSCertificate  ::=  SEQUENCE  {
+        version         [0]  EXPLICIT Version DEFAULT v1,
+        serialNumber         CertificateSerialNumber,
+        signature            AlgorithmIdentifier,
+        issuer               Name,
+        validity             Validity,
+        subject              Name,
+        subjectPublicKeyInfo SubjectPublicKeyInfo,
+        issuerUniqueID  [1]  IMPLICIT UniqueIdentifier OPTIONAL,
+                             -- If present, version MUST be v2 or v3
+        subjectUniqueID [2]  IMPLICIT UniqueIdentifier OPTIONAL,
+                             -- If present, version MUST be v2 or v3
+        extensions      [3]  EXPLICIT Extensions OPTIONAL
+                             -- If present, version MUST be v3
+        }
+
+   In our case:
+      TBSCertificate  ::=  SEQUENCE  {
+        [template]
+        subjectPublicKeyInfo SubjectPublicKeyInfo,
+        extensions      [3]  EXPLICIT Extensions OPTIONAL (Only RIoT Extension for now)
+                             -- If present, version MUST be v3
+        }
+*)
+
+unfold
+let valid_aliasKeyTBS_ingredients
+  (template_len: asn1_int32)
+  (version: datatype_of_asn1_type INTEGER)
+= v template_len + length_of_asn1_primitive_TLV version + 155
+  <= asn1_value_length_max_of_type SEQUENCE
 
 #restart-solver
-#push-options "--query_stats --z3rlimit 64 --initial_fuel 2 --initial_ifuel 2"
-let x509_get_aliasKeyTBS_spec
-  (header_len: asn1_int32)
-  (aliasKeyTBS_header: lbytes_pub (v header_len))
+#push-options "--query_stats --z3rlimit 64 --fuel 2 --ifuel 2"
+let create_aliasKeyTBS_spec
+  (template_len: asn1_int32)
+  (aliasKeyTBS_template: lbytes_pub (v template_len))
   (version: datatype_of_asn1_type INTEGER
-            { v header_len + length_of_asn1_primitive_TLV version + 155
-             <= asn1_value_length_max_of_type SEQUENCE })
+            { valid_aliasKeyTBS_ingredients template_len version })
   (fwid: lbytes_sec 32)
   (deviceID_pub: lbytes_pub 32)
   (aliasKey_pub: lbytes_pub 32)
-// : GTot (s: bytes_pub { v header_len + length_of_asn1_primitive_TLV version + 155 <= asn1_value_length_max_of_type SEQUENCE /\
-//                        Seq.length s == v header_len + length_of_asn1_primitive_TLV version + 156 +
-//                                        length_of_asn1_length (u (v header_len + length_of_asn1_primitive_TLV version + 155))/\
-//                        Seq.length s <= v header_len + 167 })
-: GTot (aliasKeyTBS_t_inbound header_len)
+: GTot (aliasKeyTBS_t_inbound template_len)
 =
-  let aliasKeyTBS_header32: B32.lbytes32 header_len = B32.hide aliasKeyTBS_header in
+  let aliasKeyTBS_template32: B32.lbytes32 template_len = B32.hide aliasKeyTBS_template in
   (*   Wrap `bytes` to `B32.bytes` *)
   let deviceID_pub32: B32.lbytes32 32ul = B32.hide deviceID_pub in
   let fwid32        : B32.lbytes32 32ul = B32.hide (declassify_secret_bytes fwid) in
@@ -63,34 +89,29 @@ let x509_get_aliasKeyTBS_spec
   let aliasKey_pub32: B32.lbytes32 32ul = B32.hide aliasKey_pub in
 
   (* AliasKey Certificate TBS *)
-  let aliasKeyTBS: aliasKeyTBS_t_inbound header_len = x509_get_AliasKeyTBS
-                                                        header_len
-                                                        aliasKeyTBS_header32
+  let aliasKeyTBS: aliasKeyTBS_t_inbound template_len = x509_get_AliasKeyTBS
+                                                        template_len
+                                                        aliasKeyTBS_template32
                                                         version
                                                         fwid32
                                                         deviceID_pub32
                                                         aliasKey_pub32 in
-  (* Prf *) lemma_serialize_aliasKeyTBS_size header_len aliasKeyTBS;
-  (* Prf *) lemma_serialize_aliasKeyTBS_sequence_TLV_size_exact header_len aliasKeyTBS;
+  (* Prf *) lemma_serialize_aliasKeyTBS_size template_len aliasKeyTBS;
+  (* Prf *) lemma_serialize_aliasKeyTBS_sequence_TLV_size_exact template_len aliasKeyTBS;
 
-aliasKeyTBS
-// (* return *) serialize_aliasKeyTBS_sequence_TLV header_len `serialize` aliasKeyTBS
+(* return *) aliasKeyTBS
 #pop-options
-
-let valid_ed25519_sign_mag_length
-  (l: nat)
-= 64 + l <= max_size_t
 
 (* ZT: Maybe FIXME: The large rlimit is required by the `modifies` clause. *)
 #restart-solver
-#push-options "--query_stats --z3rlimit 384 --fuel 10 --ifuel 6"
-let x509_get_aliasKey_crt_tbs
+#push-options "--query_stats --z3rlimit 512 --fuel 10 --ifuel 6"
+let create_aliasKeyTBS
   (fwid: B.lbuffer uint8 32)
   (riot_version: datatype_of_asn1_type INTEGER)
   (deviceID_pub: B.lbuffer pub_uint8 32)
   (aliasKey_pub: B.lbuffer pub_uint8 32)
-  (aliasKeyTBS_header_len: size_t)
-  (aliasKeyTBS_header: B.lbuffer pub_uint8 (v aliasKeyTBS_header_len))
+  (aliasKeyTBS_template_len: size_t)
+  (aliasKeyTBS_template: B.lbuffer pub_uint8 (v aliasKeyTBS_template_len))
   (aliasKeyTBS_len: size_t)
   (aliasKeyTBS_buf: B.lbuffer pub_uint8 (v aliasKeyTBS_len))
 : HST.Stack unit
@@ -98,38 +119,33 @@ let x509_get_aliasKey_crt_tbs
     B.(all_live h [buf fwid;
                    buf deviceID_pub;
                    buf aliasKey_pub;
-                   buf aliasKeyTBS_header;
+                   buf aliasKeyTBS_template;
                    buf aliasKeyTBS_buf]) /\
     B.(all_disjoint [loc_buffer fwid;
                      loc_buffer deviceID_pub;
                      loc_buffer aliasKey_pub;
-                     loc_buffer aliasKeyTBS_header;
+                     loc_buffer aliasKeyTBS_template;
                      loc_buffer aliasKeyTBS_buf]) /\
-    (* Pre *) v aliasKeyTBS_header_len + length_of_asn1_primitive_TLV riot_version + 155
-              <= asn1_value_length_max_of_type SEQUENCE /\
-    (* Pre *) v aliasKeyTBS_len
-              == v aliasKeyTBS_header_len +
-                 length_of_asn1_primitive_TLV riot_version +
-                 156 +
-                 length_of_asn1_length (u (v aliasKeyTBS_header_len + length_of_asn1_primitive_TLV riot_version + 155))
+    valid_aliasKeyTBS_ingredients aliasKeyTBS_template_len riot_version /\
+    v aliasKeyTBS_len == length_of_AliasKeyTBS aliasKeyTBS_template_len riot_version
    )
   (ensures fun h0 _ h1 ->
-    let aliasKeyTBS: aliasKeyTBS_t_inbound aliasKeyTBS_header_len = x509_get_aliasKeyTBS_spec
-                                                                      (aliasKeyTBS_header_len)
-                                                                      (B.as_seq h0 aliasKeyTBS_header)
+    let aliasKeyTBS: aliasKeyTBS_t_inbound aliasKeyTBS_template_len = create_aliasKeyTBS_spec
+                                                                      (aliasKeyTBS_template_len)
+                                                                      (B.as_seq h0 aliasKeyTBS_template)
                                                                       (riot_version)
                                                                       (B.as_seq h0 fwid)
                                                                       (B.as_seq h0 deviceID_pub)
                                                                       (B.as_seq h0 aliasKey_pub) in
-    (* Prf *) lemma_serialize_aliasKeyTBS_sequence_TLV_size_exact aliasKeyTBS_header_len aliasKeyTBS;
-    (* Post *) B.(modifies (loc_buffer aliasKeyTBS_buf) h0 h1) /\
-    (* Post *) B.as_seq h1 aliasKeyTBS_buf == serialize_aliasKeyTBS_sequence_TLV aliasKeyTBS_header_len `serialize` aliasKeyTBS
+    (* Prf *) lemma_serialize_aliasKeyTBS_sequence_TLV_size_exact aliasKeyTBS_template_len aliasKeyTBS;
+    B.(modifies (loc_buffer aliasKeyTBS_buf) h0 h1) /\
+    B.as_seq h1 aliasKeyTBS_buf == serialize_aliasKeyTBS_sequence_TLV aliasKeyTBS_template_len `serialize` aliasKeyTBS
   )
-= let h0 = HST.get () in
+=
   HST.push_frame ();
 
-  let aliasKeyTBS_header = B.sub aliasKeyTBS_header 0ul aliasKeyTBS_header_len in
-  let aliasKeyTBS_header32: B32.lbytes32 aliasKeyTBS_header_len = B32.of_buffer aliasKeyTBS_header_len aliasKeyTBS_header in
+  let aliasKeyTBS_template = B.sub aliasKeyTBS_template 0ul aliasKeyTBS_template_len in
+  let aliasKeyTBS_template32: B32.lbytes32 aliasKeyTBS_template_len = B32.of_buffer aliasKeyTBS_template_len aliasKeyTBS_template in
 
   let fwid_pub      : B.lbuffer pub_uint8 32 = B.alloca 0x00uy 32ul in
   declassify_secret_buffer 32ul fwid fwid_pub;
@@ -138,18 +154,18 @@ let x509_get_aliasKey_crt_tbs
   let deviceID_pub32: B32.lbytes32 32ul = B32.of_buffer 32ul deviceID_pub in
   let aliasKey_pub32: B32.lbytes32 32ul = B32.of_buffer 32ul aliasKey_pub in
 
-  let aliasKeyTBS: aliasKeyTBS_t_inbound aliasKeyTBS_header_len = x509_get_AliasKeyTBS
-                                                                    aliasKeyTBS_header_len
-                                                                    aliasKeyTBS_header32
+  let aliasKeyTBS: aliasKeyTBS_t_inbound aliasKeyTBS_template_len = x509_get_AliasKeyTBS
+                                                                    aliasKeyTBS_template_len
+                                                                    aliasKeyTBS_template32
                                                                     riot_version
                                                                     fwid_pub32
                                                                     deviceID_pub32
                                                                     aliasKey_pub32 in
 
-  (* Prf *) lemma_serialize_aliasKeyTBS_sequence_TLV_size_exact aliasKeyTBS_header_len aliasKeyTBS;
+  (* Prf *) lemma_serialize_aliasKeyTBS_sequence_TLV_size_exact aliasKeyTBS_template_len aliasKeyTBS;
 
   let offset = serialize32_aliasKeyTBS_sequence_TLV_backwards
-                 aliasKeyTBS_header_len
+                 aliasKeyTBS_template_len
                  aliasKeyTBS
                  aliasKeyTBS_buf
                  aliasKeyTBS_len in
@@ -157,33 +173,29 @@ let x509_get_aliasKey_crt_tbs
   HST.pop_frame ()
 #pop-options
 
-// #push-options "--z3rlimit 16 --fuel 2 --ifuel 2"
-// let x509_get_aliasKey_crt_tbs_sig_sx_spec
-//   (deviceID_priv: lbytes_sec 32)
-//   (aliasKey_crt_tbs: bytes_pub {64 + Seq.length aliasKey_crt_tbs <= max_size_t})
-// : GTot (lbytes_pub 69)
-// =
-//   let aliasKey_crt_tbs_sec = classify_public_bytes aliasKey_crt_tbs in
-//   let aliasKey_crt_tbs_sig = Spec.Ed25519.sign deviceID_priv aliasKey_crt_tbs_sec in
-//   let aliasKey_crt_tbs_sig32 = B32.hide (declassify_secret_bytes aliasKey_crt_tbs_sig) in
-//   let aliasKey_crt_tbs_sig_bs = x509_get_signature AlgID_Ed25519 aliasKey_crt_tbs_sig32 in
-//   let aliasKey_crt_tbs_sig_sx = serialize_x509_signature_sequence_TLV AlgID_Ed25519
-//                                 `serialize`
-//                                 aliasKey_crt_tbs_sig_bs in
-//   (* Prf *) lemma_serialize_x509_signature_sequence_TLV_size_exact AlgID_Ed25519 aliasKey_crt_tbs_sig_bs;
+(* 1000 years later... *)
 
-// (* return *) aliasKey_crt_tbs_sig_sx
-// #pop-options
+(* Sign and Finalize AliasKey Certificate
+  =======================================
+  RFC 5280:
+   Certificate  ::=  SEQUENCE  {
+        tbsCertificate       TBSCertificate,
+        signatureAlgorithm   AlgorithmIdentifier,
+        signatureValue       BIT STRING  }
+*)
 
-let () = ()
+unfold
+let valid_aliasKeyCRT_ingredients
+  (tbs_len: asn1_int32)
+= // (* implied *) v tbs_len + 64 <= max_size_t /\
+  v tbs_len + 76 <= asn1_value_length_max_of_type SEQUENCE
 
 #restart-solver
 #push-options "--query_stats --z3rlimit 32 --fuel 4 --ifuel 4"
-let x509_get_aliasKeyCRT_spec
+let sign_and_finalize_aliasKeyCRT_spec
   (deviceID_priv: lbytes_sec 32)
   (aliasKeyTBS_len: size_t
-                    { 64 + v aliasKeyTBS_len <= max_size_t /\
-                      v aliasKeyTBS_len + 76 <= asn1_value_length_max_of_type SEQUENCE })
+                    { valid_aliasKeyCRT_ingredients aliasKeyTBS_len })
   (aliasKeyTBS_seq: lbytes_pub (v aliasKeyTBS_len))
 : GTot (aliasKeyCRT_t_inbound aliasKeyTBS_len)
 =
@@ -204,7 +216,7 @@ let x509_get_aliasKeyCRT_spec
 #pop-options
 
 #restart-solver
-#push-options "--query_stats --z3rlimit 384 --fuel 10 --ifuel 6"
+#push-options "--query_stats --z3rlimit 512 --fuel 10 --ifuel 6"
 let sign_and_finalize_aliasKeyCRT
   (deviceID_priv: B.lbuffer uint8 32)
   (aliasKeyTBS_len: size_t)
@@ -221,23 +233,18 @@ let sign_and_finalize_aliasKeyCRT
                      loc_buffer aliasKeyCRT_buf]) /\
     (* For `B.alloca` *)
     0 < v aliasKeyTBS_len /\
-    (* For `Ed25519.sign` *)
-    64 + v aliasKeyTBS_len <= max_size_t /\
-    (* For `x509_get_aliasKeyCRT` *)
-    v aliasKeyTBS_len + 76 <= asn1_value_length_max_of_type SEQUENCE /\
+    valid_aliasKeyCRT_ingredients aliasKeyTBS_len /\
     (* `aliasKeyCRT_buf` has exact space to write serialization *)
-    v aliasKeyCRT_len
-    == v aliasKeyTBS_len + 77 + (length_of_asn1_length (u (v aliasKeyTBS_len + 76)))
+    v aliasKeyCRT_len == length_of_AliasKeyCRT aliasKeyTBS_len
    )
   (ensures fun h0 _ h1 ->
-    let aliasKeyCRT: aliasKeyCRT_t_inbound aliasKeyTBS_len = x509_get_aliasKeyCRT_spec
+    let aliasKeyCRT: aliasKeyCRT_t_inbound aliasKeyTBS_len = sign_and_finalize_aliasKeyCRT_spec
                                                                       (B.as_seq h0 deviceID_priv)
                                                                       (aliasKeyTBS_len)
                                                                       (B.as_seq h0 aliasKeyTBS_buf) in
     (* Prf *) lemma_serialize_aliasKeyCRT_sequence_TLV_size_exact aliasKeyTBS_len aliasKeyCRT;
     (* Post *) B.(modifies (loc_buffer aliasKeyCRT_buf) h0 h1) /\
-    (* Post *) B.as_seq h1 aliasKeyCRT_buf == serialize_aliasKeyCRT_sequence_TLV aliasKeyTBS_len `serialize` aliasKeyCRT /\
-    True
+    (* Post *) B.as_seq h1 aliasKeyCRT_buf == serialize_aliasKeyCRT_sequence_TLV aliasKeyTBS_len `serialize` aliasKeyCRT
   )
 =
   HST.push_frame ();
@@ -278,3 +285,5 @@ let sign_and_finalize_aliasKeyCRT
 
   HST.pop_frame ()
 #pop-options
+
+(* 2000 years later... *)
