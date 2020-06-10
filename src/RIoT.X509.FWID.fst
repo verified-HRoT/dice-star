@@ -168,7 +168,7 @@ let serialize32_fwid_sequence_TLV_backwards
 module B32 = FStar.Bytes
 
 (* helpers *)
-#push-options "--z3rlimit 4 --fuel 2 --ifuel 1"
+#push-options "--z3rlimit 8 --fuel 0 --ifuel 0"
 let x509_get_fwid
   (fwid: B32.lbytes32 32ul)
 : Tot (fwid_t_inbound)

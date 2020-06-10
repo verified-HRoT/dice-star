@@ -706,7 +706,7 @@ let lemma_parse_asn1_oid_V_unfold
   (* in *) input
 
 /// Reveal the computation of serialzation
-#push-options "--query_stats --z3rlimit 16"
+#push-options "--z3rlimit 16"
 noextract
 let lemma_serialize_asn1_oid_V_unfold
   (tag: (the_asn1_type OID & asn1_value_int32_of_type OID))
@@ -804,7 +804,7 @@ let serialize_asn1_oid_TLV_of
 (* FIXME: Sometimes will fail *)
 // /// Reveal the computation of parse
 // #restart-solver
-// #push-options "--query_stats --z3rlimit 64 --initial_ifuel 8"
+// #push-options "--z3rlimit 64 --initial_ifuel 8"
 // noextract
 // let lemma_parse_asn1_oid_TLV_unfold
 //   (input: bytes)

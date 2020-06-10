@@ -221,7 +221,7 @@ let serialize_asn1_envelop_tag_with_TLV
   (* tg *) (parser_tag_of_asn1_envelop_tag_with a s)
   (* s  *) (serialize_asn1_envelop_tag_with_weak a s)
 
-#push-options "--query_stats --z3rlimit 32"
+#push-options "--z3rlimit 32"
 let predicate_serialize_asn1_envelop_tag_with_TLV_unfold
   (#k: parser_kind)
   (#t: Type0)

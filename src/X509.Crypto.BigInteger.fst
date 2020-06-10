@@ -56,7 +56,7 @@ let filter_big_integer_as_octet_string
     else
     ( s.[0] < 0x80uy ) )
 
-#push-options "--query_stats"
+
 noextract
 let synth_big_integer_as_octet_string
   (l: asn1_value_length_of_big_integer)
@@ -397,7 +397,7 @@ module B = LowStar.Buffer
 module Cast = FStar.Int.Cast
 open LowParse.Low.Bytes
 
-#push-options "--query_stats --z3rlimit 32"
+#push-options "--z3rlimit 32"
 inline_for_extraction
 let serialize32_big_integer_as_octet_string_backwards
   (len: asn1_value_int32_of_big_integer)

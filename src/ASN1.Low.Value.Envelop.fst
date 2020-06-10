@@ -21,7 +21,7 @@ open FStar.Integers
 
 (* NOTE: Read after `ASN1.Spec.Tag`, `ASN1.Spec.Length`, `ASN1.Spec.Value.*` *)
 
-#push-options "--z3rlimit 16"
+#push-options "--z3rlimit 64 --fuel 0 --ifuel 0"
 inline_for_extraction noextract
 let serialize32_asn1_envelop_tag_with_TLV_backwards
   (#k: parser_kind)

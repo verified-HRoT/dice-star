@@ -27,7 +27,7 @@ let serialize_flbytes32'
     B32.reveal x
   )
 
-#push-options "--query_stats --z3rlimit 16"
+#push-options "--z3rlimit 16"
 let serialize_flbytes32_correct
   (len: asn1_int32)
 : Lemma

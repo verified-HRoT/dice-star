@@ -244,7 +244,7 @@ module CB = LowStar.ConstBuffer
 module G = FStar.Ghost
 open FStar.Integers
 
-// #push-options "--query_stats --z3rlimit 16"
+// #push-options "--z3rlimit 16"
 // let rec length_of_x509_ext_key_usage
 //   (oids: list (datatype_of_asn1_type OID) { valid_keyPurposeIDs oids})
 //   (x: x509_ext_key_usage_t oids)

@@ -109,7 +109,7 @@ let lemma_serialize_aliasKeyTBS_unfold
   (* in *) x
 
 #restart-solver
-#push-options "--query_stats --z3rlimit 64 --fuel 2 --ifuel 2"
+#push-options "--z3rlimit 64 --fuel 0 --ifuel 0"
 let lemma_serialize_aliasKeyTBS_size
   (header_len: asn1_int32)
   (x: aliasKeyTBS_t header_len)
@@ -165,7 +165,7 @@ let lemma_serialize_aliasKeyTBS_sequence_TLV_size
 = lemma_serialize_asn1_sequence_TLV_size (serialize_aliasKeyTBS header_len) x
 
 #restart-solver
-#push-options "--query_stats --z3rlimit 64 --fuel 2 --ifuel 1"
+#push-options "--z3rlimit 64 --fuel 0 --ifuel 0"
 let lemma_serialize_aliasKeyTBS_sequence_TLV_size_exact
   (header_len: asn1_int32)
   (x: aliasKeyTBS_t_inbound header_len)
@@ -213,7 +213,7 @@ let serialize32_aliasKeyTBS_sequence_TLV_backwards
 (* helpers *)
 
 #restart-solver
-#push-options "--z3rlimit 32"
+#push-options "--z3rlimit 32 --fuel 0 --ifuel 0"
 let x509_get_AliasKeyTBS
   (header_len: asn1_int32)
   (aliasKeyTBS_template: B32.lbytes32 header_len)
@@ -246,7 +246,6 @@ let x509_get_AliasKeyTBS
   (* Prf *) (**) lemma_serialize_flbytes32_size header_len aliasKeyTBS.aliasKeyTBS_template;
 
 (*return*) aliasKeyTBS
-#pop-options
 
 unfold
 let length_of_AliasKeyTBS_payload

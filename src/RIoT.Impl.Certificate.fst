@@ -1,38 +1,24 @@
-module RIoT.X509
-
-module B32 = FStar.Bytes
+module RIoT.Impl.Certificate
 
 open ASN1.Spec
 open X509
-include RIoT.X509.Base
-include RIoT.X509.FWID
-include RIoT.X509.CompositeDeviceID
-include RIoT.X509.Extension
-include RIoT.X509.AliasKeyTBS
-include RIoT.X509.AliasKeyCRT
-open FStar.Integers
 
-(* ZT: Some tests to indicate if the proof performance has been
-       affected by some definitions from ASN1.* or Hacl.* *)
-#set-options "--z3rlimit 16"
-let _ = assert (length_of_oid OID_EC_GRP_SECP256R1 == 6)
-let _ = assert (length_of_asn1_primitive_value (Mkbit_string_t 33ul 0ul (magic())) == 33)
-
-open X509.Base
-open ASN1.Spec.Base
-
-open Lib.IntTypes
 open RIoT.Base
 open RIoT.Declassify
-open Spec.Hash.Definitions
+open RIoT.X509
 
+open Lib.IntTypes
+module Ed25519 = Hacl.Ed25519
+
+module B32 = FStar.Bytes
 module B = LowStar.Buffer
 module IB = LowStar.ImmutableBuffer
 module HS  = FStar.HyperStack
 module HST = FStar.HyperStack.ST
 
-module Ed25519 = Hacl.Ed25519
+open RIoT.Spec.Certificate
 
+#set-options "--z3rlimit 256 --fuel 0 --ifuel 0"
 
 (* Create AliasKey To-Be-Signed Certificate
   =======================================
@@ -55,53 +41,18 @@ module Ed25519 = Hacl.Ed25519
 
    In our case:
       TBSCertificate  ::=  SEQUENCE  {
-        [template]
-        subjectPublicKeyInfo SubjectPublicKeyInfo,
-        extensions      [3]  EXPLICIT Extensions OPTIONAL (Only RIoT Extension for now)
-                             -- If present, version MUST be v3
+        ----------------
+        |              |
+        |   Template   |
+        |              |
+        ----------------
+        subjectPublicKeyInfo for AliasKey,
+        extensions           for RIoT
         }
+   NOTE: The SEQUENCE Tag and Length of TBS is __NOT__ part of the template
+   NOTE: Other extensions like Key Usage are __NOT__ included in this version.
 *)
 
-unfold
-let valid_aliasKeyTBS_ingredients
-  (template_len: asn1_int32)
-  (version: datatype_of_asn1_type INTEGER)
-= v template_len + length_of_asn1_primitive_TLV version + 155
-  <= asn1_value_length_max_of_type SEQUENCE
-
-#restart-solver
-#push-options "--query_stats --z3rlimit 64 --fuel 2 --ifuel 2"
-let create_aliasKeyTBS_spec
-  (template_len: asn1_int32)
-  (aliasKeyTBS_template: lbytes_pub (v template_len))
-  (version: datatype_of_asn1_type INTEGER
-            { valid_aliasKeyTBS_ingredients template_len version })
-  (fwid: lbytes_sec 32)
-  (deviceID_pub: lbytes_pub 32)
-  (aliasKey_pub: lbytes_pub 32)
-: GTot (aliasKeyTBS_t_inbound template_len)
-=
-(* Create AliasKeyTBS *)
-  let aliasKeyTBS_template32: B32.lbytes32 template_len = B32.hide aliasKeyTBS_template in
-  let deviceID_pub32: B32.lbytes32 32ul = B32.hide deviceID_pub in
-  let fwid32        : B32.lbytes32 32ul = B32.hide (declassify_secret_bytes fwid) in
-  let aliasKey_pub32: B32.lbytes32 32ul = B32.hide aliasKey_pub in
-  let aliasKeyTBS: aliasKeyTBS_t_inbound template_len = x509_get_AliasKeyTBS
-                                                        template_len
-                                                        aliasKeyTBS_template32
-                                                        version
-                                                        fwid32
-                                                        deviceID_pub32
-                                                        aliasKey_pub32 in
-  (* Prf *) lemma_serialize_aliasKeyTBS_size template_len aliasKeyTBS;
-  (* Prf *) lemma_serialize_aliasKeyTBS_sequence_TLV_size_exact template_len aliasKeyTBS;
-
-(* return *) aliasKeyTBS
-#pop-options
-
-(* ZT: Maybe FIXME: The large rlimit is required by the `modifies` clause. *)
-#restart-solver
-#push-options "--query_stats --z3rlimit 256 --fuel 2 --ifuel 1"
 let create_aliasKeyTBS
   (fwid: B.lbuffer byte_sec 32)
   (riot_version: datatype_of_asn1_type INTEGER)
@@ -166,9 +117,8 @@ let create_aliasKeyTBS
                  aliasKeyTBS_len in
 
   HST.pop_frame ()
-#pop-options
 
-(* 1000 years later... *)
+
 
 (* Sign and Finalize AliasKey Certificate
   =======================================
@@ -179,45 +129,11 @@ let create_aliasKeyTBS
         signatureValue       BIT STRING  }
 *)
 
-unfold
-let valid_aliasKeyCRT_ingredients
-  (tbs_len: asn1_int32)
-= // (* implied *) v tbs_len + 64 <= max_size_t /\
-  v tbs_len + 76 <= asn1_value_length_max_of_type SEQUENCE
+(* A predicate says that
+   1) the length of TBS is valid as Hacl's HKDF message length
+   2) the length of created CRT is valid as our ASN.1 TLV SEQUENCE value length
+*)
 
-#restart-solver
-#push-options "--z3rlimit 32 --fuel 2 --ifuel 1"
-let sign_and_finalize_aliasKeyCRT_spec
-  (deviceID_priv: lbytes_sec 32)
-  (aliasKeyTBS_len: size_t
-                    { valid_aliasKeyCRT_ingredients aliasKeyTBS_len })
-  (aliasKeyTBS_seq: lbytes_pub (v aliasKeyTBS_len))
-: GTot (aliasKeyCRT_t_inbound aliasKeyTBS_len)
-=
-
-(* Classify AliasKeyTBS *)
-  let aliasKeyTBS_seq_sec: lbytes_sec (v aliasKeyTBS_len) = classify_public_bytes aliasKeyTBS_seq in
-
-(* Sign AliasKeyTBS *)
-  let aliasKeyTBS_sig_sec: lbytes_sec 64 = Spec.Ed25519.sign deviceID_priv aliasKeyTBS_seq_sec in
-
-(* Declassify AliasKeyTBS *)
-  let aliasKeyTBS_sig    : lbytes_pub 64 = declassify_secret_bytes aliasKeyTBS_sig_sec in
-
-(* Create AliasKeyCRT with AliasKeyTBS and Signature *)
-  let aliasKeyTBS_seq32  : B32.lbytes32 aliasKeyTBS_len = B32.hide aliasKeyTBS_seq in
-  let aliasKeyTBS_sig32  : x509_signature_raw_t alg_AliasKey = B32.hide aliasKeyTBS_sig in
-  let aliasKeyCRT: aliasKeyCRT_t_inbound aliasKeyTBS_len = x509_get_AliasKeyCRT
-                                                             aliasKeyTBS_len
-                                                             aliasKeyTBS_seq32
-                                                             aliasKeyTBS_sig32 in
-
-(* return *) aliasKeyCRT
-#pop-options
-
-(**)
-#restart-solver
-#push-options "--query_stats --z3rlimit 256 --fuel 2 --ifuel 2"
 let sign_and_finalize_aliasKeyCRT
   (deviceID_priv: B.lbuffer byte_sec 32)
   (aliasKeyTBS_len: size_t)
@@ -289,6 +205,3 @@ let sign_and_finalize_aliasKeyCRT
                  aliasKeyCRT_len in
 
   HST.pop_frame ()
-#pop-options
-
-(* 2000 years later... *)

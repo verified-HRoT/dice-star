@@ -12,7 +12,7 @@ unfold
 let riot_extension_t
 = x509_extension_t OID_RIOT serialize_compositeDeviceID_sequence_TLV
 
-// #set-options "--query_stats --z3rlimit 32 --fuel 8 --ifuel 8"
+// #set-options "--z3rlimit 32 --fuel 8 --ifuel 8"
 // let _ = assert (length_of_oid OID_EC_GRP_SECP256R1 == 6)
 // let _ = assert_norm (length_of_asn1_primitive_TLV (Mkbit_string_t 33ul 0ul (magic())) == 35)
 
@@ -56,7 +56,7 @@ let lemma_serialize_riot_extension_sequence_TLV_unfold
 let lemma_serialize_riot_extension_sequence_TLV_size
 = lemma_serialize_x509_extension_sequence_TLV_size OID_RIOT serialize_compositeDeviceID_sequence_TLV
 
-#push-options "--query_stats --z3rlimit 64 --fuel 4 --ifuel 4"
+#push-options "--z3rlimit 64 --fuel 4 --ifuel 4"
 let lemma_serialize_riot_extension_size_exact
   (x: riot_extension_t_inbound)
 : Lemma (
@@ -110,7 +110,7 @@ let serialize32_riot_extension_sequence_TLV_backwards
 module B32 = FStar.Bytes
 
 #restart-solver
-#push-options "--query_stats --z3rlimit 64 --fuel 8 --ifuel 4"
+#push-options "--z3rlimit 64 --fuel 0 --ifuel 0"
 let x509_get_riot_extension
   (version: datatype_of_asn1_type INTEGER)
   (fwid: B32.lbytes32 32ul)

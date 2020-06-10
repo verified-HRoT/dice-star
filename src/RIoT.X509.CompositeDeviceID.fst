@@ -201,7 +201,7 @@ let serialize32_compositeDeviceID_sequence_TLV_backwards
 (* helpers *)
 module B32 = FStar.Bytes
 
-#push-options "--z3rlimit 8 --fuel 2 --ifuel 1"
+#push-options "--z3rlimit 8 --fuel 0 --ifuel 0"
 let x509_get_compositeDeviceID
   (version: datatype_of_asn1_type INTEGER)
   (deviceKeyPub: B32.lbytes32 32ul)

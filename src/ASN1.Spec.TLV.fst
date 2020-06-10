@@ -105,7 +105,7 @@ let length_of_asn1_primitive_value
 
 /// Length Spec of ASN.1 Primitive [TAG, LEN, VALUE] of primitive types
 ///
-#push-options "--query_stats --z3rlimit 32"
+#push-options "--z3rlimit 32"
 noextract
 let length_of_asn1_primitive_TLV
   (#_a: asn1_primitive_type)

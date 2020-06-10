@@ -14,7 +14,7 @@ module B32 = FStar.Bytes
 open LowParse.Spec.SeqBytes.Base
 open LowParse.Spec.Bytes
 
-#push-options "--query_stats --z3rlimit 32 --fuel 4 --ifuel 4"
+#push-options "--z3rlimit 32"
 type aliasKeyCRT_t (tbs_len: asn1_int32) = {
   aliasKeyCRT_tbs: B32.lbytes32 tbs_len;
   aliasKeyCRT_sig_alg: algorithmIdentifier_t_inbound AlgID_Ed25519;
@@ -111,7 +111,7 @@ let lemma_serialize_aliasKeyCRT_unfold
   (* in *) x
 
 #restart-solver
-#push-options "--query_stats --z3rlimit 64 --fuel 4 --ifuel 4"
+#push-options "--z3rlimit 64 --fuel 0 --ifuel 0"
 let lemma_serialize_aliasKeyCRT_size
   (tbs_len: asn1_int32)
   (x: aliasKeyCRT_t tbs_len)
@@ -161,7 +161,7 @@ let lemma_serialize_aliasKeyCRT_sequence_TLV_size
 : Lemma ( predicate_serialize_asn1_sequence_TLV_size (serialize_aliasKeyCRT tbs_len) x )
 = lemma_serialize_asn1_sequence_TLV_size (serialize_aliasKeyCRT tbs_len) x
 
-#push-options "--query_stats --z3rlimit 64 --fuel 8 --ifuel 4"
+#push-options "--z3rlimit 64 --fuel 0 --ifuel 0"
 let lemma_serialize_aliasKeyCRT_sequence_TLV_size_exact
   (tbs_len: asn1_int32)
   (x: aliasKeyCRT_t_inbound tbs_len)
@@ -206,7 +206,7 @@ let serialize32_aliasKeyCRT_sequence_TLV_backwards
     ()
 
 #restart-solver
-#push-options "--query_stats --z3rlimit 32 --fuel 4 --ifuel 4"
+#push-options "--z3rlimit 32 --fuel 0 --ifuel 0"
 let x509_get_AliasKeyCRT
   (tbs_len: asn1_int32
             { v tbs_len + 76 <= asn1_value_length_max_of_type SEQUENCE })
@@ -230,9 +230,7 @@ let x509_get_AliasKeyCRT
   (* Prf *) (**) lemma_serialize_flbytes32_size tbs_len aliasKeyCRT.aliasKeyCRT_tbs;
 
 (* return *) aliasKeyCRT
-#pop-options
 
-#push-options "--z3rlimit 32 --fuel 4 --ifuel 4"
 unfold
 let length_of_AliasKeyCRT_payload
   (tbs_len: asn1_int32 {v tbs_len + 76 <= asn1_value_length_max_of_type SEQUENCE})

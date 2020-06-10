@@ -188,7 +188,7 @@ let lemma_serialize_algorithmIdentifier_unfold
 
 /// lemma: reveal sequence serialization size
 
-#push-options "--query_stats"
+
 let lemma_serialize_algorithmIdentifier_size
   (alg: supported_crypto_alg_t)
   (x: algorithmIdentifier_t alg)
@@ -251,7 +251,7 @@ let lemma_serialize_algorithmIdentifier_sequence_TLV_size
   | AlgID_ECDSA_P256 -> ( lemma_serialize_asn1_sequence_TLV_size (serialize_algorithmIdentifier alg) x )
   | AlgID_Ed25519    -> ( lemma_serialize_asn1_sequence_TLV_size (serialize_algorithmIdentifier alg) x )
 
-#push-options "--query_stats --z3rlimit 32 --fuel 4 --ifuel 4"
+#push-options "--z3rlimit 32 --fuel 4 --ifuel 4"
 let lemma_serialize_algorithmIdentifier_sequence_TLV_size_exact
   (alg: supported_crypto_alg_t {alg == AlgID_Ed25519})
   (x: algorithmIdentifier_t alg)
@@ -308,7 +308,7 @@ let serialize32_algorithmIdentifier_sequence_TLV_backwards
 (* helpers *)
 let _ = assert (length_of_oid OID_EC_GRP_SECP256R1 == 6)
 
-#push-options "--z3rlimit 4 --fuel 2 --ifuel 1"
+#push-options "--z3rlimit 4 --fuel 0 --ifuel 0"
 noextract inline_for_extraction
 let x509_get_algorithmIdentifier
   (alg: supported_crypto_alg_t {alg == AlgID_Ed25519})

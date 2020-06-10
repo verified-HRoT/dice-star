@@ -96,6 +96,7 @@ let serialize_asn1_length_of_type
 // = serialize_bounded_der_length32_size (asn1_value_length_min_of_type _a) (asn1_value_length_max_of_type _a) len
 
 /// NOTE: Use this with `lemma_serialize_asn1_length_unfold/size` when you need to prove something in the serialization.
+#push-options "--z3rlimit 32"
 noextract
 let serialize_asn1_length_of_type_eq
   (_a: asn1_type)
@@ -107,4 +108,4 @@ let serialize_asn1_length_of_type_eq
 = lemma_serialize_asn1_length_unfold len;
   let min, max = asn1_value_length_min_of_type _a, asn1_value_length_max_of_type _a in
   serialize_bounded_der_length32_unfold min max len
-
+#pop-options

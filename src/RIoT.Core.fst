@@ -2,173 +2,145 @@
 module RIoT.Core
 
 open LowStar.Comment
-
 module Fail = LowStar.Failure
 module B = LowStar.Buffer
+module IB = LowStar.ImmutableBuffer
 module HS  = FStar.HyperStack
 module HST = FStar.HyperStack.ST
+module B32 = FStar.Bytes
 
 open Lib.IntTypes
-module S = Spec.Hash.Definitions
-module H = Hacl.Hash.Definitions
-module Ed25519 = Hacl.Ed25519
-module Curve25519 = Hacl.Curve25519_51
-module HKDF = Hacl.HKDF
+open Spec.Hash.Definitions
+open Hacl.Hash.Definitions
 
-module HW = HWAbstraction
+open ASN1.Spec
+open ASN1.Low
+open X509
 
-open S
-open H
-open RIoT.Definitions
+open RIoT.X509
+open RIoT.Base
+open RIoT.Declassify
+open RIoT.Spec
+open RIoT.Impl
 
-let salt_len: a:size_t{(v a) > 0 /\ Spec.Agile.HMAC.keysized alg (v a)}
-  = 32ul
-(* ZT: Hacl.HKDF.fsti and Spec.Agile.HKDF.fsti
-       have different spec, I choose the smaller
-       one `pow2 32` here*)
-let info_len: a:size_t{(v a) > 0 /\ hash_length SHA2_256 + v a + 1 + block_length SHA2_256 <= pow2 32}
-  = 32ul
-let okm_len : a:size_t{(v a) > 0}
-  = 32ul
-
-#reset-options "--z3rlimit 30"
-#push-options "--query_stats"
-let riot_derive_key_pair
-  (public_key: B.buffer uint8)
-  (private_key: B.buffer uint8)
-  (ikm: B.buffer uint8)
-  (ikm_len: size_t)
-: HST.Stack unit
-  (requires fun h -> let alg = SHA2_256 in
-    B.live h ikm /\ B.live h public_key /\ B.live h private_key /\
-    B.all_disjoint [B.loc_buffer ikm; B.loc_buffer public_key; B.loc_buffer private_key] /\
-    B.length ikm         == v ikm_len /\
-    B.length public_key  == hash_length alg /\
-    B.length private_key == hash_length alg /\
-    (* `ikm` sepc required by `Hacl.HKDF.extract_st` *)
-    v ikm_len + block_length alg < pow2 32 /\
-    (* `ikm` spec required by `Spec.Agile.HKDF.extract` *)
-    v ikm_len + block_length alg <= max_input_length alg /\
-    (* `info` spec required by `Spec.Agile.HKDF.expand` *)
-    hash_length alg + v info_len + 1 + block_length alg <= max_input_length alg) //pow2 61 -1
-  (ensures  fun h0 _ h1 -> let alg = SHA2_256 in
-    B.(modifies ((loc_buffer public_key) `loc_union` (loc_buffer private_key)) h0 h1) /\
-    B.(let salt = (Seq.create (v salt_len) (u8 0x00)) in
-       let info = (Seq.create (v info_len) (u8 0x00)) in
-       let prk = Spec.Agile.HKDF.extract alg salt (as_seq h0 ikm) in
-       as_seq h1 private_key == Spec.Agile.HKDF.expand alg prk info (hash_length alg)) /\
-    B.(as_seq h1 public_key == Spec.Curve25519.secret_to_public (as_seq h1 private_key)))
-=
-  HST.push_frame ();
-  let alg = SHA2_256 in
-  let prk : b:B.buffer uint8{B.length b == hash_length alg} = B.alloca (u8 0x00) (hash_len alg) in
-  let salt: b:B.buffer uint8{Spec.Agile.HMAC.keysized alg (B.length b)} = B.alloca (u8 0x00) salt_len in
-  HKDF.extract_sha2_256
-    prk           // out: Pseudo Random Key
-    salt salt_len // in : (optional) Salt
-    ikm  ikm_len; // in : Input Keying Material
-  let info: b:B.buffer uint8{B.length b == v info_len} = B.alloca (u8 0x00) info_len in
-  (**)assert_norm (Spec.Agile.HMAC.keysized alg (hash_length alg));
-  HKDF.expand_sha2_256
-    private_key        // out: Output Keying Material
-    prk (hash_len alg) // in : Pseudo Random Key
-    info info_len      // in : (optional) Info
-    (hash_len alg);    // in : okm len
-  Curve25519.secret_to_public
-    public_key   // out: public
-    private_key; // in : secret
-  HST.pop_frame ()
-
-noeq
-type cert_t = {
-  tbs: B.lbuffer uint8 32;
-  sig: B.lbuffer uint8 64
-}
-
-unfold
-let contains_cert h cert =
-  B.live h cert.tbs /\
-  B.live h cert.sig
-
-unfold
-let get_cert_loc_l cert = [
-  B.loc_buffer cert.tbs;
-  B.loc_buffer cert.sig
-]
-
-noeq
-type riot_out_t = {
-     // alias_public_key    : B.lbuffer uint8 32;
-     // alias_private_key   : B.lbuffer uint8 32;
-     deviceID_public_key : B.lbuffer uint8 32;
-     deviceID_cert        : cert_t
-}
-
-unfold
-let contains_riot_out (h: HS.mem) (rout: riot_out_t) =
-  // B.live h rout.alias_public_key /\
-  // B.live h rout.alias_private_key /\
-  B.live h rout.deviceID_public_key /\
-  h `contains_cert` rout.deviceID_cert
-
-unfold
-let get_riot_out_loc_l rout = [
-   // B.loc_buffer rout.alias_public_key;
-   // B.loc_buffer rout.alias_private_key;
-   B.loc_buffer rout.deviceID_public_key
-] @ (get_cert_loc_l rout.deviceID_cert)
-
-#reset-options "--z3rlimit 50"
-#push-options "--query_stats"
+#restart-solver
+#push-options "--z3rlimit 512 --fuel 0 --ifuel 0"
 let riot_main
-  (st: HW.state)
-  (fwid: B.buffer uint8{B.length fwid == v digest_len})
-  (rout:riot_out_t)
+(* inputs *)
+  (cdi : B.lbuffer byte_sec 32)
+  (fwid: B.lbuffer byte_sec 32)
+  (version: datatype_of_asn1_type INTEGER)
+  (aliasKeyTBS_template_len: size_t)
+  (aliasKeyTBS_template: B.lbuffer byte_pub (v aliasKeyTBS_template_len))
+  (deviceID_label_len: size_t)
+  (deviceID_label: B.lbuffer byte_sec (v deviceID_label_len))
+  (aliasKey_label_len: size_t)
+  (aliasKey_label: B.lbuffer byte_sec (v aliasKey_label_len))
+(* outputs *)
+  (aliasKeyCRT_len: size_t)
+  (aliasKeyCRT_buf: B.lbuffer byte_pub (v aliasKeyCRT_len))
+  (aliasKey_pub: B.lbuffer byte_pub 32)
+  (aliasKey_priv: B.lbuffer uint8 32)
 : HST.Stack unit
   (requires fun h ->
-    B.live h (HW.get_cdi st) /\
-    B.live h fwid /\
-    h `contains_riot_out` rout /\
-    B.all_disjoint ((get_riot_out_loc_l rout)@[B.loc_buffer (HW.get_cdi st); B.loc_buffer fwid]))
-  (ensures  fun h0 _ h1 ->
-    B.(modifies (loc_union_l (get_riot_out_loc_l rout)) h0 h1) /\
-    (* TODO: spec for RIoT main *) True)
+    B.(all_live h [buf cdi;
+                   buf fwid;
+                   buf aliasKeyTBS_template;
+                   buf deviceID_label;
+                   buf aliasKey_label;
+                   buf aliasKeyCRT_buf;
+                   buf aliasKey_pub;
+                   buf aliasKey_priv]) /\
+    B.(all_disjoint [loc_buffer cdi;
+                     loc_buffer fwid;
+                     loc_buffer aliasKeyTBS_template;
+                     loc_buffer deviceID_label;
+                     loc_buffer aliasKey_label;
+                     loc_buffer aliasKeyCRT_buf;
+                     loc_buffer aliasKey_pub;
+                     loc_buffer aliasKey_priv]) /\
+   (* Pre: labels have enough length for HKDF *)
+   valid_hkdf_lbl_len deviceID_label_len /\
+   valid_hkdf_lbl_len aliasKey_label_len /\
+   (* Pre: AliasKeyTBS template has a valid length *)
+   valid_aliasKeyTBS_ingredients aliasKeyTBS_template_len version /\
+   (* Pre: AliasKeyTBS will have a valid length *)
+   valid_aliasKeyCRT_ingredients (len_of_AliasKeyTBS aliasKeyTBS_template_len version) /\
+   (* Pre: `aliasKeyCRT_buf` has exact size to write AliasKeyCRT *)
+   v aliasKeyCRT_len == length_of_AliasKeyCRT (len_of_AliasKeyTBS aliasKeyTBS_template_len version)
+   )
+   (ensures fun h0 _ h1 -> True /\
+    (* Post: Modifies *)
+     B.(modifies (loc_buffer aliasKeyCRT_buf `loc_union` loc_buffer aliasKey_pub `loc_union` loc_buffer aliasKey_priv) h0 h1) /\
+    (* Post: AliasKey *)
+    ((B.as_seq h1 aliasKey_pub  <: lbytes_pub 32),
+     (B.as_seq h1 aliasKey_priv <: lbytes_sec 32)) == derive_AliasKey_spec
+                                                        (B.as_seq h0 cdi)
+                                                        (B.as_seq h0 fwid)
+                                                        aliasKey_label_len                                                        (B.as_seq h0 aliasKey_label) /\
+    (* Post: AliasKeyCRT *)
+    (let deviceID_pub_seq, deviceID_priv_seq = derive_DeviceID_spec
+                                                 (B.as_seq h0 cdi)
+                                                 (deviceID_label_len)
+                                                 (B.as_seq h0 deviceID_label) in
+     let aliasKeyTBS: aliasKeyTBS_t_inbound aliasKeyTBS_template_len = create_aliasKeyTBS_spec
+                                                                         (aliasKeyTBS_template_len)
+                                                                         (B.as_seq h0 aliasKeyTBS_template)
+                                                                         (version)
+                                                                         (B.as_seq h0 fwid)
+                                                                         (deviceID_pub_seq)
+                                                                         (B.as_seq h1 aliasKey_pub)
+                                                                         in
+     let aliasKeyTBS_seq = serialize_aliasKeyTBS_sequence_TLV aliasKeyTBS_template_len `serialize` aliasKeyTBS in
+     let aliasKeyTBS_len = len_of_AliasKeyTBS aliasKeyTBS_template_len version in
+     (* Prf *) lemma_serialize_aliasKeyTBS_sequence_TLV_size_exact aliasKeyTBS_template_len aliasKeyTBS;
+    (let aliasKeyCRT: aliasKeyCRT_t_inbound aliasKeyTBS_len = sign_and_finalize_aliasKeyCRT_spec
+                                                                (deviceID_priv_seq)
+                                                                (aliasKeyTBS_len)
+                                                                (aliasKeyTBS_seq) in
+     B.as_seq h1 aliasKeyCRT_buf == serialize_aliasKeyCRT_sequence_TLV aliasKeyTBS_len `serialize` aliasKeyCRT)))
 =
-  HST.push_frame ();
-  let cdi = HW.get_cdi st in
-  let cDigest: b:B.buffer uint8{B.length b == v digest_len} = B.alloca (u8 0) digest_len in
-  (**)assert_norm (v digest_len <= max_input_length alg);
-  riot_hash alg
-    cdi cdi_len    //in : data
-    cDigest;       //out: digest
-  let deviceID_private_key: b:B.buffer uint8{B.length b == v digest_len} = B.alloca (u8 0) digest_len in
-  (**)assert_norm (v digest_len + block_length alg <= max_input_length alg);
-  riot_derive_key_pair
-    rout.deviceID_public_key //out: public key
-    deviceID_private_key     //out: private key
-    cDigest digest_len;      //in :ikm
+ HST.push_frame ();
 
-  (* NOTE: Now I just fill the public key into the To-Be-Signed region *)
-  B.blit
-    rout.deviceID_public_key 0ul
-    rout.deviceID_cert.tbs   0ul
-    32ul;
-  Ed25519.sign
-    rout.deviceID_cert.sig  //out: signature
-    deviceID_private_key    //in : secret
-    32ul                    //in : msglen
-    rout.deviceID_cert.tbs; //in : msg
+(* Derive DeviceID *)
+  let deviceID_pub : B.lbuffer byte_pub 32 = B.alloca 0x00uy    32ul in
+  let deviceID_priv: B.lbuffer byte_sec 32 = B.alloca (u8 0x00) 32ul in
+  derive_DeviceID
+    (* pub *) deviceID_pub
+    (* priv*) deviceID_priv
+    (* cdi *) cdi
+    (* lbl *) deviceID_label_len
+              deviceID_label;
 
-  (* FIXME: just consider deviceID now *)
-  // (* NOTE: hmac requires disjointness *)
-  // let cfDigest: b:B.buffer uint8{B.length b == v digest_len} = B.alloca (u8 0) digest_len in
-  // riot_hmac alg
-  //   cfDigest            //out: tag
-  //   cDigest digest_len  //in : key
-  //   fwid    digest_len; //in : data
-  // riot_derive_key_pair
-  //   rout.alias_public_key  //out: public key
-  //   rout.alias_private_key //out: private key
-  //   cfDigest digest_len;   //in :ikm
+(* Derive AliasKey *)
+  derive_AliasKey
+    (* pub *) aliasKey_pub
+    (* priv*) aliasKey_priv
+    (* cdi *) cdi
+    (* fwid*) fwid
+    (* lbl *) aliasKey_label_len
+              aliasKey_label;
 
-  HST.pop_frame ()
+(* Create AliasKeyTBS *)
+  let aliasKeyTBS_len: asn1_TLV_int32_of_type SEQUENCE = len_of_AliasKeyTBS aliasKeyTBS_template_len version in
+  let aliasKeyTBS_buf: B.lbuffer byte_pub (v aliasKeyTBS_len) = B.alloca 0x00uy aliasKeyTBS_len in
+  create_aliasKeyTBS
+    (* FWID      *) fwid
+    (* Version   *) version
+    (* DeviceID  *) deviceID_pub
+    (* AliasKey  *) aliasKey_pub
+    (* Template  *) aliasKeyTBS_template_len
+                    aliasKeyTBS_template
+    (*AliasKeyTBS*) aliasKeyTBS_len
+                    aliasKeyTBS_buf;
+
+(* Sign AliasKeyTBS and Finalize AliasKeyCRT *)
+  sign_and_finalize_aliasKeyCRT
+    (*Signing Key*) deviceID_priv
+    (*AliasKeyTBS*) aliasKeyTBS_len
+                    aliasKeyTBS_buf
+    (*AliasKeyCRT*) aliasKeyCRT_len
+                    aliasKeyCRT_buf;
+
+  HST.pop_frame()
+#pop-options

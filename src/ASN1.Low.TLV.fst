@@ -65,7 +65,7 @@ let len_of_asn1_primitive_value
                       len_of_oid_buffer value )
 #pop-options
 
-#push-options "--query_stats --z3rlimit 64"
+#push-options "--z3rlimit 64"
 inline_for_extraction noextract
 let len_of_asn1_primitive_TLV
   (#_a: asn1_primitive_type)

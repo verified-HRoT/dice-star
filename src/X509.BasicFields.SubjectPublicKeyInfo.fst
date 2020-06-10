@@ -166,7 +166,7 @@ let lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size
          of SEQUENCE "envelop".
 *)
 
-#push-options "--query_stats --z3rlimit 32"
+#push-options "--z3rlimit 32"
 let lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size_exact
   (alg: supported_crypto_alg_t {alg == AlgID_Ed25519})
   (x: subjectPublicKeyInfo_t_inbound alg)
@@ -221,7 +221,7 @@ let subjectPublicKeyInfo_raw_t
 = match alg with
   | AlgID_Ed25519   -> B32.lbytes32 32ul
 
-#push-options "--z3rlimit 16 --fuel 2 --ifuel 1"
+#push-options "--z3rlimit 16 --fuel 0 --ifuel 0"
 let x509_get_subjectPublicKeyInfo
   (pubkey_alg: supported_crypto_alg_t {pubkey_alg == AlgID_Ed25519} )
   (pubkey: B32.lbytes32 32ul)
