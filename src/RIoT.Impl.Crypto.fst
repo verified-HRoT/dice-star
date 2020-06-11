@@ -50,6 +50,7 @@ let derive_key_pair
 = HST.push_frame ();
 
   (* NOTE:  Using SHA2_256 because Curve25519/Ed25519 requires a 32-bit private key *)
+  [@inline_let] //AR: 06/11: blocking some reductions
   let alg = SHA2_256 in
 
   (* Using an empty (0x00) buffer of hashLen as salt. *)
