@@ -80,7 +80,8 @@ KREMLIN_FLAGS = \
   -fparentheses -fno-shadow -fcurly-braces \
   -library HWAbstraction \
   -bundle DICE.Definitions \
-  -bundle Prims,C.Failure,C,C.*,FStar.*,Hacl.*,Spec.*,Vale.*,Lib.*,LowStar.*,Meta.*[rename=Hacl_Lib], ASN1.*, X509.* \
+  -bundle ASN1.*,X509.* \
+  -bundle Prims,C.Failure,C,C.*,FStar.*,Hacl.*,Spec.*,Vale.*,Lib.*,LowStar.*,Meta.*[rename=Hacl_Lib] \
   -minimal \
   -fnoreturn-else \
   -add-include '"kremlin/internal/types.h"' \
