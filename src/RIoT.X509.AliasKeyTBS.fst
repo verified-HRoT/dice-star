@@ -121,7 +121,7 @@ let lemma_serialize_aliasKeyTBS_size
   length_of_opaque_serialization (serialize_riot_extension_sequence_TLV) x.aliasKeyTBS_riot_extension /\
   (* exact size *)
   length_of_opaque_serialization (serialize_aliasKeyTBS header_len) x
-  == v header_len + length_of_asn1_primitive_TLV x.aliasKeyTBS_riot_extension.x509_extValue.riot_version + 155 /\
+  == v header_len + length_of_asn1_primitive_TLV x.aliasKeyTBS_riot_extension.x509_extValue_riot.riot_version + 155 /\
   (* upper bound *)
   length_of_opaque_serialization (serialize_aliasKeyTBS header_len) x
   <= v header_len + 161
@@ -170,11 +170,11 @@ let lemma_serialize_aliasKeyTBS_sequence_TLV_size_exact
   (header_len: asn1_int32)
   (x: aliasKeyTBS_t_inbound header_len)
 : Lemma (
-  let length = v header_len + length_of_asn1_primitive_TLV x.aliasKeyTBS_riot_extension.x509_extValue.riot_version + 155 in
+  let length = v header_len + length_of_asn1_primitive_TLV x.aliasKeyTBS_riot_extension.x509_extValue_riot.riot_version + 155 in
   length == length_of_opaque_serialization (serialize_aliasKeyTBS header_len) x /\
   (* exact size *)
   length_of_opaque_serialization (serialize_aliasKeyTBS_sequence_TLV header_len) x
-  == v header_len + length_of_asn1_primitive_TLV x.aliasKeyTBS_riot_extension.x509_extValue.riot_version + 156 +
+  == v header_len + length_of_asn1_primitive_TLV x.aliasKeyTBS_riot_extension.x509_extValue_riot.riot_version + 156 +
      length_of_asn1_length (u length) /\
   (* upper bound *)
   length_of_opaque_serialization (serialize_aliasKeyTBS_sequence_TLV header_len) x
