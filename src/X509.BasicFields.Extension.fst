@@ -242,6 +242,7 @@ let lemma_serialize_x509_extension_sequence_TLV_size
 
 open ASN1.Low
 
+inline_for_extraction noextract
 let synth_x509_extension_t'_impl
   (#k: parser_kind)
   (#t: Type0)
