@@ -251,6 +251,9 @@ let synth_x509_extension_t'_impl
 : Tot (x': x509_extension_t' oid s { x' == synth_x509_extension_t' oid s x })
 = (x.x509_extID, x.x509_extCritical), x.x509_extValue
 
+
+//AR: 06/11: this and the next one seem helpers to me?
+inline_for_extraction noextract
 let serialize32_x509_extension_backwards
   (#k: parser_kind)
   (#t: Type0)
@@ -272,6 +275,7 @@ let serialize32_x509_extension_backwards
   (* g1'*) (synth_x509_extension_t'_impl oid s)
   (* prf*) ()
 
+inline_for_extraction noextract
 let serialize32_x509_extension_sequence_TLV_backwards
   (#k: parser_kind)
   (#t: Type0)
