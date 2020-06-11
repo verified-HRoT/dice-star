@@ -10,6 +10,7 @@ open X509.Base
 
 module B32 = FStar.Bytes
 
+inline_for_extraction
 type x509_extension_t
   (#k: parser_kind)
   (#t: Type0)
