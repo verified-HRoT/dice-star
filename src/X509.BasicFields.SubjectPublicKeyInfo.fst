@@ -16,7 +16,7 @@ open FStar.Integers
 *)
 /// Record repr
 
-inline_for_extraction
+//inline_for_extraction
 type subjectPublicKeyInfo_t
   (alg: supported_crypto_alg_t)
 = { subjectPubKey_alg : algorithmIdentifier_t_inbound alg;
@@ -45,7 +45,7 @@ let synth_subjectPublicKeyInfo_t
 = { subjectPubKey_alg = fst x';
     subjectPubKey     = snd x' }
 
-//inline_for_extraction noextract
+
 let synth_subjectPublicKeyInfo_t'
   (alg: supported_crypto_alg_t)
   (x: subjectPublicKeyInfo_t alg)
