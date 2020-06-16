@@ -207,6 +207,7 @@ let serialize32_subjectPublicKeyInfo_backwards
   (* g1'*) (synth_subjectPublicKeyInfo_t' alg)
   (* prf*) ()
 
+inline_for_extraction
 let serialize32_subjectPublicKeyInfo_sequence_TLV_backwards
   (alg: supported_crypto_alg_t)
 : serializer32_backwards (serialize_subjectPublicKeyInfo_sequence_TLV alg)
