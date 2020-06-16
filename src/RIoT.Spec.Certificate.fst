@@ -126,7 +126,7 @@ let sign_and_finalize_aliasKeyCRT_spec
 
 (* Create AliasKeyCRT with AliasKeyTBS and Signature *)
   let aliasKeyTBS_seq32  : B32.lbytes32 aliasKeyTBS_len = B32.hide aliasKeyTBS_seq in
-  let aliasKeyTBS_sig32  : x509_signature_raw_t alg_AliasKey = B32.hide aliasKeyTBS_sig in
+  let aliasKeyTBS_sig32  : x509_signature_raw_t = B32.hide aliasKeyTBS_sig in
   let aliasKeyCRT: aliasKeyCRT_t_inbound aliasKeyTBS_len = x509_get_AliasKeyCRT
                                                              aliasKeyTBS_len
                                                              aliasKeyTBS_seq32

@@ -17,15 +17,15 @@ open LowParse.Spec.Bytes
 #push-options "--z3rlimit 32"
 type aliasKeyCRT_t (tbs_len: asn1_int32) = {
   aliasKeyCRT_tbs: B32.lbytes32 tbs_len;
-  aliasKeyCRT_sig_alg: algorithmIdentifier_t_inbound AlgID_Ed25519;
-  aliasKeyCRT_sig: x509_signature_t_inbound AlgID_Ed25519
+  aliasKeyCRT_sig_alg: algorithmIdentifier_t_inbound;
+  aliasKeyCRT_sig: x509_signature_t_inbound
 }
 #pop-options
 
 let aliasKeyCRT_t' (tbs_len: asn1_int32) = (
   (B32.lbytes32 tbs_len `tuple2`
-   algorithmIdentifier_t_inbound AlgID_Ed25519) `tuple2`
-   x509_signature_t_inbound AlgID_Ed25519
+   algorithmIdentifier_t_inbound) `tuple2`
+   x509_signature_t_inbound
 )
 
 let synth_aliasKeyCRT_t
@@ -49,9 +49,9 @@ let parse_aliasKeyCRT
 : parser _ (aliasKeyCRT_t tbs_len)
 = parse_flbytes32 tbs_len
   `nondep_then`
-  parse_algorithmIdentifier_sequence_TLV AlgID_Ed25519
+  parse_algorithmIdentifier_sequence_TLV
   `nondep_then`
-  parse_x509_signature_sequence_TLV AlgID_Ed25519
+  parse_x509_signature_sequence_TLV
   `parse_synth`
   synth_aliasKeyCRT_t tbs_len
 
@@ -61,15 +61,15 @@ let serialize_aliasKeyCRT
 = serialize_synth
   (* p1 *) (parse_flbytes32 tbs_len
             `nondep_then`
-            parse_algorithmIdentifier_sequence_TLV AlgID_Ed25519
+            parse_algorithmIdentifier_sequence_TLV
             `nondep_then`
-            parse_x509_signature_sequence_TLV AlgID_Ed25519)
+            parse_x509_signature_sequence_TLV)
   (* f2 *) (synth_aliasKeyCRT_t tbs_len)
   (* s1 *) (serialize_flbytes32 tbs_len
             `serialize_nondep_then`
-            serialize_algorithmIdentifier_sequence_TLV AlgID_Ed25519
+            serialize_algorithmIdentifier_sequence_TLV
             `serialize_nondep_then`
-            serialize_x509_signature_sequence_TLV AlgID_Ed25519)
+            serialize_x509_signature_sequence_TLV)
   (* g1 *) (synth_aliasKeyCRT_t' tbs_len)
   (* prf*) ()
 
@@ -80,32 +80,32 @@ let lemma_serialize_aliasKeyCRT_unfold
   serialize_aliasKeyCRT tbs_len `serialize` x ==
  (serialize_flbytes32 tbs_len `serialize` x.aliasKeyCRT_tbs)
   `Seq.append`
- (serialize_algorithmIdentifier_sequence_TLV AlgID_Ed25519 `serialize` x.aliasKeyCRT_sig_alg)
+ (serialize_algorithmIdentifier_sequence_TLV `serialize` x.aliasKeyCRT_sig_alg)
   `Seq.append`
- (serialize_x509_signature_sequence_TLV AlgID_Ed25519 `serialize` x.aliasKeyCRT_sig)
+ (serialize_x509_signature_sequence_TLV `serialize` x.aliasKeyCRT_sig)
 )
 = serialize_nondep_then_eq
   (* s1 *) (serialize_flbytes32 tbs_len)
-  (* s2 *) (serialize_algorithmIdentifier_sequence_TLV AlgID_Ed25519)
+  (* s2 *) (serialize_algorithmIdentifier_sequence_TLV)
   (* in *) (fst (synth_aliasKeyCRT_t' tbs_len x));
   serialize_nondep_then_eq
   (* s1 *) (serialize_flbytes32 tbs_len
             `serialize_nondep_then`
-            serialize_algorithmIdentifier_sequence_TLV AlgID_Ed25519)
-  (* s2 *) (serialize_x509_signature_sequence_TLV AlgID_Ed25519)
+            serialize_algorithmIdentifier_sequence_TLV)
+  (* s2 *) (serialize_x509_signature_sequence_TLV)
   (* in *) (synth_aliasKeyCRT_t' tbs_len x);
   serialize_synth_eq
   (* p1 *) (parse_flbytes32 tbs_len
             `nondep_then`
-            parse_algorithmIdentifier_sequence_TLV AlgID_Ed25519
+            parse_algorithmIdentifier_sequence_TLV
             `nondep_then`
-            parse_x509_signature_sequence_TLV AlgID_Ed25519)
+            parse_x509_signature_sequence_TLV)
   (* f2 *) (synth_aliasKeyCRT_t tbs_len)
   (* s1 *) (serialize_flbytes32 tbs_len
             `serialize_nondep_then`
-            serialize_algorithmIdentifier_sequence_TLV AlgID_Ed25519
+            serialize_algorithmIdentifier_sequence_TLV
             `serialize_nondep_then`
-            serialize_x509_signature_sequence_TLV AlgID_Ed25519)
+            serialize_x509_signature_sequence_TLV)
   (* g1 *) (synth_aliasKeyCRT_t' tbs_len)
   (* prf*) ()
   (* in *) x
@@ -119,15 +119,15 @@ let lemma_serialize_aliasKeyCRT_size
   (* unfold *)
   length_of_opaque_serialization (serialize_aliasKeyCRT tbs_len) x ==
   length_of_opaque_serialization (serialize_flbytes32 tbs_len) x.aliasKeyCRT_tbs +
-  length_of_opaque_serialization (serialize_algorithmIdentifier_sequence_TLV AlgID_Ed25519) x.aliasKeyCRT_sig_alg +
-  length_of_opaque_serialization (serialize_x509_signature_sequence_TLV AlgID_Ed25519) x.aliasKeyCRT_sig /\
+  length_of_opaque_serialization (serialize_algorithmIdentifier_sequence_TLV) x.aliasKeyCRT_sig_alg +
+  length_of_opaque_serialization (serialize_x509_signature_sequence_TLV) x.aliasKeyCRT_sig /\
   (* exact size *)
   length_of_opaque_serialization (serialize_aliasKeyCRT tbs_len) x ==
   v tbs_len + 76 // 7 + 69
 )
 = lemma_serialize_aliasKeyCRT_unfold tbs_len x;
-  (**) lemma_serialize_algorithmIdentifier_sequence_TLV_size_exact alg_AliasKey x.aliasKeyCRT_sig_alg;
-  (**) lemma_serialize_x509_signature_sequence_TLV_size_exact       alg_AliasKey x.aliasKeyCRT_sig
+  (**) lemma_serialize_algorithmIdentifier_sequence_TLV_size_exact x.aliasKeyCRT_sig_alg;
+  (**) lemma_serialize_x509_signature_sequence_TLV_size_exact      x.aliasKeyCRT_sig
 #pop-options
 
 let aliasKeyCRT_t_inbound
@@ -188,9 +188,9 @@ let serialize32_aliasKeyCRT_backwards
 = serialize32_synth_backwards
   (* s1 *) (serialize32_flbytes32_backwards tbs_len
             `serialize32_nondep_then_backwards`
-            serialize32_algorithmIdentifier_sequence_TLV_backwards AlgID_Ed25519
+            serialize32_algorithmIdentifier_sequence_TLV_backwards
             `serialize32_nondep_then_backwards`
-            serialize32_x509_signature_sequence_TLV_backwards AlgID_Ed25519)
+            serialize32_x509_signature_sequence_TLV_backwards)
   (* f2 *) (synth_aliasKeyCRT_t  tbs_len)
   (* g1 *) (synth_aliasKeyCRT_t' tbs_len)
   (* g1'*) (synth_aliasKeyCRT_t' tbs_len)
@@ -211,14 +211,14 @@ let x509_get_AliasKeyCRT
   (tbs_len: asn1_int32
             { v tbs_len + 76 <= asn1_value_length_max_of_type SEQUENCE })
   (aliasKeyCRT_tbs: B32.lbytes32 tbs_len)
-  (signature32: x509_signature_raw_t alg_AliasKey) // B32.lbytes32 64ul
+  (signature32: x509_signature_raw_t) // B32.lbytes32 64ul
 : Tot (aliasKeyCRT_t_inbound tbs_len)
 =
-  let aliasKeyCRT_sig_alg = x509_get_algorithmIdentifier alg_AliasKey in
-  (* Prf *) lemma_serialize_algorithmIdentifier_sequence_TLV_size_exact alg_AliasKey aliasKeyCRT_sig_alg;
+  let aliasKeyCRT_sig_alg = x509_get_algorithmIdentifier () in
+  (* Prf *) lemma_serialize_algorithmIdentifier_sequence_TLV_size_exact aliasKeyCRT_sig_alg;
 
-  let aliasKeyCRT_sig = x509_get_signature alg_AliasKey signature32 in
-  (* Prf *) lemma_serialize_x509_signature_sequence_TLV_size_exact alg_AliasKey aliasKeyCRT_sig;
+  let aliasKeyCRT_sig = x509_get_signature signature32 in
+  (* Prf *) lemma_serialize_x509_signature_sequence_TLV_size_exact aliasKeyCRT_sig;
 
   let aliasKeyCRT: aliasKeyCRT_t tbs_len = {
     aliasKeyCRT_tbs     = aliasKeyCRT_tbs;

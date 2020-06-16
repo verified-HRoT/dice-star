@@ -14,15 +14,21 @@ module B32 = FStar.Bytes
 open LowParse.Spec.SeqBytes.Base
 open LowParse.Spec.Bytes
 
+
+// let aliasKeyTBS_extensions_t_inbound
+// = OCTET_STRING
+//   `inbound_envelop_tag_with_value_of`
+//   (serialize_asn1_sequence_TLV serialize_riot_extension_sequence_TLV)
+
 type aliasKeyTBS_t (header_len: asn1_int32) = {
   aliasKeyTBS_template: B32.lbytes32 header_len;
-  aliasKeyTBS_aliasKey_pub: subjectPublicKeyInfo_t_inbound alg_AliasKey;
-  aliasKeyTBS_riot_extension: riot_extension_t_inbound;
+  aliasKeyTBS_aliasKey_pub: subjectPublicKeyInfo_t_inbound;
+  aliasKeyTBS_riot_extension: riot_extension_t_inbound
 }
 
 let aliasKeyTBS_t' (header_len: asn1_int32) = (
   (B32.lbytes32 header_len `tuple2`
-   subjectPublicKeyInfo_t_inbound alg_AliasKey) `tuple2`
+   subjectPublicKeyInfo_t_inbound) `tuple2`
    riot_extension_t_inbound
 )
 
@@ -30,7 +36,7 @@ let synth_aliasKeyTBS_t
   (header_len: asn1_int32)
   (x': aliasKeyTBS_t' header_len)
 : GTot (aliasKeyTBS_t header_len)
-= { aliasKeyTBS_template         = fst (fst x');
+= { aliasKeyTBS_template       = fst (fst x');
     aliasKeyTBS_aliasKey_pub   = snd (fst x');
     aliasKeyTBS_riot_extension = snd x' }
 
@@ -47,7 +53,7 @@ let parse_aliasKeyTBS
 : parser _ (aliasKeyTBS_t header_len)
 = parse_flbytes32 header_len
   `nondep_then`
-  parse_subjectPublicKeyInfo_sequence_TLV alg_AliasKey
+  parse_subjectPublicKeyInfo_sequence_TLV
   `nondep_then`
   parse_riot_extension_sequence_TLV
   `parse_synth`
@@ -59,13 +65,13 @@ let serialize_aliasKeyTBS
 = serialize_synth
   (* p1 *) (parse_flbytes32 header_len
             `nondep_then`
-            parse_subjectPublicKeyInfo_sequence_TLV alg_AliasKey
+            parse_subjectPublicKeyInfo_sequence_TLV
             `nondep_then`
             parse_riot_extension_sequence_TLV)
   (* f2 *) (synth_aliasKeyTBS_t header_len)
   (* s1 *) (serialize_flbytes32 header_len
             `serialize_nondep_then`
-            serialize_subjectPublicKeyInfo_sequence_TLV alg_AliasKey
+            serialize_subjectPublicKeyInfo_sequence_TLV
             `serialize_nondep_then`
             serialize_riot_extension_sequence_TLV)
   (* g1 *) (synth_aliasKeyTBS_t' header_len)
@@ -78,30 +84,30 @@ let lemma_serialize_aliasKeyTBS_unfold
   serialize_aliasKeyTBS header_len `serialize` x ==
  (serialize_flbytes32 header_len `serialize` x.aliasKeyTBS_template)
   `Seq.append`
- (serialize_subjectPublicKeyInfo_sequence_TLV alg_AliasKey `serialize` x.aliasKeyTBS_aliasKey_pub)
+ (serialize_subjectPublicKeyInfo_sequence_TLV `serialize` x.aliasKeyTBS_aliasKey_pub)
   `Seq.append`
  (serialize_riot_extension_sequence_TLV `serialize` x.aliasKeyTBS_riot_extension)
 )
 = serialize_nondep_then_eq
   (* s1 *) (serialize_flbytes32 header_len)
-  (* s2 *) (serialize_subjectPublicKeyInfo_sequence_TLV alg_AliasKey)
+  (* s2 *) (serialize_subjectPublicKeyInfo_sequence_TLV)
   (* in *) (fst (synth_aliasKeyTBS_t' header_len x));
   serialize_nondep_then_eq
   (* s1 *) (serialize_flbytes32 header_len
             `serialize_nondep_then`
-            serialize_subjectPublicKeyInfo_sequence_TLV alg_AliasKey)
+            serialize_subjectPublicKeyInfo_sequence_TLV)
   (* s2 *) (serialize_riot_extension_sequence_TLV)
   (* in *) (synth_aliasKeyTBS_t' header_len x);
   serialize_synth_eq
   (* p1 *) (parse_flbytes32 header_len
             `nondep_then`
-            parse_subjectPublicKeyInfo_sequence_TLV alg_AliasKey
+            parse_subjectPublicKeyInfo_sequence_TLV
             `nondep_then`
             parse_riot_extension_sequence_TLV)
   (* f2 *) (synth_aliasKeyTBS_t header_len)
   (* s1 *) (serialize_flbytes32 header_len
             `serialize_nondep_then`
-            serialize_subjectPublicKeyInfo_sequence_TLV alg_AliasKey
+            serialize_subjectPublicKeyInfo_sequence_TLV
             `serialize_nondep_then`
             serialize_riot_extension_sequence_TLV)
   (* g1 *) (synth_aliasKeyTBS_t' header_len)
@@ -117,7 +123,7 @@ let lemma_serialize_aliasKeyTBS_size
   (* unfold *)
   length_of_opaque_serialization (serialize_aliasKeyTBS header_len) x ==
   length_of_opaque_serialization (serialize_flbytes32 header_len) x.aliasKeyTBS_template +
-  length_of_opaque_serialization (serialize_subjectPublicKeyInfo_sequence_TLV alg_AliasKey) x.aliasKeyTBS_aliasKey_pub +
+  length_of_opaque_serialization (serialize_subjectPublicKeyInfo_sequence_TLV) x.aliasKeyTBS_aliasKey_pub +
   length_of_opaque_serialization (serialize_riot_extension_sequence_TLV) x.aliasKeyTBS_riot_extension /\
   (* exact size *)
   length_of_opaque_serialization (serialize_aliasKeyTBS header_len) x
@@ -127,7 +133,7 @@ let lemma_serialize_aliasKeyTBS_size
   <= v header_len + 161
 )
 = lemma_serialize_aliasKeyTBS_unfold header_len x;
-    lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size_exact alg_AliasKey x.aliasKeyTBS_aliasKey_pub;
+    lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size_exact x.aliasKeyTBS_aliasKey_pub;
     lemma_serialize_riot_extension_sequence_TLV_size_exact x.aliasKeyTBS_riot_extension
 #pop-options
 
@@ -192,7 +198,7 @@ let serialize32_aliasKeyTBS_backwards
 = serialize32_synth_backwards
   (* s1 *) (serialize32_flbytes32_backwards header_len
             `serialize32_nondep_then_backwards`
-            serialize32_subjectPublicKeyInfo_sequence_TLV_backwards alg_AliasKey
+            serialize32_subjectPublicKeyInfo_sequence_TLV_backwards
             `serialize32_nondep_then_backwards`
             serialize32_riot_extension_sequence_TLV_backwards)
   (* f2 *) (synth_aliasKeyTBS_t  header_len)
@@ -232,9 +238,8 @@ let x509_get_AliasKeyTBS
   (* Prf *) lemma_serialize_riot_extension_sequence_TLV_size_exact riot_extension;
 
   let aliasKeyPubInfo = x509_get_subjectPublicKeyInfo
-                           alg_AliasKey
                            aliasKeyPub in
-  (* Prf *) lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size_exact alg_AliasKey aliasKeyPubInfo;
+  (* Prf *) lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size_exact aliasKeyPubInfo;
 
   let aliasKeyTBS: aliasKeyTBS_t header_len = {
     aliasKeyTBS_template       = aliasKeyTBS_template;

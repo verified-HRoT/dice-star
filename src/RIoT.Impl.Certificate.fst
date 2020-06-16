@@ -190,7 +190,7 @@ let sign_and_finalize_aliasKeyCRT
 
 (* Finalize AliasKeyCRT with AliasKeyTBS and Signature *)
   let aliasKeyTBS_buf32: B32.lbytes32 aliasKeyTBS_len = B32.of_buffer aliasKeyTBS_len aliasKeyTBS_buf in
-  let aliasKeyTBS_sig32: x509_signature_raw_t alg_AliasKey = B32.of_buffer 64ul aliasKeyTBS_sig in
+  let aliasKeyTBS_sig32: x509_signature_raw_t = B32.of_buffer 64ul aliasKeyTBS_sig in
   let aliasKeyCRT: aliasKeyCRT_t_inbound aliasKeyTBS_len = x509_get_AliasKeyCRT
                                                              aliasKeyTBS_len
                                                              aliasKeyTBS_buf32

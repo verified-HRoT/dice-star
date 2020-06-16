@@ -15,12 +15,12 @@ open RIoT.X509.FWID
 (* CompositeDeviceID *)
 type compositeDeviceID_t
 = { riot_version : datatype_of_asn1_type INTEGER;
-    riot_deviceID: subjectPublicKeyInfo_t_inbound alg_DeviceID;
+    riot_deviceID: subjectPublicKeyInfo_t_inbound;
     riot_fwid    : fwid_t_inbound }
 
 let compositeDeviceID_t'
 = ((datatype_of_asn1_type INTEGER &
-    subjectPublicKeyInfo_t_inbound alg_DeviceID) &
+    subjectPublicKeyInfo_t_inbound) &
     fwid_t_inbound)
 
 (* Serialier spec *)
@@ -40,7 +40,7 @@ let parse_compositeDeviceID
 : parser _ (compositeDeviceID_t)
 = parse_asn1_TLV_of_type INTEGER
   `nondep_then`
-  parse_subjectPublicKeyInfo_sequence_TLV alg_DeviceID
+  parse_subjectPublicKeyInfo_sequence_TLV
   `nondep_then`
   parse_fwid_sequence_TLV
   `parse_synth`
@@ -51,13 +51,13 @@ let serialize_compositeDeviceID
 = serialize_synth
   (* p1 *) (parse_asn1_TLV_of_type INTEGER
             `nondep_then`
-            parse_subjectPublicKeyInfo_sequence_TLV alg_DeviceID
+            parse_subjectPublicKeyInfo_sequence_TLV
             `nondep_then`
             parse_fwid_sequence_TLV)
   (* f2 *) (synth_compositeDeviceID_t)
   (* s1 *) (serialize_asn1_TLV_of_type INTEGER
             `serialize_nondep_then`
-            serialize_subjectPublicKeyInfo_sequence_TLV alg_DeviceID
+            serialize_subjectPublicKeyInfo_sequence_TLV
             `serialize_nondep_then`
             serialize_fwid_sequence_TLV)
   (* g1 *) (synth_compositeDeviceID_t')
@@ -69,12 +69,12 @@ let lemma_serialize_compositeDeviceID_unfold
   serialize (serialize_compositeDeviceID) x ==
   serialize (serialize_asn1_TLV_of_type INTEGER) x.riot_version
   `Seq.append`
-  serialize (serialize_subjectPublicKeyInfo_sequence_TLV alg_DeviceID) x.riot_deviceID
+  serialize (serialize_subjectPublicKeyInfo_sequence_TLV) x.riot_deviceID
   `Seq.append`
   serialize serialize_fwid_sequence_TLV x.riot_fwid
   // (* unfold subjectPublicKeyInfo *)
-  // serialize (serialize_subjectPublicKeyInfo alg_DeviceID) x.riot_deviceID ==
-  // serialize (serialize_algorithmIdentifier_sequence_TLV alg_DeviceID) x.riot_deviceID.subjectPubKey_alg
+  // serialize (serialize_subjectPublicKeyInfo) x.riot_deviceID ==
+  // serialize (serialize_algorithmIdentifier_sequence_TLV) x.riot_deviceID.subjectPubKey_alg
   // `Seq.append`
   // serialize (serialize_asn1_TLV_of_type BIT_STRING) x.riot_deviceID.subjectPubKey /\
   // (* unfold FWID *)
@@ -85,33 +85,33 @@ let lemma_serialize_compositeDeviceID_unfold
 )
 = serialize_nondep_then_eq
   (* s1 *) (serialize_asn1_TLV_of_type INTEGER)
-  (* s2 *) (serialize_subjectPublicKeyInfo_sequence_TLV alg_DeviceID)
+  (* s2 *) (serialize_subjectPublicKeyInfo_sequence_TLV)
   (* in *) (fst (synth_compositeDeviceID_t' x));
   serialize_nondep_then_eq
   (* s1 *) (serialize_asn1_TLV_of_type INTEGER
             `serialize_nondep_then`
-            serialize_subjectPublicKeyInfo_sequence_TLV alg_DeviceID)
+            serialize_subjectPublicKeyInfo_sequence_TLV)
   (* s2 *) (serialize_fwid_sequence_TLV)
   (* in *) (synth_compositeDeviceID_t' x);
   serialize_synth_eq
   (* p1 *) (parse_asn1_TLV_of_type INTEGER
             `nondep_then`
-            parse_subjectPublicKeyInfo_sequence_TLV alg_DeviceID
+            parse_subjectPublicKeyInfo_sequence_TLV
             `nondep_then`
             parse_fwid_sequence_TLV)
   (* f2 *) (synth_compositeDeviceID_t)
   (* s1 *) (serialize_asn1_TLV_of_type INTEGER
             `serialize_nondep_then`
-            serialize_subjectPublicKeyInfo_sequence_TLV alg_DeviceID
+            serialize_subjectPublicKeyInfo_sequence_TLV
             `serialize_nondep_then`
             serialize_fwid_sequence_TLV)
   (* g1 *) (synth_compositeDeviceID_t')
   (* prf*) ()
   (* in *) x
-    // lemma_serialize_subjectPublicKeyInfo_sequence_TLV_unfold   alg_DeviceID x.riot_deviceID;
-    // lemma_serialize_subjectPublicKeyInfo_unfold                alg_DeviceID x.riot_deviceID;
-    //   lemma_serialize_algorithmIdentifier_sequence_TLV_unfold alg_DeviceID x.riot_deviceID.subjectPubKey_alg;
-    //   lemma_serialize_algorithmIdentifier_sequence_TLV_size   alg_DeviceID x.riot_deviceID.subjectPubKey_alg;
+    // lemma_serialize_subjectPublicKeyInfo_sequence_TLV_unfold   x.riot_deviceID;
+    // lemma_serialize_subjectPublicKeyInfo_unfold                x.riot_deviceID;
+    //   lemma_serialize_algorithmIdentifier_sequence_TLV_unfold x.riot_deviceID.subjectPubKey_alg;
+    //   lemma_serialize_algorithmIdentifier_sequence_TLV_size   x.riot_deviceID.subjectPubKey_alg;
     // lemma_serialize_fwid_sequence_TLV_unfold x.riot_fwid;
     // lemma_serialize_fwid_unfold              x.riot_fwid
 
@@ -120,14 +120,14 @@ let lemma_serialize_compositeDeviceID_size
 : Lemma (
   length_of_opaque_serialization (serialize_compositeDeviceID) x ==
   length_of_asn1_primitive_TLV x.riot_version +
-  length_of_opaque_serialization (serialize_subjectPublicKeyInfo_sequence_TLV alg_DeviceID) x.riot_deviceID +
+  length_of_opaque_serialization (serialize_subjectPublicKeyInfo_sequence_TLV) x.riot_deviceID +
   length_of_opaque_serialization serialize_fwid_sequence_TLV x.riot_fwid /\
   length_of_opaque_serialization serialize_compositeDeviceID x ==
   length_of_asn1_primitive_TLV x.riot_version + 91 /\
   length_of_opaque_serialization serialize_compositeDeviceID x <= 97
 )
 = lemma_serialize_compositeDeviceID_unfold x;
-    lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size_exact alg_DeviceID x.riot_deviceID;
+    lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size_exact x.riot_deviceID;
     lemma_serialize_fwid_sequence_TLV_size_exact x.riot_fwid
 
 (* inbound sub type*)
@@ -182,7 +182,7 @@ let serialize32_compositeDeviceID_backwards
 = serialize32_synth_backwards
   (* ls *) (serialize32_asn1_TLV_backwards_of_type INTEGER
             `serialize32_nondep_then_backwards`
-            serialize32_subjectPublicKeyInfo_sequence_TLV_backwards alg_DeviceID
+            serialize32_subjectPublicKeyInfo_sequence_TLV_backwards
             `serialize32_nondep_then_backwards`
             serialize32_fwid_sequence_TLV_backwards)
   (* f2 *) (synth_compositeDeviceID_t)
@@ -207,8 +207,8 @@ let x509_get_compositeDeviceID
   (deviceKeyPub: B32.lbytes32 32ul)
   (fwid: B32.lbytes32 32ul)
 : Tot (compositeDeviceID_t_inbound)
-= let deviceIDPublicKeyInfo: subjectPublicKeyInfo_t_inbound alg_DeviceID = x509_get_subjectPublicKeyInfo alg_DeviceID deviceKeyPub in
-  (* Prf *) lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size_exact alg_DeviceID deviceIDPublicKeyInfo;
+= let deviceIDPublicKeyInfo: subjectPublicKeyInfo_t_inbound = x509_get_subjectPublicKeyInfo deviceKeyPub in
+  (* Prf *) lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size_exact deviceIDPublicKeyInfo;
 
   let fwid: fwid_t_inbound = x509_get_fwid fwid in
   (* Prf *) lemma_serialize_fwid_sequence_TLV_size_exact fwid;
