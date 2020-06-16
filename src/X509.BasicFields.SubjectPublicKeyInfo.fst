@@ -32,6 +32,7 @@ let filter_subjectPublicKeyInfo_t'
                   (snd x).bs_unused_bits = 0ul
 
 /// tuple repr
+
 unfold
 let subjectPublicKeyInfo_t'
   (alg: supported_crypto_alg_t)
@@ -44,6 +45,7 @@ let synth_subjectPublicKeyInfo_t
 = { subjectPubKey_alg = fst x';
     subjectPubKey     = snd x' }
 
+//inline_for_extraction noextract
 let synth_subjectPublicKeyInfo_t'
   (alg: supported_crypto_alg_t)
   (x: subjectPublicKeyInfo_t alg)
