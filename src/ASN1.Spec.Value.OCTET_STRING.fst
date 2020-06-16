@@ -136,7 +136,7 @@ let lemma_serialize_asn1_octet_string_size
 noextract
 let parser_tag_of_octet_string
   (x: datatype_of_asn1_type OCTET_STRING)
-: GTot (the_asn1_type OCTET_STRING & asn1_value_int32_of_type OCTET_STRING)
+: GTot (the_asn1_tag OCTET_STRING & asn1_value_int32_of_type OCTET_STRING)
 = (OCTET_STRING, dfst x)
 
 inline_for_extraction noextract
@@ -162,7 +162,7 @@ let parse_asn1_octet_string_TLV_kind
 /// (value : subtype_{value}) <: subtype_{TLV}
 noextract
 let synth_asn1_octet_string_V
-  (tag: (the_asn1_type OCTET_STRING & asn1_value_int32_of_type OCTET_STRING))
+  (tag: (the_asn1_tag OCTET_STRING & asn1_value_int32_of_type OCTET_STRING))
   (value: datatype_of_asn1_type OCTET_STRING { v (dfst value) == v (snd tag) })
 : GTot (refine_with_tag parser_tag_of_octet_string tag)
 = value
@@ -172,7 +172,7 @@ let synth_asn1_octet_string_V
 /// (value : subtype_{TLV}) <: subtype_{value}
 noextract
 let synth_asn1_octet_string_V_inverse
-  (tag: (the_asn1_type OCTET_STRING & asn1_value_int32_of_type OCTET_STRING))
+  (tag: (the_asn1_tag OCTET_STRING & asn1_value_int32_of_type OCTET_STRING))
   (value': refine_with_tag parser_tag_of_octet_string tag)
 : GTot (value: datatype_of_asn1_type OCTET_STRING { v (dfst value) == v (snd tag) /\ value' == synth_asn1_octet_string_V tag value})
 = value'
@@ -183,7 +183,7 @@ let synth_asn1_octet_string_V_inverse
 ///
 noextract
 let parse_asn1_octet_string_V
-  (tag: (the_asn1_type OCTET_STRING & asn1_value_int32_of_type OCTET_STRING))
+  (tag: (the_asn1_tag OCTET_STRING & asn1_value_int32_of_type OCTET_STRING))
 : parser (weak_kind_of_type OCTET_STRING) (refine_with_tag parser_tag_of_octet_string tag)
 = weak_kind_of_type OCTET_STRING
   `weaken`
@@ -196,7 +196,7 @@ let parse_asn1_octet_string_V
 ///
 noextract
 let serialize_asn1_octet_string_V
-  (tag: (the_asn1_type OCTET_STRING & asn1_value_int32_of_type OCTET_STRING))
+  (tag: (the_asn1_tag OCTET_STRING & asn1_value_int32_of_type OCTET_STRING))
 : serializer (parse_asn1_octet_string_V tag)
 = serialize_synth
   (* p1 *) (weak_kind_of_type OCTET_STRING
@@ -216,7 +216,7 @@ let serialize_asn1_octet_string_V
 /// Reveal the computation of parse
 noextract
 let lemma_parse_asn1_octet_string_V_unfold
-  (tag: (the_asn1_type OCTET_STRING & asn1_value_int32_of_type OCTET_STRING))
+  (tag: (the_asn1_tag OCTET_STRING & asn1_value_int32_of_type OCTET_STRING))
   (input: bytes)
 : Lemma (
   parse (parse_asn1_octet_string_V tag) input ==
@@ -233,7 +233,7 @@ let lemma_parse_asn1_octet_string_V_unfold
 /// Reveal the computation of serialzation
 noextract
 let lemma_serialize_asn1_octet_string_V_unfold
-  (tag: (the_asn1_type OCTET_STRING & asn1_value_int32_of_type OCTET_STRING))
+  (tag: (the_asn1_tag OCTET_STRING & asn1_value_int32_of_type OCTET_STRING))
   (value: refine_with_tag parser_tag_of_octet_string tag)
 : Lemma (
   serialize (serialize_asn1_octet_string_V tag) value ==

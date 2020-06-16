@@ -27,7 +27,7 @@ open ASN1.Base
 /////////////////////////////////////////
 ////   Generic ASN1 Tag Parser
 /////////////////////////////////////////
-
+open FStar.Integers
 /// filter valid input bytes
 noextract
 let filter_asn1_tag
@@ -35,13 +35,14 @@ let filter_asn1_tag
 : GTot bool
 = match b with
   | 0x01uy | 0x04uy | 0x05uy | 0x30uy | 0x03uy | 0x02uy | 0x06uy -> true
-  | _ -> false
+  | _ -> if (b / 0b01000000uy <> 00uy) then true else false
 
 /// decode input bytes
+#push-options "--z3rlimit 32"
 noextract
 let synth_asn1_tag
   (b: parse_filter_refine filter_asn1_tag)
-: GTot asn1_type
+: GTot asn1_tag_t
 = match b with
   | 0x01uy -> BOOLEAN
   | 0x02uy -> INTEGER
@@ -50,11 +51,20 @@ let synth_asn1_tag
   | 0x05uy -> NULL
   | 0x06uy -> OID
   | 0x30uy -> SEQUENCE
+  | _      -> ( let tag_class = match b / 0b01000000uy <: byte with
+                                | 0b01uy -> APPLICATION
+                                | 0b10uy -> CONTEXT_SPECIFIC
+                                | 0b11uy -> PRIVATE in
+                let tag_form  = match (b % 0b01000000uy) / 0b00100000uy <: byte with
+                                | 0b0uy -> PRIMITIVE
+                                | 0b1uy -> CONSTRUCTED in
+                let tag_value = b % 0b00100000uy in
+                CUSTOM_TAG tag_class tag_form tag_value )
 
 /// encode input bytes
 noextract
 let synth_asn1_tag_inverse
-  (a: asn1_type)
+  (a: asn1_tag_t)
 : GTot (b: parse_filter_refine filter_asn1_tag{a == synth_asn1_tag b})
 = match a with
   | BOOLEAN      -> 0x01uy
@@ -64,6 +74,14 @@ let synth_asn1_tag_inverse
   | NULL         -> 0x05uy
   | OID          -> 0x06uy
   | SEQUENCE     -> 0x30uy
+  | CUSTOM_TAG tag_class tag_form tag_value -> ( let b_tag_class = match tag_class with
+                                                                     | APPLICATION      -> 0b01000000uy
+                                                                     | CONTEXT_SPECIFIC -> 0b10000000uy
+                                                                     | PRIVATE          -> 0b11000000uy in
+                                                   let b_tag_form  = match tag_form with
+                                                                     | PRIMITIVE   -> 0b000000uy
+                                                                     | CONSTRUCTED -> 0b100000uy in
+                                                   b_tag_class + b_tag_form + tag_value )
 
 inline_for_extraction noextract
 let parse_asn1_tag_kind = strong_parser_kind 1 1 None
@@ -73,7 +91,7 @@ let parse_asn1_tag_kind = strong_parser_kind 1 1 None
 ///
 noextract
 let parse_asn1_tag
-: parser parse_asn1_tag_kind asn1_type
+: parser parse_asn1_tag_kind asn1_tag_t
 = parse_u8
   `parse_filter`
   filter_asn1_tag
@@ -138,7 +156,7 @@ let lemma_parse_asn1_tag_unfold
 /// Reveal the computation of serialization
 noextract
 let lemma_serialize_asn1_tag_unfold
-  (a: asn1_type)
+  (a: asn1_tag_t)
 : Lemma (
   serialize serialize_u8 (synth_asn1_tag_inverse a)
   `Seq.equal`
@@ -163,7 +181,7 @@ let lemma_serialize_asn1_tag_unfold
 /// Useful lemma about the length of serializations
 noextract
 let lemma_serialize_asn1_tag_size
-  (a: asn1_type)
+  (a: asn1_tag_t)
 : Lemma (
   Seq.length (serialize serialize_asn1_tag a) == 1)
 = parser_kind_prop_equiv parse_asn1_tag_kind parse_asn1_tag;
@@ -180,32 +198,34 @@ let lemma_serialize_asn1_tag_size
 /// filter valid input bytes
 noextract
 let filter_asn1_tag_of_type
-  (a: asn1_type)
+  (a: asn1_tag_t)
   (b: byte)
 : GTot bool
-= match a, b with
-  | BOOLEAN     , 0x01uy
-  | INTEGER     , 0x02uy
-  | BIT_STRING  , 0x03uy
-  | OCTET_STRING, 0x04uy
-  | NULL        , 0x05uy
-  | OID         , 0x06uy
-  | SEQUENCE    , 0x30uy -> true
-  | _ -> false
+= b = (synth_asn1_tag_inverse a <: byte)
+// match a, b with
+//   | BOOLEAN     , 0x01uy
+//   | INTEGER     , 0x02uy
+//   | BIT_STRING  , 0x03uy
+//   | OCTET_STRING, 0x04uy
+//   | NULL        , 0x05uy
+//   | OID         , 0x06uy
+//   | SEQUENCE    , 0x30uy
+//   | CUSTOM_TAG _ _ _, _ -> b = (synth_asn1_tag_inverse a <: byte)
+//   | _ -> false
 
 /// decode input bytes
 noextract
 let synth_asn1_tag_of_type
-  (a: asn1_type)
+  (a: asn1_tag_t)
   (b: parse_filter_refine (filter_asn1_tag_of_type a))
-: GTot (a': the_asn1_type a {a' == synth_asn1_tag b})
+: GTot (a': the_asn1_tag a {a' == synth_asn1_tag b})
 = a
 
 /// encode tags to bytes
 noextract
 let synth_asn1_tag_of_type_inverse
-  (a: asn1_type)
-  (a': the_asn1_type a)
+  (a: asn1_tag_t)
+  (a': the_asn1_tag a)
 : GTot (b: parse_filter_refine (filter_asn1_tag_of_type a) {b == synth_asn1_tag_inverse a})
 = synth_asn1_tag_inverse a'
 
@@ -214,8 +234,8 @@ let synth_asn1_tag_of_type_inverse
 ///
 noextract
 let parse_asn1_tag_of_type
-  (a: asn1_type)
-: parser parse_asn1_tag_kind (the_asn1_type a)
+  (a: asn1_tag_t)
+: parser parse_asn1_tag_kind (the_asn1_tag a)
 = parse_u8
   `parse_filter`
   filter_asn1_tag_of_type a
@@ -227,7 +247,7 @@ let parse_asn1_tag_of_type
 ///
 noextract
 let serialize_asn1_tag_of_type
-  (a: asn1_type)
+  (a: asn1_tag_t)
 : serializer (parse_asn1_tag_of_type a)
 = serialize_synth
   (* p1 *) (parse_u8
@@ -247,7 +267,7 @@ let serialize_asn1_tag_of_type
 /// Reveals the computations of parse
 noextract
 let lemma_parse_asn1_tag_of_type_unfold
-  (a: asn1_type)
+  (a: asn1_tag_t)
   (input: bytes)
 : Lemma (
   parse (parse_asn1_tag_of_type a) input ==
@@ -282,8 +302,8 @@ let lemma_parse_asn1_tag_of_type_unfold
 /// Reveals the computation of serialize
 noextract
 let lemma_serialize_asn1_tag_of_type_unfold
-  (a: asn1_type)
-  (a': the_asn1_type a)
+  (a: asn1_tag_t)
+  (a': the_asn1_tag a)
 : Lemma (
   serialize serialize_u8 (synth_asn1_tag_of_type_inverse a a')
   `Seq.equal`
@@ -308,8 +328,8 @@ let lemma_serialize_asn1_tag_of_type_unfold
 /// Reveals the size of a serialization
 noextract
 let lemma_serialize_asn1_tag_of_type_size
-  (_a: asn1_type)
-  (a : the_asn1_type _a)
+  (_a: asn1_tag_t)
+  (a : the_asn1_tag _a)
 : Lemma (
   Seq.length (serialize (serialize_asn1_tag_of_type _a) a) == 1)
 = parser_kind_prop_equiv parse_asn1_tag_kind (parse_asn1_tag_of_type _a);

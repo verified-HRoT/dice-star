@@ -38,18 +38,15 @@ let serializer32_backwards
   HST.Stack size_t
   (* NOTE: b[pos] is already written, and b[pos - offset, pos - 1] will be written. *)
   (requires fun h ->
-    let offset = Seq.length (serialize s x) in
+    let offset = Seq.length (s `serialize` x) in
     B.live h b /\
     offset <= v pos /\ v pos <= B.length b /\
     writable b (v pos - offset) (v pos) h)
   (ensures fun h offset h' ->
-    let sx = serialize s x in
-    let s  = B.as_seq h  b in
-    let s' = B.as_seq h' b in
-    Seq.length sx == v offset /\
+    Seq.length (s `serialize` x) == v offset /\
     B.modifies (B.loc_buffer_from_to b (pos - offset) (pos)) h h' /\
     B.live h' b /\
-    Seq.slice (B.as_seq h' b) (v (pos - offset)) (v pos) `Seq.equal` sx)
+    Seq.slice (B.as_seq h' b) (v (pos - offset)) (v pos) `Seq.equal` (s `serialize` x))
 
 unfold
 let coerce_serializer32_backwards

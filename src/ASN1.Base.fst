@@ -15,7 +15,17 @@ let lbytes = Seq.Properties.lseq byte
 //////////////////////////////////////////////////////////////////////////
 /////                           ASN1 Types
 /////////////////////////////////////////////////////////////////////////
-type asn1_type: Type =
+type asn1_tag_value_t = b: byte {v b <= 0b11111}
+type asn1_tag_form_t =
+| PRIMITIVE
+| CONSTRUCTED
+type asn1_tag_class_t =
+// (* NOTE: UNIVERSAL is reserved *) | UNIVERSAL
+| APPLICATION
+| CONTEXT_SPECIFIC
+| PRIVATE
+
+type asn1_tag_t: Type =
 | BOOLEAN
 | INTEGER
 | NULL
@@ -23,12 +33,23 @@ type asn1_type: Type =
 | BIT_STRING
 | OID
 | SEQUENCE
+| CUSTOM_TAG: tag_class: asn1_tag_class_t ->
+                tag_form : asn1_tag_form_t  ->
+                tag_value: asn1_tag_value_t ->
+                asn1_tag_t
+
+type asn1_type = t: asn1_tag_t {not (CUSTOM_TAG? t)}
+
+inline_for_extraction
+let the_asn1_tag (a: asn1_tag_t)
+: Tot Type
+= (a': asn1_tag_t{a == a'})
 
 /// A specific ASN1 type
-inline_for_extraction
-let the_asn1_type (a: asn1_type)
-: Tot Type
-= (a': asn1_type{a == a'})
+// inline_for_extraction
+// let the_asn1_tag (a: asn1_type)
+// : Tot Type
+// = (a': asn1_type{a == a'})
 
 /// Non constructive ASN1 types
 let asn1_primitive_type
@@ -62,7 +83,7 @@ let asn1_length_inbound (x: nat) (min max: asn1_length_t): bool
    7. SEQUENCE value could take arbitrary valid ASN1 value length/size of bytes. *)
 inline_for_extraction noextract
 let asn1_value_length_min_of_type
-  (a: asn1_type)
+  (a: asn1_tag_t)
 : asn1_length_t
 = match a with
   | BOOLEAN      -> 1                 (* Any `BOOLEAN` value {true, false} has length 1. *)
@@ -72,10 +93,11 @@ let asn1_value_length_min_of_type
   | OID          -> asn1_length_min   (* `OID` is just `OCTET_STRING`. *)
   | BIT_STRING   -> 1                 (* An empty `BIT_STRING` with a leading byte of `unused_bits` has length 0. *)
   | SEQUENCE     -> asn1_length_min   (* An empty `SEQUENCE` has length 0. *)
+  | CUSTOM_TAG _ _ _ -> asn1_length_min
 
 inline_for_extraction noextract
 let asn1_value_length_max_of_type
-  (a: asn1_type)
+  (a: asn1_tag_t)
 : asn1_length_t
 = match a with
   | BOOLEAN      -> 1                    (* Any `BOOLEAN` value {true, false} has length 1. *)
@@ -85,11 +107,12 @@ let asn1_value_length_max_of_type
   | OID          -> asn1_length_max - 6  (* `OID` is just `OCTET_STRING`. *)
   | BIT_STRING   -> asn1_length_max - 6  (* An `BIT_STRING` of size `asn1_length_max - 7` with a leading byte of `unused_bits`. *)
   | SEQUENCE     -> asn1_length_max - 6  (* An `SEQUENCE` whose value has length `asn1_length_max - 6` *)
+  | CUSTOM_TAG _ _ _ -> asn1_length_max - 6
 
 /// Helper to assert a length `l` is a valid ASN1 value length of the given type `a`
 noextract
 let asn1_value_length_inbound_of_type
-  (a: asn1_type) (l: nat)
+  (a: asn1_tag_t) (l: nat)
 : bool
 = let min, max = asn1_value_length_min_of_type a, asn1_value_length_max_of_type a in
   asn1_length_inbound l min max
@@ -97,7 +120,7 @@ let asn1_value_length_inbound_of_type
 /// Valid ASN1 Value length subtype for a given type`a`
 noextract
 let asn1_value_length_of_type
-  (a: asn1_type)
+  (a: asn1_tag_t)
 = l: asn1_length_t {asn1_value_length_inbound_of_type a l}
 
 ///////////////////////////////////////////////////////////////////////////
@@ -110,7 +133,7 @@ let asn1_value_length_of_type
 *)
 noextract
 let asn1_TLV_length_min_of_type
-  (a: asn1_type)
+  (a: asn1_tag_t)
 : asn1_length_t
 = match a with        (* Tag Len Val *)
   | BOOLEAN      -> 3 (*  1 + 1 + 1  *)
@@ -120,10 +143,11 @@ let asn1_TLV_length_min_of_type
   | OID          -> 2 (*  1 + 1 + 0  *)
   | BIT_STRING   -> 3 (*  1 + 1 + 1  *)
   | SEQUENCE     -> 2 (*  1 + 1 + 0  *)
+  | CUSTOM_TAG _ _ _ -> 2
 
 noextract
 let asn1_TLV_length_max_of_type
-  (a: asn1_type)
+  (a: asn1_tag_t)
 : asn1_length_t
 = match a with                       (* Tag Len Val *)
   | BOOLEAN      -> 3                (*  1 + 1 + 1  *)
@@ -133,11 +157,12 @@ let asn1_TLV_length_max_of_type
   | OID          -> asn1_length_max  (*  1 + 5 + _  *)
   | BIT_STRING   -> asn1_length_max  (*  1 + 5 + _  *)
   | SEQUENCE     -> asn1_length_max  (*  1 + 5 + _  *)
+  | CUSTOM_TAG _ _ _ -> asn1_length_max
 
 /// Helper to assert a length `l` is a valid ASN1 TLV length of the given type `a`
 noextract
 let asn1_TLV_length_inbound_of_type
-  (a: asn1_type) (x: nat)
+  (a: asn1_tag_t) (x: nat)
 : bool
 = let min, max = asn1_TLV_length_min_of_type a, asn1_TLV_length_max_of_type a in
   asn1_length_inbound x min max
@@ -145,7 +170,7 @@ let asn1_TLV_length_inbound_of_type
 /// Valid ASN1 TLV length subtype for a given type`a`
 noextract
 let asn1_TLV_length_of_type
-  (a: asn1_type)
+  (a: asn1_tag_t)
 = l: asn1_length_t {asn1_TLV_length_inbound_of_type a l}
 
 
@@ -165,7 +190,7 @@ let asn1_int32_max: i: asn1_int32 {forall (i': asn1_int32). i >= i'} = 429496729
 (* Defining the min and max machine len of the serialization of _value_s *)
 inline_for_extraction
 let asn1_value_int32_min_of_type
-  (a: asn1_type)
+  (a: asn1_tag_t)
 : Tot (n: asn1_int32 {v n == asn1_value_length_min_of_type a})
 = match a with
   | BOOLEAN      -> 1ul
@@ -175,6 +200,7 @@ let asn1_value_int32_min_of_type
   | OID          -> asn1_int32_min
   | BIT_STRING   -> 1ul
   | SEQUENCE     -> asn1_int32_min
+  | CUSTOM_TAG _ _ _ -> asn1_int32_min
 
 inline_for_extraction
 let asn1_value_int32_max_of_type
@@ -188,11 +214,12 @@ let asn1_value_int32_max_of_type
   | OID          -> asn1_int32_max - 6ul
   | BIT_STRING   -> asn1_int32_max - 6ul
   | SEQUENCE     -> asn1_int32_max - 6ul
+  | CUSTOM_TAG _ _ _ -> asn1_int32_max - 6ul
 
 /// Valid ASN1 Value len subtype for a given type`a`
 inline_for_extraction
 let asn1_value_int32_of_type
-  (_a: asn1_type)
+  (_a: asn1_tag_t)
 = [@inline_let]
   let min = asn1_value_length_min_of_type _a in
   [@inline_let]
@@ -206,7 +233,7 @@ let asn1_value_int32_of_type
 ////  Same as the mathematical version above, specified using the above definitions
 ///////////////////////////////////////////////////////////////////////////
 let asn1_TLV_int32_min_of_type
-  (a: asn1_type)
+  (a: asn1_tag_t)
 : Tot (n: asn1_int32 {v n == asn1_TLV_length_min_of_type a})
 = match a with
   | BOOLEAN      -> 3ul
@@ -216,9 +243,10 @@ let asn1_TLV_int32_min_of_type
   | OID          -> 2ul
   | BIT_STRING   -> 3ul
   | SEQUENCE     -> 2ul
+  | CUSTOM_TAG _ _ _ -> 2ul
 
 let asn1_TLV_int32_max_of_type
-  (a: asn1_type)
+  (a: asn1_tag_t)
 : Tot (n: asn1_int32 {v n == asn1_TLV_length_max_of_type a})
 = match a with
   | BOOLEAN      -> 3ul
@@ -228,10 +256,11 @@ let asn1_TLV_int32_max_of_type
   | OID          -> asn1_int32_max
   | BIT_STRING   -> asn1_int32_max
   | SEQUENCE     -> asn1_int32_max
+  | CUSTOM_TAG _ _ _ -> asn1_int32_max
 
 /// Valid ASN1 TLV len subtype for a given type`a`
 let asn1_TLV_int32_of_type
-  (_a: asn1_type)
+  (_a: asn1_tag_t)
 = let min, max = asn1_TLV_length_min_of_type _a, asn1_TLV_length_max_of_type _a in
   LowParse.Spec.BoundedInt.bounded_int32 min max
 
@@ -242,7 +271,7 @@ let asn1_TLV_int32_of_type
 ///
 inline_for_extraction noextract
 let weak_kind_of_type
-  (a: asn1_type)
+  (a: asn1_tag_t)
 : LowParse.Spec.Base.parser_kind
 =
   [@inline_let]
@@ -272,6 +301,7 @@ type oid_t =
 | OID_ED25519
 | OID_X25519
 
+#push-options "--z3rlimit 32"
 unfold
 let valid_bit_string_s_pred
   (len: asn1_value_int32_of_type BIT_STRING)
@@ -285,6 +315,7 @@ let valid_bit_string_s_pred
     ( let mask: n:nat{cast_ok (Unsigned W8) n} = (pow2 (v unused_bits)) in
       let last_byte = B32.index s (B32.length s - 1) in
       0 == ((v last_byte) % mask)) )
+#pop-options
 
 type bit_string_t = {
   bs_len        : asn1_value_int32_of_type BIT_STRING;
@@ -329,4 +360,3 @@ let datatype_of_asn1_type (a: asn1_primitive_type): Type
      2. `unused_bits`: a byte, ranging [0, 7], to represent the number of unused bits in the last byte of `s`.
      3. `s`: bytes, whose last bytes' last `unused_bits` bits should be zeroed. could be an empty bytes. *)
   | BIT_STRING   -> bit_string_t
-

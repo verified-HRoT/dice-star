@@ -231,7 +231,7 @@ let lemma_serialize_asn1_bit_string_size
 noextract
 let parser_tag_of_bit_string
   (x: datatype_of_asn1_type BIT_STRING)
-: GTot (the_asn1_type BIT_STRING & asn1_value_int32_of_type BIT_STRING)
+: GTot (the_asn1_tag BIT_STRING & asn1_value_int32_of_type BIT_STRING)
 = (BIT_STRING, x.bs_len)
 
 ///
@@ -248,7 +248,7 @@ let parser_tag_of_bit_string
 /// (value : subtype_{value}) <: subtype_{TLV}
 noextract
 let synth_asn1_bit_string_V
-  (tag: (the_asn1_type BIT_STRING & asn1_value_int32_of_type BIT_STRING))
+  (tag: (the_asn1_tag BIT_STRING & asn1_value_int32_of_type BIT_STRING))
   (value: datatype_of_asn1_type BIT_STRING {
                  v (snd tag) == v value.bs_len })
 : GTot (refine_with_tag parser_tag_of_bit_string tag)
@@ -259,7 +259,7 @@ let synth_asn1_bit_string_V
 /// (value : subtype_{TLV}) <: subtype_{value}
 noextract
 let synth_asn1_bit_string_V_inverse
-  (tag: (the_asn1_type BIT_STRING & asn1_value_int32_of_type BIT_STRING))
+  (tag: (the_asn1_tag BIT_STRING & asn1_value_int32_of_type BIT_STRING))
   (value': refine_with_tag parser_tag_of_bit_string tag)
 : GTot (value: datatype_of_asn1_type BIT_STRING {
                  v (snd tag) == v value.bs_len /\
@@ -271,7 +271,7 @@ let synth_asn1_bit_string_V_inverse
 ///
 noextract
 let parse_asn1_bit_string_V
-  (tag: (the_asn1_type BIT_STRING & asn1_value_int32_of_type BIT_STRING))
+  (tag: (the_asn1_tag BIT_STRING & asn1_value_int32_of_type BIT_STRING))
 : parser (weak_kind_of_type BIT_STRING) (refine_with_tag parser_tag_of_bit_string tag)
 = (weak_kind_of_type BIT_STRING
    `weaken`
@@ -284,7 +284,7 @@ let parse_asn1_bit_string_V
 ///
 noextract
 let serialize_asn1_bit_string_V
-  (tag: (the_asn1_type BIT_STRING & asn1_value_int32_of_type BIT_STRING))
+  (tag: (the_asn1_tag BIT_STRING & asn1_value_int32_of_type BIT_STRING))
 : serializer (parse_asn1_bit_string_V tag)
 = serialize_synth
   (* p1 *) (weak_kind_of_type BIT_STRING
@@ -304,7 +304,7 @@ let serialize_asn1_bit_string_V
 /// Reveal the computation of parse
 noextract
 let lemma_parse_asn1_bit_string_V_unfold
-  (tag: (the_asn1_type BIT_STRING & asn1_value_int32_of_type BIT_STRING))
+  (tag: (the_asn1_tag BIT_STRING & asn1_value_int32_of_type BIT_STRING))
   (input: bytes)
 : Lemma (
   parse (parse_asn1_bit_string_V tag) input ==
@@ -321,7 +321,7 @@ let lemma_parse_asn1_bit_string_V_unfold
 /// Reveal the computation of serialzation
 noextract
 let lemma_serialize_asn1_bit_string_V_unfold
-  (tag: (the_asn1_type BIT_STRING & asn1_value_int32_of_type BIT_STRING))
+  (tag: (the_asn1_tag BIT_STRING & asn1_value_int32_of_type BIT_STRING))
   (value: refine_with_tag parser_tag_of_bit_string tag)
 : Lemma (
   serialize (serialize_asn1_bit_string_V tag) value ==

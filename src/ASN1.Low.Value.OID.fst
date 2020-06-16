@@ -185,7 +185,7 @@ let seq_of_oid_buffer
 
 
 #restart-solver
-#push-options "--z3rlimit 64 --fuel 2 --ifuel 1"
+#push-options "--z3rlimit 64 --fuel 0 --ifuel 0"
 inline_for_extraction
 let serialize32_asn1_oid_backwards
   (len: asn1_value_int32_of_type OID)
@@ -298,19 +298,20 @@ open ASN1.Low.Length
 inline_for_extraction
 let parser_tag_of_oid_impl
   (x: datatype_of_asn1_type OID)
-: Tot (tg: (the_asn1_type OID & asn1_value_int32_of_type OID)
+: Tot (tg: (the_asn1_tag OID & asn1_value_int32_of_type OID)
       { tg == parser_tag_of_oid x })
 = (OID, len_of_oid_buffer x)
 
 inline_for_extraction
 let synth_asn1_oid_V_inverse_impl
-  (tg: (the_asn1_type OID & asn1_value_int32_of_type OID))
+  (tg: (the_asn1_tag OID & asn1_value_int32_of_type OID))
   (value': refine_with_tag parser_tag_of_oid tg)
 : Tot (value: datatype_of_asn1_type OID
       { length_of_oid value == v (snd tg) /\
         value == synth_asn1_oid_V_inverse tg value' })
 = value'
 
+#push-options "--z3rlimit 32 --fuel 0 --ifuel 0"
 let serialize32_asn1_oid_TLV_backwards ()
 : Tot (serializer32_backwards serialize_asn1_oid_TLV)
 = serialize32_tagged_union_backwards
@@ -326,7 +327,7 @@ let serialize32_asn1_oid_TLV_backwards ()
                      (* g1  *) (synth_asn1_oid_V_inverse x)
                      (* g1' *) (synth_asn1_oid_V_inverse_impl x)
                      (* Prf *) ()))
-
+#pop-options
 let serialize32_asn1_oid_TLV_of_backwards
   (oid: datatype_of_asn1_type OID)
 : serializer32_backwards (serialize_asn1_oid_TLV_of oid)

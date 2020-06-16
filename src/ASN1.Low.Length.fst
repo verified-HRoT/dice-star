@@ -78,7 +78,7 @@ let serialize32_asn1_length_backwards ()
 
 inline_for_extraction noextract
 let serialize32_asn1_length_of_type
-  (_a: asn1_type)
+  (_a: asn1_tag_t)
 : Tot (serializer32 (serialize_asn1_length_of_type _a))
 = [@inline_let]
   let min = asn1_value_length_min_of_type _a in
@@ -89,7 +89,7 @@ let serialize32_asn1_length_of_type
 //marking it noextract, perhaps issue because _a isn't fixed yet??
 inline_for_extraction noextract
 let serialize32_asn1_length_of_type_backwards
-  (_a: asn1_type)
+  (_a: asn1_tag_t)
 : Tot (serializer32_backwards (serialize_asn1_length_of_type _a))
 = fun (len: asn1_value_int32_of_type _a)
     (#rrel #rel: _)

@@ -21,7 +21,7 @@ open FStar.Integers
 ///
 inline_for_extraction
 let encode_asn1_tag
-  (a: asn1_type)
+  (a: asn1_tag_t)
 : Tot (b: byte{b == synth_asn1_tag_inverse a})
 = match a with
   | BOOLEAN      -> 0x01uy
@@ -31,6 +31,14 @@ let encode_asn1_tag
   | NULL         -> 0x05uy
   | OID          -> 0x06uy
   | SEQUENCE     -> 0x30uy
+  | CUSTOM_TAG tag_class tag_form tag_value -> ( let b_tag_class = match tag_class with
+                                                                     | APPLICATION      -> 0b01000000uy
+                                                                     | CONTEXT_SPECIFIC -> 0b10000000uy
+                                                                     | PRIVATE          -> 0b11000000uy in
+                                                   let b_tag_form  = match tag_form with
+                                                                     | PRIMITIVE   -> 0b000000uy
+                                                                     | CONSTRUCTED -> 0b100000uy in
+                                                   b_tag_class + b_tag_form + tag_value )
 
 ///
 /// Low-level implemenation of ASN1 Tag's length computation function
@@ -38,7 +46,7 @@ let encode_asn1_tag
 ///
 inline_for_extraction
 let len_of_asn1_tag
-  (tag: asn1_type)
+  (tag: asn1_tag_t)
 : Tot (l: size_t{
   v l == Seq.length (serialize serialize_asn1_tag tag) /\
   v l == 1})
@@ -46,13 +54,15 @@ let len_of_asn1_tag
   (* Prf *) lemma_serialize_asn1_tag_size tag;
   1ul
 
+#set-options "--z3rlimit 32"
+
 ///
 /// Backwards low-level serializer for asn1 tags
 ///
 inline_for_extraction
 let serialize32_asn1_tag_backwards ()
 : Tot (serializer32_backwards serialize_asn1_tag)
-= fun (a: asn1_type)
+= fun (a: asn1_tag_t)
     (#rrel #rel: _)
     (b: B.mbuffer byte rrel rel)
     (pos: size_t)
@@ -73,7 +83,7 @@ let serialize32_asn1_tag_backwards ()
 ///
 inline_for_extraction noextract
 let serialize32_asn1_tag_of_type_backwards
-  (_a: asn1_type)
+  (_a: asn1_tag_t)
 : Tot (serializer32_backwards (serialize_asn1_tag_of_type _a))
 = fun a
     #rrel #rel

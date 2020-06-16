@@ -149,14 +149,14 @@ open ASN1.Spec.Length
 
 noextract
 let synth_asn1_boolean_TLV
-  (a: (the_asn1_type BOOLEAN * asn1_value_int32_of_type BOOLEAN) * datatype_of_asn1_type BOOLEAN)
+  (a: (the_asn1_tag BOOLEAN * asn1_value_int32_of_type BOOLEAN) * datatype_of_asn1_type BOOLEAN)
 : GTot (datatype_of_asn1_type BOOLEAN)
 = snd a
 
 noextract
 let synth_asn1_boolean_TLV_inverse
   (x: datatype_of_asn1_type BOOLEAN)
-: GTot (a: ((the_asn1_type BOOLEAN * asn1_value_int32_of_type BOOLEAN) * datatype_of_asn1_type BOOLEAN){x == synth_asn1_boolean_TLV a})
+: GTot (a: ((the_asn1_tag BOOLEAN * asn1_value_int32_of_type BOOLEAN) * datatype_of_asn1_type BOOLEAN){x == synth_asn1_boolean_TLV a})
 = ((BOOLEAN, 1ul), x)
 
 inline_for_extraction noextract

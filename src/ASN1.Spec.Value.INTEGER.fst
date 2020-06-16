@@ -564,7 +564,7 @@ let lemma_serialize_asn1_integer_size
 noextract
 let parser_tag_of_asn1_integer
   (value: datatype_of_asn1_type INTEGER)
-: GTot (the_asn1_type INTEGER & asn1_value_int32_of_type INTEGER)
+: GTot (the_asn1_tag INTEGER & asn1_value_int32_of_type INTEGER)
 = (INTEGER, u (length_of_asn1_integer value))
 
 ///
@@ -581,7 +581,7 @@ let parser_tag_of_asn1_integer
 /// (value : subtype_{value}) <: subtype_{TLV}
 noextract
 let synth_asn1_integer_V
-  (tag: (the_asn1_type INTEGER & asn1_value_int32_of_type INTEGER))
+  (tag: (the_asn1_tag INTEGER & asn1_value_int32_of_type INTEGER))
   (value: datatype_of_asn1_type INTEGER { v (snd tag) == length_of_asn1_integer value })
 : GTot (refine_with_tag parser_tag_of_asn1_integer tag)
 = value
@@ -591,7 +591,7 @@ let synth_asn1_integer_V
 /// (value : subtype_{TLV}) <: subtype_{value}
 noextract
 let synth_asn1_integer_V_inverse
-  (tag: (the_asn1_type INTEGER & asn1_value_int32_of_type INTEGER))
+  (tag: (the_asn1_tag INTEGER & asn1_value_int32_of_type INTEGER))
   (value': refine_with_tag parser_tag_of_asn1_integer tag)
 : GTot (value: datatype_of_asn1_type INTEGER {
                v (snd tag) == length_of_asn1_integer value /\
@@ -603,7 +603,7 @@ let synth_asn1_integer_V_inverse
 ///
 noextract
 let parse_asn1_integer_V
-  (tag: (the_asn1_type INTEGER & asn1_value_int32_of_type INTEGER))
+  (tag: (the_asn1_tag INTEGER & asn1_value_int32_of_type INTEGER))
 : parser (weak_kind_of_type INTEGER) (refine_with_tag parser_tag_of_asn1_integer tag)
 = (weak_kind_of_type INTEGER
    `weaken`
@@ -616,7 +616,7 @@ let parse_asn1_integer_V
 ///
 noextract
 let serialize_asn1_integer_V
-  (tag: (the_asn1_type INTEGER & asn1_value_int32_of_type INTEGER))
+  (tag: (the_asn1_tag INTEGER & asn1_value_int32_of_type INTEGER))
 : serializer (parse_asn1_integer_V tag)
 = serialize_synth
   (* p1 *) (weak_kind_of_type INTEGER
@@ -636,7 +636,7 @@ let serialize_asn1_integer_V
 /// Reveal the computation of parse
 noextract
 let lemma_parse_asn1_integer_V_unfold
-  (tag: (the_asn1_type INTEGER & asn1_value_int32_of_type INTEGER))
+  (tag: (the_asn1_tag INTEGER & asn1_value_int32_of_type INTEGER))
   (input: bytes)
 : Lemma (
   parse (parse_asn1_integer_V tag) input ==
@@ -653,7 +653,7 @@ let lemma_parse_asn1_integer_V_unfold
 /// Reveal the computation of serialzation
 noextract
 let lemma_serialize_asn1_integer_V_unfold
-  (tag: (the_asn1_type INTEGER & asn1_value_int32_of_type INTEGER))
+  (tag: (the_asn1_tag INTEGER & asn1_value_int32_of_type INTEGER))
   (value: refine_with_tag parser_tag_of_asn1_integer tag)
 : Lemma (
   serialize (serialize_asn1_integer_V tag) value ==

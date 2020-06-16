@@ -44,12 +44,12 @@ open ASN1.Low.Length
 inline_for_extraction
 let parser_tag_of_octet_string_impl
   (x: datatype_of_asn1_type OCTET_STRING)
-: Tot (tg: (the_asn1_type OCTET_STRING & asn1_value_int32_of_type OCTET_STRING) {tg == parser_tag_of_octet_string x})
+: Tot (tg: (the_asn1_tag OCTET_STRING & asn1_value_int32_of_type OCTET_STRING) {tg == parser_tag_of_octet_string x})
 = (OCTET_STRING, dfst x)
 
 inline_for_extraction
 let synth_asn1_octet_string_V_inverse_impl
-  (tag: (the_asn1_type OCTET_STRING & asn1_value_int32_of_type OCTET_STRING))
+  (tag: (the_asn1_tag OCTET_STRING & asn1_value_int32_of_type OCTET_STRING))
   (value': refine_with_tag parser_tag_of_octet_string tag)
 : Tot (value: datatype_of_asn1_type OCTET_STRING { v (dfst value) == v (snd tag) /\ value == synth_asn1_octet_string_V_inverse tag value'})
 = value'

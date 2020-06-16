@@ -180,11 +180,3 @@ let length_of_TLV
   (l: asn1_value_length_of_type a)
 : GTot (asn1_TLV_length_of_type a)
 = 1 + length_of_asn1_length (u l) + l
-
-let _ =
-assert_norm (length_of_asn1_primitive_value (Mkbit_string_t 33ul 1ul (magic())) == 33)
-
-#push-options "--z3rlimit 32"
-let _ =
-  lemma_serialize_asn1_oid_TLV_size OID_RIOT;
-assert (length_of_asn1_primitive_TLV OID_RIOT == 11)

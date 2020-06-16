@@ -12,6 +12,8 @@ module B32 = FStar.Bytes
 
 open FStar.Integers
 
+(* Not using for now
+
 let x509_basic_constraints_t
   (hasLenField: bool)
 = if hasLenField then

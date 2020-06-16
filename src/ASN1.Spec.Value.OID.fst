@@ -625,7 +625,7 @@ let lemma_serialize_asn1_oid_size
 *)
 let parser_tag_of_oid
   (x: datatype_of_asn1_type OID)
-: GTot (the_asn1_type OID & asn1_value_int32_of_type OID)
+: GTot (the_asn1_tag OID & asn1_value_int32_of_type OID)
 = (OID, u (length_of_oid x))
 
 noextract
@@ -639,14 +639,14 @@ let parse_asn1_oid_TLV_kind
 
 noextract
 let synth_asn1_oid_V
-  (tag: (the_asn1_type OID & asn1_value_int32_of_type OID))
+  (tag: (the_asn1_tag OID & asn1_value_int32_of_type OID))
   (value: datatype_of_asn1_type OID { length_of_oid value == v (snd tag)})
 : GTot (refine_with_tag parser_tag_of_oid tag)
 = value
 
 noextract
 let synth_asn1_oid_V_inverse
-  (tag: (the_asn1_type OID & asn1_value_int32_of_type OID))
+  (tag: (the_asn1_tag OID & asn1_value_int32_of_type OID))
   (value': refine_with_tag parser_tag_of_oid tag)
 : GTot (value: datatype_of_asn1_type OID
        { length_of_oid value == v (snd tag) /\
@@ -658,7 +658,7 @@ let synth_asn1_oid_V_inverse
 ///
 noextract
 let parse_asn1_oid_V
-  (tag: (the_asn1_type OID & asn1_value_int32_of_type OID))
+  (tag: (the_asn1_tag OID & asn1_value_int32_of_type OID))
 : parser (weak_kind_of_type OID) (refine_with_tag parser_tag_of_oid tag)
 = weak_kind_of_type OID
   `weaken`
@@ -671,7 +671,7 @@ let parse_asn1_oid_V
 ///
 noextract
 let serialize_asn1_oid_V
-  (tag: (the_asn1_type OID & asn1_value_int32_of_type OID))
+  (tag: (the_asn1_tag OID & asn1_value_int32_of_type OID))
 : serializer (parse_asn1_oid_V tag)
 = serialize_synth
   (* p1 *) (weak_kind_of_type OID
@@ -691,7 +691,7 @@ let serialize_asn1_oid_V
 /// Reveal the computation of parse
 noextract
 let lemma_parse_asn1_oid_V_unfold
-  (tag: (the_asn1_type OID & asn1_value_int32_of_type OID))
+  (tag: (the_asn1_tag OID & asn1_value_int32_of_type OID))
   (input: bytes)
 : Lemma (
   parse (parse_asn1_oid_V tag) input ==
@@ -709,7 +709,7 @@ let lemma_parse_asn1_oid_V_unfold
 #push-options "--z3rlimit 16"
 noextract
 let lemma_serialize_asn1_oid_V_unfold
-  (tag: (the_asn1_type OID & asn1_value_int32_of_type OID))
+  (tag: (the_asn1_tag OID & asn1_value_int32_of_type OID))
   (value: refine_with_tag parser_tag_of_oid tag)
 : Lemma (
   serialize (serialize_asn1_oid_V tag) value ==

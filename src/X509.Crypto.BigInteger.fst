@@ -188,7 +188,7 @@ let lemma_serialize_big_integer_as_octet_string_size
 noextract
 let parser_tag_of_big_integer_as_octet_string
   (x: big_integer_as_octet_string_t)
-: GTot (the_asn1_type INTEGER & asn1_value_int32_of_big_integer)
+: GTot (the_asn1_tag INTEGER & asn1_value_int32_of_big_integer)
 = let (.[]) = B32.index in
   if ((dsnd x).[0] >= 0x80uy) then
   ( (INTEGER, dfst x + 1ul) )
@@ -219,7 +219,7 @@ let parse_big_integer_as_octet_string_TLV_kind
 
 noextract
 let synth_big_integer_as_octet_string_V
-  (tag: (the_asn1_type INTEGER & asn1_value_int32_of_big_integer))
+  (tag: (the_asn1_tag INTEGER & asn1_value_int32_of_big_integer))
   (value: big_integer_as_octet_string_t
          { valid_big_integer_as_octet_string_prop (v (snd tag)) value })
 : GTot (refine_with_tag parser_tag_of_big_integer_as_octet_string tag)
@@ -227,7 +227,7 @@ let synth_big_integer_as_octet_string_V
 
 noextract
 let synth_big_integer_as_octet_string_V_inverse
-  (tag: (the_asn1_type INTEGER & asn1_value_int32_of_big_integer))
+  (tag: (the_asn1_tag INTEGER & asn1_value_int32_of_big_integer))
   (value': refine_with_tag parser_tag_of_big_integer_as_octet_string tag)
 : GTot (value: big_integer_as_octet_string_t
                { valid_big_integer_as_octet_string_prop (v (snd tag)) value /\
@@ -240,7 +240,7 @@ let synth_big_integer_as_octet_string_V_inverse
 ///
 noextract
 let parse_big_integer_as_octet_string_V
-  (tag: (the_asn1_type INTEGER & asn1_value_int32_of_big_integer))
+  (tag: (the_asn1_tag INTEGER & asn1_value_int32_of_big_integer))
 : parser (weak_kind_of_big_integer) (refine_with_tag parser_tag_of_big_integer_as_octet_string tag)
 = weak_kind_of_big_integer
   `weaken`
@@ -253,7 +253,7 @@ let parse_big_integer_as_octet_string_V
 ///
 noextract
 let serialize_big_integer_as_octet_string_V
-  (tag: (the_asn1_type INTEGER & asn1_value_int32_of_big_integer))
+  (tag: (the_asn1_tag INTEGER & asn1_value_int32_of_big_integer))
 : serializer (parse_big_integer_as_octet_string_V tag)
 = serialize_synth
   (* p1 *) (weak_kind_of_big_integer
@@ -273,7 +273,7 @@ let serialize_big_integer_as_octet_string_V
 /// Reveal the computation of parse
 noextract
 let lemma_parse_big_integer_as_octet_string_V_unfold
-  (tag: (the_asn1_type INTEGER & asn1_value_int32_of_big_integer))
+  (tag: (the_asn1_tag INTEGER & asn1_value_int32_of_big_integer))
   (input: bytes)
 : Lemma (
   parse (parse_big_integer_as_octet_string_V tag) input ==
@@ -290,7 +290,7 @@ let lemma_parse_big_integer_as_octet_string_V_unfold
 /// Reveal the computation of serialzation
 noextract
 let lemma_serialize_big_integer_as_octet_string_V_unfold
-  (tag: (the_asn1_type INTEGER & asn1_value_int32_of_big_integer))
+  (tag: (the_asn1_tag INTEGER & asn1_value_int32_of_big_integer))
   (value: refine_with_tag parser_tag_of_big_integer_as_octet_string tag)
 : Lemma (
   serialize (serialize_big_integer_as_octet_string_V tag) value ==

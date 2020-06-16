@@ -20,7 +20,7 @@ let inbound_envelop_tag_with_value_of
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
-  (a: asn1_type)
+  (a: asn1_tag_t)
   (s: serializer p)
 = x: t{ asn1_value_length_inbound_of_type a (Seq.length (serialize s x)) }
 
@@ -31,10 +31,10 @@ let parser_tag_of_asn1_envelop_tag_with
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
-  (a: asn1_type)
+  (a: asn1_tag_t)
   (s: serializer p)
   (data: inbound_envelop_tag_with_value_of a s )
-: GTot (the_asn1_type a & asn1_value_int32_of_type a)
+: GTot (the_asn1_tag a & asn1_value_int32_of_type a)
 = (a, u (Seq.length (serialize s data)))
 
 noextract
@@ -42,9 +42,9 @@ let synth_asn1_envelop_tag_with
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
-  (a: asn1_type)
+  (a: asn1_tag_t)
   (s: serializer p)
-  (tag: (the_asn1_type a & asn1_value_int32_of_type a))
+  (tag: (the_asn1_tag a & asn1_value_int32_of_type a))
   (y: parse_fldata_strong_t s (v (snd tag)))
 : GTot (refine_with_tag (parser_tag_of_asn1_envelop_tag_with a s) tag)
 = y <: refine_with_tag (parser_tag_of_asn1_envelop_tag_with a s) tag
@@ -54,9 +54,9 @@ let synth_asn1_envelop_tag_with_inverse
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
-  (a: asn1_type)
+  (a: asn1_tag_t)
   (s: serializer p)
-  (tag: (the_asn1_type a & asn1_value_int32_of_type a))
+  (tag: (the_asn1_tag a & asn1_value_int32_of_type a))
   (data: refine_with_tag (parser_tag_of_asn1_envelop_tag_with a s) tag)
 : GTot (y: parse_fldata_strong_t s (v (snd tag)){ data == synth_asn1_envelop_tag_with a s tag y })
 = data <: refine_with_tag (parser_tag_of_asn1_envelop_tag_with a s) tag
@@ -68,9 +68,9 @@ let parse_asn1_envelop_tag_with
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
-  (a: asn1_type)
+  (a: asn1_tag_t)
   (s: serializer p)
-  (tag: the_asn1_type a & asn1_value_int32_of_type a)
+  (tag: the_asn1_tag a & asn1_value_int32_of_type a)
 : parser (parse_fldata_kind (v (snd tag)) k) (refine_with_tag (parser_tag_of_asn1_envelop_tag_with a s) tag)
 = serializer_correct_implies_complete p s;
   parse_fldata_strong s (v (snd tag))
@@ -82,9 +82,9 @@ let lemma_parse_asn1_envelop_tag_with_unfold
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
-  (a: asn1_type)
+  (a: asn1_tag_t)
   (s: serializer p)
-  (tag: the_asn1_type a & asn1_value_int32_of_type a)
+  (tag: the_asn1_tag a & asn1_value_int32_of_type a)
   (input: bytes)
 : Lemma (
   parse (parse_asn1_envelop_tag_with a s tag) input ==
@@ -101,9 +101,9 @@ let parse_asn1_envelop_tag_with_weak
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
-  (a: asn1_type)
+  (a: asn1_tag_t)
   (s: serializer p)
-  (tag: the_asn1_type a & asn1_value_int32_of_type a)
+  (tag: the_asn1_tag a & asn1_value_int32_of_type a)
 : parser (weak_kind_of_type a) (refine_with_tag (parser_tag_of_asn1_envelop_tag_with a s) tag)
 = weak_kind_of_type a
   `weaken`
@@ -114,9 +114,9 @@ let serialize_asn1_envelop_tag_with
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
-  (a: asn1_type)
+  (a: asn1_tag_t)
   (s: serializer p)
-  (tag: the_asn1_type a & asn1_value_int32_of_type a)
+  (tag: the_asn1_tag a & asn1_value_int32_of_type a)
 : serializer (parse_asn1_envelop_tag_with a s tag)
 = serializer_correct_implies_complete p s;
   serialize_synth
@@ -131,9 +131,9 @@ let serialize_asn1_envelop_tag_with
 //   (#k: parser_kind)
 //   (#t: Type0)
 //   (#p: parser k t)
-//   (a: asn1_type)
+//   (a: asn1_tag_t)
 //   (s: serializer p)
-//   (tag: the_asn1_type a & asn1_value_int32_of_type a)
+//   (tag: the_asn1_tag a & asn1_value_int32_of_type a)
 //   (value: refine_with_tag (parser_tag_of_asn1_envelop_tag_with a s) tag)
 // : Type0
 // = serialize
@@ -146,9 +146,9 @@ let lemma_serialize_asn1_envelop_tag_with_unfold
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
-  (a: asn1_type)
+  (a: asn1_tag_t)
   (s: serializer p)
-  (tag: the_asn1_type a & asn1_value_int32_of_type a)
+  (tag: the_asn1_tag a & asn1_value_int32_of_type a)
   (value: refine_with_tag (parser_tag_of_asn1_envelop_tag_with a s) tag)
 : Lemma (
   serialize
@@ -170,9 +170,9 @@ let serialize_asn1_envelop_tag_with_weak
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
-  (a: asn1_type)
+  (a: asn1_tag_t)
   (s: serializer p)
-  (tag: the_asn1_type a & asn1_value_int32_of_type a)
+  (tag: the_asn1_tag a & asn1_value_int32_of_type a)
 : serializer (parse_asn1_envelop_tag_with_weak a s tag)
 = weak_kind_of_type a
   `serialize_weaken`
@@ -183,7 +183,7 @@ let serialize_asn1_envelop_tag_with_weak
 ///
 
 let parse_asn1_envelop_tag_with_TLV_kind
-  (a: asn1_type)
+  (a: asn1_tag_t)
 : parser_kind
 = parse_asn1_tag_kind
   `and_then_kind`
@@ -196,7 +196,7 @@ let parse_asn1_envelop_tag_with_TLV
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
-  (a: asn1_type)
+  (a: asn1_tag_t)
   (s: serializer p)
 : parser (parse_asn1_envelop_tag_with_TLV_kind a) (inbound_envelop_tag_with_value_of a s)
 = parse_tagged_union
@@ -211,7 +211,7 @@ let serialize_asn1_envelop_tag_with_TLV
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
-  (a: asn1_type)
+  (a: asn1_tag_t)
   (s: serializer p)
 : Tot (serializer (parse_asn1_envelop_tag_with_TLV a s))
 = serialize_tagged_union
@@ -226,7 +226,7 @@ let predicate_serialize_asn1_envelop_tag_with_TLV_unfold
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
-  (a: asn1_type)
+  (a: asn1_tag_t)
   (s: serializer p)
   (value: inbound_envelop_tag_with_value_of a s)
 : Type0
@@ -241,7 +241,7 @@ let lemma_serialize_asn1_envelop_tag_with_TLV_unfold
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
-  (a: asn1_type)
+  (a: asn1_tag_t)
   (s: serializer p)
   (value: inbound_envelop_tag_with_value_of a s)
 : Lemma ( predicate_serialize_asn1_envelop_tag_with_TLV_unfold a s value )
@@ -263,7 +263,7 @@ let predicate_serialize_asn1_envelop_tag_with_TLV_size
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
-  (a: asn1_type)
+  (a: asn1_tag_t)
   (s: serializer p)
   (value: inbound_envelop_tag_with_value_of a s)
 : Type0
@@ -276,7 +276,7 @@ let lemma_serialize_asn1_envelop_tag_with_TLV_size
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
-  (a: asn1_type)
+  (a: asn1_tag_t)
   (s: serializer p)
   (value: inbound_envelop_tag_with_value_of a s)
 : Lemma ( predicate_serialize_asn1_envelop_tag_with_TLV_size a s value )
@@ -292,7 +292,7 @@ let length_of_asn1_envelop_tag_with_TLV
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
-  (a: asn1_type)
+  (a: asn1_tag_t)
   (s: serializer p)
   (value: inbound_envelop_tag_with_value_of a s)
 : GTot (l: asn1_TLV_length_of_type a { l == Seq.length (serialize (serialize_asn1_envelop_tag_with_TLV a s) value) })

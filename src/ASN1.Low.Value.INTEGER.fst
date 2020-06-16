@@ -47,7 +47,7 @@ NOTE: Since there are no low-level machine-integer to bytes implementations
       16-bit, 32-bit integer store interfaces. For 3-byte, we need to store
       the first 2 bytes and the last byte separately.
 *)
-#push-options "--z3rlimit 32"
+#push-options "--z3rlimit 64"
 inline_for_extraction noextract
 let serialize32_asn1_integer_backwards_1byte_without_leading_zero
   (len: asn1_value_int32_of_type INTEGER)
@@ -473,14 +473,14 @@ let serialize32_asn1_integer_backwards
 inline_for_extraction
 let parser_tag_of_asn1_integer_impl
   (value: datatype_of_asn1_type INTEGER)
-: Tot (tg: (the_asn1_type INTEGER & asn1_value_int32_of_type INTEGER) {
+: Tot (tg: (the_asn1_tag INTEGER & asn1_value_int32_of_type INTEGER) {
            tg == parser_tag_of_asn1_integer value
   })
 = (INTEGER, len_of_asn1_integer value)
 
 inline_for_extraction
 let synth_asn1_integer_V_inverse_impl
-  (tag: (the_asn1_type INTEGER & asn1_value_int32_of_type INTEGER))
+  (tag: (the_asn1_tag INTEGER & asn1_value_int32_of_type INTEGER))
   (value': refine_with_tag parser_tag_of_asn1_integer tag)
 : Tot (value: datatype_of_asn1_type INTEGER {
                v (snd tag) == length_of_asn1_integer value /\

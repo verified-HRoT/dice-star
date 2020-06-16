@@ -68,7 +68,7 @@ let lemma_serialize_asn1_null_size
 /// Synthesize the TLV of a `NULL` value
 noextract
 let synth_asn1_null_TLV
-  (a: (the_asn1_type NULL * asn1_value_int32_of_type NULL) * datatype_of_asn1_type NULL)
+  (a: (the_asn1_tag NULL * asn1_value_int32_of_type NULL) * datatype_of_asn1_type NULL)
 : GTot (datatype_of_asn1_type NULL)
 = snd a
 
@@ -76,7 +76,7 @@ let synth_asn1_null_TLV
 noextract
 let synth_asn1_null_TLV_inverse
   (x: datatype_of_asn1_type NULL)
-: GTot (a: ((the_asn1_type NULL * asn1_value_int32_of_type NULL) * datatype_of_asn1_type NULL){x == synth_asn1_null_TLV a})
+: GTot (a: ((the_asn1_tag NULL * asn1_value_int32_of_type NULL) * datatype_of_asn1_type NULL){x == synth_asn1_null_TLV a})
 = ((NULL, 0ul), x)
 
 inline_for_extraction noextract

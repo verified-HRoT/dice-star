@@ -80,14 +80,14 @@ let serialize32_asn1_bit_string_backwards
 inline_for_extraction
 let parser_tag_of_bit_string_impl
   (x: datatype_of_asn1_type BIT_STRING)
-: Tot (tg: (the_asn1_type BIT_STRING & asn1_value_int32_of_type BIT_STRING) {
+: Tot (tg: (the_asn1_tag BIT_STRING & asn1_value_int32_of_type BIT_STRING) {
            tg == parser_tag_of_bit_string x
   })
 = (BIT_STRING, (Mkbit_string_t?.bs_len x))
 
 inline_for_extraction
 let synth_asn1_bit_string_V_inverse_impl
-  (tag: (the_asn1_type BIT_STRING & asn1_value_int32_of_type BIT_STRING))
+  (tag: (the_asn1_tag BIT_STRING & asn1_value_int32_of_type BIT_STRING))
   (value': refine_with_tag parser_tag_of_bit_string tag)
 : Tot (value: datatype_of_asn1_type BIT_STRING {
                  v (snd tag) == v (Mkbit_string_t?.bs_len value) /\

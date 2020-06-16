@@ -28,7 +28,7 @@ let serialize32_asn1_envelop_tag_with_TLV_backwards
   (#t: Type0)
   (#p: parser k t)
   (#s: serializer p)
-  (a: asn1_type)
+  (a: asn1_tag_t)
   (s32: serializer32_backwards s)
 : Tot (serializer32_backwards (serialize_asn1_envelop_tag_with_TLV a s))
 = fun x #rrel #rel b pos ->

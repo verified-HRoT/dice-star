@@ -115,6 +115,7 @@ let lemma_serialize_compositeDeviceID_unfold
     // lemma_serialize_fwid_sequence_TLV_unfold x.riot_fwid;
     // lemma_serialize_fwid_unfold              x.riot_fwid
 
+#set-options "--z3rlimit 32 --fuel 0 --ifuel 0"
 let lemma_serialize_compositeDeviceID_size
   (x: compositeDeviceID_t)
 : Lemma (
@@ -160,7 +161,7 @@ let lemma_serialize_compositeDeviceID_sequence_TLV_size
 = lemma_serialize_asn1_sequence_TLV_size serialize_compositeDeviceID x
 
 open FStar.Integers
-#push-options "--z3rlimit 32 --fuel 4 --ifuel 4"
+#push-options "--z3rlimit 32 --fuel 0 --ifuel 0"
 let lemma_serialize_compositeDeviceID_sequence_TLV_size_exact
   (x: compositeDeviceID_t_inbound)
 : Lemma (
@@ -201,7 +202,7 @@ let serialize32_compositeDeviceID_sequence_TLV_backwards
 (* helpers *)
 module B32 = FStar.Bytes
 
-#push-options "--z3rlimit 8 --fuel 0 --ifuel 0"
+#push-options "--z3rlimit 32 --fuel 0 --ifuel 0"
 let x509_get_compositeDeviceID
   (version: datatype_of_asn1_type INTEGER)
   (deviceKeyPub: B32.lbytes32 32ul)
