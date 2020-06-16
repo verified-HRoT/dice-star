@@ -101,7 +101,7 @@ let create_aliasKeyTBS_spec
    1) the length of TBS is valid as Hacl's HKDF message length
    2) the length of created CRT is valid as our ASN.1 TLV SEQUENCE value length
 *)
-unfold
+unfold noextract
 let valid_aliasKeyCRT_ingredients
   (tbs_len: asn1_int32)
 = // (* implied *) v tbs_len + 64 <= max_size_t /\
