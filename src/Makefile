@@ -81,6 +81,7 @@ KREMLIN_FLAGS = \
   -library HWAbstraction \
   -bundle DICE.Definitions \
   -bundle ASN1.*,X509.* \
+  -bundle LowParse.* \
   -bundle Prims,C.Failure,C,C.*,FStar.*,Hacl.*,Spec.*,Vale.*,Lib.*,LowStar.*,Meta.*[rename=Hacl_Lib] \
   -minimal \
   -fnoreturn-else \
