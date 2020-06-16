@@ -69,6 +69,8 @@ let synth_algorithmIdentifier_t
                     { algID_ed25519 = x' } )
 
 /// record repr -> tuple repr
+
+inline_for_extraction noextract
 let synth_algorithmIdentifier_t'
   (alg: supported_crypto_alg_t)
   (x: algorithmIdentifier_t alg)
