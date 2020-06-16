@@ -173,6 +173,7 @@ let x509_signature_raw_t
 = match alg with
   | AlgID_Ed25519   -> ( B32.lbytes32 64ul )
 
+inline_for_extraction noextract
 let x509_get_signature
   (alg: supported_crypto_alg_t {alg == AlgID_Ed25519})
   (sig32: x509_signature_raw_t alg)
