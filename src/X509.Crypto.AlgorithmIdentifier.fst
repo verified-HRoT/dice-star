@@ -296,6 +296,7 @@ let serialize32_algorithmIdentifier_backwards
                     (* g1'*) (synth_algorithmIdentifier_t' alg)
                     (* prf*) () )
 
+inline_for_extraction
 let serialize32_algorithmIdentifier_sequence_TLV_backwards
   (alg: supported_crypto_alg_t)
 : serializer32_backwards (serialize_algorithmIdentifier_sequence_TLV alg)

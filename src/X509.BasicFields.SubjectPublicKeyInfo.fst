@@ -15,6 +15,8 @@ open FStar.Integers
   ======================
 *)
 /// Record repr
+
+inline_for_extraction
 type subjectPublicKeyInfo_t
   (alg: supported_crypto_alg_t)
 = { subjectPubKey_alg : algorithmIdentifier_t_inbound alg;
