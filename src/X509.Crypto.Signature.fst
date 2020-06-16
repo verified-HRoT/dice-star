@@ -142,6 +142,7 @@ let lemma_serialize_x509_signature_sequence_TLV_size_exact
 #pop-options
 
 (* Low *)
+inline_for_extraction
 let serialize32_x509_signature_backwards
   (alg: supported_crypto_alg_t {alg == AlgID_Ed25519})
 : serializer32_backwards (serialize_x509_signature alg)
@@ -155,6 +156,7 @@ let serialize32_x509_signature_backwards
                    (* g1' *) (fun x -> x <: parse_filter_refine (filter_x509_signature alg))
                    (* prf *) () )
 
+inline_for_extraction
 let serialize32_x509_signature_sequence_TLV_backwards
   (alg: supported_crypto_alg_t {alg == AlgID_Ed25519})
 : serializer32_backwards (serialize_x509_signature_sequence_TLV alg)
