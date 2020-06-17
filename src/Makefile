@@ -100,7 +100,7 @@ KRML=$(KREMLIN_HOME)/krml
 compile-all:
 	$(KRML) \
 	  $(KREMLIN_FLAGS) \
-	  $(ALL_KRML_FILES) c/HWAbstraction.c
+	  $(ALL_KRML_FILES) c/HWAbstraction.c c/Declassification.c
 
 clean:
 	rm -rf .depend obj dice.exe
