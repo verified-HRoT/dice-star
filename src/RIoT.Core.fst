@@ -25,7 +25,7 @@ open RIoT.Spec
 open RIoT.Impl
 
 #restart-solver
-#push-options "--z3rlimit 512 --fuel 0 --ifuel 0"
+#push-options "--query_stats --z3rlimit 1024 --fuel 0 --ifuel 0"
 let riot
 (* inputs *)
   (cdi : B.lbuffer byte_sec 32)
@@ -150,8 +150,8 @@ let riot
   HST.pop_frame()
 #pop-options
 
-
-#push-options "--query_stats --z3rlimit 256 --fuel 0 --ifuel 0"
+#restart-solver
+#push-options "--query_stats --z3rlimit 1024 --fuel 0 --ifuel 0"
 let main ()
 : HST.ST C.exit_code
   (requires fun h -> True)
@@ -169,7 +169,7 @@ let main ()
   let deviceID_lbl: B.lbuffer byte_sec (v deviceID_lbl_len) = B.alloca (u8 0x00) deviceID_lbl_len in
   let aliasKey_lbl_len: x:size_t {normalize (valid_hkdf_lbl_len x)} = 5ul in
   let aliasKey_lbl: B.lbuffer byte_sec (v aliasKey_lbl_len) = B.alloca (u8 0x00) aliasKey_lbl_len in
-  assert_norm (valid_hkdf_lbl_len deviceID_lbl_len /\ valid_hkdf_lbl_len aliasKey_lbl_len);
+  (* Prf *) assert_norm (valid_hkdf_lbl_len deviceID_lbl_len /\ valid_hkdf_lbl_len aliasKey_lbl_len);
 
   comment "Outputs";
   let aliasKeyCRT_len = len_of_AliasKeyCRT (len_of_AliasKeyTBS template_len version) in
@@ -178,7 +178,7 @@ let main ()
   let aliasKey_priv: B.lbuffer byte_sec 32 = B.alloca (u8 0x00) 32ul in
 
   comment "Call riot main function";
-  printf "Enter RIoT\\n" done;
+  printf "Enter RIoT\n" done;
   riot
     (* cdi       *) cdi
     (* fwid      *) fwid
@@ -193,10 +193,10 @@ let main ()
                     aliasKeyCRT_buf
     (* aliasKey  *) aliasKey_pub
                     aliasKey_priv;
-  printf "Exit RIoT\\n" done;
-  printf "AliasKey Public  Key: %xuy \\n" 32ul aliasKey_pub  done;
-  printf "AliasKey Private Key: %xuy \\n" 32ul aliasKey_priv done;
-  printf "AliasKey Certificate: %xuy \\n" aliasKeyCRT_len aliasKeyCRT_buf done;
+  printf "Exit RIoT\n" done;
+  printf "AliasKey Public  Key: %xuy \n" 32ul aliasKey_pub  done;
+  // printf "AliasKey Private Key: %xuy \n" 32ul aliasKey_priv done;
+  printf "AliasKey Certificate: %xuy \n" aliasKeyCRT_len aliasKeyCRT_buf done;
 
   HST.pop_frame ();
   C.EXIT_SUCCESS

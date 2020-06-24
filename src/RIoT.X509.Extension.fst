@@ -4,15 +4,16 @@ open ASN1.Spec
 open X509.BasicFields.Extension
 open RIoT.X509.CompositeDeviceID
 
-(* FIXME: *)
-let x509_extValue_riot_t = OCTET_STRING
-                           `inbound_envelop_tag_with_value_of`
-                           serialize_compositeDeviceID_sequence_TLV
+(* FIXME: Can not extract this type, disabling them for now
 
-type riot_extension_t
+type riot_extension_t: Type
 = { x509_extID_riot      : x:datatype_of_asn1_type OID {x == OID_RIOT};
     x509_extCritical_riot: datatype_of_asn1_type BOOLEAN;
-    x509_extValue_riot   : x509_extValue_riot_t }
+    x509_extValue_riot   ; OCTET_STRING
+                           `inbound_envelop_tag_with_value_of`
+                           serialize_compositeDeviceID_sequence_TLV }
+
+// #pop-options
 
 let synth_riot_extension_t
   (x': x509_extension_t' OID_RIOT serialize_compositeDeviceID_sequence_TLV)

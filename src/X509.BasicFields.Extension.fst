@@ -21,6 +21,7 @@ module B32 = FStar.Bytes
 //     x509_extCritical: datatype_of_asn1_type BOOLEAN;
 //     x509_extValue   : OCTET_STRING `inbound_envelop_tag_with_value_of` s }
 
+(* one extension *)
 /// tuple repr
 let x509_extension_t'
   (#k: parser_kind)

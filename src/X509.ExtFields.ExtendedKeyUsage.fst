@@ -10,9 +10,6 @@ open X509.Base
 
 module B32 = FStar.Bytes
 
-
-(* ZT: FIXME: Once working, now there are some subtyping check error
-
 noextract unfold
 let valid_keyPurposeIDs
   (oids: list (datatype_of_asn1_type OID))

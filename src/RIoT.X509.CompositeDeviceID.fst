@@ -132,6 +132,7 @@ let lemma_serialize_compositeDeviceID_size
     lemma_serialize_fwid_sequence_TLV_size_exact x.riot_fwid
 
 (* inbound sub type*)
+unfold
 let compositeDeviceID_t_inbound
 = inbound_sequence_value_of (serialize_compositeDeviceID)
 

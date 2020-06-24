@@ -10,7 +10,6 @@ FSTAR_INCLUDES=$(FSTAR_HOME)/ulib/.cache \
   $(KREMLIN_HOME)/kremlib/dist/generic \
   $(HACL_HOME)/specs \
   $(HACL_HOME)/specs/lemmas \
-  $(HACL_HOME)/specs/ecdsap256sha2 \
   $(HACL_HOME)/vale/specs/hardware \
   $(HACL_HOME)/vale/specs/defs \
   $(HACL_HOME)/code/meta \
@@ -19,7 +18,6 @@ FSTAR_INCLUDES=$(FSTAR_HOME)/ulib/.cache \
   $(HACL_HOME)/code/hmac\
   $(HACL_HOME)/code/curve25519 \
   $(HACL_HOME)/code/ed25519 \
-  $(HACL_HOME)/code/ecdsap256sha2 \
   $(HACL_HOME)/lib \
   $(HACL_HOME)/providers/evercrypt \
   $(KREMLIN_HOME)/kremlib \
@@ -44,7 +42,13 @@ FSTAR_FLAGS=--cache_checked_modules \
   --already_cached 'Prims FStar LowStar Hacl Spec Lib EverCrypt Vale C Meta LowParse' \
   --warn_error -272-241-247-331-333
 
-FSTAR=$(FSTAR_HOME)/bin/fstar.exe $(FSTAR_FLAGS) $(OTHERFLAGS)
+FSTAR_DEBUG_FLAGS=--debug $(basename $(notdir $(subst .checked,,$<))) \
+	  --debug_level Extreme \
+
+RUNEXEC_FLAGS= --no-container --memlimit 10000000000
+RUNEXEC=runexec
+
+FSTAR = $(FSTAR_HOME)/bin/fstar.exe $(FSTAR_FLAGS) $(OTHERFLAGS)
 
 $(OUTPUT_DIR)/%.checked: %
 	$(FSTAR) $*
@@ -54,6 +58,7 @@ $(OUTPUT_DIR)/%.krml:
 	$(FSTAR) \
 	  --codegen Kremlin \
 	  --cmi \
+    $(FSTAR_FLAGS) \
 	  --extract_module $(basename $(notdir $(subst .checked,,$<))) \
 	  $(notdir $(subst .checked,,$<))
 
@@ -69,17 +74,12 @@ verify-all: $(ALL_CHECKED_FILES)
 extract-all: $(ALL_KRML_FILES)
 
 KREMLIN_FLAGS = \
-  -no-prefix 'DICE.Definitions' \
-  -no-prefix 'DICE.Core' \
-  -no-prefix 'DICE.Base' \
-  -no-prefix 'DICE.Spec' \
-  -no-prefix 'DICE.Impl' \
+  -no-prefix 'RIoT.Base' \
+  -no-prefix 'RIoT.Spec' \
+  -no-prefix 'RIoT.Impl' \
   -no-prefix 'RIoT.Core' \
-  -no-prefix 'HWAbstraction' \
   -drop Lib.IntVector.Intrinsics \
   -fparentheses -fno-shadow -fcurly-braces \
-  -library HWAbstraction \
-  -bundle DICE.Definitions \
   -bundle ASN1.*,X509.* \
   -bundle LowParse.* \
   -bundle Prims,C.Failure,C,C.*,FStar.*,Hacl.*,Spec.*,Vale.*,Lib.*,LowStar.*,Meta.*[rename=Hacl_Lib] \
@@ -96,14 +96,13 @@ KREMLIN_FLAGS = \
 
 KRML=$(KREMLIN_HOME)/krml
 
-
 compile-all:
 	$(KRML) \
 	  $(KREMLIN_FLAGS) \
-	  $(ALL_KRML_FILES) c/HWAbstraction.c c/Declassification.c
+	  $(ALL_KRML_FILES) c/Declassification.c
 
 clean:
-	rm -rf .depend obj dice.exe
+	rm -rf .depend obj riot.exe
 
 %.fst-in %.fsti-in: 
 	@echo $(addprefix --include , $(FSTAR_INCLUDES))
