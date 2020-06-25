@@ -24,6 +24,8 @@ open RIoT.Declassify
 open RIoT.Spec
 open RIoT.Impl
 
+module Ed25519 = Hacl.Ed25519
+
 #restart-solver
 #push-options "--query_stats --z3rlimit 1024 --fuel 0 --ifuel 0"
 let riot
@@ -79,34 +81,35 @@ let riot
                                                         (B.as_seq h0 cdi)
                                                         (B.as_seq h0 fwid)
                                                         aliasKey_label_len                                                        (B.as_seq h0 aliasKey_label) /\
-    (* Post: AliasKeyCRT *)
-    (let deviceID_pub_seq, deviceID_priv_seq = derive_DeviceID_spec
-                                                 (B.as_seq h0 cdi)
-                                                 (deviceID_label_len)
-                                                 (B.as_seq h0 deviceID_label) in
-     let aliasKeyTBS: aliasKeyTBS_t_inbound aliasKeyTBS_template_len = create_aliasKeyTBS_spec
-                                                                         (aliasKeyTBS_template_len)
-                                                                         (B.as_seq h0 aliasKeyTBS_template)
-                                                                         (version)
-                                                                         (B.as_seq h0 fwid)
-                                                                         (deviceID_pub_seq)
-                                                                         (B.as_seq h1 aliasKey_pub)
-                                                                         in
-     let aliasKeyTBS_seq = serialize_aliasKeyTBS_sequence_TLV aliasKeyTBS_template_len `serialize` aliasKeyTBS in
-     let aliasKeyTBS_len = len_of_AliasKeyTBS aliasKeyTBS_template_len version in
-     (* Prf *) lemma_serialize_aliasKeyTBS_sequence_TLV_size_exact aliasKeyTBS_template_len aliasKeyTBS;
-    (let aliasKeyCRT: aliasKeyCRT_t_inbound aliasKeyTBS_len = sign_and_finalize_aliasKeyCRT_spec
-                                                                (deviceID_priv_seq)
-                                                                (aliasKeyTBS_len)
-                                                                (aliasKeyTBS_seq) in
-     B.as_seq h1 aliasKeyCRT_buf == serialize_aliasKeyCRT_sequence_TLV aliasKeyTBS_len `serialize` aliasKeyCRT)))
+    // (* Post: AliasKeyCRT *)
+    // (let deviceID_pub_seq, deviceID_priv_seq = derive_DeviceID_spec
+    //                                              (B.as_seq h0 cdi)
+    //                                              (deviceID_label_len)
+    //                                              (B.as_seq h0 deviceID_label) in
+    //  let aliasKeyTBS: aliasKeyTBS_t_inbound aliasKeyTBS_template_len = create_aliasKeyTBS_spec
+    //                                                                      (aliasKeyTBS_template_len)
+    //                                                                      (B.as_seq h0 aliasKeyTBS_template)
+    //                                                                      (version)
+    //                                                                      (B.as_seq h0 fwid)
+    //                                                                      (deviceID_pub_seq)
+    //                                                                      (B.as_seq h1 aliasKey_pub)
+    //                                                                      in
+    //  let aliasKeyTBS_seq = serialize_aliasKeyTBS_sequence_TLV aliasKeyTBS_template_len `serialize` aliasKeyTBS in
+    //  let aliasKeyTBS_len = len_of_AliasKeyTBS aliasKeyTBS_template_len version in
+    //  (* Prf *) lemma_serialize_aliasKeyTBS_sequence_TLV_size_exact aliasKeyTBS_template_len aliasKeyTBS;
+    // (let aliasKeyCRT: aliasKeyCRT_t_inbound aliasKeyTBS_len = sign_and_finalize_aliasKeyCRT_spec
+    //                                                             (deviceID_priv_seq)
+    //                                                             (aliasKeyTBS_len)
+    //                                                             (aliasKeyTBS_seq) in
+    //  B.as_seq h1 aliasKeyCRT_buf == serialize_aliasKeyCRT_sequence_TLV aliasKeyTBS_len `serialize` aliasKeyCRT))
+     True)
 =
  HST.push_frame ();
 
 (* Derive DeviceID *)
   let deviceID_pub : B.lbuffer byte_pub 32 = B.alloca 0x00uy    32ul in
   let deviceID_priv: B.lbuffer byte_sec 32 = B.alloca (u8 0x00) 32ul in
-  printf "Deriving DeviceID\\n" done;
+  printf "Deriving DeviceID\n" done;
   derive_DeviceID
     (* pub *) deviceID_pub
     (* priv*) deviceID_priv
@@ -115,7 +118,7 @@ let riot
               deviceID_label;
 
 (* Derive AliasKey *)
-  printf "Deriving AliasKey\\n" done;
+  printf "Deriving AliasKey\n" done;
   derive_AliasKey
     (* pub *) aliasKey_pub
     (* priv*) aliasKey_priv
@@ -127,7 +130,8 @@ let riot
 (* Create AliasKeyTBS *)
   let aliasKeyTBS_len: asn1_TLV_int32_of_type SEQUENCE = len_of_AliasKeyTBS aliasKeyTBS_template_len version in
   let aliasKeyTBS_buf: B.lbuffer byte_pub (v aliasKeyTBS_len) = B.alloca 0x00uy aliasKeyTBS_len in
-  printf "Creating AliasKey Certificate TBS\\n" done;
+
+  printf "Creating AliasKey Certificate TBS\n" done;
   create_aliasKeyTBS
     (* FWID      *) fwid
     (* Version   *) version
@@ -139,7 +143,7 @@ let riot
                     aliasKeyTBS_buf;
 
 (* Sign AliasKeyTBS and Finalize AliasKeyCRT *)
-  printf "SIgning and finalizing AliasKey Certificate\\n" done;
+  printf "Signing and finalizing AliasKey Certificate\n" done;
   sign_and_finalize_aliasKeyCRT
     (*Signing Key*) deviceID_priv
     (*AliasKeyTBS*) aliasKeyTBS_len
@@ -176,6 +180,8 @@ let main ()
   let aliasKeyCRT_buf: B.lbuffer byte_pub (v aliasKeyCRT_len) = B.alloca 0x00uy aliasKeyCRT_len in
   let aliasKey_pub : B.lbuffer byte_pub 32 = B.alloca 0x00uy 32ul in
   let aliasKey_priv: B.lbuffer byte_sec 32 = B.alloca (u8 0x00) 32ul in
+
+  let x = serialize32_asn1_oid_TLV_backwards () OID_RIOT aliasKeyCRT_buf aliasKeyCRT_len in
 
   comment "Call riot main function";
   printf "Enter RIoT\n" done;

@@ -30,30 +30,31 @@ module G = FStar.Ghost
    blocked by HACL*.
 *)
 
-noeq
-type oid_buffer_t = {
-  oid_len: asn1_value_int32_of_type OID;
-  oid_seq: G.erased (lbytes (v oid_len));
-  oid_buf: ib: IB.libuffer byte (v oid_len) (G.reveal oid_seq) {
-           B.frameOf ib == HS.root /\
-           B.recallable ib
-  }
-}
+// noeq
+// type oid_buffer_t = {
+//   oid_len: asn1_value_int32_of_type OID;
+//   oid_seq: G.erased (lbytes (v oid_len));
+//   oid_buf: ib: IB.libuffer byte (v oid_len) (G.reveal oid_seq) {
+//            B.frameOf ib == HS.root /\
+//            B.recallable ib
+//   }
+// }
 
-let oid_RIOT_as_buffer                     = IB.igcmalloc_of_list HS.root oid_RIOT
-let oid_AT_CN_as_buffer                    = IB.igcmalloc_of_list HS.root oid_AT_CN
-let oid_AT_COUNTRY_as_buffer               = IB.igcmalloc_of_list HS.root oid_AT_COUNTRY
-let oid_AT_ORGANIZATION_as_buffer          = IB.igcmalloc_of_list HS.root oid_AT_ORGANIZATION
-let oid_CLIENT_AUTH_as_buffer              = IB.igcmalloc_of_list HS.root oid_CLIENT_AUTH
-let oid_AUTHORITY_KEY_IDENTIFIER_as_buffer = IB.igcmalloc_of_list HS.root oid_AUTHORITY_KEY_IDENTIFIER
-let oid_KEY_USAGE_as_buffer                = IB.igcmalloc_of_list HS.root oid_KEY_USAGE
-let oid_EXTENDED_KEY_USAGE_as_buffer       = IB.igcmalloc_of_list HS.root oid_EXTENDED_KEY_USAGE
-let oid_BASIC_CONSTRAINTS_as_buffer        = IB.igcmalloc_of_list HS.root oid_BASIC_CONSTRAINTS
-let oid_EC_ALG_UNRESTRICTED_as_buffer      = IB.igcmalloc_of_list HS.root oid_EC_ALG_UNRESTRICTED
-let oid_EC_GRP_SECP256R1_as_buffer         = IB.igcmalloc_of_list HS.root oid_EC_GRP_SECP256R1
-let oid_DIGEST_ALG_SHA256_as_buffer        = IB.igcmalloc_of_list HS.root oid_DIGEST_ALG_SHA256
-let oid_ED25519_as_bufffer                 = IB.igcmalloc_of_list HS.root oid_ED25519
-let oid_X25519_as_bufffer                  = IB.igcmalloc_of_list HS.root oid_X25519
+(* ZT: Noramlize them here instead of mark OID lists as unfold and normalize them everywhere. *)
+let oid_RIOT_as_buffer                     = IB.igcmalloc_of_list HS.root (normalize_term (oid_RIOT))
+let oid_AT_CN_as_buffer                    = IB.igcmalloc_of_list HS.root (normalize_term (oid_AT_CN))
+let oid_AT_COUNTRY_as_buffer               = IB.igcmalloc_of_list HS.root (normalize_term (oid_AT_COUNTRY))
+let oid_AT_ORGANIZATION_as_buffer          = IB.igcmalloc_of_list HS.root (normalize_term (oid_AT_ORGANIZATION))
+let oid_CLIENT_AUTH_as_buffer              = IB.igcmalloc_of_list HS.root (normalize_term (oid_CLIENT_AUTH))
+let oid_AUTHORITY_KEY_IDENTIFIER_as_buffer = IB.igcmalloc_of_list HS.root (normalize_term (oid_AUTHORITY_KEY_IDENTIFIER))
+let oid_KEY_USAGE_as_buffer                = IB.igcmalloc_of_list HS.root (normalize_term (oid_KEY_USAGE))
+let oid_EXTENDED_KEY_USAGE_as_buffer       = IB.igcmalloc_of_list HS.root (normalize_term (oid_EXTENDED_KEY_USAGE))
+let oid_BASIC_CONSTRAINTS_as_buffer        = IB.igcmalloc_of_list HS.root (normalize_term (oid_BASIC_CONSTRAINTS))
+let oid_EC_ALG_UNRESTRICTED_as_buffer      = IB.igcmalloc_of_list HS.root (normalize_term (oid_EC_ALG_UNRESTRICTED))
+let oid_EC_GRP_SECP256R1_as_buffer         = IB.igcmalloc_of_list HS.root (normalize_term (oid_EC_GRP_SECP256R1))
+let oid_DIGEST_ALG_SHA256_as_buffer        = IB.igcmalloc_of_list HS.root (normalize_term (oid_DIGEST_ALG_SHA256))
+let oid_ED25519_as_bufffer                 = IB.igcmalloc_of_list HS.root (normalize_term (oid_ED25519))
+let oid_X25519_as_bufffer                  = IB.igcmalloc_of_list HS.root (normalize_term (oid_X25519))
 
 (* FIXME: A workaround
    To not extract any (total) seq, we split the `oid_buffer_t` into three

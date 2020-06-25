@@ -9,7 +9,7 @@ open LowParse.Spec.SeqBytes.Base
 
 open FStar.Integers
 
-unfold
+unfold noextract
 let ( @ ) = List.Tot.Base.append
 
 (* Top level OID tuples
@@ -237,14 +237,13 @@ noextract let oid_EC_ALG_UNRESTRICTED = oid_ANSI_X9_62 @ [0x02uy; 0x01uy]
 #define MBEDTLS_OID_EC_GRP_SECP256K1        MBEDTLS_OID_CERTICOM "\x00\x0a"
 *)
 
-let oid_EC_GRP_SECP256R1 = oid_ANSI_X9_62 @ [0x03uy; 0x01uy; 0x07uy]
+noextract let oid_EC_GRP_SECP256R1 = oid_ANSI_X9_62 @ [0x03uy; 0x01uy; 0x07uy]
 
+noextract let oid_EDWARDS_CURVE_ALGS = oid_head_ISO_IDENTIFIED_ORG @ [0x65uy]
 
-let oid_EDWARDS_CURVE_ALGS = oid_head_ISO_IDENTIFIED_ORG @ [0x65uy]
+noextract let oid_ED25519 = oid_EDWARDS_CURVE_ALGS @ [0x70uy]
 
-let oid_ED25519 = oid_EDWARDS_CURVE_ALGS @ [0x70uy]
-
-let oid_X25519 = oid_EDWARDS_CURVE_ALGS @ [0x6Euy]
+noextract let oid_X25519 = oid_EDWARDS_CURVE_ALGS @ [0x6Euy]
 
 (* RIoT OID
   =========

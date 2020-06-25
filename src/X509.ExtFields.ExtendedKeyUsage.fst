@@ -9,7 +9,7 @@ open ASN1.Spec
 open X509.Base
 
 module B32 = FStar.Bytes
-
+(*)
 noextract unfold
 let valid_keyPurposeIDs
   (oids: list (datatype_of_asn1_type OID))
