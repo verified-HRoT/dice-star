@@ -50,7 +50,7 @@ let len_of_asn1_primitive_value
 = match _a with
   | BOOLEAN      -> ( 1ul )
 
-  | NULL         -> ( 0ul )
+  | ASN1_NULL         -> ( 0ul )
 
   | INTEGER      -> ( let value = value <: datatype_of_asn1_type INTEGER in
                       len_of_asn1_integer value )
@@ -74,8 +74,8 @@ let len_of_asn1_primitive_TLV
 = (* Prf *) ( match _a with
               | BOOLEAN      -> ( lemma_serialize_asn1_boolean_TLV_size        (value <: datatype_of_asn1_type BOOLEAN     )
                                 ; lemma_serialize_asn1_boolean_TLV_unfold      (value <: datatype_of_asn1_type BOOLEAN     ) )
-              | NULL         -> ( lemma_serialize_asn1_null_TLV_size           (value <: datatype_of_asn1_type NULL        )
-                                ; lemma_serialize_asn1_null_TLV_unfold         (value <: datatype_of_asn1_type NULL        ) )
+              | ASN1_NULL         -> ( lemma_serialize_asn1_ASN1_NULL_TLV_size           (value <: datatype_of_asn1_type ASN1_NULL        )
+                                ; lemma_serialize_asn1_ASN1_NULL_TLV_unfold         (value <: datatype_of_asn1_type ASN1_NULL        ) )
               | INTEGER      -> ( lemma_serialize_asn1_integer_TLV_size        (value <: datatype_of_asn1_type INTEGER     )
                                 ; lemma_serialize_asn1_integer_TLV_unfold      (value <: datatype_of_asn1_type INTEGER     ) )
               | OCTET_STRING -> ( lemma_serialize_asn1_octet_string_TLV_size   (value <: datatype_of_asn1_type OCTET_STRING)
@@ -102,7 +102,7 @@ let serialize32_asn1_TLV_backwards_of_type
 : serializer32_backwards (serialize_asn1_TLV_of_type _a)
 = match _a with
   | BOOLEAN      -> serialize32_asn1_boolean_TLV_backwards      ()
-  | NULL         -> serialize32_asn1_null_TLV_backwards         ()
+  | ASN1_NULL         -> serialize32_asn1_ASN1_NULL_TLV_backwards         ()
   | INTEGER      -> serialize32_asn1_integer_TLV_backwards      ()
   | OCTET_STRING -> serialize32_asn1_octet_string_TLV_backwards ()
   | BIT_STRING   -> serialize32_asn1_bit_string_TLV_backwards   ()

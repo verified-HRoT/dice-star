@@ -1,0 +1,173 @@
+EVERPARSE_HOME ?= $(FSTAR_HOME)/../everparse
+
+# FStar
+
+# Includes
+INCLUDES=$(FSTAR_HOME)/ulib/.cache \
+  $(KREMLIN_HOME)/include \
+  $(KREMLIN_HOME)/kremlib/dist/generic \
+  $(HACL_HOME)/specs \
+  $(HACL_HOME)/specs/lemmas \
+  $(HACL_HOME)/vale/specs/hardware \
+  $(HACL_HOME)/vale/specs/defs \
+  $(HACL_HOME)/code/meta \
+  $(HACL_HOME)/code/hash \
+  $(HACL_HOME)/code/hkdf \
+  $(HACL_HOME)/code/hmac\
+  $(HACL_HOME)/code/curve25519 \
+  $(HACL_HOME)/code/ed25519 \
+  $(HACL_HOME)/lib \
+  $(HACL_HOME)/providers/evercrypt \
+  $(KREMLIN_HOME)/kremlib \
+  $(HACL_HOME)/obj \
+  $(EVERPARSE_HOME)/src/lowparse \
+  $(OUTPUT_DIR) \
+  $(DICE_DIR) \
+  $(RIOT_DIR) \
+  $(ASN1_DIR) \
+  $(X509_DIR) \
+  $(TEST_DIR)
+
+FSTAR_INCLUDES = $(addprefix --include ,$(INCLUDES))
+
+# Hints
+ifeq ($(OTHERFLAGS),$(subst --admit_smt_queries true,,$(OTHERFLAGS)))
+  FSTAR_HINTS ?= --use_hints --use_hint_hashes --record_hints
+else 
+  FSTAR_HINTS ?= --use_hints --use_hint_hashes
+endif
+
+# Checked
+ALREADY_CACHED = Prims FStar LowStar Hacl Spec Lib EverCrypt Vale C Meta LowParse
+
+ifeq ($(shell basename "`pwd`"),dice)
+  FSTAR_ALREADY_CACHED = --already_cached '$(ALREADY_CACHED)'
+else
+ifeq ($(shell basename "`pwd`"),asn1)
+  FSTAR_ALREADY_CACHED = --already_cached '$(ALREADY_CACHED)'
+else
+ifeq ($(shell basename "`pwd`"),x509)
+  FSTAR_ALREADY_CACHED = --already_cached '$(ALREADY_CACHED)'
+else
+ifeq ($(shell basename "`pwd`"),riot)
+  FSTAR_ALREADY_CACHED = --already_cached '$(ALREADY_CACHED)'
+else
+ifeq ($(shell basename "`pwd`"),test)
+  FSTAR_ALREADY_CACHED = --already_cached '$(ALREADY_CACHED) RIoT ASN1 X509'
+else
+  FSTAR_ALREADY_CACHED = --already_cached '$(ALREADY_CACHED) DICE RIoT ASN1 X509'
+endif
+endif
+endif
+endif
+endif
+
+# 272: top-level bindings must be total
+# 247: checked file not written because some of its dependencies...
+# 241: corrupt cache file AND stale cache file (argh!) we wish to make the
+#      former fatal, and the latter non-fatal if it's the file we're about to
+#      verify... see https://github.com/FStarLang/FStar/issues/1652
+# 331: the name is being ignored
+# 333: unable to open hints file
+FSTAR_FLAGS = $(FSTAR_INCLUDES) \
+  $(FSTAR_HINTS) \
+  $(FSTAR_ALREADY_CACHED) \
+  --cache_checked_modules \
+  --odir $(OUTPUT_DIR) \
+  --cache_dir $(OUTPUT_DIR) \
+  --warn_error -272-241-247-331-333
+
+FSTAR = $(FSTAR_HOME)/bin/fstar.exe $(FSTAR_FLAGS) $(OTHERFLAGS)
+
+# 2. KreMLin
+
+KRML=$(KREMLIN_HOME)/krml
+
+KRML_NO_PREFIXS = \
+  -no-prefix 'DICE.Definitions' \
+  -no-prefix 'DICE.Core' \
+  -no-prefix 'HWAbstraction' \
+  -no-prefix 'ASN1.Test' \
+  -no-prefix 'ASN1.Test.Helpers' \
+  -no-prefix 'RIoT.Base' \
+  -no-prefix 'RIoT.Spec' \
+  -no-prefix 'RIoT.Impl' \
+  -no-prefix 'RIoT.Core' \
+  -no-prefix 'RIoT.Helpers'
+
+ifeq ($(shell basename "`pwd`"),test)
+  KRML_LDOPTS = \
+    -ldopt -lmbedcrypto \
+    -ldopt -lmbedtls \
+    -ldopt -lmbedx509
+else
+  KRML_LDOPTS =
+endif
+ 
+KRML_LIBRARIES = \
+  -library HWAbstraction \
+  -library RIoT.Declassify \
+  -library ASN1.Test.Helpers \
+  -library RIoT.Helpers
+
+KRML_BUNDLES = \
+  -bundle DICE.Definitions \
+  -bundle ASN1.*,X509.* \
+  -bundle LowParse.* \
+  -bundle Prims,C.Failure,C,C.*,FStar.*,Hacl.*,Spec.*,Vale.*,Lib.*,LowStar.*,Meta.*[rename=Hacl_Lib]
+
+KRML_MISC_FLAGS = \
+  -fparentheses -fno-shadow -fcurly-braces \
+  -minimal \
+  -fnoreturn-else \
+  -drop Lib.IntVector.Intrinsics \
+  -drop WasmSupport \
+  -verbose
+
+KRML_C_INCLUDES = \
+  -add-include '"kremlin/internal/types.h"' \
+  -add-include '"kremlin/lowstar_endianness.h"' \
+  -add-include '"LowStar_Printf.h"' \
+  -add-include '<string.h>'
+
+KRML_FSTAR_INCLUDES = $(addprefix -I , $(INCLUDES))
+
+ifeq ($(shell basename "`pwd`"),dice)
+  KRML_EXECUTABLE = dice.exe
+else
+ifeq ($(shell basename "`pwd`"),riot)
+  KRML_EXECUTABLE = riot.exe
+else
+ifeq ($(shell basename "`pwd`"),test)
+  KRML_EXECUTABLE = test.exe
+else
+  KRML_EXECUTABLE =
+endif
+endif
+endif
+
+KREMLIN_FLAGS = \
+  $(KRML_NO_PREFIXS) \
+  $(KRML_LIBRARIES) \
+  $(KRML_LDOPTS) \
+  $(KRML_BUNDLES) \
+  $(KRML_MISC_FLAGS) \
+  $(KRML_C_INCLUDES) \
+  $(KRML_FSTAR_INCLUDES) \
+  -tmpdir $(OUTPUT_DIR) \
+  -o $(KRML_EXECUTABLE)
+
+# C Implementations
+ifeq ($(shell basename "`pwd`"),dice)
+  C_FILES = $(C_DIR)/HWAbstraction.c
+else
+ifeq ($(shell basename "`pwd`"),riot)
+  C_FILES = $(C_DIR)/Declassification.c $(C_DIR)/RIoT.Helpers.c
+else
+ifeq ($(shell basename "`pwd`"),test)
+  C_FILES = $(TEST_DIR)/ASN1.Test.Helpers.c
+else
+  C_FILES =
+endif
+endif
+endif

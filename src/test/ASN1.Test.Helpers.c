@@ -28,13 +28,13 @@ void mbedtls_parse_BOOLEAN (uint8_t *buf, size_t len, size_t pos)
   return;
 }
 
-void mbedtls_parse_NULL (uint8_t *buf, size_t len, size_t pos)
+void mbedtls_parse_ASN1_NULL (uint8_t *buf, size_t len, size_t pos)
 {
   // uint8_t *c;
   // c = buf + pos;
   // int ret = mbedtls_asn1_get_tag (&c, buf + len, 0, MBEDTLS_ASN1_NULL);
   // printf("Parsed len: %d", ret);
-  printf("mbedTLS does not have NULL parser. \n");
+  printf("mbedTLS does not have ASN1_NULL parser. \n");
   return;
 }
 
@@ -56,6 +56,12 @@ void mbedtls_parse_BIT_STRING (uint8_t *buf, size_t len, size_t pos)
 
 void mbedtls_parse_OCTET_STRING (uint8_t *buf, size_t len, size_t pos)
 {
-  printf("mbedTLS does not have OCTET STRING parser. \n");
+  printf("mbedTLS does not have compatible OCTET STRING parser. \n");
+  return;
+}
+
+void mbedtls_parse_OID (uint8_t *buf, size_t len, size_t pos)
+{
+  printf("mbedTLS does not have compatible OID parser. \n");
   return;
 }

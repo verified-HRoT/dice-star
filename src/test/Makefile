@@ -1,7 +1,13 @@
-FSTAR_FILES=$(wildcard *.fst)
+# FSTAR_FILES=$(wildcard *.fst)
 # FSTAR_FILES=$(shell find asn1/ -type f -name '*.fst')
 
+SRC_DIR=../src
+
+FSTAR_FILES = $(wildcard *.fst) ASN1.Test.fst
+
 OUTPUT_DIR=obj
+
+TEST_EXECUTABLE = asn1_test.exe
 
 EVERPARSE_HOME ?= $(SOURCES_HOME)/everparse
 
@@ -23,6 +29,8 @@ FSTAR_INCLUDES=$(FSTAR_HOME)/ulib/.cache \
   $(KREMLIN_HOME)/kremlib \
   $(HACL_HOME)/obj \
   $(EVERPARSE_HOME)/src/lowparse \
+  $(SRC_DIR) \
+  $(SRC_DIR)/obj \
   $(OUTPUT_DIR)
 
 # 272: top-level bindings must be total
@@ -39,7 +47,7 @@ FSTAR_FLAGS=--cache_checked_modules \
   --cache_dir $(OUTPUT_DIR) \
   --use_hints \
   --record_hints \
-  --already_cached 'Prims FStar LowStar Hacl Spec Lib EverCrypt Vale C Meta LowParse' \
+  --already_cached 'Prims FStar LowStar Hacl Spec Lib EverCrypt Vale C Meta LowParse ASN1.Base ASN1.Spec ASN1.Low X509 RIoT' \
   --warn_error -272-241-247-331-333
 
 FSTAR_DEBUG_FLAGS=--debug $(basename $(notdir $(subst .checked,,$<))) \
@@ -62,7 +70,7 @@ $(OUTPUT_DIR)/%.krml:
 	  --extract_module $(basename $(notdir $(subst .checked,,$<))) \
 	  $(notdir $(subst .checked,,$<))
 
-.depend:
+.depend: ASN1.Test.fst
 	$(FSTAR) --dep full $(FSTAR_FILES) > .depend
 
 depend: .depend
@@ -74,13 +82,19 @@ verify-all: $(ALL_CHECKED_FILES)
 extract-all: $(ALL_KRML_FILES)
 
 KREMLIN_FLAGS = \
+  -no-prefix 'ASN1.Test' \
+  -no-prefix 'ASN1.Test.Helpers' \
   -no-prefix 'RIoT.Base' \
   -no-prefix 'RIoT.Spec' \
   -no-prefix 'RIoT.Impl' \
   -no-prefix 'RIoT.Core' \
+  -library RIoT.Declassify \
+  -library ASN1.Test.Helpers \
+  -ldopt -lmbedcrypto \
+  -ldopt -lmbedtls \
+  -ldopt -lmbedx509 \
   -drop Lib.IntVector.Intrinsics \
   -fparentheses -fno-shadow -fcurly-braces \
-  -library RIoT.Declassify \
   -bundle ASN1.*,X509.* \
   -bundle LowParse.* \
   -bundle Prims,C.Failure,C,C.*,FStar.*,Hacl.*,Spec.*,Vale.*,Lib.*,LowStar.*,Meta.*[rename=Hacl_Lib] \
@@ -88,22 +102,39 @@ KREMLIN_FLAGS = \
   -fnoreturn-else \
   -add-include '"kremlin/internal/types.h"' \
   -add-include '"kremlin/lowstar_endianness.h"' \
+  -add-include '"LowStar_Printf.h"' \
   -add-include '<string.h>' \
   $(addprefix -I , $(FSTAR_INCLUDES)) \
   -drop WasmSupport \
   -tmpdir $(OUTPUT_DIR) \
   -verbose \
-  -o riot.exe
+  -o $(TEST_EXECUTABLE)
 
 KRML=$(KREMLIN_HOME)/krml
 
 compile-all:
 	$(KRML) \
 	  $(KREMLIN_FLAGS) \
-	  $(ALL_KRML_FILES) c/Declassification.c
+	  $(ALL_KRML_FILES) \
+    $(SRC_DIR)/c/Declassification.c \
+    ASN1.Test.Helpers.c
 
 clean:
-	rm -rf .depend obj riot.exe
+	rm -rf .depend obj ASN1.Test.fst asn1_test.exe
+
+ASN1.Test.fst:
+	./generate_test_script.py \
+    --tests ASN1.test_suites.data \
+    --output ASN1.Test.fst
+
+$(TEST_EXECUTABLE):
+	OTHERFLAGS='--admit_smt_queries true' \
+    $(MAKE) verify-all -j 16; \
+    $(MAKE) extract-all -j 16; \
+    $(MAKE) compile-all -j 16
+
+test-all: $(TEST_EXECUTABLE)
+	./$(TEST_EXECUTABLE)
 
 %.fst-in %.fsti-in: 
 	@echo $(addprefix --include , $(FSTAR_INCLUDES))

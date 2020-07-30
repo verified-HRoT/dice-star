@@ -1,0 +1,44 @@
+# Directory structure
+# src
+# ├── c
+# │   └── ...
+# ├── dice
+# │   └── ...
+# ├── riot
+# │   ├── asn1
+# │   │   └── ...
+# │   ├── x509
+# │   │   └── ...
+# │   └── ...
+# └── test
+#     └── ...
+
+ifeq ($(shell basename "`pwd`"),dice)
+  SRC_DIR ?= ..
+else
+ifeq ($(shell basename "`pwd`"),riot)
+  SRC_DIR ?= ..
+else
+ifeq ($(shell basename "`pwd`"),asn1)
+  SRC_DIR ?= ../..
+else
+ifeq ($(shell basename "`pwd`"),x509)
+  SRC_DIR ?= ../..
+else
+ifeq ($(shell basename "`pwd`"),test)
+  SRC_DIR ?= ..
+else
+  SRC_DIR ?= .
+endif
+endif
+endif
+endif
+endif
+
+OUTPUT_DIR ?= $(SRC_DIR)/obj
+DICE_DIR ?= $(SRC_DIR)/dice
+RIOT_DIR ?= $(SRC_DIR)/riot
+ASN1_DIR ?= $(RIOT_DIR)/asn1
+X509_DIR ?= $(RIOT_DIR)/x509
+TEST_DIR ?= $(SRC_DIR)/test
+C_DIR ?= $(SRC_DIR)/c

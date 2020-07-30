@@ -1,0 +1,51 @@
+FSTAR_FILES = $(wildcard *.fst)
+
+ifeq ($(shell basename "`pwd`"),riot)
+  FSTAR_FILES = $(wildcard *.fst) $(wildcard $(ASN1_DIR)/*.fst) $(wildcard $(X509_DIR)/*.fst)
+else
+ifeq ($(shell basename "`pwd`"),x509)
+  FSTAR_FILES = $(wildcard *.fst) $(wildcard $(ASN1_DIR)/*.fst)
+else
+  FSTAR_FILES = $(wildcard *.fst)
+endif
+endif
+
+.depend:
+	$(FSTAR) --dep full $(FSTAR_FILES) > .depend
+
+depend: .depend
+
+include .depend
+
+# Verification
+$(OUTPUT_DIR)/%.checked: %
+	$(FSTAR) $*
+	touch $@
+
+verify-all: $(ALL_CHECKED_FILES)
+
+# Extraction
+$(OUTPUT_DIR)/%.krml:
+	$(FSTAR) \
+	  --codegen Kremlin \
+	  --cmi \
+    $(FSTAR_FLAGS) \
+	  --extract_module $(basename $(notdir $(subst .checked,,$<))) \
+	  $(notdir $(subst .checked,,$<))
+
+extract-all: $(ALL_KRML_FILES)
+
+# Compilation
+compile-all:
+	$(KRML) \
+	  $(KREMLIN_FLAGS) \
+	  $(ALL_KRML_FILES) \
+      $(C_FILES)
+
+# Clean
+clean:
+	rm -rf .depend $(OUTPUT_DIR) $(KRML_EXECUTABLE)
+
+# For Emacs' fstar-mode
+%.fst-in %.fsti-in: 
+	@echo $(FSTAR_INCLUDES)

@@ -62,7 +62,7 @@ val mbedtls_parse_INTEGER
     // (Some? px ==> (let (x, l) = Some?.v px in x == r))
     )
 
-val mbedtls_parse_NULL
+val mbedtls_parse_ASN1_NULL
   (buf: B.buffer uint_8)
   (len: size_t)
   (pos: size_t)
@@ -73,7 +73,7 @@ val mbedtls_parse_NULL
     0ul <= pos /\ pos < len)
   (ensures fun h r h1 ->
     // let seq = Seq.slice (B.as_seq h buf) (v pos) (v len) in
-    // let px = parse (parse_asn1_TLV_of_type NULL) seq in
+    // let px = parse (parse_asn1_TLV_of_type ASN1_NULL) seq in
     B.modifies B.loc_none h h1
     // (Some? px ==> (let (x, l) = Some?.v px in x == r /\ l == 0))
     )
@@ -106,6 +106,22 @@ val mbedtls_parse_BIT_STRING
   (ensures fun h r h1 ->
     // let seq = Seq.slice (B.as_seq h buf) (v pos) (v len) in
     // let px = parse (parse_asn1_TLV_of_type BIT_STRING) seq in
+    B.modifies B.loc_none h h1
+    // (Some? px ==> (let (x, l) = Some?.v px in x == r))
+    )
+
+val mbedtls_parse_OID
+  (buf: B.buffer uint_8)
+  (len: size_t)
+  (pos: size_t)
+: HST.Stack (unit)
+  (requires fun h ->
+    B.live h buf /\
+    B.length buf == v len /\
+    0ul <= pos /\ pos < len)
+  (ensures fun h r h1 ->
+    // let seq = Seq.slice (B.as_seq h buf) (v pos) (v len) in
+    // let px = parse (parse_asn1_TLV_of_type OCTET_STRING) seq in
     B.modifies B.loc_none h h1
     // (Some? px ==> (let (x, l) = Some?.v px in x == r))
     )

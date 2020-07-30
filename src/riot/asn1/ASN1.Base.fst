@@ -28,7 +28,7 @@ type asn1_tag_class_t =
 type asn1_tag_t: Type =
 | BOOLEAN
 | INTEGER
-| NULL
+| ASN1_NULL
 | OCTET_STRING
 | BIT_STRING
 | OID
@@ -75,7 +75,7 @@ let asn1_length_inbound (x: nat) (min max: asn1_length_t): bool
    Specifically:
    1. BOOLEAN value takes 1 byte;
    2. INTEGER value takes 1-4 bytes (only positive signed integers, see `ASN1.Spec.Value.INTEGER` for details);
-   3. NULL value takes 0 bytes;
+   3. ASN1_NULL value takes 0 bytes;
    4. OCTET_STRING value can take any valid ASN1 value length/size to serialize;
    5. OID is stored as OCTET_STRING;
    6. BIT_STRING value could take arbitrary greater-than-zero valid ASN1 value length/size of bytes, since
@@ -88,7 +88,7 @@ let asn1_value_length_min_of_type
 = match a with
   | BOOLEAN      -> 1                 (* Any `BOOLEAN` value {true, false} has length 1. *)
   | INTEGER      -> 1                 (* `INTEGER` values range in [0x00, 0x7F] has length 1. *)
-  | NULL         -> 0                 (* Any `NULL` value has nothing to serialize and has length 0. *)
+  | ASN1_NULL         -> 0                 (* Any `ASN1_NULL` value has nothing to serialize and has length 0. *)
   | OCTET_STRING -> asn1_length_min   (* An empty `OCTET_STRING` [] has length 0. *)
   | OID          -> asn1_length_min   (* `OID` is just `OCTET_STRING`. *)
   | BIT_STRING   -> 1                 (* An empty `BIT_STRING` with a leading byte of `unused_bits` has length 0. *)
@@ -102,7 +102,7 @@ let asn1_value_length_max_of_type
 = match a with
   | BOOLEAN      -> 1                    (* Any `BOOLEAN` value {true, false} has length 1. *)
   | INTEGER      -> 4                    (* `INTEGER` values range in (0x7FFFFF, 0x7FFFFFFF] has length 4. *)
-  | NULL         -> 0                    (* Any `NULL` value has nothing to serialize and has length 0. *)
+  | ASN1_NULL         -> 0                    (* Any `ASN1_NULL` value has nothing to serialize and has length 0. *)
   | OCTET_STRING -> asn1_length_max - 6  (* An `OCTET_STRING` of size `asn1_length_max - 6`. *)
   | OID          -> asn1_length_max - 6  (* `OID` is just `OCTET_STRING`. *)
   | BIT_STRING   -> asn1_length_max - 6  (* An `BIT_STRING` of size `asn1_length_max - 7` with a leading byte of `unused_bits`. *)
@@ -138,7 +138,7 @@ let asn1_TLV_length_min_of_type
 = match a with        (* Tag Len Val *)
   | BOOLEAN      -> 3 (*  1 + 1 + 1  *)
   | INTEGER      -> 3 (*  1 + 1 + 1  *)
-  | NULL         -> 2 (*  1 + 1 + 0  *)
+  | ASN1_NULL         -> 2 (*  1 + 1 + 0  *)
   | OCTET_STRING -> 2 (*  1 + 1 + 0  *)
   | OID          -> 2 (*  1 + 1 + 0  *)
   | BIT_STRING   -> 3 (*  1 + 1 + 1  *)
@@ -152,7 +152,7 @@ let asn1_TLV_length_max_of_type
 = match a with                       (* Tag Len Val *)
   | BOOLEAN      -> 3                (*  1 + 1 + 1  *)
   | INTEGER      -> 6                (*  1 + 1 + 4  *)
-  | NULL         -> 2                (*  1 + 1 + 0  *)
+  | ASN1_NULL         -> 2                (*  1 + 1 + 0  *)
   | OCTET_STRING -> asn1_length_max  (*  1 + 5 + _  *)
   | OID          -> asn1_length_max  (*  1 + 5 + _  *)
   | BIT_STRING   -> asn1_length_max  (*  1 + 5 + _  *)
@@ -195,7 +195,7 @@ let asn1_value_int32_min_of_type
 = match a with
   | BOOLEAN      -> 1ul
   | INTEGER      -> 1ul
-  | NULL         -> 0ul
+  | ASN1_NULL         -> 0ul
   | OCTET_STRING -> asn1_int32_min
   | OID          -> asn1_int32_min
   | BIT_STRING   -> 1ul
@@ -209,7 +209,7 @@ let asn1_value_int32_max_of_type
 = match a with
   | BOOLEAN      -> 1ul
   | INTEGER      -> 4ul
-  | NULL         -> 0ul
+  | ASN1_NULL         -> 0ul
   | OCTET_STRING -> asn1_int32_max - 6ul
   | OID          -> asn1_int32_max - 6ul
   | BIT_STRING   -> asn1_int32_max - 6ul
@@ -238,7 +238,7 @@ let asn1_TLV_int32_min_of_type
 = match a with
   | BOOLEAN      -> 3ul
   | INTEGER      -> 3ul
-  | NULL         -> 2ul
+  | ASN1_NULL         -> 2ul
   | OCTET_STRING -> 2ul
   | OID          -> 2ul
   | BIT_STRING   -> 3ul
@@ -251,7 +251,7 @@ let asn1_TLV_int32_max_of_type
 = match a with
   | BOOLEAN      -> 3ul
   | INTEGER      -> 6ul
-  | NULL         -> 2ul
+  | ASN1_NULL         -> 2ul
   | OCTET_STRING -> asn1_int32_max
   | OID          -> asn1_int32_max
   | BIT_STRING   -> asn1_int32_max
@@ -344,7 +344,7 @@ let datatype_of_asn1_type (a: asn1_primitive_type): Type
   (* Positive 32-bit _signed_ integer. *)
   | INTEGER      -> ( i: int_32{v i >= 0} )
 
-  | NULL         -> unit
+  | ASN1_NULL         -> unit
 
   (* An octet string is represented as
      1. `len`: the length of the octet string;

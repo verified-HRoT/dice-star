@@ -19,10 +19,10 @@ let ( @ ) = List.Tot.Base.append
 #define MBEDTLS_OID_ISO_CCITT_DS                "\x55"          /* {joint-iso-ccitt(2) ds(5)} */
 #define MBEDTLS_OID_ISO_ITU_COUNTRY             "\x60"          /* {joint-iso-itu-t(2) country(16)} */
 *)
-noextract let oid_head_ISO_MEMBER_BODIES  = [0x2Auy]
-noextract let oid_head_ISO_IDENTIFIED_ORG = [0x2Buy]
-noextract let oid_head_ISO_CCITT_DS       = [0x55uy]
-noextract let oid_head_ISO_ITU_COUNTRY    = [0x60uy]
+noextract inline_for_extraction let oid_head_ISO_MEMBER_BODIES  = normalize_term([0x2Auy])
+noextract inline_for_extraction let oid_head_ISO_IDENTIFIED_ORG = normalize_term([0x2Buy])
+noextract inline_for_extraction let oid_head_ISO_CCITT_DS       = normalize_term([0x55uy])
+noextract inline_for_extraction let oid_head_ISO_ITU_COUNTRY    = normalize_term([0x60uy])
 
 (* ISO Member bodies OID parts
   ============================
@@ -34,9 +34,9 @@ noextract let oid_head_ISO_ITU_COUNTRY    = [0x60uy]
 #define MBEDTLS_OID_ANSI_X9_62                  MBEDTLS_OID_ISO_MEMBER_BODIES MBEDTLS_OID_COUNTRY_US \
                                         MBEDTLS_OID_ORG_ANSI_X9_62
 *)
-noextract let oid_node_COUNTRY_US     = [0x86uy; 0x48uy]
-noextract let oid_node_ORG_ANSI_X9_62 = [0xceuy; 0x3duy]
-noextract let oid_ANSI_X9_62          = oid_head_ISO_MEMBER_BODIES @ oid_node_ORG_ANSI_X9_62
+noextract inline_for_extraction let oid_node_COUNTRY_US     = normalize_term([0x86uy; 0x48uy])
+noextract inline_for_extraction let oid_node_ORG_ANSI_X9_62 = normalize_term([0xceuy; 0x3duy])
+noextract inline_for_extraction let oid_ANSI_X9_62          = normalize_term(oid_head_ISO_MEMBER_BODIES @ oid_node_ORG_ANSI_X9_62)
 
 (* ISO ITU OID parts
   ==================
@@ -49,11 +49,11 @@ noextract let oid_ANSI_X9_62          = oid_head_ISO_MEMBER_BODIES @ oid_node_OR
 #define MBEDTLS_OID_ORG_NETSCAPE                "\x86\xF8\x42"  /* {netscape(113730)} */
 #define MBEDTLS_OID_NETSCAPE                    MBEDTLS_OID_ISO_ITU_US_ORG MBEDTLS_OID_ORG_NETSCAPE /* Netscape OID {joint-iso-itu-t(2) country(16) us(840) organization(1) netscape(113730)} */
 *)
-noextract let oid_node_ORGANIZATION = [0x01uy]
-noextract let oid_ISO_ITU_US_ORG    = oid_head_ISO_ITU_COUNTRY @ oid_node_COUNTRY_US @ oid_node_ORGANIZATION
+noextract inline_for_extraction let oid_node_ORGANIZATION = normalize_term([0x01uy])
+noextract inline_for_extraction let oid_ISO_ITU_US_ORG    = normalize_term(oid_head_ISO_ITU_COUNTRY @ oid_node_COUNTRY_US @ oid_node_ORGANIZATION)
 
-noextract let oid_node_ISO_ORG_GOV  = [0x65uy]
-noextract let oid_GOV               = oid_ISO_ITU_US_ORG @ oid_node_ISO_ORG_GOV
+noextract inline_for_extraction let oid_node_ISO_ORG_GOV  = normalize_term([0x65uy])
+noextract inline_for_extraction let oid_GOV               = normalize_term(oid_ISO_ITU_US_ORG @ oid_node_ISO_ORG_GOV)
 
 (* ISO arc for standard certificate and CRL extensions
   =====================================================
@@ -61,9 +61,9 @@ noextract let oid_GOV               = oid_ISO_ITU_US_ORG @ oid_node_ISO_ORG_GOV
 
 #define MBEDTLS_OID_NIST_ALG                    MBEDTLS_OID_GOV "\x03\x04" /** { joint-iso-itu-t(2) country(16) us(840) organization(1) gov(101) csor(3) nistAlgorithm(4) */
 *)
-noextract let oid_ID_CE    = oid_head_ISO_CCITT_DS @ [0x1Duy]
+noextract inline_for_extraction let oid_ID_CE    = normalize_term(oid_head_ISO_CCITT_DS @ [0x1Duy])
 
-noextract let oid_NIST_ALG = oid_GOV @ [0x03uy; 0x04uy]
+noextract inline_for_extraction let oid_NIST_ALG = normalize_term(oid_GOV @ [0x03uy; 0x04uy])
 
 (* Private Internet Extensions
    { iso(1) identified-organization(3) dod(6) internet(1)
@@ -72,8 +72,8 @@ noextract let oid_NIST_ALG = oid_GOV @ [0x03uy; 0x04uy]
 #define MBEDTLS_OID_INTERNET                    MBEDTLS_OID_ISO_IDENTIFIED_ORG MBEDTLS_OID_ORG_DOD "\x01"
 #define MBEDTLS_OID_PKIX                        MBEDTLS_OID_INTERNET "\x05\x05\x07"
 *)
-noextract let oid_INTERNET = oid_head_ISO_IDENTIFIED_ORG @ [0x01uy]
-noextract let oid_PKIX     = oid_INTERNET @ [0x05uy; 0x05uy; 0x07uy]
+noextract inline_for_extraction let oid_INTERNET = normalize_term(oid_head_ISO_IDENTIFIED_ORG @ [0x01uy])
+noextract inline_for_extraction let oid_PKIX     = normalize_term(oid_INTERNET @ [0x05uy; 0x05uy; 0x07uy])
 
 (* Arc for standard naming attributes
   ===================================
@@ -98,26 +98,26 @@ noextract let oid_PKIX     = oid_INTERNET @ [0x05uy; 0x05uy; 0x07uy]
 
 #define MBEDTLS_OID_DOMAIN_COMPONENT            "\x09\x92\x26\x89\x93\xF2\x2C\x64\x01\x19" /** id-domainComponent AttributeType:= {itu-t(0) data(9) pss(2342) ucl(19200300) pilot(100) pilotAttributeType(1) domainComponent(25)} */
 *)
-noextract let oid_AT                      = oid_head_ISO_CCITT_DS @ [0x04uy] (* id-at OBJECT IDENTIFIER ::= {joint-iso-ccitt(2) ds(5) 4} *)
-noextract let oid_AT_CN                   = oid_AT @ [0x03uy]           (* id-at-commonName AttributeType:= {id-at 3} *)
-// noextract let oid_AT_SUR_NAME             = oid_AT @ [0x04uy]           (* id-at-surName AttributeType:= {id-at 4} *)
-// noextract let oid_AT_SERIAL_NUMBER        = oid_AT @ [0x05uy]           (* id-at-serialNumber AttributeType:= {id-at 5} *)
-noextract let oid_AT_COUNTRY              = oid_AT @ [0x06uy]           (* id-at-countryName AttributeType:= {id-at 6} *)
-// noextract let oid_AT_LOCALITY             = oid_AT @ [0x07uy]           (* id-at-locality AttributeType:= {id-at 7} *)
-// noextract let oid_AT_STATE                = oid_AT @ [0x08uy]           (* id-at-state AttributeType:= {id-at 8} *)
-noextract let oid_AT_ORGANIZATION         = oid_AT @ [0x0Auy]           (* id-at-organizationName AttributeType:= {id-at 10} *)
-// noextract let oid_AT_ORG_UNIT             = oid_AT @ [0x0Buy]           (* id-at-organizationalUnitName AttributeType:= {id-at 11} *)
-// noextract let oid_AT_TITLE                = oid_AT @ [0x0Cuy]           (* id-at-title AttributeType:= {id-at 12} *)
-// noextract let oid_AT_POSTAL_ADDRESS       = oid_AT @ [0x10uy]           (* id-at-postalAddress AttributeType:= {id-at 16} *)
-// noextract let oid_AT_POSTAL_CODE          = oid_AT @ [0x11uy]           (* id-at-postalCode AttributeType:= {id-at 17} *)
-// noextract let oid_AT_GIVEN_NAME           = oid_AT @ [0x2Auy]           (* id-at-givenName AttributeType:= {id-at 42} *)
-// noextract let oid_AT_INITIALS             = oid_AT @ [0x2Buy]           (* id-at-initials AttributeType:= {id-at 43} *)
-// noextract let oid_AT_GENERATION_QUALIFIER = oid_AT @ [0x2Cuy]           (* id-at-generationQualifier AttributeType:= {id-at 44} *)
-// noextract let oid_AT_UNIQUE_IDENTIFIER    = oid_AT @ [0x2Duy]           (* id-at-uniqueIdentifier AttributType:= {id-at 45} *)
-// noextract let oid_AT_DN_QUALIFIER         = oid_AT @ [0x2Euy]           (* id-at-dnQualifier AttributeType:= {id-at 46} *)
-// noextract let oid_AT_PSEUDONYM            = oid_AT @ [0x41uy]           (* id-at-pseudonym AttributeType:= {id-at 65} *)
+noextract inline_for_extraction let oid_AT                      = normalize_term(oid_head_ISO_CCITT_DS @ [0x04uy] (* id-at OBJECT IDENTIFIER ::= {joint-iso-ccitt(2) ds(5) 4} *))
+noextract inline_for_extraction let oid_AT_CN                   = normalize_term(oid_AT @ [0x03uy]           (* id-at-commonName AttributeType:= {id-at 3} *))
+// noextract let oid_AT_SUR_NAME             = normalize_term(oid_AT @ [0x04uy]           (* id-at-surName AttributeType:= {id-at 4} *))
+// noextract let oid_AT_SERIAL_NUMBER        = normalize_term(oid_AT @ [0x05uy]           (* id-at-serialNumber AttributeType:= {id-at 5} *))
+noextract inline_for_extraction let oid_AT_COUNTRY              = normalize_term(oid_AT @ [0x06uy]           (* id-at-countryName AttributeType:= {id-at 6} *))
+// noextract let oid_AT_LOCALITY             = normalize_term(oid_AT @ [0x07uy]           (* id-at-locality AttributeType:= {id-at 7} *))
+// noextract let oid_AT_STATE                = normalize_term(oid_AT @ [0x08uy]           (* id-at-state AttributeType:= {id-at 8} *))
+noextract inline_for_extraction let oid_AT_ORGANIZATION         = normalize_term(oid_AT @ [0x0Auy]           (* id-at-organizationName AttributeType:= {id-at 10} *))
+// noextract let oid_AT_ORG_UNIT             = normalize_term(oid_AT @ [0x0Buy]           (* id-at-organizationalUnitName AttributeType:= {id-at 11} *))
+// noextract let oid_AT_TITLE                = normalize_term(oid_AT @ [0x0Cuy]           (* id-at-title AttributeType:= {id-at 12} *))
+// noextract let oid_AT_POSTAL_ADDRESS       = normalize_term(oid_AT @ [0x10uy]           (* id-at-postalAddress AttributeType:= {id-at 16} *))
+// noextract let oid_AT_POSTAL_CODE          = normalize_term(oid_AT @ [0x11uy]           (* id-at-postalCode AttributeType:= {id-at 17} *))
+// noextract let oid_AT_GIVEN_NAME           = normalize_term(oid_AT @ [0x2Auy]           (* id-at-givenName AttributeType:= {id-at 42} *))
+// noextract let oid_AT_INITIALS             = normalize_term(oid_AT @ [0x2Buy]           (* id-at-initials AttributeType:= {id-at 43} *))
+// noextract let oid_AT_GENERATION_QUALIFIER = normalize_term(oid_AT @ [0x2Cuy]           (* id-at-generationQualifier AttributeType:= {id-at 44} *))
+// noextract let oid_AT_UNIQUE_IDENTIFIER    = normalize_term(oid_AT @ [0x2Duy]           (* id-at-uniqueIdentifier AttributType:= {id-at 45} *))
+// noextract let oid_AT_DN_QUALIFIER         = normalize_term(oid_AT @ [0x2Euy]           (* id-at-dnQualifier AttributeType:= {id-at 46} *))
+// noextract let oid_AT_PSEUDONYM            = normalize_term(oid_AT @ [0x41uy]           (* id-at-pseudonym AttributeType:= {id-at 65} *))
 
-noextract let oid_DOMAIN_COMPONENT        =    [0x09uy; 0x92uy; 0x26uy; 0x89uy; 0x93uy; 0xF2uy; 0x2Cuy; 0x64uy; 0x01uy; 0x19uy] (* id-domainComponent AttributeType:= {itu-t(0) data(9) pss(2342) ucl(19200300) pilot(100) pilotAttributeType(1) domainComponent(25)} *)
+noextract inline_for_extraction let oid_DOMAIN_COMPONENT        =    normalize_term([0x09uy; 0x92uy; 0x26uy; 0x89uy; 0x93uy; 0xF2uy; 0x2Cuy; 0x64uy; 0x01uy; 0x19uy] (* id-domainComponent AttributeType:= {itu-t(0) data(9) pss(2342) ucl(19200300) pilot(100) pilotAttributeType(1) domainComponent(25)} *))
 
 
 (* OIDs for standard certificate extensions
@@ -138,10 +138,10 @@ noextract let oid_DOMAIN_COMPONENT        =    [0x09uy; 0x92uy; 0x26uy; 0x89uy; 
 #define MBEDTLS_OID_INIHIBIT_ANYPOLICY          MBEDTLS_OID_ID_CE "\x36" /**< id-ce-inhibitAnyPolicy OBJECT IDENTIFIER ::=  { id-ce 54 } */
 #define MBEDTLS_OID_FRESHEST_CRL                MBEDTLS_OID_ID_CE "\x2E" /**< id-ce-freshestCRL OBJECT IDENTIFIER ::=  { id-ce 46 } */
 *)
-noextract let oid_AUTHORITY_KEY_IDENTIFIER = oid_ID_CE @ [0x23uy]
-noextract let oid_KEY_USAGE                = oid_ID_CE @ [0x0Fuy]
-noextract let oid_EXTENDED_KEY_USAGE       = oid_ID_CE @ [0x25uy]
-noextract let oid_BASIC_CONSTRAINTS        = oid_ID_CE @ [0x13uy]
+noextract inline_for_extraction let oid_AUTHORITY_KEY_IDENTIFIER = normalize_term(oid_ID_CE @ [0x23uy])
+noextract inline_for_extraction let oid_KEY_USAGE                = normalize_term(oid_ID_CE @ [0x0Fuy])
+noextract inline_for_extraction let oid_EXTENDED_KEY_USAGE       = normalize_term(oid_ID_CE @ [0x25uy])
+noextract inline_for_extraction let oid_BASIC_CONSTRAINTS        = normalize_term(oid_ID_CE @ [0x13uy])
 
 (* X.509 v3 Extended key usage OIDs
   =================================
@@ -155,8 +155,8 @@ noextract let oid_BASIC_CONSTRAINTS        = oid_ID_CE @ [0x13uy]
 #define MBEDTLS_OID_TIME_STAMPING               MBEDTLS_OID_KP "\x08" /**< id-kp-timeStamping OBJECT IDENTIFIER ::= { id-kp 8 } */
 #define MBEDTLS_OID_OCSP_SIGNING                MBEDTLS_OID_KP "\x09" /**< id-kp-OCSPSigning OBJECT IDENTIFIER ::= { id-kp 9 } */
 *)
-noextract let oid_KP          = oid_PKIX @ [0x03uy]
-noextract let oid_CLIENT_AUTH = oid_KP @ [0x02uy]
+noextract inline_for_extraction let oid_KP          = normalize_term(oid_PKIX @ [0x03uy])
+noextract inline_for_extraction let oid_CLIENT_AUTH = normalize_term(oid_KP @ [0x02uy])
 
 (* Digest algorithms
   ==================
@@ -183,10 +183,10 @@ noextract let oid_CLIENT_AUTH = oid_KP @ [0x02uy]
 
 #define MBEDTLS_OID_HMAC_SHA512                 MBEDTLS_OID_RSA_COMPANY "\x02\x0B" /**< id-hmacWithSHA512 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) digestAlgorithm(2) 11 } */
 *)
-noextract let oid_DIGEST_ALG_SHA224 = oid_NIST_ALG @ [0x02uy; 0x04uy]
-noextract let oid_DIGEST_ALG_SHA256 = oid_NIST_ALG @ [0x02uy; 0x01uy]
-noextract let oid_DIGEST_ALG_SHA384 = oid_NIST_ALG @ [0x02uy; 0x02uy]
-noextract let oid_DIGEST_ALG_SHA512 = oid_NIST_ALG @ [0x02uy; 0x03uy]
+noextract inline_for_extraction let oid_DIGEST_ALG_SHA224 = normalize_term(oid_NIST_ALG @ [0x02uy; 0x04uy])
+noextract inline_for_extraction let oid_DIGEST_ALG_SHA256 = normalize_term(oid_NIST_ALG @ [0x02uy; 0x01uy])
+noextract inline_for_extraction let oid_DIGEST_ALG_SHA384 = normalize_term(oid_NIST_ALG @ [0x02uy; 0x02uy])
+noextract inline_for_extraction let oid_DIGEST_ALG_SHA512 = normalize_term(oid_NIST_ALG @ [0x02uy; 0x03uy])
 
 (* EC key algorithms from RFC 5480
   ================================
@@ -200,7 +200,7 @@ noextract let oid_DIGEST_ALG_SHA512 = oid_NIST_ALG @ [0x02uy; 0x03uy]
 #define MBEDTLS_OID_EC_ALG_ECDH                 MBEDTLS_OID_CERTICOM "\x01\x0c"
 *)
 
-noextract let oid_EC_ALG_UNRESTRICTED = oid_ANSI_X9_62 @ [0x02uy; 0x01uy]
+noextract inline_for_extraction let oid_EC_ALG_UNRESTRICTED = normalize_term(oid_ANSI_X9_62 @ [0x02uy; 0x01uy])
 
 (* ECParameters namedCurve identifiers, from RFC 5480, RFC 5639, and SEC2
   =======================================================================
@@ -237,20 +237,20 @@ noextract let oid_EC_ALG_UNRESTRICTED = oid_ANSI_X9_62 @ [0x02uy; 0x01uy]
 #define MBEDTLS_OID_EC_GRP_SECP256K1        MBEDTLS_OID_CERTICOM "\x00\x0a"
 *)
 
-noextract let oid_EC_GRP_SECP256R1 = oid_ANSI_X9_62 @ [0x03uy; 0x01uy; 0x07uy]
+noextract inline_for_extraction let oid_EC_GRP_SECP256R1 = normalize_term(oid_ANSI_X9_62 @ [0x03uy; 0x01uy; 0x07uy])
 
-noextract let oid_EDWARDS_CURVE_ALGS = oid_head_ISO_IDENTIFIED_ORG @ [0x65uy]
+noextract inline_for_extraction let oid_EDWARDS_CURVE_ALGS = normalize_term(oid_head_ISO_IDENTIFIED_ORG @ [0x65uy])
 
-noextract let oid_ED25519 = oid_EDWARDS_CURVE_ALGS @ [0x70uy]
+noextract inline_for_extraction let oid_ED25519 = normalize_term(oid_EDWARDS_CURVE_ALGS @ [0x70uy])
 
-noextract let oid_X25519 = oid_EDWARDS_CURVE_ALGS @ [0x6Euy]
+noextract inline_for_extraction let oid_X25519 = normalize_term(oid_EDWARDS_CURVE_ALGS @ [0x6Euy])
 
 (* RIoT OID
   =========
 1.3.6.1.4.1.311.89.3.1
 *)
 (* FIXME: Check RIoT's OID *)
-noextract let oid_RIOT = oid_INTERNET @ [0x04uy; 0x01uy; 0x82uy; 0x37uy; 0x59uy; 0x03uy; 0x01uy]
+noextract inline_for_extraction let oid_RIOT = normalize_term (oid_INTERNET @ [0x04uy; 0x01uy; 0x82uy; 0x37uy; 0x59uy; 0x03uy; 0x01uy])
 
 (* Known OIDs *)
 noextract
@@ -398,23 +398,11 @@ by (T.norm ([iota; zeta; delta_only [  //before sending the VC to the solver, un
 
 #pop-options //fuel 0 ifuel 0
 
-
-(*
- * Two comments:
- *
- * We prove the FStar.List.Tot.Base.mem s known_oids_as_seq as a separate lemma below
- *
- * Why do we need this `has_type` thing, `has_type` is an internal F* thing,
- * client programs should not use it
- *)
-
 #push-options "--fuel 0 --ifuel 1"  //need ifuel 1 to prove pattern exhaustiveness
 noextract
 let oid_seq_of
   (oid: oid_t)
-: Tot (s: bytes { //FStar.List.Tot.Base.mem s known_oids_as_seq /\
-                  Seq.length s `has_type` asn1_value_length_of_type OID })
-
+: Tot (s: bytes { asn1_length_inbound (Seq.length s) (asn1_value_length_min_of_type OID) (asn1_value_length_max_of_type OID) })
 = match oid with
   | OID_RIOT                     -> Seq.createL oid_RIOT
   | OID_AT_CN                    -> Seq.createL oid_AT_CN

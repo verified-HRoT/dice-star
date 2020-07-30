@@ -23,7 +23,7 @@ open RIoT.Spec.Crypto
 let derive_key_pair
   (public_key : B.lbuffer pub_uint8 32)                 // Out
   (private_key: B.lbuffer uint8 32)                     // Out
-                    (* NOTE Not using lbuffer here because lbuffer doesn't accept null *)
+                    (* NOTE Not using lbuffer here because lbuffer doesn't accept ASN1_NULL *)
   (ikm_len: size_t) (ikm: B.buffer uint8 {B.length ikm == v ikm_len})  // In: Initial Data for derivation
   (lbl_len: size_t) (lbl: B.buffer uint8 {B.length lbl == v lbl_len})  // In: Label for derivation
 : HST.Stack unit

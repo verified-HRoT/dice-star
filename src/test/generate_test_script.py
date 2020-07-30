@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+import argparse
 
 head_template ='''module ASN1.Test
 
@@ -46,7 +48,7 @@ test_template ='''
   let answer = B.sub dst (dst_size - answer_len) answer_len in
   printf "Question: [{asn1_type}] {question}\\n" done;
   printf "Solution: %xuy\\n" {solution_len} solution done;
-  printf "Answer  : %xuy\\n" {solution_len} answer   done;
+  printf "Answer  : %xuy\\n" answer_len answer   done;
 
   mbedtls_parse_{asn1_type} dst dst_size (dst_size - answer_len);
 '''
@@ -79,9 +81,16 @@ def byte_list_len (byte_list):
     else:
         return "{}ul".format(len(byte_list[1:-1].split(";")))
 
+
+parser = argparse.ArgumentParser(description='ASN.1 Test Script Generator')
+parser.add_argument("--tests",type=str,help="Test suites",default="ASN1.test_suites.data")
+parser.add_argument("--output",type=str,help="Generated test script",default="ASN1.Test.fst")
+
+args = parser.parse_args()
+
 if __name__ == "__main__":
-    test_suites = "ASN1.test_suites.data"
-    test_script = "ASN1.Test.fst"
+    test_suites = args.tests
+    test_script = args.output
     no = 0
     with open (test_script, "w+") as out:
         out.write (head_template)
@@ -124,6 +133,18 @@ if __name__ == "__main__":
                         question_to_write = "(Mkbit_string_t {len} {unused_bits} (B32.of_buffer {octets_len} question))".format(len = str(int(question_len.replace("ul", "")) + 1) + "ul",
                                                                                                                                unused_bits = tokens[3] + "ul",
                                                                                                                                octets_len = question_len),
+                        solution_len = solution_len,
+                        solution  = solution))
+
+                elif tokens[2] == "OID":
+                    solution = to_byte_list(tokens[4])
+                    solution_len = byte_list_len(solution)
+                    out.write (test_template.format(
+                        no        = no,
+                        raw       = line.replace('"',"").replace("\n",""),
+                        asn1_type = tokens[2],
+                        question  = tokens[3],
+                        question_to_write = "question",
                         solution_len = solution_len,
                         solution  = solution))
 
