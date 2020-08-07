@@ -1,5 +1,24 @@
 EVERPARSE_HOME ?= $(FSTAR_HOME)/../everparse
 
+# Helpers from hacl-star (https://github.com/project-everest/hacl-star/blob/master/Makefile)
+
+# Transforms any foo/bar/baz.qux into $2/baz.qux
+to-dir = $(addprefix $2/,$(notdir $1))
+
+# $(call only-for,<filter>) retains all the checked files that match <filter>,
+# taken from the source directories, then returns the corresponding set of
+# targets in obj/. For instance, $(call only-for,$(HACL_HOME)/code/%.checked)
+# returns obj/Hacl.Hash.Definitions.fst.checked, and all the other targets that
+# originate from source files in code/.
+#
+# With this macro, we no longer rely on pattern rules for file-specific options,
+# meaning we also no longer rely on the shortest stem rule. Many of the rules
+# below match the same file multiple times (as we the case in the original
+# SConstruct). The last match has precedence and overrides previous variable
+# assignments.
+find-all = $(filter $1,$(addsuffix $2,$(ALL_FSTAR_FILES)))
+# only-for = $(call o-dir,$(filter $1,$(addsuffix $2,$(ALL_FSTAR_FILES))),$(OUTPUT_DIR)/)
+
 # FStar
 
 # Includes
@@ -69,7 +88,7 @@ endif
 #      verify... see https://github.com/FStarLang/FStar/issues/1652
 # 331: the name is being ignored
 # 333: unable to open hints file
-FSTAR_FLAGS = $(FSTAR_INCLUDES) \
+FSTAR_VERIFY_FLAGS = $(FSTAR_INCLUDES) \
   $(FSTAR_HINTS) \
   $(FSTAR_ALREADY_CACHED) \
   --cache_checked_modules \
@@ -77,7 +96,17 @@ FSTAR_FLAGS = $(FSTAR_INCLUDES) \
   --cache_dir $(OUTPUT_DIR) \
   --warn_error -272-241-247-331-333
 
-FSTAR = $(FSTAR_HOME)/bin/fstar.exe $(FSTAR_FLAGS) $(OTHERFLAGS)
+FSTAR_EXTRACT_FLAGS = $(FSTAR_INCLUDES) \
+  $(FSTAR_HINTS) \
+  $(FSTAR_ALREADY_CACHED) \
+  --cache_checked_modules \
+  --odir $(OUTPUT_DIR) \
+  --cache_dir $(OUTPUT_DIR) \
+  --warn_error -272-241-247-331-333 \
+  --codegen Kremlin \
+  --cmi
+
+FSTAR = $(FSTAR_HOME)/bin/fstar.exe
 
 # 2. KreMLin
 

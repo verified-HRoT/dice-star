@@ -113,6 +113,9 @@ let lemma_serialize_x509_signature_size
   ( lemma_serialize_x509_signature_unfold x;
                    lemma_serialize_asn1_bit_string_TLV_size x )
 
+///
+///
+(*)
 let x509_signature_t_inbound
   // (alg: supported_crypto_alg_t {alg == AlgID_Ed25519})
 =
@@ -169,6 +172,7 @@ let lemma_serialize_x509_signature_sequence_TLV_size_exact
   ( lemma_serialize_x509_signature_sequence_TLV_size x;
                     lemma_serialize_x509_signature_size x )
 #pop-options
+*)
 
 (* Low *)
 inline_for_extraction
@@ -187,6 +191,7 @@ let serialize32_x509_signature_backwards
                    (* g1' *) (fun x -> x <: parse_filter_refine (filter_x509_signature))
                    (* prf *) () )
 
+(*)
 inline_for_extraction
 let serialize32_x509_signature_sequence_TLV_backwards
   // (alg: supported_crypto_alg_t {alg == AlgID_Ed25519})
@@ -195,7 +200,7 @@ let serialize32_x509_signature_sequence_TLV_backwards
   // match alg with
   // | AlgID_Ed25519   ->
   ( serialize32_asn1_sequence_TLV_backwards (serialize32_x509_signature_backwards) )
-
+*)
 
 (* Helpers *)
 
@@ -211,7 +216,7 @@ inline_for_extraction noextract
 let x509_get_signature
   // (alg: supported_crypto_alg_t {alg == AlgID_Ed25519})
   (sig32: x509_signature_raw_t)
-: Tot (x509_signature_t_inbound)
+: Tot (x509_signature_t)
 =
   // match alg with
   // | AlgID_Ed25519   ->

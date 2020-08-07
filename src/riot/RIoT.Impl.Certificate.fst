@@ -58,6 +58,7 @@ open RIoT.Spec.Certificate
 
 let create_aliasKeyTBS
   (fwid: B.lbuffer byte_sec 32)
+  (ku: key_usage_t)
   (riot_version: datatype_of_asn1_type INTEGER)
   (deviceID_pub: B.lbuffer byte_pub 32)
   (aliasKey_pub: B.lbuffer byte_pub 32)
@@ -77,13 +78,14 @@ let create_aliasKeyTBS
                      loc_buffer aliasKey_pub;
                      loc_buffer aliasKeyTBS_template;
                      loc_buffer aliasKeyTBS_buf]) /\
-    valid_aliasKeyTBS_ingredients aliasKeyTBS_template_len riot_version /\
-    v aliasKeyTBS_len == length_of_AliasKeyTBS aliasKeyTBS_template_len riot_version
+    valid_aliasKeyTBS_ingredients aliasKeyTBS_template_len ku riot_version /\
+    v aliasKeyTBS_len == length_of_aliasKeyTBS aliasKeyTBS_template_len ku riot_version
    )
   (ensures fun h0 _ h1 ->
     let aliasKeyTBS: aliasKeyTBS_t_inbound aliasKeyTBS_template_len = create_aliasKeyTBS_spec
                                                                       (aliasKeyTBS_template_len)
                                                                       (B.as_seq h0 aliasKeyTBS_template)
+                                                                      (ku)
                                                                       (riot_version)
                                                                       (B.as_seq h0 fwid)
                                                                       (B.as_seq h0 deviceID_pub)
@@ -107,6 +109,7 @@ let create_aliasKeyTBS
   let aliasKeyTBS: aliasKeyTBS_t_inbound aliasKeyTBS_template_len = x509_get_AliasKeyTBS
                                                                     aliasKeyTBS_template_len
                                                                     aliasKeyTBS_template32
+                                                                    ku
                                                                     riot_version
                                                                     fwid_pub32
                                                                     deviceID_pub32
@@ -157,7 +160,7 @@ let sign_and_finalize_aliasKeyCRT
     0 < v aliasKeyTBS_len /\
     valid_aliasKeyCRT_ingredients aliasKeyTBS_len /\
     (* `aliasKeyCRT_buf` has exact space to write serialization *)
-    v aliasKeyCRT_len == length_of_AliasKeyCRT aliasKeyTBS_len
+    v aliasKeyCRT_len == length_of_aliasKeyCRT aliasKeyTBS_len
    )
   (ensures fun h0 _ h1 ->
     let aliasKeyCRT: aliasKeyCRT_t_inbound aliasKeyTBS_len = sign_and_finalize_aliasKeyCRT_spec

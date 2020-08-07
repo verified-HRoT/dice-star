@@ -15,14 +15,14 @@ open FStar.Integers
          where these fixed-length is runtimely parsed.
  *)
 
-unfold
+// unfold
 let inbound_envelop_tag_with_value_of
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
   (a: asn1_tag_t)
   (s: serializer p)
-= x: t{ asn1_value_length_inbound_of_type a (Seq.length (serialize s x)) }
+= x: t{ asn1_value_length_inbound_of_type a (length_of_opaque_serialization s x) }
 
 /// Tagging function
 ///
@@ -269,8 +269,12 @@ let predicate_serialize_asn1_envelop_tag_with_TLV_size
 : Type0
 = let length: asn1_value_length_of_type a = Seq.length (serialize s value) in
   let len: asn1_value_int32_of_type a = u length in
-  Seq.length (serialize (serialize_asn1_envelop_tag_with_TLV a s) value) ==
-  1 + length_of_asn1_length len + length
+  (* exact size *)
+  Seq.length (serialize (serialize_asn1_envelop_tag_with_TLV a s) value)
+  == 1 + length_of_asn1_length len + length /\
+  (* upper bound *)
+  Seq.length (serialize (serialize_asn1_envelop_tag_with_TLV a s) value)
+  <= length + 6
 
 let lemma_serialize_asn1_envelop_tag_with_TLV_size
   (#k: parser_kind)
@@ -302,3 +306,29 @@ let length_of_asn1_envelop_tag_with_TLV
   lemma_serialize_asn1_envelop_tag_with_TLV_size a s value;
   1 + length_of_asn1_length len + length
 #pop-options
+
+inline_for_extraction
+let coerce_envelop
+  (#k: parser_kind)
+  (#t: Type0)
+  (#p: parser k t)
+  (a1: asn1_tag_t { match a1 with | SEQUENCE | SET | OCTET_STRING | CUSTOM_TAG _ _ _ -> True | _ -> False })
+  (a2: asn1_tag_t { match a2 with | SEQUENCE | SET | OCTET_STRING | CUSTOM_TAG _ _ _ -> True | _ -> False })
+  (s: serializer p)
+  (x1: inbound_envelop_tag_with_value_of a1 (serialize_asn1_envelop_tag_with_TLV a2 s))
+: inbound_envelop_tag_with_value_of a2 s
+= x1
+
+inline_for_extraction
+let coerce_envelop_back
+  (#k: parser_kind)
+  (#t: Type0)
+  (#p: parser k t)
+  (a1: asn1_tag_t { match a1 with | SEQUENCE | SET | OCTET_STRING | CUSTOM_TAG _ _ _ -> True | _ -> False })
+  (a2: asn1_tag_t { match a2 with | SEQUENCE | SET | OCTET_STRING | CUSTOM_TAG _ _ _ -> True | _ -> False })
+  (s: serializer p)
+  (x1: inbound_envelop_tag_with_value_of a2 s
+       { asn1_value_length_inbound_of_type a1 (length_of_opaque_serialization (serialize_asn1_envelop_tag_with_TLV a2 s) x1) })
+: inbound_envelop_tag_with_value_of a1 (serialize_asn1_envelop_tag_with_TLV a2 s)
+= x1
+

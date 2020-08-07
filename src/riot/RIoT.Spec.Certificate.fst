@@ -56,15 +56,18 @@ module HST = FStar.HyperStack.ST
 unfold
 let valid_aliasKeyTBS_ingredients
   (template_len: asn1_int32)
+  (ku: key_usage_t)
   (version: datatype_of_asn1_type INTEGER)
-= v template_len + length_of_asn1_primitive_TLV version + 155
+= length_of_aliasKeyTBS_payload template_len ku version
   <= asn1_value_length_max_of_type SEQUENCE
 
 let create_aliasKeyTBS_spec
   (template_len: asn1_int32)
   (aliasKeyTBS_template: lbytes_pub (v template_len))
+  (ku: key_usage_t)
   (version: datatype_of_asn1_type INTEGER
-            { valid_aliasKeyTBS_ingredients template_len version })
+            { length_of_aliasKeyTBS_payload template_len ku version
+              <= asn1_value_length_max_of_type SEQUENCE })
   (fwid: lbytes_sec 32)
   (deviceID_pub: lbytes_pub 32)
   (aliasKey_pub: lbytes_pub 32)
@@ -78,6 +81,7 @@ let create_aliasKeyTBS_spec
   let aliasKeyTBS: aliasKeyTBS_t_inbound template_len = x509_get_AliasKeyTBS
                                                         template_len
                                                         aliasKeyTBS_template32
+                                                        ku
                                                         version
                                                         fwid32
                                                         deviceID_pub32
@@ -86,7 +90,6 @@ let create_aliasKeyTBS_spec
   (* Prf *) lemma_serialize_aliasKeyTBS_sequence_TLV_size_exact template_len aliasKeyTBS;
 
 (* return *) aliasKeyTBS
-
 
 (* Sign and Finalize AliasKey Certificate
   =======================================
@@ -104,8 +107,8 @@ let create_aliasKeyTBS_spec
 unfold noextract
 let valid_aliasKeyCRT_ingredients
   (tbs_len: asn1_int32)
-= // (* implied *) v tbs_len + 64 <= max_size_t /\
-  v tbs_len + 76 <= asn1_value_length_max_of_type SEQUENCE
+= // (* implied *) length_of_aliasKeyCRT_payload tbs_len <= max_size_t /\
+  length_of_aliasKeyCRT_payload tbs_len <= asn1_value_length_max_of_type SEQUENCE
 
 let sign_and_finalize_aliasKeyCRT_spec
   (deviceID_priv: lbytes_sec 32)

@@ -107,3 +107,10 @@ let serialize32_asn1_TLV_backwards_of_type
   | OCTET_STRING -> serialize32_asn1_octet_string_TLV_backwards ()
   | BIT_STRING   -> serialize32_asn1_bit_string_TLV_backwards   ()
   | OID          -> serialize32_asn1_oid_TLV_backwards          ()
+
+unfold
+let len_of_TLV
+  (a: asn1_tag_t)
+  (len: asn1_value_int32_of_type a)
+: Tot (asn1_TLV_int32_of_type a)
+= 1ul + len_of_asn1_length len + len

@@ -178,14 +178,24 @@ let lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size
          of SEQUENCE "envelop".
 *)
 
-#push-options "--z3rlimit 32"
+let length_of_subjectPublicKeyInfo
+: asn1_TLV_length_of_type SEQUENCE
+= 44
+
+let len_of_subjectPublicKeyInfo
+: (len: asn1_TLV_int32_of_type SEQUENCE
+        { v len == length_of_subjectPublicKeyInfo })
+= 44ul
+
+#push-options "--z3rlimit 32 --fuel 0 --ifuel 0"
 let lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size_exact
   // (alg: supported_crypto_alg_t {alg == AlgID_Ed25519})
   (x: subjectPublicKeyInfo_t_inbound)
 : Lemma (
   // match alg with
   // | AlgID_Ed25519   ->
-  ( length_of_opaque_serialization (serialize_subjectPublicKeyInfo_sequence_TLV) x == 44 )
+  ( length_of_opaque_serialization (serialize_subjectPublicKeyInfo_sequence_TLV) x
+    == length_of_subjectPublicKeyInfo )
 )
 =
   // match alg with

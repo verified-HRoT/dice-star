@@ -18,14 +18,14 @@ open LowParse.Spec.Bytes
 type aliasKeyCRT_t (tbs_len: asn1_int32) = {
   aliasKeyCRT_tbs: B32.lbytes32 tbs_len;
   aliasKeyCRT_sig_alg: algorithmIdentifier_t_inbound;
-  aliasKeyCRT_sig: x509_signature_t_inbound
+  aliasKeyCRT_sig: x509_signature_t
 }
 #pop-options
 
 let aliasKeyCRT_t' (tbs_len: asn1_int32) = (
   (B32.lbytes32 tbs_len `tuple2`
    algorithmIdentifier_t_inbound) `tuple2`
-   x509_signature_t_inbound
+   x509_signature_t
 )
 
 let synth_aliasKeyCRT_t
@@ -51,7 +51,7 @@ let parse_aliasKeyCRT
   `nondep_then`
   parse_algorithmIdentifier_sequence_TLV
   `nondep_then`
-  parse_x509_signature_sequence_TLV
+  parse_x509_signature
   `parse_synth`
   synth_aliasKeyCRT_t tbs_len
 
@@ -63,13 +63,13 @@ let serialize_aliasKeyCRT
             `nondep_then`
             parse_algorithmIdentifier_sequence_TLV
             `nondep_then`
-            parse_x509_signature_sequence_TLV)
+            parse_x509_signature)
   (* f2 *) (synth_aliasKeyCRT_t tbs_len)
   (* s1 *) (serialize_flbytes32 tbs_len
             `serialize_nondep_then`
             serialize_algorithmIdentifier_sequence_TLV
             `serialize_nondep_then`
-            serialize_x509_signature_sequence_TLV)
+            serialize_x509_signature)
   (* g1 *) (synth_aliasKeyCRT_t' tbs_len)
   (* prf*) ()
 
@@ -82,7 +82,7 @@ let lemma_serialize_aliasKeyCRT_unfold
   `Seq.append`
  (serialize_algorithmIdentifier_sequence_TLV `serialize` x.aliasKeyCRT_sig_alg)
   `Seq.append`
- (serialize_x509_signature_sequence_TLV `serialize` x.aliasKeyCRT_sig)
+ (serialize_x509_signature `serialize` x.aliasKeyCRT_sig)
 )
 = serialize_nondep_then_eq
   (* s1 *) (serialize_flbytes32 tbs_len)
@@ -92,23 +92,37 @@ let lemma_serialize_aliasKeyCRT_unfold
   (* s1 *) (serialize_flbytes32 tbs_len
             `serialize_nondep_then`
             serialize_algorithmIdentifier_sequence_TLV)
-  (* s2 *) (serialize_x509_signature_sequence_TLV)
+  (* s2 *) (serialize_x509_signature)
   (* in *) (synth_aliasKeyCRT_t' tbs_len x);
   serialize_synth_eq
   (* p1 *) (parse_flbytes32 tbs_len
             `nondep_then`
             parse_algorithmIdentifier_sequence_TLV
             `nondep_then`
-            parse_x509_signature_sequence_TLV)
+            parse_x509_signature)
   (* f2 *) (synth_aliasKeyCRT_t tbs_len)
   (* s1 *) (serialize_flbytes32 tbs_len
             `serialize_nondep_then`
             serialize_algorithmIdentifier_sequence_TLV
             `serialize_nondep_then`
-            serialize_x509_signature_sequence_TLV)
+            serialize_x509_signature)
   (* g1 *) (synth_aliasKeyCRT_t' tbs_len)
   (* prf*) ()
   (* in *) x
+
+let length_of_aliasKeyCRT_payload
+  (tbs_len: asn1_int32)
+= v tbs_len + 74
+
+#push-options "--z3rlimit 32"
+let len_of_aliasKeyCRT_payload
+  (tbs_len: asn1_int32
+            { length_of_aliasKeyCRT_payload tbs_len
+              <= asn1_value_length_max_of_type SEQUENCE })
+: Tot (len: asn1_TLV_int32_of_type SEQUENCE
+            { v len == length_of_aliasKeyCRT_payload tbs_len })
+= tbs_len + 74ul
+#pop-options
 
 #restart-solver
 #push-options "--z3rlimit 64 --fuel 0 --ifuel 0"
@@ -120,16 +134,17 @@ let lemma_serialize_aliasKeyCRT_size
   length_of_opaque_serialization (serialize_aliasKeyCRT tbs_len) x ==
   length_of_opaque_serialization (serialize_flbytes32 tbs_len) x.aliasKeyCRT_tbs +
   length_of_opaque_serialization (serialize_algorithmIdentifier_sequence_TLV) x.aliasKeyCRT_sig_alg +
-  length_of_opaque_serialization (serialize_x509_signature_sequence_TLV) x.aliasKeyCRT_sig /\
+  length_of_opaque_serialization (serialize_x509_signature) x.aliasKeyCRT_sig /\
   (* exact size *)
-  length_of_opaque_serialization (serialize_aliasKeyCRT tbs_len) x ==
-  v tbs_len + 76 // 7 + 69
+  length_of_opaque_serialization (serialize_aliasKeyCRT tbs_len) x
+  == length_of_aliasKeyCRT_payload tbs_len
 )
 = lemma_serialize_aliasKeyCRT_unfold tbs_len x;
   (**) lemma_serialize_algorithmIdentifier_sequence_TLV_size_exact x.aliasKeyCRT_sig_alg;
-  (**) lemma_serialize_x509_signature_sequence_TLV_size_exact      x.aliasKeyCRT_sig
+  (**) lemma_serialize_x509_signature_size      x.aliasKeyCRT_sig
 #pop-options
 
+(* SEQUENCE TLV*)
 let aliasKeyCRT_t_inbound
   (tbs_len: asn1_int32)
 = inbound_sequence_value_of (serialize_aliasKeyCRT tbs_len)
@@ -161,16 +176,33 @@ let lemma_serialize_aliasKeyCRT_sequence_TLV_size
 : Lemma ( predicate_serialize_asn1_sequence_TLV_size (serialize_aliasKeyCRT tbs_len) x )
 = lemma_serialize_asn1_sequence_TLV_size (serialize_aliasKeyCRT tbs_len) x
 
+let length_of_aliasKeyCRT
+  (tbs_len: asn1_int32
+            { length_of_aliasKeyCRT_payload tbs_len
+              <= asn1_value_length_max_of_type SEQUENCE })
+= 1 + length_of_asn1_length (len_of_aliasKeyCRT_payload tbs_len) +
+    length_of_aliasKeyCRT_payload tbs_len
+
+#push-options "--query_stats --z3rlimit 64 --fuel 0 --ifuel 0"
+let len_of_aliasKeyCRT
+  (tbs_len: asn1_int32
+            { length_of_aliasKeyCRT_payload tbs_len
+              <= asn1_value_length_max_of_type SEQUENCE })
+: Tot (len: asn1_TLV_int32_of_type SEQUENCE
+            { v len == length_of_aliasKeyCRT tbs_len })
+= 1ul + len_of_asn1_length (len_of_aliasKeyCRT_payload tbs_len) +
+    len_of_aliasKeyCRT_payload tbs_len
+#pop-options
+
 #push-options "--z3rlimit 64 --fuel 0 --ifuel 0"
 let lemma_serialize_aliasKeyCRT_sequence_TLV_size_exact
   (tbs_len: asn1_int32)
   (x: aliasKeyCRT_t_inbound tbs_len)
 : Lemma (
-  (* prove valid length *)
-  length_of_opaque_serialization (serialize_aliasKeyCRT tbs_len) x == v tbs_len + 76 /\
+  let _ = lemma_serialize_aliasKeyCRT_size tbs_len x in
   (* exact size *)
-  length_of_opaque_serialization (serialize_aliasKeyCRT_sequence_TLV tbs_len) x ==
-  v tbs_len + 77 + (length_of_asn1_length (u (v tbs_len + 76))) /\
+  length_of_opaque_serialization (serialize_aliasKeyCRT_sequence_TLV tbs_len) x
+  == length_of_aliasKeyCRT tbs_len /\
   (* upper bound *)
   length_of_opaque_serialization (serialize_aliasKeyCRT_sequence_TLV tbs_len) x
   <= v tbs_len + 84
@@ -190,7 +222,7 @@ let serialize32_aliasKeyCRT_backwards
             `serialize32_nondep_then_backwards`
             serialize32_algorithmIdentifier_sequence_TLV_backwards
             `serialize32_nondep_then_backwards`
-            serialize32_x509_signature_sequence_TLV_backwards)
+            serialize32_x509_signature_backwards)
   (* f2 *) (synth_aliasKeyCRT_t  tbs_len)
   (* g1 *) (synth_aliasKeyCRT_t' tbs_len)
   (* g1'*) (synth_aliasKeyCRT_t' tbs_len)
@@ -218,7 +250,7 @@ let x509_get_AliasKeyCRT
   (* Prf *) lemma_serialize_algorithmIdentifier_sequence_TLV_size_exact aliasKeyCRT_sig_alg;
 
   let aliasKeyCRT_sig = x509_get_signature signature32 in
-  (* Prf *) lemma_serialize_x509_signature_sequence_TLV_size_exact aliasKeyCRT_sig;
+  (* Prf *) lemma_serialize_x509_signature_size aliasKeyCRT_sig;
 
   let aliasKeyCRT: aliasKeyCRT_t tbs_len = {
     aliasKeyCRT_tbs     = aliasKeyCRT_tbs;
@@ -230,34 +262,3 @@ let x509_get_AliasKeyCRT
   (* Prf *) (**) lemma_serialize_flbytes32_size tbs_len aliasKeyCRT.aliasKeyCRT_tbs;
 
 (* return *) aliasKeyCRT
-
-unfold
-let length_of_AliasKeyCRT_payload
-  (tbs_len: asn1_int32 {v tbs_len + 76 <= asn1_value_length_max_of_type SEQUENCE})
-: GTot (asn1_value_length_of_type SEQUENCE)
-= v tbs_len + 76
-
-unfold
-let len_of_AliasKeyCRT_payload
-  (tbs_len: asn1_int32 {v tbs_len + 76 <= asn1_value_length_max_of_type SEQUENCE})
-: Tot (len: asn1_value_int32_of_type SEQUENCE
-             { v len == length_of_AliasKeyCRT_payload tbs_len })
-= tbs_len + 76ul
-
-unfold
-let length_of_AliasKeyCRT
-  (tbs_len: asn1_int32 {v tbs_len + 76 <= asn1_value_length_max_of_type SEQUENCE})
-: GTot (asn1_TLV_length_of_type SEQUENCE)
-= 1 +
-  length_of_asn1_length (u (length_of_AliasKeyCRT_payload tbs_len)) +
-  length_of_AliasKeyCRT_payload tbs_len
-
-unfold
-let len_of_AliasKeyCRT
-  (tbs_len: asn1_int32 {v tbs_len + 76 <= asn1_value_length_max_of_type SEQUENCE})
-: Tot (len: asn1_TLV_int32_of_type SEQUENCE
-            { v len == length_of_AliasKeyCRT tbs_len })
-= 1ul +
-  len_of_asn1_length (len_of_AliasKeyCRT_payload tbs_len) +
-  len_of_AliasKeyCRT_payload tbs_len
-#pop-options

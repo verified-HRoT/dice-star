@@ -11,7 +11,7 @@ void write_out(const char* filename, uint8_t* content, uint32_t len){
     }
 
     for (uint32_t i = 0; i < len; i++) {
-        fprintf(f, "%x", content[i]);
+        fprintf(f, "%02x", content[i]);
     }
 
     fclose(f);

@@ -5,3 +5,10 @@ obj
 .depend
 docs
 *.hints
+*.exe
+dep.graph
+*.csr
+*.crt
+*.key
+*.hex
+*.pem

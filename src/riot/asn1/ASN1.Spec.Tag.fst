@@ -34,7 +34,7 @@ let filter_asn1_tag
   (b: byte)
 : GTot bool
 = match b with
-  | 0x01uy | 0x04uy | 0x05uy | 0x30uy | 0x03uy | 0x02uy | 0x06uy -> true
+  | 0x01uy | 0x04uy | 0x05uy | 0x30uy | 0x31uy | 0x03uy | 0x02uy | 0x06uy -> true
   | _ -> if (b / 0b01000000uy <> 00uy) then true else false
 
 /// decode input bytes
@@ -51,6 +51,7 @@ let synth_asn1_tag
   | 0x05uy -> ASN1_NULL
   | 0x06uy -> OID
   | 0x30uy -> SEQUENCE
+  | 0x31uy -> SET
   | _      -> ( let tag_class = match b / 0b01000000uy <: byte with
                                 | 0b01uy -> APPLICATION
                                 | 0b10uy -> CONTEXT_SPECIFIC
@@ -71,9 +72,10 @@ let synth_asn1_tag_inverse
   | INTEGER      -> 0x02uy
   | BIT_STRING   -> 0x03uy
   | OCTET_STRING -> 0x04uy
-  | ASN1_NULL         -> 0x05uy
+  | ASN1_NULL    -> 0x05uy
   | OID          -> 0x06uy
   | SEQUENCE     -> 0x30uy
+  | SET          -> 0x31uy
   | CUSTOM_TAG tag_class tag_form tag_value -> ( let b_tag_class = match tag_class with
                                                                      | APPLICATION      -> 0b01000000uy
                                                                      | CONTEXT_SPECIFIC -> 0b10000000uy

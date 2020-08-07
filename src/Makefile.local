@@ -1,41 +1,105 @@
-FSTAR_FILES = $(wildcard *.fst)
+# All F* source files
+ALL_FSTAR_FILES = \
+    $(wildcard $(addsuffix /*.fsti,$(ALL_VHW_SOURCE_DIRS))) \
+    $(wildcard $(addsuffix /*.fst,$(ALL_VHW_SOURCE_DIRS)))
 
+# F* source files required by different modules
+ifeq ($(shell basename "`pwd`"),dice)
+  TARGET_FSTAR_FILES = \
+    $(call find-all,$(DICE_DIR)/%,)
+else
 ifeq ($(shell basename "`pwd`"),riot)
-  FSTAR_FILES = $(wildcard *.fst) $(wildcard $(ASN1_DIR)/*.fst) $(wildcard $(X509_DIR)/*.fst)
+  TARGET_FSTAR_FILES = \
+    $(call find-all,$(ASN1_DIR)/%,) \
+    $(call find-all,$(X509_DIR)/%,) \
+    $(call find-all,$(RIOT_DIR)/%,)
+else
+ifeq ($(shell basename "`pwd`"),asn1)
+  TARGET_FSTAR_FILES = \
+    $(call find-all,$(ASN1_DIR)/%,)
 else
 ifeq ($(shell basename "`pwd`"),x509)
-  FSTAR_FILES = $(wildcard *.fst) $(wildcard $(ASN1_DIR)/*.fst)
+  TARGET_FSTAR_FILES = \
+    $(call find-all,$(ASN1_DIR)/%,) \
+    $(call find-all,$(X509_DIR)/%,)
 else
-  FSTAR_FILES = $(wildcard *.fst)
+ifeq ($(shell basename "`pwd`"),test)
+  TARGET_FSTAR_FILES = \
+    $(call find-all,$(ASN1_DIR)/%,) \
+    $(call find-all,$(X509_DIR)/%,) \
+    $(call find-all,$(RIOT_DIR)/%,) \
+    $(call find-all,$(TEST_DIR)/%,)
+else
+  TARGET_FSTAR_FILES = \
+    $(call find-all,$(ASN1_DIR)/%,) \
+    $(call find-all,$(X509_DIR)/%,) \
+    $(call find-all,$(RIOT_DIR)/%,) \
+    $(call find-all,$(TEST_DIR)/%,)
+endif
+endif
+endif
 endif
 endif
 
+# Generate Dependencies
 .depend:
-	$(FSTAR) --dep full $(FSTAR_FILES) > .depend
+	$(FSTAR) $(FSTAR_VERIFY_FLAGS) --dep full $(notdir $(TARGET_FSTAR_FILES)) > $@
 
 depend: .depend
+	@
 
 include .depend
 
-# Verification
-$(OUTPUT_DIR)/%.checked: %
-	$(FSTAR) $*
-	touch $@
+TARGET_CHECKED_FILES = $(filter $(OUTPUT_DIR)/%,$(ALL_CHECKED_FILES))
+TARGET_KRML_FILES = $(filter $(OUTPUT_DIR)/%,$(ALL_KRML_FILES))
 
+test:
+	echo $(ALL_CHECKED_FILES)
+
+#
+# Verification
+#
+
+# hints:
+# 	@mkdir -p $(HINT_DIR)
+
+src-of = $(filter %$(subst $2,,$(notdir $1)),$(ALL_FSTAR_FILES))
+hint-of = $(HINT_DIR)/$(notdir $1).hints
+
+$(OUTPUT_DIR)/%.checked:
+#	@echo "[CACHE]" $@
+#	@echo "[HINT]" $(call hint-of,$*)
+	@echo "[VERIFY]" $<
+	@$(FSTAR) \
+    $(FSTAR_VERIFY_FLAGS) \
+    $(OTHERFLAGS) \
+    $<
+	@touch $@
+
+## Verify Current Target
 verify-all: $(ALL_CHECKED_FILES)
 
+#
 # Extraction
-$(OUTPUT_DIR)/%.krml:
-	$(FSTAR) \
-	  --codegen Kremlin \
-	  --cmi \
-    $(FSTAR_FLAGS) \
-	  --extract_module $(basename $(notdir $(subst .checked,,$<))) \
-	  $(notdir $(subst .checked,,$<))
+#
 
+$(OUTPUT_DIR)/%.krml:
+#	@echo "[CACHE]" $<
+	@echo "[EXTRACT]" $(subst .checked,,$<)
+	@$(FSTAR) \
+    $(FSTAR_EXTRACT_FLAGS) \
+    $(OTHERFLAGS) \
+    --extract_module $(basename $(notdir $(subst .checked,,$<))) \
+    $(notdir $(subst .checked,,$<))
+
+## Extract Current Target
 extract-all: $(ALL_KRML_FILES)
 
+
+#
 # Compilation
+#
+
 compile-all:
 	$(KRML) \
 	  $(KREMLIN_FLAGS) \

@@ -61,10 +61,10 @@ unfold let cdi_len = digest_len
 unfold let byte_sec = uint8
 unfold let byte_pub = pub_uint8
 
-unfold let bytes_pub  = Seq.seq byte_pub
-unfold let lbytes_pub = Seq.lseq byte_pub
-unfold let bytes_sec  = Seq.seq byte_sec
-unfold let lbytes_sec = Seq.lseq byte_sec
+noextract unfold let bytes_pub  = Seq.seq byte_pub
+noextract unfold let lbytes_pub = Seq.lseq byte_pub
+noextract unfold let bytes_sec  = Seq.seq byte_sec
+noextract unfold let lbytes_sec = Seq.lseq byte_sec
 
 // #push-options "--z3rlimit 32"
 // let label_DeviceID_l: list byte_sec = [u8 0; u8 0]

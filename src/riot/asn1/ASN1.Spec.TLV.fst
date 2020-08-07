@@ -176,7 +176,7 @@ let length_of_asn1_primitive_TLV
 
 unfold
 let length_of_TLV
-  (a: asn1_type)
+  (a: asn1_tag_t)
   (l: asn1_value_length_of_type a)
 : GTot (asn1_TLV_length_of_type a)
 = 1 + length_of_asn1_length (u l) + l

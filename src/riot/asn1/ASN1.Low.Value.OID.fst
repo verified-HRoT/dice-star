@@ -64,6 +64,27 @@ let oid_X25519_as_bufffer                  = IB.igcmalloc_of_list HS.root (oid_X
    will be marded as `noextract`.
 *)
 
+noextract
+let len_of_oid
+  (oid: oid_t)
+: Tot (len: asn1_value_int32_of_type OID
+      { v len == length_of_oid oid })
+= match oid with
+  | OID_RIOT                     -> 9ul
+  | OID_AT_CN                    -> 3ul
+  | OID_AT_COUNTRY               -> 3ul
+  | OID_AT_ORGANIZATION          -> 3ul
+  | OID_CLIENT_AUTH              -> 7ul
+  | OID_AUTHORITY_KEY_IDENTIFIER -> 3ul
+  | OID_KEY_USAGE                -> 3ul
+  | OID_EXTENDED_KEY_USAGE       -> 3ul
+  | OID_BASIC_CONSTRAINTS        -> 3ul
+  | OID_DIGEST_SHA256            -> 9ul
+  | OID_EC_ALG_UNRESTRICTED      -> 5ul
+  | OID_EC_GRP_SECP256R1         -> 6ul
+  | OID_ED25519                  -> 3ul
+  | OID_X25519                   -> 3ul
+
 (* FIXME: The order will affect Z3 for some reason. *)
 let oid_buffer_of_oid
   (oid: oid_t)
@@ -342,6 +363,7 @@ let serialize32_asn1_oid_TLV_of_backwards
   (* g1'*) (fun x -> x <: parse_filter_refine (filter_asn1_oid_TLV_of oid))
   (* prf*) ()
 
+inline_for_extraction
 let serialize32_envelop_OID_with_backwards
   (oid: datatype_of_asn1_type OID)
   (#k: parser_kind)
@@ -349,6 +371,7 @@ let serialize32_envelop_OID_with_backwards
   (#p: parser k t)
   (#s: serializer p)
   (s32: serializer32_backwards s)
+: serializer32_backwards (serialize_envelop_OID_with oid s)
 = serialize32_asn1_oid_TLV_of_backwards oid
   `serialize32_nondep_then_backwards`
   s32

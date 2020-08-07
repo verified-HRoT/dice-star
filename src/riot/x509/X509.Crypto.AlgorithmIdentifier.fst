@@ -206,8 +206,9 @@ let lemma_serialize_algorithmIdentifier_unfold
                     (* in *) x;
                     assert_norm (length_of_asn1_primitive_TLV OID_ED25519 == 5) )
 
+///
+///
 /// lemma: reveal sequence serialization size
-
 
 let lemma_serialize_algorithmIdentifier_size
   // (alg: supported_crypto_alg_t)

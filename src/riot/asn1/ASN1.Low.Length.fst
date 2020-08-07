@@ -19,7 +19,6 @@ open FStar.Integers
 #reset-options "--max_fuel 0 --max_ifuel 0"
 
 #push-options "--z3rlimit 16"
-inline_for_extraction
 let len_of_asn1_length
   (len: asn1_int32)
 : Tot (offset: size_t{v offset == Seq.length (serialize serialize_asn1_length len)})

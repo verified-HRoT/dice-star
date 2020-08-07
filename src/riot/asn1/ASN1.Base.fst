@@ -33,6 +33,7 @@ type asn1_tag_t: Type =
 | BIT_STRING
 | OID
 | SEQUENCE
+| SET
 | CUSTOM_TAG: tag_class: asn1_tag_class_t ->
                 tag_form : asn1_tag_form_t  ->
                 tag_value: asn1_tag_value_t ->
@@ -53,7 +54,12 @@ let the_asn1_tag (a: asn1_tag_t)
 
 /// Non constructive ASN1 types
 let asn1_primitive_type
-= (a: asn1_type{a =!= SEQUENCE})
+= (a: asn1_type{a =!= SEQUENCE /\ a =!= SET})
+
+let asn1_implicit_tagging
+  (t1 t2: asn1_tag_t)
+: asn1_tag_t
+= t1
 
 ///////////////////////////////////////////////////////////////////////////
 /////      bounded mathematical integers for ASN1 value lengths
@@ -88,11 +94,12 @@ let asn1_value_length_min_of_type
 = match a with
   | BOOLEAN      -> 1                 (* Any `BOOLEAN` value {true, false} has length 1. *)
   | INTEGER      -> 1                 (* `INTEGER` values range in [0x00, 0x7F] has length 1. *)
-  | ASN1_NULL         -> 0                 (* Any `ASN1_NULL` value has nothing to serialize and has length 0. *)
+  | ASN1_NULL    -> 0                 (* Any `ASN1_NULL` value has nothing to serialize and has length 0. *)
   | OCTET_STRING -> asn1_length_min   (* An empty `OCTET_STRING` [] has length 0. *)
   | OID          -> asn1_length_min   (* `OID` is just `OCTET_STRING`. *)
   | BIT_STRING   -> 1                 (* An empty `BIT_STRING` with a leading byte of `unused_bits` has length 0. *)
   | SEQUENCE     -> asn1_length_min   (* An empty `SEQUENCE` has length 0. *)
+  | SET          -> asn1_length_min   (* An empty `SET` has length 0. *)
   | CUSTOM_TAG _ _ _ -> asn1_length_min
 
 inline_for_extraction noextract
@@ -102,11 +109,12 @@ let asn1_value_length_max_of_type
 = match a with
   | BOOLEAN      -> 1                    (* Any `BOOLEAN` value {true, false} has length 1. *)
   | INTEGER      -> 4                    (* `INTEGER` values range in (0x7FFFFF, 0x7FFFFFFF] has length 4. *)
-  | ASN1_NULL         -> 0                    (* Any `ASN1_NULL` value has nothing to serialize and has length 0. *)
+  | ASN1_NULL    -> 0                    (* Any `ASN1_NULL` value has nothing to serialize and has length 0. *)
   | OCTET_STRING -> asn1_length_max - 6  (* An `OCTET_STRING` of size `asn1_length_max - 6`. *)
   | OID          -> asn1_length_max - 6  (* `OID` is just `OCTET_STRING`. *)
   | BIT_STRING   -> asn1_length_max - 6  (* An `BIT_STRING` of size `asn1_length_max - 7` with a leading byte of `unused_bits`. *)
   | SEQUENCE     -> asn1_length_max - 6  (* An `SEQUENCE` whose value has length `asn1_length_max - 6` *)
+  | SET          -> asn1_length_max - 6  (* An `SET` whose value has length `asn1_length_max - 6` *)
   | CUSTOM_TAG _ _ _ -> asn1_length_max - 6
 
 /// Helper to assert a length `l` is a valid ASN1 value length of the given type `a`
@@ -138,11 +146,12 @@ let asn1_TLV_length_min_of_type
 = match a with        (* Tag Len Val *)
   | BOOLEAN      -> 3 (*  1 + 1 + 1  *)
   | INTEGER      -> 3 (*  1 + 1 + 1  *)
-  | ASN1_NULL         -> 2 (*  1 + 1 + 0  *)
+  | ASN1_NULL    -> 2 (*  1 + 1 + 0  *)
   | OCTET_STRING -> 2 (*  1 + 1 + 0  *)
   | OID          -> 2 (*  1 + 1 + 0  *)
   | BIT_STRING   -> 3 (*  1 + 1 + 1  *)
   | SEQUENCE     -> 2 (*  1 + 1 + 0  *)
+  | SET          -> 2 (*  1 + 1 + 0  *)
   | CUSTOM_TAG _ _ _ -> 2
 
 noextract
@@ -152,11 +161,12 @@ let asn1_TLV_length_max_of_type
 = match a with                       (* Tag Len Val *)
   | BOOLEAN      -> 3                (*  1 + 1 + 1  *)
   | INTEGER      -> 6                (*  1 + 1 + 4  *)
-  | ASN1_NULL         -> 2                (*  1 + 1 + 0  *)
+  | ASN1_NULL    -> 2                (*  1 + 1 + 0  *)
   | OCTET_STRING -> asn1_length_max  (*  1 + 5 + _  *)
   | OID          -> asn1_length_max  (*  1 + 5 + _  *)
   | BIT_STRING   -> asn1_length_max  (*  1 + 5 + _  *)
   | SEQUENCE     -> asn1_length_max  (*  1 + 5 + _  *)
+  | SET          -> asn1_length_max  (*  1 + 5 + _  *)
   | CUSTOM_TAG _ _ _ -> asn1_length_max
 
 /// Helper to assert a length `l` is a valid ASN1 TLV length of the given type `a`
@@ -195,11 +205,12 @@ let asn1_value_int32_min_of_type
 = match a with
   | BOOLEAN      -> 1ul
   | INTEGER      -> 1ul
-  | ASN1_NULL         -> 0ul
+  | ASN1_NULL    -> 0ul
   | OCTET_STRING -> asn1_int32_min
   | OID          -> asn1_int32_min
   | BIT_STRING   -> 1ul
   | SEQUENCE     -> asn1_int32_min
+  | SET          -> asn1_int32_min
   | CUSTOM_TAG _ _ _ -> asn1_int32_min
 
 inline_for_extraction
@@ -209,11 +220,12 @@ let asn1_value_int32_max_of_type
 = match a with
   | BOOLEAN      -> 1ul
   | INTEGER      -> 4ul
-  | ASN1_NULL         -> 0ul
+  | ASN1_NULL    -> 0ul
   | OCTET_STRING -> asn1_int32_max - 6ul
   | OID          -> asn1_int32_max - 6ul
   | BIT_STRING   -> asn1_int32_max - 6ul
   | SEQUENCE     -> asn1_int32_max - 6ul
+  | SET          -> asn1_int32_max - 6ul
   | CUSTOM_TAG _ _ _ -> asn1_int32_max - 6ul
 
 /// Valid ASN1 Value len subtype for a given type`a`
@@ -238,11 +250,12 @@ let asn1_TLV_int32_min_of_type
 = match a with
   | BOOLEAN      -> 3ul
   | INTEGER      -> 3ul
-  | ASN1_NULL         -> 2ul
+  | ASN1_NULL    -> 2ul
   | OCTET_STRING -> 2ul
   | OID          -> 2ul
   | BIT_STRING   -> 3ul
   | SEQUENCE     -> 2ul
+  | SET          -> 2ul
   | CUSTOM_TAG _ _ _ -> 2ul
 
 let asn1_TLV_int32_max_of_type
@@ -251,11 +264,12 @@ let asn1_TLV_int32_max_of_type
 = match a with
   | BOOLEAN      -> 3ul
   | INTEGER      -> 6ul
-  | ASN1_NULL         -> 2ul
+  | ASN1_NULL    -> 2ul
   | OCTET_STRING -> asn1_int32_max
   | OID          -> asn1_int32_max
   | BIT_STRING   -> asn1_int32_max
   | SEQUENCE     -> asn1_int32_max
+  | SET          -> asn1_int32_max
   | CUSTOM_TAG _ _ _ -> asn1_int32_max
 
 /// Valid ASN1 TLV len subtype for a given type`a`

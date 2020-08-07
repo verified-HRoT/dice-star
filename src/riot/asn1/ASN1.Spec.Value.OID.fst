@@ -917,13 +917,18 @@ let lemma_serialize_asn1_oid_TLV_of_size
 #pop-options
 
 (* Useful combinators to construct simple OID-enveloped sequence *)
+let envelop_OID_with_t
+  (oid: datatype_of_asn1_type OID)
+  (t: Type0)
+= x: datatype_of_asn1_type OID {x == oid} `tuple2` t
+
 let parse_envelop_OID_with
   (oid: datatype_of_asn1_type OID)
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
   (s: serializer p)
-: parser _ (x: datatype_of_asn1_type OID {x == oid} `tuple2` t)
+: parser _ (oid `envelop_OID_with_t` t)
 = parse_asn1_oid_TLV_of oid
   `nondep_then`
   p
@@ -945,7 +950,7 @@ let lemma_serialize_envelop_OID_with_unfold
   (#t: Type0)
   (#p: parser k t)
   (s: serializer p)
-  (x: (x: datatype_of_asn1_type OID {x == oid} `tuple2` t))
+  (x: oid `envelop_OID_with_t` t)
 : Lemma (
   serialize (serialize_envelop_OID_with oid s) x ==
   serialize (serialize_asn1_oid_TLV_of oid) (fst x)
@@ -963,10 +968,10 @@ let lemma_serialize_envelop_OID_with_size
   (#t: Type0)
   (#p: parser k t)
   (s: serializer p)
-  (x: (x: datatype_of_asn1_type OID {x == oid} `tuple2` t))
+  (x: oid `envelop_OID_with_t` t)
 : Lemma (
-  length_of_opaque_serialization (serialize_envelop_OID_with oid s) x ==
-  length_of_opaque_serialization (serialize_asn1_oid_TLV_of oid) (fst x) +
-  length_of_opaque_serialization s (snd x)
+  length_of_opaque_serialization (serialize_envelop_OID_with oid s) x
+  == length_of_opaque_serialization (serialize_asn1_oid_TLV_of oid) (fst x) +
+     length_of_opaque_serialization s (snd x)
 )
 = lemma_serialize_envelop_OID_with_unfold oid s x

@@ -467,7 +467,8 @@ let serialize32_asn1_integer_backwards
 
   (* Unreachable *)
   else
-  ( false_elim () )
+  ( let () = false_elim () in
+    LowStar.Failure.failwith "Error: Statically unreachable." )
 
 
 inline_for_extraction

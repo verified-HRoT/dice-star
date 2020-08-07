@@ -12,6 +12,8 @@ open X509.Crypto
 open RIoT.X509.Base
 open RIoT.X509.FWID
 
+#set-options "--z3rlimit 32"
+
 (* CompositeDeviceID *)
 type compositeDeviceID_t
 = { riot_version : datatype_of_asn1_type INTEGER;
@@ -132,7 +134,7 @@ let lemma_serialize_compositeDeviceID_size
     lemma_serialize_fwid_sequence_TLV_size_exact x.riot_fwid
 
 (* inbound sub type*)
-unfold
+// unfold
 let compositeDeviceID_t_inbound
 = inbound_sequence_value_of (serialize_compositeDeviceID)
 

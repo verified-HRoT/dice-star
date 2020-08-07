@@ -28,9 +28,10 @@ let encode_asn1_tag
   | INTEGER      -> 0x02uy
   | BIT_STRING   -> 0x03uy
   | OCTET_STRING -> 0x04uy
-  | ASN1_NULL         -> 0x05uy
+  | ASN1_NULL    -> 0x05uy
   | OID          -> 0x06uy
   | SEQUENCE     -> 0x30uy
+  | SET          -> 0x31uy
   | CUSTOM_TAG tag_class tag_form tag_value -> ( let b_tag_class = match tag_class with
                                                                      | APPLICATION      -> 0b01000000uy
                                                                      | CONTEXT_SPECIFIC -> 0b10000000uy
