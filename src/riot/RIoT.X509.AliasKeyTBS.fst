@@ -125,7 +125,7 @@ let lemma_serialize_aliasKeyTBS_unfold
   (* in *) x
 
 #restart-solver
-#push-options "--query_stats --z3rlimit 64 --fuel 0 --ifuel 0"
+#push-options "--z3rlimit 64 --fuel 0 --ifuel 0"
 let length_of_aliasKeyTBS_payload
   (header_len: asn1_int32)
   (ku: key_usage_t)

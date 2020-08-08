@@ -183,7 +183,7 @@ let length_of_aliasKeyCRT
 = 1 + length_of_asn1_length (len_of_aliasKeyCRT_payload tbs_len) +
     length_of_aliasKeyCRT_payload tbs_len
 
-#push-options "--query_stats --z3rlimit 64 --fuel 0 --ifuel 0"
+#push-options "--z3rlimit 64 --fuel 0 --ifuel 0"
 let len_of_aliasKeyCRT
   (tbs_len: asn1_int32
             { length_of_aliasKeyCRT_payload tbs_len

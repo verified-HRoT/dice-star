@@ -40,7 +40,7 @@ let template_list: List.llist byte_pub (v template_len)
 
 
 #restart-solver
-#push-options "--query_stats --z3rlimit 1024 --fuel 0 --ifuel 0"
+#push-options "--z3rlimit 1024 --fuel 0 --ifuel 0"
 let main ()
 : HST.ST C.exit_code
   (requires fun h -> True)

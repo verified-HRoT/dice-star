@@ -143,7 +143,7 @@ let len_of_aliasKeyTBS_extensions_payload
 = len_of_riot_extension version +
   len_of_x509_key_usage ku
 
-#push-options "--query_stats --z3rlimit 64 --fuel 0 --ifuel 0"
+#push-options "--z3rlimit 64 --fuel 0 --ifuel 0"
 let lemma_serialize_aliasKeyTBS_extensions_size
   (x: aliasKeyTBS_extensions_t)
 : Lemma (

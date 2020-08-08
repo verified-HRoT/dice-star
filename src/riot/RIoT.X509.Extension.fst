@@ -129,7 +129,7 @@ let len_of_riot_extension_payload
             { v len == length_of_riot_extension_payload version })
 = len_of_asn1_primitive_TLV version + 109ul
 
-#push-options "--query_stats --z3rlimit 128 --fuel 0 --ifuel 2"
+#push-options "--z3rlimit 128 --fuel 0 --ifuel 2"
 let lemma_serialize_riot_extension_size_exact
   (x: riot_extension_t_inbound)
 : Lemma (

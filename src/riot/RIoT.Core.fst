@@ -28,7 +28,7 @@ open RIoT.Impl
 module Ed25519 = Hacl.Ed25519
 
 #restart-solver
-#push-options "--query_stats --z3rlimit 1024 --fuel 0 --ifuel 0"
+#push-options "--z3rlimit 1024 --fuel 0 --ifuel 0"
 let riot
 (* inputs *)
   (cdi : B.lbuffer byte_sec 32)
