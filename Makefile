@@ -5,7 +5,7 @@ riot:
 	$(MAKE) -C src/riot verify-all
 
 test-riot:
-	$(MAKE) -C test test-riot
+	$(MAKE) -C src/test test-riot
 
 test-asn1:
-	$(MAKE) -C test test-asn1
+	$(MAKE) -C src/test test-asn1
