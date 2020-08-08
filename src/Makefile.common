@@ -115,6 +115,7 @@ KRML=$(KREMLIN_HOME)/krml
 KRML_NO_PREFIXS = \
   -no-prefix 'DICE.Definitions' \
   -no-prefix 'DICE.Core' \
+  -no-prefix 'DICE.Test' \
   -no-prefix 'HWAbstraction' \
   -no-prefix 'ASN1.Test' \
   -no-prefix 'ASN1.Test.Helpers' \
@@ -126,7 +127,7 @@ KRML_NO_PREFIXS = \
   -no-prefix 'RIoT.Helpers'
 
 ifeq ($(shell basename "`pwd`"),test)
-  KRML_LDOPTS = \
+#  KRML_LDOPTS = \
     -ldopt -lmbedcrypto \
     -ldopt -lmbedtls \
     -ldopt -lmbedx509
