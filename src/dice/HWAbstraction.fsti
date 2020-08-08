@@ -29,154 +29,151 @@ module HST = FStar.HyperStack.ST
 
 module B = LowStar.Buffer
 
+module S = Spec.Hash.Definitions
+module H = Hacl.Hash.Definitions
+
 open DICE.Definitions
 
 #set-options "--__temp_no_proj HWAbstraction"
 
 val uds_len : hashable_len
+val uds_value (_: unit): G.erased (lbytes_sec (v uds_len))
 
+(* ZT: Ghost values for specifications *)
+val riot_pubkey_value       (_: unit): G.erased (lbytes_sec 32)
+val riot_image_value        (_: unit): G.erased (image: bytes_sec {0 < Seq.length image /\ Seq.length image <= S.max_input_length alg})
+val riot_image_hash_value   (_: unit): G.erased (lbytes_sec 32)
+val riot_image_header_value (_: unit): G.erased (image_header: bytes_sec {Seq.length image_header + 64<= max_size_t})
+val riot_header_sig_value   (_: unit): G.erased (lbytes_sec 64)
 
-/// The model maintains some abstract local state
-///
-/// The state is a reference to an erased (ghost) value,
-///   and so, we can be sure that it doesn't impact the concrete executions
-///
-/// This type can be left out of the native C implementation of this interface
+noextract type hwi_state_t = | Enabled | Copied | Zeroized | Disabled
+noextract let hwi_state_rel: P.preorder (G.erased hwi_state_t) =
+  fun x1 x2 ->
+  match (G.reveal x1, G.reveal x2) with
+  | Enabled, Enabled | Enabled, Copied | Copied, Copied
+  | Enabled, Disabled| Copied, Disabled| Disabled, Disabled
+  | _, Zeroized -> True
+  | _, _ -> False
 
+  // | Enabled , Enabled  -> True
+  // | _       , Enabled  -> False
+  // | Copied  , Copied
+  // | Enabled , Copied   -> True
+  // | _       , Copied   -> False
+  // | Zeroized, Zeroized
+  // | Enabled , Zeroized
+  // | Copied  , Zeroized -> True
+  // | _       , Zeroized -> False
+  // | _       , Disabled -> True
 
-noextract
-val local_state : (a:Type0 & pre:P.preorder (G.erased a) & HST.mref (G.erased a) pre)
+noextract let hwi_state: HST.mref (G.erased hwi_state_t) hwi_state_rel = HST.ralloc HS.root (G.hide Enabled)
 
+(* Exposed for tracking *)
+noextract let uds_is_enabled h = G.reveal (HS.sel h hwi_state) == Enabled
+noextract let uds_is_copied  h = G.reveal (HS.sel h hwi_state) == Copied
 
-/// Following predicates define the state machine for UDS
-///
-/// At the beginning uds_is_uninitialized
-///   It is a stateful predicate, since when the UDS is initialized, the predicate ceases to hold
-///
-/// Then the UDS becomes initialized
-///   And this is a PURE, state independent predicate, once initialized UDS remains so
-///
-/// Then at some point UDS will be disabled, again once disabled remains disabled
-///
-/// These are just for spec purposes, can be left out of the native implementation
+(* Hided for control *)
+(* ZT: `stack_is_zeroized` predicate is bound to a memory state
+        and the `disable_uds` function defined later requires a
+        memory state satisfies `stack_is_zeroied`, thus any buffer
+        allocation and modification are forbidded.
+   FIXME: Writing to immutable local variables is _not_ forbidded. *)
+noextract val stack_is_zeroized (h: HS.mem): Type0
+(* ZT: Although all UDS copies are zeroized and its access is disabled,
+       `uds_is_disabled` is still bound to a memory state to prevent
+       copying of CDI. *)
+noextract val uds_is_disabled (h: HS.mem): Type0
 
+let image_equals_to_value
+  (image: image_t)
+  (h: HS.mem)
+= B.as_seq h image.image_base == G.reveal (riot_image_value ()) /\
+  B.as_seq h image.image_hash == G.reveal (riot_image_hash_value ()) /\
+  B.as_seq h image.image_header == G.reveal (riot_image_header_value ()) /\
+  B.as_seq h image.header_sig == G.reveal (riot_header_sig_value ()) /\
+  B.as_seq h image.pubkey == G.reveal (riot_pubkey_value ())
 
-noextract
-val uds_is_uninitialized (h:HS.mem) : Type0
+val get_riot_image
+  (_: unit)
+  (buf_disj: G.erased (B.buffer byte_sec)) (* Ideally we want to pass a (list of) loc(s), but seems we cannot say they are already allocated. *)
+: HST.Stack (image_t)
+  (requires fun h -> B.live h buf_disj /\ B.loc_disjoint (B.loc_buffer buf_disj) (B.loc_mreference hwi_state))
+  (ensures fun h0 image h1 ->
+    (* post: liveness for image *)
+    h1 `contains_image` image /\ B.live h1 buf_disj /\
+    (* post: tie `image` to ghost values *)
+    image_equals_to_value image h1 /\
+    (* post: disjointness with given locs *)
+    B.all_disjoint [B.loc_buffer image.pubkey;
+                    B.loc_buffer image.header_sig;
+                    B.loc_buffer image.image_header;
+                    B.loc_buffer image.image_hash;
+                    B.loc_buffer image.image_base;
+                    G.reveal (B.loc_buffer buf_disj);
+                    B.loc_mreference hwi_state] /\
+    B.modifies (B.loc_none) h0 h1)
 
-noextract
-val uds_is_initialized : Type0
-
-noextract
-val uds_is_disabled : Type0
-
-
-/// Now the state of the interface, again as an abstract type
-///
-/// The state provides getters for UDS and CDI (see below)
-///   so the native implementation can implement it simply as a record of two pointers (uds and cdi)
-
-val state : Type0
-
-/// Clients can get the uds and the cdi buffer from the state
-///   And also value of the UDS for the purposed of the spec
-
-val get_uds (st:state)
-: (b:B.buffer uint8{B.length b == v uds_len /\ B.freeable b})
-
-val get_cdi (st:state)
-: (b:B.buffer uint8{B.length b == v cdi_len /\ B.freeable b})
-
-val get_uds_value (st:state)
-: GTot (s:Seq.seq uint8{Seq.length s == v uds_len})
-
-val get_riot_header (st:state)
-: riot_header_t
-
-
-/// Helper
-
-unfold
-let contains (h:HS.mem) (st:state) =
-  B.live h (get_uds st) /\
-  B.live h (get_cdi st) /\
-  h `contains_riot_header` (get_riot_header st)
-
-unfold
-let disjointness (st:state) =
-  let (| _, _, local_st |) = local_state in
-  let rh = get_riot_header st in
-  B.all_disjoint ([
-    B.loc_buffer (get_uds st);
-    B.loc_buffer (get_cdi st);
-    B.loc_mreference local_st;
-    B.loc_buffer rh.header_sig;
-    B.loc_buffer rh.binary;
-    B.loc_buffer rh.pubkey])
-
-
-/// The initialization routine
-///
-/// It requires a precondition that uds_is_uninitialized
-///   We will add this as a precondition (assumption) to the DICE core main function
-///   After this function is called, the clients cannot call it again
-///   since they won't be able to prove that uds_is_uninitialized in the output memory
-///
-/// It provides liveness and disjointness of various state elements
-///
-/// It also provides as a postcondition, the fact that the value of the UDS buffer
-///   is same as the value of the ghost uds (as given by the get_uds_value function)
-///
-/// TODO: this currently does not say anything about the allocations it does
-///       e.g. this function is currently allowed to allocate two uds buffers and copy UDS into them
-
-val initialize (_: unit)
-: HST.ST state
+val read_uds
+  (uds: B.lbuffer byte_sec (v uds_len))
+: HST.Stack unit
   (requires fun h ->
-    uds_is_uninitialized h)
-  (ensures fun h0 st h1 ->
-    uds_is_initialized /\  //uds has been initialized
-    (let (| _, _, local_st |) = local_state in
-     let uds  = get_uds st in
-     h1 `HS.contains` local_st /\
-     h1 `contains` st /\
-     B.(modifies (loc_mreference local_st) h0 h1) /\
-     disjointness st /\
-     B.as_seq h1 uds == get_uds_value st))
-
-
-/// Zeroing out UDS
-///
-/// Also says that it doesn't perform any allocation
-///   (actually it could have allocated and deallocated)
-
-val unset_uds (st:state)
-: HST.ST unit
-  (requires fun h ->
-    uds_is_initialized /\ h `contains` st)
+    (* pre: in state `initialized` *)
+    uds_is_enabled h /\
+    (* pre: image is valid *)
+    is_valid_image (G.reveal (riot_pubkey_value ()))
+                   (G.reveal (riot_image_value ()))
+                   (G.reveal (riot_image_hash_value ()))
+                   (G.reveal (riot_image_header_value ()))
+                   (G.reveal (riot_header_sig_value ())) /\
+    B.live h uds /\ B.loc_disjoint (B.loc_buffer uds) (B.loc_mreference hwi_state))
   (ensures fun h0 _ h1 ->
-    let uds = get_uds st in
-    HST.equal_domains h0 h1 /\
-    B.(modifies (loc_buffer uds) h0 h1) /\
-    B.as_seq h1 uds == Seq.create (v uds_len) (u8 0x00))
+    uds_is_copied h1 /\
+    h1 `HS.contains` hwi_state /\
+    B.live h1 uds /\
+    (* post: only `uds` and ref is modified *)
+    B.modifies (B.loc_buffer uds `B.loc_union` B.loc_mreference hwi_state) h0 h1 /\
+    (* post: tie `uds` to ghost value *)
+    B.as_seq h1 uds == G.reveal (uds_value ()))
 
-
-/// Disable UDS
-///
-/// Requires that the clients must have zeroed out UDS already
-///
-/// Takes away the liveness of the UDS buffer
-///   i.e. clients cannot read/write to it anymore
-
-val disable_uds (st:state)
-: HST.ST unit
+val platform_zeroize_stack (_: unit)
+: HST.Stack unit
   (requires fun h ->
-    uds_is_initialized /\
-    h `contains` st /\
-    Seq.equal (B.as_seq h (get_uds st)) (Seq.create (v uds_len) (u8 0x00)))
+    (* pre: image is valid and secrets are zeroized *)
+    uds_is_copied h)
   (ensures fun h0 _ h1 ->
-    uds_is_disabled /\  //uds has been disabled
-    (let (| _, _, local_st |) = local_state in
-     let uds = get_uds st in
-     B.(modifies (loc_union (loc_addr_of_buffer uds)
-                            (loc_mreference local_st)) h0 h1)))
+    stack_is_zeroized h1 /\
+    h1 `HS.contains` hwi_state /\
+    (* NOTE: Since `hwi_state` is modified, no predicates other than the opaque
+             `stack_is_zeroized` holds. *)
+    (* FIXME: Not sure if we should be more precise about this modifies clause,
+              since all buffers on stack are meant to be zeroized *)
+    B.(modifies (loc_mreference hwi_state) h0 h1))
+
+val disable_uds (_: unit)
+: HST.Stack unit
+  (requires fun h ->
+   (* pre: image is valid and secrets are zeroized *)
+    stack_is_zeroized h \/
+   (* pre: OR image is invalid and secrets were never copied *)
+   (uds_is_enabled h /\
+    ~ (is_valid_image (G.reveal (riot_pubkey_value ()))
+                      (G.reveal (riot_image_value ()))
+                      (G.reveal (riot_image_hash_value ()))
+                      (G.reveal (riot_image_header_value ()))
+                      (G.reveal (riot_header_sig_value ())))))
+  (ensures fun h0 _ h1 ->
+    uds_is_disabled h1 /\
+    h1 `HS.contains` hwi_state /\
+    (* NOTE: Since `hwi_state` is modified, no predicates other than the opaque
+             `uds_is_disabled` holds. *)
+    B.(modifies (loc_mreference hwi_state) h0 h1))
+
+(* Just (defensively) zeroize a buffer, we may not actually use it *)
+val platform_zeroize
+  (len: size_t)
+  (b: B.lbuffer byte_sec (v len))
+: HST.Stack unit
+  (requires fun h -> B.live h b)
+  (ensures fun h0 _ h1 ->
+    B.modifies (B.loc_buffer b) h0 h1 /\
+    B.as_seq h1 b == Seq.create (v len) (u8 0x00))

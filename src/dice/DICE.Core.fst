@@ -10,6 +10,7 @@ module HS  = FStar.HyperStack
 module HST = FStar.HyperStack.ST
 
 open Lib.IntTypes
+open Lib.ByteBuffer
 module S = Spec.Hash.Definitions
 module Ed25519 = Hacl.Ed25519
 
@@ -17,122 +18,172 @@ module HW = HWAbstraction
 
 open DICE.Definitions
 
-#set-options "--max_fuel 0 --max_ifuel 0 --z3rlimit 20"
+#set-options "--z3rlimit 20"
 
+let authenticate_image
+  (image: image_t)
+: HST.Stack bool
+ (requires fun h ->
+   h `contains_image` image)
+ (ensures fun h0 result h1 ->
+   B.modifies B.loc_none h0 h1 /\
+   h1 `contains_image` image /\
+  (result <==> is_valid_image_st image h0))
+= HST.push_frame ();
+  let valid_header_sig = Ed25519.verify
+                         (* pub *) image.pubkey
+                         (* msg *) image.header_size image.image_header
+                         (* sig *) image.header_sig in
+  if (valid_header_sig) then
+  ( let computed_image_hash = B.alloca (u8 0x00) digest_len in
+    let image_binary = B.sub image.image_base 0ul image.image_size in
+    let valid_image_hash = dice_hash alg
+                           (* msg *) image_binary image.image_size
+                           (* dst *) computed_image_hash in
+    let valid_image = lbytes_eq #digest_len image.image_hash computed_image_hash in
+    HST.pop_frame();
+(* return *) valid_image )
+  else
+  ( HST.pop_frame ();
+(* return *) false )
 
-/// Factoring out some preconditions required to invoke hmac routines
-
-let hmac_preconditions ()
-: Lemma 
+let lemma_hmac_preconditions ()
+: Lemma
   (Spec.Agile.HMAC.keysized alg (v digest_len) /\
    v digest_len + S.block_length alg <= S.max_input_length alg)
 = assert_norm (Spec.Agile.HMAC.keysized alg (v digest_len) /\
                v digest_len + S.block_length alg <= S.max_input_length alg)
 
+module G = FStar.Ghost
 
-/// Setting up the specifications of the DICE core functionality
-///
-/// The first property is that the RIoT header signature verifies
+let derive_cdi_spec
+  (uds : lbytes_sec (v HW.uds_len) { uds == G.reveal (HW.uds_value ()) })
+  (riot: bytes_sec { //Seq.length riot <= Spec.Hash.Definitions.max_input_length alg /\
+                     riot == G.reveal (HW.riot_image_value())})
+: GTot (lbytes_sec (v digest_len))
+= (* Prf *) lemma_hmac_preconditions ();
+  Spec.Agile.HMAC.hmac alg
+    (Spec.Agile.Hash.hash alg uds)
+    (Spec.Agile.Hash.hash alg riot)
 
-let riot_signature_verifies (riot_header:riot_header_t) (h:HS.mem) =
-  let digest = Spec.Agile.Hash.hash alg (B.as_seq h riot_header.binary) in  
-  Spec.Ed25519.verify (B.as_seq h riot_header.pubkey) digest (B.as_seq h riot_header.header_sig)
-
-/// The next property says that the computed CDI is hmac of hash of the RIoT binary
-///   computed with the hash of the UDS as key 
-
-let cdi_is_hmac (state:HW.state) (h:HS.mem) =
-  let cdi = HW.get_cdi state in
-  let uds = HW.get_uds state in
-  hmac_preconditions ();
-  B.as_seq h cdi ==
-    Spec.Agile.HMAC.hmac alg
-      (Spec.Agile.Hash.hash alg (HW.get_uds_value state))
-      (Spec.Agile.Hash.hash alg (B.as_seq h (HW.get_riot_header state).binary))
-
-
-/// The postcondition in addition says that the DICE core
-///   only modifies the CDI buffer
-
-unfold let dice_core_post (state:HW.state)
-: HS.mem -> unit -> HS.mem -> Type0
-= fun h0 r h1 ->
-  B.(modifies (loc_buffer (HW.get_cdi state)) h0 h1) /\
-  riot_signature_verifies (HW.get_riot_header state) h1 /\
-  cdi_is_hmac state h1
-
-
-/// Preconditions (established by HW initialize)
-
-unfold
-let dice_core_pre (state:HW.state)
-: HS.mem -> Type0
-= fun h ->
-  h `HW.contains` state /\
-  HW.disjointness state /\
-  B.as_seq h (HW.get_uds state) == HW.get_uds_value state
-
-
-/// The DICE core functionality
-///
-/// It allocates two buffers on stack to compute the digests of the RIoT binary and UDS
-
-inline_for_extraction
-let dice_core_aux (state:HW.state)
-: HST.StackInline unit
-  (requires dice_core_pre state)
-  (ensures dice_core_post state)
-= let h1 = HST.get () in
-
-  comment "stack buffer for computing the hash of the RIoT binary";
-  let riot_binary_digest = B.alloca (u8 0) digest_len in
-
-  comment "stack buffer for computing the hash of the UDS";
-  let uds_digest = B.alloca (u8 0) digest_len in
-
-  let h2 = HST.get () in
-
-  comment "signature verification for the RIoT binary";
-  let riot_header = HW.get_riot_header state in
-  dice_hash alg riot_header.binary riot_header.binary_size riot_binary_digest;
-  let b = Ed25519.verify riot_header.pubkey digest_len riot_binary_digest riot_header.header_sig in
-
-  if not b then Fail.failwith "RIoT signature verification failed";
-
-  comment "CDI computation";
-  let uds = HW.get_uds state in
-  let cdi = HW.get_cdi state in
-  dice_hash alg uds HW.uds_len uds_digest;
-  hmac_preconditions ();
-  dice_hmac alg cdi uds_digest digest_len riot_binary_digest digest_len;
-
-  //proof hints for `modifies` to the solver
-  let h3 = HST.get () in
-  B.modifies_remove_new_locs
-    (B.(loc_union (loc_buffer riot_binary_digest) (loc_buffer uds_digest)))
-    B.loc_none
-    (B.loc_buffer cdi)
-    h1 h2 h3
-
-/// Wrapper over the dice_core_aux
-
-let dice_core (state:HW.state)
+let derive_cdi
+  (uds: B.lbuffer byte_sec (v HW.uds_len))
+  (riot_size: hashable_len)
+  (riot: B.lbuffer byte_sec (v riot_size))
+  (cdi: B.lbuffer byte_sec (v digest_len))
 : HST.Stack unit
-  (requires dice_core_pre state)
-  (ensures dice_core_post state)
+  (requires fun h ->
+    B.live h uds /\ B.live h riot /\ B.live h cdi /\
+    B.all_disjoint [B.loc_buffer uds; B.loc_buffer riot; B.loc_buffer cdi] /\
+    B.as_seq h uds == G.reveal (HW.uds_value ()) /\
+    B.as_seq h riot == G.reveal (HW.riot_image_value ()))
+  (ensures fun h0 _ h1 ->
+    B.modifies (B.loc_buffer cdi) h0 h1 /\
+    B.as_seq h1 cdi == derive_cdi_spec (B.as_seq h0 uds) (B.as_seq h0 riot))
 = HST.push_frame ();
-  dice_core_aux state;
+  let uds_digest  = B.alloca (u8 0x00) digest_len in
+  let riot_digest = B.alloca (u8 0x00) digest_len in
+  dice_hash alg uds HW.uds_len uds_digest;
+  dice_hash alg riot riot_size riot_digest;
+  (* Prf *) lemma_hmac_preconditions ();
+  dice_hmac alg
+    (* dst *) cdi
+    (* key *) uds_digest  digest_len
+    (* msg *) riot_digest digest_len;
   HST.pop_frame ()
 
-let main ()
-: HST.ST C.exit_code
+let dice_core
+  (cdi: B.lbuffer byte_sec (v digest_len))
+  (image: image_t)
+: HST.Stack unit
   (requires fun h ->
-    HW.uds_is_uninitialized h)
-  (ensures fun _ _ _ -> HW.uds_is_disabled)
-= let state = HW.initialize () in
-  dice_core state;
+    h `contains_image` image /\ B.live h cdi /\
+    HW.uds_is_enabled h /\
+    B.all_disjoint [B.loc_buffer cdi;
+                    B.loc_buffer image.pubkey;
+                    B.loc_buffer image.header_sig;
+                    B.loc_buffer image.image_header;
+                    B.loc_buffer image.image_hash;
+                    B.loc_buffer image.image_base;
+                    B.loc_mreference HW.hwi_state] /\
+    HW.image_equals_to_value image h /\
+    is_valid_image_st image h)
+  (ensures fun h0 _ h1 ->
+    B.modifies (B.loc_buffer cdi `B.loc_union` B.loc_mreference HW.hwi_state) h0 h1 /\
+    HW.uds_is_copied h1 /\
+    B.as_seq h1 cdi == derive_cdi_spec
+                       (G.reveal (HW.uds_value ()))
+                       (G.reveal (HW.riot_image_value ())))
+= (* Prf *) HST.recall HW.hwi_state; (* for disjointness *)
+  HST.push_frame ();
 
-  HW.unset_uds state;
-  HW.disable_uds state;
+(* Copy UDS to a memory on stack *)
+  let uds = B.alloca (u8 0x00) HW.uds_len in
+  HW.read_uds uds;
 
-  C.EXIT_SUCCESS
+(* Derive CDI *)
+  derive_cdi
+    (* uds *) uds
+    (* img *) image.image_size image.image_base
+    (* cdi *) cdi;
+
+  HST.pop_frame ()
+
+type dice_return_code =
+| DICE_SUCCESS | DICE_ERROR
+
+let f ()
+: HST.Unsafe unit
+  (requires fun h -> HW.uds_is_copied h)
+  (ensures fun h0 _ h1 -> True)
+= HW.platform_zeroize_stack ();
+  HW.disable_uds ()
+
+#push-options "--query_stats --z3rlimit 256 --fuel 0 --ifuel 0"
+let dice_main
+  (cdi: B.lbuffer byte_sec (v digest_len))
+: HST.Stack dice_return_code
+  (requires fun h ->
+    HW.uds_is_enabled h /\
+    B.live h cdi /\ B.loc_disjoint (B.loc_buffer cdi) (B.loc_mreference HW.hwi_state))
+  (ensures fun h0 code h1 -> True /\
+    // h1 `HS.contains` HW.hwi_state /\
+    HW.uds_is_disabled h1 /\
+    (code == DICE_SUCCESS ==> is_valid_image (G.reveal (HW.riot_pubkey_value ()))
+                                                (G.reveal (HW.riot_image_value ()))
+                                                (G.reveal (HW.riot_image_hash_value ()))
+                                                (G.reveal (HW.riot_image_header_value ()))
+                                                (G.reveal (HW.riot_header_sig_value ())) /\
+                                                B.as_seq h1 cdi == derive_cdi_spec
+                                                                     (G.reveal (HW.uds_value ()))
+                                                                     (G.reveal (HW.riot_image_value ())) ) /\
+       (code == DICE_ERROR ==> ~ (is_valid_image (G.reveal (HW.riot_pubkey_value ()))
+                                                (G.reveal (HW.riot_image_value ()))
+                                                (G.reveal (HW.riot_image_hash_value ()))
+                                                (G.reveal (HW.riot_image_header_value ()))
+                                                (G.reveal (HW.riot_header_sig_value ())))) /\
+    True
+    )
+= (* Prf *) HST.recall HW.hwi_state; (* for liveness *)
+
+  let image = HW.get_riot_image () (G.hide cdi) in
+  let valid_image = authenticate_image image in
+
+  if (not valid_image) then
+  (
+(* Disable UDS and exit *)
+   (* FIXME: For some reason the pre and post condition of `HW.disable_uds`
+             and `HW.platform_zeroize_stack` is not working*)
+    HW.disable_uds ();
+    DICE_ERROR )
+  else
+  (
+(* Derive CDI *)
+    dice_core cdi image;
+
+(* Zeroize Stack *)
+    HW.platform_zeroize_stack ();
+
+(* Disable UDS and exit *)
+    HW.disable_uds ();
+    DICE_SUCCESS )
