@@ -72,9 +72,9 @@ ifeq ($(shell basename "`pwd`"),riot)
   FSTAR_ALREADY_CACHED = --already_cached '$(ALREADY_CACHED)'
 else
 ifeq ($(shell basename "`pwd`"),test)
-  FSTAR_ALREADY_CACHED = --already_cached '$(ALREADY_CACHED) RIoT ASN1 X509'
+  FSTAR_ALREADY_CACHED = --already_cached '$(ALREADY_CACHED)'
 else
-  FSTAR_ALREADY_CACHED = --already_cached '$(ALREADY_CACHED) DICE RIoT ASN1 X509'
+  FSTAR_ALREADY_CACHED = --already_cached '$(ALREADY_CACHED)'
 endif
 endif
 endif
@@ -122,6 +122,7 @@ KRML_NO_PREFIXS = \
   -no-prefix 'RIoT.Spec' \
   -no-prefix 'RIoT.Impl' \
   -no-prefix 'RIoT.Core' \
+  -no-prefix 'RIoT.Test' \
   -no-prefix 'RIoT.Helpers'
 
 ifeq ($(shell basename "`pwd`"),test)
@@ -191,10 +192,10 @@ ifeq ($(shell basename "`pwd`"),dice)
   C_FILES = $(C_DIR)/HWAbstraction.c
 else
 ifeq ($(shell basename "`pwd`"),riot)
-  C_FILES = $(C_DIR)/Declassification.c $(C_DIR)/RIoT.Helpers.c
+  C_FILES = $(C_DIR)/Declassification.c
 else
 ifeq ($(shell basename "`pwd`"),test)
-  C_FILES = $(TEST_DIR)/ASN1.Test.Helpers.c
+  C_FILES = $(C_DIR)/Declassification.c $(C_DIR)/ASN1.Test.Helpers.c $(C_DIR)/RIoT.Helpers.c
 else
   C_FILES =
 endif

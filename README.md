@@ -1,55 +1,74 @@
-VerifiedHardware
+Verified DICE/RIoT Implementation
 ======================
 
 
 Introduction
 ------------
 
-This project intends to build a verified version of [microsoft/RIoT](https://github.com/microsoft/RIoT) using 
+This project intends to build a verified version of [microsoft/RIoT](https://github.com/microsoft/RIoT) using
 - [F*](https://github.com/FStarLang/FStar): verification system for effectful programs
 - [KreMLin](https://github.com/FStarLang/kremlin): a tool for extracting low-level F* programs to readable C code
 - [HACL*](https://github.com/project-everest/hacl-star): a formally verified cryptographic library written in F*
+- [EverParse](https://github.com/project-everest/everparse): a F* library for write secure parser and serializer
 
-Current Status
---------------
-
-[x] Loader interface of the DICE layer (in **[master](https://github.com/95616ARG/VerifiedHardware/tree/master)** branch) 
-
-[x] RIoT prototype (in **[zt-riot-minimal](https://github.com/95616ARG/VerifiedHardware/tree/zt-riot-minimal)** branch)
-
-Build C files
---------------
-
-### Directory structure
-
+Installation
+------------
+### (recommend) Docker
+Execute the following command and you will be in the project root directory. This Dockerfile depends on the official F* build packaged with Emacs : [fstarlang/fstar-emacs:latest](https://hub.docker.com/r/fstarlang/fstar-emacs/tags).
 ```
-.
-├── src                   # F* source codes directory
-│   ├── Minimal.DICE.fst      # `Minimal.DICE` module
-│   └── Makefile              # compile F* source codes to C
-├── out                   # generated C codes dicevtory
-│   ├── Minimal_DICE.h        # `Minimal` DICE header file
-│   ├── Minimal_DICE.c        # `Minimal` DICE code
-│   └── ...                   # auto-generated third-party C files
-├── .docker               # docker file 
-│   ├── Dockerfile 
-│   └── .emacs                # config for emacs user
-└── README.md
+$ sudo docker build -t verifiedhardware:checkpoint -f .docker/base/Dockerfile .
+$ sudo docker run -it --rm verifiedhardware:checkpoint bash
 ```
 
-### Dependencies
-- F*: [master](https://github.com/FStarLang/FStar) branch
-- KreMLin: [master](https://github.com/FStarLang/kremlin) branch
-- HACL*: [fstar-master](https://github.com/project-everest/hacl-star/tree/fstar-master) branch
-### (*optional*) Build and use docker image
-```
-$ sudo docker build -t verifiedhardware:minimal -f .docker/base/Dockerfile .
-$ sudo docker run -it --rm verifiedhardware:minimal bash
-```
-Run the commands above and you will be in the project root directory. This Dockerfile depends on the official F* build packaged with Emacs : [fstarlang/fstar-emacs:latest](https://hub.docker.com/r/fstarlang/fstar-emacs/tags).
 
-### Build C file
-Run `Makefile` under the project root directory to build C files into `./out`.
+
+File Organization
+-----------------
+
 ```
-$ make
+      ASN.1
+     /  |
+  X.509 |   C        C
+     \  |  /         |
+       RIoT         DICE
 ```
+
+- `src/c`: C source files
+- `src/dice`: F* source files for DICE
+- `src/riot`: F* source files for RIoT
+  - `RIoT.Base`: X.509 base definitions
+  - `RIoT.Declassify`: Interface for declassification functions
+  - `RIoT.X509.*`: X.509 certificate-related definitions
+  - `RIoT.Spec.*`: Specification for crypto and X.509 certificate-related functions
+  - `RIoT.Impl.*`: Implementation for crypto and X.509 certificate-related functions
+  - `RIoT.Core`: RIoT Core functionality
+  - `src/riot/asn1`: F* source files for ASN.1 serializer
+    - `ASN1.Base`: Base ASN.1 definitions
+    - `ASN1.Spec.*`: Specification serializers and combinators
+    - `ASN1.Low.*`: Implementation serializers and combinators
+  - `src/riot/x509`: F* source files for X.509 serializer
+    - `X509.Base`: X.509 base definitions
+    - `X509.Crypto`:  Crypto-related serializer
+    - `X509.BasicFields`: Serializer for X.509 certificate basic fields
+    - `X509.ExtFields`: Serializer for X.509 certificate extension fields
+- `src/test` Test scripts
+- `src/obj` F* outputs (after build)
+
+### Build and Test
+
+#### Verify F* Source Files
+You can verify F* source files for any project (and their dependencies) of `DICE`, `RIoT`, `ASN1` and `X509` by entering the corresponding directory and execute
+```
+make verify-all -j4
+```
+
+#### Test Projects (and Generate C Files)
+You can test any project of `RIoT` and `ASN1` by entering the `src/test` directory and execute
+```
+make test-riot
+```
+or
+```
+make test-asn1
+```
+The test executable `src/test/test.exe` will be complied and executed. Generated C files lie in `src/obj`.

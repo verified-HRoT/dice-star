@@ -83,14 +83,11 @@ def byte_list_len (byte_list):
 
 
 parser = argparse.ArgumentParser(description='ASN.1 Test Script Generator')
+parser.add_argument("--target",type=str,help="Test target",default="asn1")
 parser.add_argument("--tests",type=str,help="Test suites",default="ASN1.test_suites.data")
 parser.add_argument("--output",type=str,help="Generated test script",default="ASN1.Test.fst")
 
-args = parser.parse_args()
-
-if __name__ == "__main__":
-    test_suites = args.tests
-    test_script = args.output
+def generate_asn1_test(test_suites, test_script):
     no = 0
     with open (test_script, "w+") as out:
         out.write (head_template)
@@ -161,3 +158,18 @@ if __name__ == "__main__":
                         solution  = solution))
 
         out.write (tail_template)
+
+def generate_riot_test(test_suites, test_script):
+    with open (test_script, "w+") as out:
+        with open (test_suites, "r") as f:
+            out.write (f.read())
+
+if __name__ == "__main__":
+    args = parser.parse_args()
+
+    if (args.target == "asn1"):
+        generate_asn1_test("ASN1.test_suites.data", "ASN1.Test.fst")
+    elif(args.target == "riot"):
+        generate_riot_test("RIoT.test_suites.data", "RIoT.Test.fst")
+    else:
+        print("No tests for target {}".format(args.target))
