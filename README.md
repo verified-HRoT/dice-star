@@ -11,16 +11,6 @@ This project intends to build a verified version of [microsoft/RIoT](https://git
 - [HACL*](https://github.com/project-everest/hacl-star): a formally verified cryptographic library written in F*
 - [EverParse](https://github.com/project-everest/everparse): a F* library for write secure parser and serializer
 
-Installation
-------------
-### (recommend) Docker
-Execute the following command and you will be in the project root directory. This Dockerfile depends on the official F* build packaged with Emacs : [fstarlang/fstar-emacs:latest](https://hub.docker.com/r/fstarlang/fstar-emacs/tags).
-```
-$ sudo docker build -t verifiedhardware:checkpoint -f .docker/base/Dockerfile .
-$ sudo docker run -it --rm verifiedhardware:checkpoint bash
-```
-
-
 
 File Organization
 -----------------
@@ -54,21 +44,41 @@ File Organization
 - `src/test` Test scripts
 - `src/obj` F* outputs (after build)
 
-### Build and Test
 
-#### Verify F* Source Files
-You can verify F* source files for any project (and their dependencies) of `DICE`, `RIoT`, `ASN1` and `X509` by entering the corresponding directory and execute
+Installation
+------------
+### (recommend) Docker
+Execute the following command and you will be in the project root directory. This Dockerfile depends on the official F* build packaged with Emacs : [fstarlang/fstar-emacs:latest](https://hub.docker.com/r/fstarlang/fstar-emacs/tags).
+```
+$ sudo docker build -t verifiedhardware:checkpoint -f .docker/base/Dockerfile .
+$ sudo docker run -it --rm verifiedhardware:checkpoint bash
+```
+
+
+Build and Test
+--------------
+You can prepend `OTHERFLAGS='--admit_smt_queries true'` before any commands below to (largely) speed up the verification process (by assuming SMT queries) if you are sure the F* definitions are correct.
+
+### Verify F* Source Files
+You can verify F* source files for any project (and their dependencies) of `DICE`, `RIoT`, `ASN1` and `X509` by entering the corresponding directory and executing
 ```
 make verify-all -j4
 ```
 
-#### Test Projects (and Generate C Files)
-You can test any project of `RIoT` and `ASN1` by entering the `src/test` directory and execute
+### Test Projects (and Generate C Files)
+You can test `RIoT` or `ASN1` by executing
 ```
-make test-riot
+make test-riot -j4
 ```
 or
 ```
-make test-asn1
+make test-asn1 -j4
 ```
-The test executable `src/test/test.exe` will be complied and executed. Generated C files lie in `src/obj`.
+at the `src/test` directory or the root directory. The test executable `src/test/test.exe` will be complied and executed. Generated C files lie in `src/obj`.
+
+### Generate C Files for RIoT
+After executing
+```
+make test-riot -j4
+```
+C files will be generated in `src/obj`.
