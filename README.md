@@ -50,8 +50,8 @@ Installation
 ### (recommend) Docker
 Execute the following command and you will be in the project root directory. This Dockerfile depends on the official F* build packaged with Emacs : [fstarlang/fstar-emacs:latest](https://hub.docker.com/r/fstarlang/fstar-emacs/tags).
 ```
-$ sudo docker build -t verifiedhardware:checkpoint -f .docker/base/Dockerfile .
-$ sudo docker run -it --rm verifiedhardware:checkpoint bash
+$ docker build -t verifiedhardware:checkpoint -f .docker/base/Dockerfile .
+$ docker run -it --rm verifiedhardware:checkpoint bash
 ```
 
 
