@@ -232,6 +232,8 @@ let lemma_serialize_x509_key_usage_size
              _serialize_x509_key_usage_payload))
     x
 
+#restart-solver
+#push-options "--z3rlimit 64 --fuel 0 --fuel 0"
 let length_of_x509_key_usage
   (ku: key_usage_t)
 : GTot (asn1_TLV_length_of_type SEQUENCE)
@@ -242,8 +244,6 @@ let length_of_x509_key_usage
           OCTET_STRING
           ( length_of_asn1_primitive_TLV #OID OID_KEY_USAGE ) ) )
 
-#restart-solver
-#push-options "--z3rlimit 64 --fuel 0 --fuel 0"
 let lemma_serialize_x509_key_usage_size_exact
   (x: key_usage_t_inbound)
 : Lemma (
@@ -267,7 +267,7 @@ let lemma_serialize_x509_key_usage_size_exact
 
 open ASN1.Low
 
-#push-options "--z3rlimit 32"
+#push-options "--z3rlimit 64"
 let _synth_x509_key_usage_payload_inverse_impl
   (ku: key_usage_t)
 : Tot (bs: parse_filter_refine _filter_x509_key_usage_payload

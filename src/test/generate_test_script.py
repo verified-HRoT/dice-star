@@ -28,15 +28,13 @@ open ASN1.Test.Helpers
 let main ()
 : HST.St (C.exit_code)
 = HST.push_frame ();
-  printf "Start Test\\n" done;
 
   let dst_size = 500ul in
   let dst = B.alloca 0x00uy dst_size in
 '''
 
 test_template ='''
-  printf "----------- Test {no} ----------\\n" done;
-  printf "raw: {raw}\\n" done;
+  printf "[ASN1] Testing {no} for {asn1_type}... " done;
   let question = {question} in
   let solution_len = {solution_len} in
   let solution = B.alloca_of_list {solution} in
@@ -46,16 +44,24 @@ test_template ='''
                    (*    dst    *) dst
                    (*    pos    *) dst_size in
   let answer = B.sub dst (dst_size - answer_len) answer_len in
-  printf "Question: [{asn1_type}] {question}\\n" done;
-  printf "Solution: %xuy\\n" {solution_len} solution done;
-  printf "Answer  : %xuy\\n" answer_len answer   done;
 
-  mbedtls_parse_{asn1_type} dst dst_size (dst_size - answer_len);
+  if (answer_len = solution_len && buffer_eq answer_len answer solution) then
+  ( printf "Passed!⭕\\n" done )
+  else
+  ( printf "Failed!❌\\n" done;
+    printf "[DUMP] raw: {raw}\\n" done;
+    printf "[DUMP] Question: [{asn1_type}] {question}\\n" done;
+    printf "[DUMP] Solution: %xuy\\n" {solution_len} solution done;
+    printf "[DUMP] Answer  : %xuy\\n" answer_len answer   done;
+    LowStar.Failure.failwith "[ASN1] Test failed here!🔥" );
+
 '''
+
+mbedtls_test = 'mbedtls_parse_{asn1_type} dst dst_size (dst_size - answer_len);'
 
 tail_template ='''
   HST.pop_frame ();
-  printf "End Test\\n" done;
+  printf "[ASN1] Passed all tests!👍\\n" done;
   C.EXIT_SUCCESS
 #pop-options
 '''
