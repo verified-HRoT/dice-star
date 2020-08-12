@@ -11,9 +11,6 @@ open FStar.Integers
 
 module B32 = FStar.Bytes
 
-open LowParse.Spec.SeqBytes.Base
-open LowParse.Spec.Bytes
-
 #push-options "--z3rlimit 32"
 type aliasKeyCRT_payload_t (tbs_len: asn1_int32) = {
   aliasKeyCRT_tbs: B32.lbytes32 tbs_len;

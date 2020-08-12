@@ -216,3 +216,140 @@ let sign_and_finalize_aliasKeyCRT
                  aliasKeyCRT_len in
 
   HST.pop_frame ()
+
+(*                 CSR
+ *=====================================
+ *)
+
+
+let create_deviceIDCRI
+  (csr_version: datatype_of_asn1_type INTEGER)
+  (ku: key_usage_payload_t)
+  (deviceID_pub: B.lbuffer byte_pub 32)
+  (deviceIDCRI_template_len: size_t)
+  (deviceIDCRI_template: B.lbuffer byte_pub (v deviceIDCRI_template_len))
+  (deviceIDCRI_len: size_t)
+  (deviceIDCRI_buf: B.lbuffer byte_pub (v deviceIDCRI_len))
+: HST.Stack unit
+  (requires fun h ->
+    B.(all_live h [buf deviceID_pub;
+                   buf deviceIDCRI_template;
+                   buf deviceIDCRI_buf]) /\
+    B.(all_disjoint [loc_buffer deviceID_pub;
+                     loc_buffer deviceIDCRI_template;
+                     loc_buffer deviceIDCRI_buf]) /\
+    valid_deviceIDCRI_ingredients deviceIDCRI_template_len csr_version ku /\
+    v deviceIDCRI_len == length_of_deviceIDCRI deviceIDCRI_template_len csr_version ku
+   )
+  (ensures fun h0 _ h1 ->
+    let deviceIDCRI: deviceIDCRI_t deviceIDCRI_template_len = create_deviceIDCRI_spec
+                                                                      (deviceIDCRI_template_len)
+                                                                      (B.as_seq h0 deviceIDCRI_template)
+                                                                      (csr_version)
+                                                                      (ku)
+                                                                      (B.as_seq h0 deviceID_pub) in
+    (* Prf *) lemma_serialize_deviceIDCRI_size_exact deviceIDCRI_template_len deviceIDCRI;
+    B.(modifies (loc_buffer deviceIDCRI_buf) h0 h1) /\
+    B.as_seq h1 deviceIDCRI_buf == serialize_deviceIDCRI deviceIDCRI_template_len `serialize` deviceIDCRI
+  )
+=
+  HST.push_frame ();
+
+(* Create deviceIDCRI *)
+  let deviceIDCRI_template32: B32.lbytes32 deviceIDCRI_template_len = B32.of_buffer deviceIDCRI_template_len deviceIDCRI_template in
+  let deviceID_pub32: B32.lbytes32 32ul = B32.of_buffer 32ul deviceID_pub in
+
+  printf "Creating AliasKey Certificate TBS Message\n" done;
+  let deviceIDCRI: deviceIDCRI_t deviceIDCRI_template_len = x509_get_deviceIDCRI
+                                                                    deviceIDCRI_template_len
+                                                                    deviceIDCRI_template32
+                                                                    csr_version
+                                                                    ku
+                                                                    deviceID_pub32 in
+
+  (* Prf *) lemma_serialize_deviceIDCRI_size_exact deviceIDCRI_template_len deviceIDCRI;
+
+  printf "Serializing AliasKey Certificate TBS\n" done;
+(* Serialize deviceIDCRI *)
+  let offset = serialize32_deviceIDCRI_backwards
+                 deviceIDCRI_template_len
+                 deviceIDCRI
+                 deviceIDCRI_buf
+                 deviceIDCRI_len in
+
+  HST.pop_frame ()
+
+let sign_and_finalize_deviceIDCSR
+  (deviceID_priv: B.lbuffer byte_sec 32)
+  (deviceIDCRI_len: size_t)
+  (deviceIDCRI_buf: B.lbuffer byte_pub (v deviceIDCRI_len))
+  (deviceIDCSR_len: size_t)
+  (deviceIDCSR_buf: B.lbuffer byte_pub (v deviceIDCSR_len))
+: HST.Stack unit
+  (requires fun h ->
+    B.(all_live h [buf deviceID_priv;
+                   buf deviceIDCRI_buf;
+                   buf deviceIDCSR_buf]) /\
+    B.(all_disjoint [loc_buffer deviceID_priv;
+                     loc_buffer deviceIDCRI_buf;
+                     loc_buffer deviceIDCSR_buf]) /\
+    (* For `B.alloca` *)
+    0 < v deviceIDCRI_len /\
+    valid_deviceIDCSR_ingredients deviceIDCRI_len /\
+    (* `deviceIDCSR_buf` has exact space to write serialization *)
+    v deviceIDCSR_len == length_of_deviceIDCSR deviceIDCRI_len
+   )
+  (ensures fun h0 _ h1 ->
+    let deviceIDCSR: deviceIDCSR_t deviceIDCRI_len = sign_and_finalize_deviceIDCSR_spec
+                                                                      (B.as_seq h0 deviceID_priv)
+                                                                      (deviceIDCRI_len)
+                                                                      (B.as_seq h0 deviceIDCRI_buf) in
+    (* Prf *) lemma_serialize_deviceIDCSR_size_exact deviceIDCRI_len deviceIDCSR;
+    B.(modifies (loc_buffer deviceIDCSR_buf) h0 h1) /\
+    B.as_seq h1 deviceIDCSR_buf == serialize_deviceIDCSR deviceIDCRI_len `serialize` deviceIDCSR
+  )
+=
+  HST.push_frame ();
+
+(* Classify AliasKeyTBS *)
+  let deviceIDCRI_buf_sec: B.lbuffer byte_sec (v deviceIDCRI_len) = B.alloca (u8 0x00) deviceIDCRI_len in
+  classify_public_buffer
+    (* len *) deviceIDCRI_len
+    (* src *) deviceIDCRI_buf
+    (* dst *) deviceIDCRI_buf_sec;
+
+(* Sign Classified AliasKeyTBS *)
+  let deviceIDCRI_sig_sec: B.lbuffer byte_sec 64 = B.alloca (u8 0x00) 64ul in
+  Ed25519.sign
+    (* sig *) deviceIDCRI_sig_sec
+    (* key *) deviceID_priv
+    (* len *) deviceIDCRI_len
+    (* msg *) deviceIDCRI_buf_sec;
+
+(* Declassify AliasKeyTBS Signature *)
+  let deviceIDCRI_sig: B.lbuffer byte_pub 64 = B.alloca 0x00uy 64ul in
+  declassify_secret_buffer
+    (* len *) 64ul
+    (* src *) deviceIDCRI_sig_sec
+    (* dst *) deviceIDCRI_sig;
+
+(* Finalize AliasKeyCRT with AliasKeyTBS and Signature *)
+  let deviceIDCRI_buf32: B32.lbytes32 deviceIDCRI_len = B32.of_buffer deviceIDCRI_len deviceIDCRI_buf in
+  let deviceIDCRI_sig32: x509_signature_raw_t = B32.of_buffer 64ul deviceIDCRI_sig in
+
+  printf "Creating AliasKey Certificate CRT message\n" done;
+  let deviceIDCSR: deviceIDCSR_t deviceIDCRI_len = x509_get_deviceIDCSR
+                                                             deviceIDCRI_len
+                                                             deviceIDCRI_buf32
+                                                             deviceIDCRI_sig32 in
+  (* Prf *) lemma_serialize_deviceIDCSR_size_exact deviceIDCRI_len deviceIDCSR;
+
+  printf "Serializing AliasKey Certificate CRT\n" done;
+(* Serialize AliasKeyCRT *)
+  let offset = serialize32_deviceIDCSR_backwards
+                 deviceIDCRI_len
+                 deviceIDCSR
+                 deviceIDCSR_buf
+                 deviceIDCSR_len in
+
+  HST.pop_frame ()

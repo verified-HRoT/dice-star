@@ -15,7 +15,7 @@ module IB = LowStar.ImmutableBuffer
 module HS  = FStar.HyperStack
 module HST = FStar.HyperStack.ST
 
-#set-options "--z3rlimit 32 --fuel 0 --ifuel 0"
+#set-options "--z3rlimit 64 --fuel 0 --ifuel 0"
 
 (* Create AliasKey To-Be-Signed Certificate
   =======================================
@@ -137,3 +137,52 @@ let sign_and_finalize_aliasKeyCRT_spec
                                                              aliasKeyTBS_sig32 in
 
 (* return *) aliasKeyCRT
+
+
+let create_deviceIDCRI_spec
+  (subject_len: asn1_int32)
+  (subject: lbytes_pub (v subject_len))
+  (version: datatype_of_asn1_type INTEGER)
+  (ku: key_usage_payload_t
+       { valid_deviceIDCRI_ingredients subject_len version ku })
+  (deviceIDPub: lbytes_pub 32)
+: GTot (deviceIDCRI_t subject_len)
+=
+  let subject32: B32.lbytes32 subject_len = B32.hide subject in
+  let deviceIDPub32: B32.lbytes32 32ul = B32.hide deviceIDPub in
+
+  let deviceIDCRI: deviceIDCRI_t subject_len = x509_get_deviceIDCRI
+                                                 subject_len
+                                                 subject32
+                                                 version
+                                                 ku
+                                                 deviceIDPub32 in
+(*return*) deviceIDCRI
+
+#push-options "--z3rlimit 96"
+let sign_and_finalize_deviceIDCSR_spec
+  (deviceID_priv: lbytes_sec 32)
+  (deviceIDCRI_len: size_t
+                    { valid_deviceIDCSR_ingredients deviceIDCRI_len })
+  (deviceIDCRI_seq: lbytes_pub (v deviceIDCRI_len))
+: GTot (deviceIDCSR_t deviceIDCRI_len)
+=
+
+(* Classify AliasKeyTBS *)
+  let deviceIDCRI_seq_sec: lbytes_sec (v deviceIDCRI_len) = classify_public_bytes deviceIDCRI_seq in
+
+(* Sign AliasKeyTBS *)
+  let deviceIDCRI_sig_sec: lbytes_sec 64 = Spec.Ed25519.sign deviceID_priv deviceIDCRI_seq_sec in
+
+(* Declassify AliasKeyTBS *)
+  let deviceIDCRI_sig    : lbytes_pub 64 = declassify_secret_bytes deviceIDCRI_sig_sec in
+
+(* Create AliasKeyCRT with AliasKeyTBS and Signature *)
+  let deviceIDCRI_seq32  : B32.lbytes32 deviceIDCRI_len = B32.hide deviceIDCRI_seq in
+  let deviceIDCRI_sig32  : x509_signature_raw_t = B32.hide deviceIDCRI_sig in
+  let deviceIDCSR: deviceIDCSR_t deviceIDCRI_len = x509_get_deviceIDCSR
+                                                             deviceIDCRI_len
+                                                             deviceIDCRI_seq32
+                                                             deviceIDCRI_sig32 in
+
+(* return *) deviceIDCSR
