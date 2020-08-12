@@ -17,6 +17,9 @@ ARG HACL_VERSION=27912218150663a51d7aebf69286a6cd778609b1
 ARG KREMLIN_VERSION=5d03de710d31220ba0f2ce7d7725c3e74a797b96
 ARG EVERPARSE_VERSION=b2e464d4838e74edcb96921637becd494e2a6b9f
 
+# make -j parameter
+ARG NJOB=4
+
 # Handle dependencies for kremlin
 RUN opam install -y -q \
   ppx_deriving_yojson \
@@ -54,8 +57,8 @@ RUN eval $(opam env) && \
   git pull &&\
   git checkout ${FSTAR_VERSION} && \
   make -C src/ocaml-output && \
-  OTHERFLAGS='--admit_smt_queries true' make -C ulib -j $(nproc) && \
-  make -C ulib/ml -j $(nproc) && \
+  OTHERFLAGS='--admit_smt_queries true' make -C ulib -j ${NJOB} && \
+  make -C ulib/ml -j ${NJOB} && \
   sudo ln -s ${FSTAR_HOME}/bin/fstar.exe /usr/local/bin/fstar.exe
 
 # Update KreMLin
@@ -66,18 +69,18 @@ RUN eval $(opam env) && \
   git clean -fdx && \
   git pull && \
   git checkout ${KREMLIN_VERSION} && \
-  OTHERFLAGS='--admit_smt_queries true' make -j $(nproc) && \
+  OTHERFLAGS='--admit_smt_queries true' make -j ${NJOB} && \
   sudo ln -s ${KREMLIN_HOME}/krml /usr/local/bin/krml
 
 # Build hacl-star
 WORKDIR ${HACL_HOME}
 RUN eval $(opam env) && \
   git checkout ${HACL_VERSION} && \
-  OTHERFLAGS='--admit_smt_queries true' make verify-hacl -j $(nproc)
+  OTHERFLAGS='--admit_smt_queries true' make verify-hacl -j ${NJOB}
 
 WORKDIR ${EVERPARSE_HOME}/src/lowparse
 RUN git checkout ${EVERPARSE_VERSION} && \
-  OTHERFLAGS='--admit_smt_queries true' make verify-all -j $(nproc)
+  OTHERFLAGS='--admit_smt_queries true' make verify-all -j ${NJOB}
 
 # Copy VerifiedHardware
 COPY --chown=build . /home/build/VerifiedHardware
