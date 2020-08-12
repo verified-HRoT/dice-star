@@ -56,7 +56,7 @@ module HST = FStar.HyperStack.ST
 unfold
 let valid_aliasKeyTBS_ingredients
   (template_len: asn1_int32)
-  (ku: key_usage_t)
+  (ku: key_usage_payload_t)
   (version: datatype_of_asn1_type INTEGER)
 = length_of_aliasKeyTBS_payload template_len ku version
   <= asn1_value_length_max_of_type SEQUENCE
@@ -64,21 +64,21 @@ let valid_aliasKeyTBS_ingredients
 let create_aliasKeyTBS_spec
   (template_len: asn1_int32)
   (aliasKeyTBS_template: lbytes_pub (v template_len))
-  (ku: key_usage_t)
+  (ku: key_usage_payload_t)
   (version: datatype_of_asn1_type INTEGER
             { length_of_aliasKeyTBS_payload template_len ku version
               <= asn1_value_length_max_of_type SEQUENCE })
   (fwid: lbytes_sec 32)
   (deviceID_pub: lbytes_pub 32)
   (aliasKey_pub: lbytes_pub 32)
-: GTot (aliasKeyTBS_t_inbound template_len)
+: GTot (aliasKeyTBS_t template_len)
 =
 (* Create AliasKeyTBS *)
   let aliasKeyTBS_template32: B32.lbytes32 template_len = B32.hide aliasKeyTBS_template in
   let deviceID_pub32: B32.lbytes32 32ul = B32.hide deviceID_pub in
   let fwid32        : B32.lbytes32 32ul = B32.hide (declassify_secret_bytes fwid) in
   let aliasKey_pub32: B32.lbytes32 32ul = B32.hide aliasKey_pub in
-  let aliasKeyTBS: aliasKeyTBS_t_inbound template_len = x509_get_AliasKeyTBS
+  let aliasKeyTBS: aliasKeyTBS_t template_len = x509_get_AliasKeyTBS
                                                         template_len
                                                         aliasKeyTBS_template32
                                                         ku
@@ -86,8 +86,8 @@ let create_aliasKeyTBS_spec
                                                         fwid32
                                                         deviceID_pub32
                                                         aliasKey_pub32 in
-  (* Prf *) lemma_serialize_aliasKeyTBS_size template_len aliasKeyTBS;
-  (* Prf *) lemma_serialize_aliasKeyTBS_sequence_TLV_size_exact template_len aliasKeyTBS;
+  (* Prf *) lemma_serialize_aliasKeyTBS_payload_size template_len aliasKeyTBS;
+  (* Prf *) lemma_serialize_aliasKeyTBS_size_exact template_len aliasKeyTBS;
 
 (* return *) aliasKeyTBS
 
@@ -110,12 +110,13 @@ let valid_aliasKeyCRT_ingredients
 = // (* implied *) length_of_aliasKeyCRT_payload tbs_len <= max_size_t /\
   length_of_aliasKeyCRT_payload tbs_len <= asn1_value_length_max_of_type SEQUENCE
 
+#push-options "--z3rlimit 96"
 let sign_and_finalize_aliasKeyCRT_spec
   (deviceID_priv: lbytes_sec 32)
   (aliasKeyTBS_len: size_t
                     { valid_aliasKeyCRT_ingredients aliasKeyTBS_len })
   (aliasKeyTBS_seq: lbytes_pub (v aliasKeyTBS_len))
-: GTot (aliasKeyCRT_t_inbound aliasKeyTBS_len)
+: GTot (aliasKeyCRT_t aliasKeyTBS_len)
 =
 
 (* Classify AliasKeyTBS *)
@@ -130,7 +131,7 @@ let sign_and_finalize_aliasKeyCRT_spec
 (* Create AliasKeyCRT with AliasKeyTBS and Signature *)
   let aliasKeyTBS_seq32  : B32.lbytes32 aliasKeyTBS_len = B32.hide aliasKeyTBS_seq in
   let aliasKeyTBS_sig32  : x509_signature_raw_t = B32.hide aliasKeyTBS_sig in
-  let aliasKeyCRT: aliasKeyCRT_t_inbound aliasKeyTBS_len = x509_get_AliasKeyCRT
+  let aliasKeyCRT: aliasKeyCRT_t aliasKeyTBS_len = x509_get_AliasKeyCRT
                                                              aliasKeyTBS_len
                                                              aliasKeyTBS_seq32
                                                              aliasKeyTBS_sig32 in

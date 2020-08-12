@@ -2,7 +2,7 @@ module RIoT.X509.Base
 open X509.Base
 open X509.ExtFields.KeyUsage
 
-let aliasKeyCrt_key_usage: key_usage_t
+let aliasKeyCrt_key_usage: key_usage_payload_t
 = x509_KU_KEY_CERT_SIGN
   (*
    * Adding more key usage bits for test only. According to the

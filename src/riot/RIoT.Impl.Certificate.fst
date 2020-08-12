@@ -21,7 +21,7 @@ open LowStar.Printf
 
 open RIoT.Spec.Certificate
 
-#set-options "--z3rlimit 256 --fuel 0 --ifuel 0"
+#set-options "--z3rlimit 512 --fuel 0 --ifuel 0"
 
 (* Create AliasKey To-Be-Signed Certificate
   =======================================
@@ -58,7 +58,7 @@ open RIoT.Spec.Certificate
 
 let create_aliasKeyTBS
   (fwid: B.lbuffer byte_sec 32)
-  (ku: key_usage_t)
+  (ku: key_usage_payload_t)
   (riot_version: datatype_of_asn1_type INTEGER)
   (deviceID_pub: B.lbuffer byte_pub 32)
   (aliasKey_pub: B.lbuffer byte_pub 32)
@@ -82,7 +82,7 @@ let create_aliasKeyTBS
     v aliasKeyTBS_len == length_of_aliasKeyTBS aliasKeyTBS_template_len ku riot_version
    )
   (ensures fun h0 _ h1 ->
-    let aliasKeyTBS: aliasKeyTBS_t_inbound aliasKeyTBS_template_len = create_aliasKeyTBS_spec
+    let aliasKeyTBS: aliasKeyTBS_t aliasKeyTBS_template_len = create_aliasKeyTBS_spec
                                                                       (aliasKeyTBS_template_len)
                                                                       (B.as_seq h0 aliasKeyTBS_template)
                                                                       (ku)
@@ -90,9 +90,9 @@ let create_aliasKeyTBS
                                                                       (B.as_seq h0 fwid)
                                                                       (B.as_seq h0 deviceID_pub)
                                                                       (B.as_seq h0 aliasKey_pub) in
-    (* Prf *) lemma_serialize_aliasKeyTBS_sequence_TLV_size_exact aliasKeyTBS_template_len aliasKeyTBS;
+    (* Prf *) lemma_serialize_aliasKeyTBS_size_exact aliasKeyTBS_template_len aliasKeyTBS;
     B.(modifies (loc_buffer aliasKeyTBS_buf) h0 h1) /\
-    B.as_seq h1 aliasKeyTBS_buf == serialize_aliasKeyTBS_sequence_TLV aliasKeyTBS_template_len `serialize` aliasKeyTBS
+    B.as_seq h1 aliasKeyTBS_buf == serialize_aliasKeyTBS aliasKeyTBS_template_len `serialize` aliasKeyTBS
   )
 =
   HST.push_frame ();
@@ -106,7 +106,7 @@ let create_aliasKeyTBS
   let aliasKey_pub32: B32.lbytes32 32ul = B32.of_buffer 32ul aliasKey_pub in
 
   printf "Creating AliasKey Certificate TBS Message\n" done;
-  let aliasKeyTBS: aliasKeyTBS_t_inbound aliasKeyTBS_template_len = x509_get_AliasKeyTBS
+  let aliasKeyTBS: aliasKeyTBS_t aliasKeyTBS_template_len = x509_get_AliasKeyTBS
                                                                     aliasKeyTBS_template_len
                                                                     aliasKeyTBS_template32
                                                                     ku
@@ -115,11 +115,11 @@ let create_aliasKeyTBS
                                                                     deviceID_pub32
                                                                     aliasKey_pub32 in
 
-  (* Prf *) lemma_serialize_aliasKeyTBS_sequence_TLV_size_exact aliasKeyTBS_template_len aliasKeyTBS;
+  (* Prf *) lemma_serialize_aliasKeyTBS_size_exact aliasKeyTBS_template_len aliasKeyTBS;
 
   printf "Serializing AliasKey Certificate TBS\n" done;
 (* Serialize AliasKeyTBS *)
-  let offset = serialize32_aliasKeyTBS_sequence_TLV_backwards
+  let offset = serialize32_aliasKeyTBS_backwards
                  aliasKeyTBS_template_len
                  aliasKeyTBS
                  aliasKeyTBS_buf
@@ -163,13 +163,13 @@ let sign_and_finalize_aliasKeyCRT
     v aliasKeyCRT_len == length_of_aliasKeyCRT aliasKeyTBS_len
    )
   (ensures fun h0 _ h1 ->
-    let aliasKeyCRT: aliasKeyCRT_t_inbound aliasKeyTBS_len = sign_and_finalize_aliasKeyCRT_spec
+    let aliasKeyCRT: aliasKeyCRT_t aliasKeyTBS_len = sign_and_finalize_aliasKeyCRT_spec
                                                                       (B.as_seq h0 deviceID_priv)
                                                                       (aliasKeyTBS_len)
                                                                       (B.as_seq h0 aliasKeyTBS_buf) in
-    (* Prf *) lemma_serialize_aliasKeyCRT_sequence_TLV_size_exact aliasKeyTBS_len aliasKeyCRT;
+    (* Prf *) lemma_serialize_aliasKeyCRT_size_exact aliasKeyTBS_len aliasKeyCRT;
     B.(modifies (loc_buffer aliasKeyCRT_buf) h0 h1) /\
-    B.as_seq h1 aliasKeyCRT_buf == serialize_aliasKeyCRT_sequence_TLV aliasKeyTBS_len `serialize` aliasKeyCRT
+    B.as_seq h1 aliasKeyCRT_buf == serialize_aliasKeyCRT aliasKeyTBS_len `serialize` aliasKeyCRT
   )
 =
   HST.push_frame ();
@@ -201,15 +201,15 @@ let sign_and_finalize_aliasKeyCRT
   let aliasKeyTBS_sig32: x509_signature_raw_t = B32.of_buffer 64ul aliasKeyTBS_sig in
 
   printf "Creating AliasKey Certificate CRT message\n" done;
-  let aliasKeyCRT: aliasKeyCRT_t_inbound aliasKeyTBS_len = x509_get_AliasKeyCRT
+  let aliasKeyCRT: aliasKeyCRT_t aliasKeyTBS_len = x509_get_AliasKeyCRT
                                                              aliasKeyTBS_len
                                                              aliasKeyTBS_buf32
                                                              aliasKeyTBS_sig32 in
-  (* Prf *) lemma_serialize_aliasKeyCRT_sequence_TLV_size_exact aliasKeyTBS_len aliasKeyCRT;
+  (* Prf *) lemma_serialize_aliasKeyCRT_size_exact aliasKeyTBS_len aliasKeyCRT;
 
   printf "Serializing AliasKey Certificate CRT\n" done;
 (* Serialize AliasKeyCRT *)
-  let offset = serialize32_aliasKeyCRT_sequence_TLV_backwards
+  let offset = serialize32_aliasKeyCRT_backwards
                  aliasKeyTBS_len
                  aliasKeyCRT
                  aliasKeyCRT_buf

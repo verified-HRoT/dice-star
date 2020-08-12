@@ -35,30 +35,30 @@ let valid_key_usage
 = 0l < i /\ (* at least one usage *)
   (i <= 0xFFl \/ i / 0x100l == 0x80l)
 
-let key_usage_t = i: int_32
+let key_usage_payload_t = i: int_32
                      { valid_key_usage i }
 
-let x509_KU_DIGITAL_SIGNATURE :key_usage_t = 0x80l    (* bit 0 *)
-let x509_KU_NON_REPUDIATION   :key_usage_t = 0x40l    (* bit 1 *)
-let x509_KU_KEY_ENCIPHERMENT  :key_usage_t = 0x20l    (* bit 2 *)
-let x509_KU_DATA_ENCIPHERMENT :key_usage_t = 0x10l    (* bit 3 *)
-let x509_KU_KEY_AGREEMENT     :key_usage_t = 0x08l    (* bit 4 *)
-let x509_KU_KEY_CERT_SIGN     :key_usage_t = 0x04l    (* bit 5 *)
-let x509_KU_CRL_SIGN          :key_usage_t = 0x02l    (* bit 6 *)
-let x509_KU_ENCIPHER_ONLY     :key_usage_t = 0x01l    (* bit 7 *)
-let x509_KU_DECIPHER_ONLY     :key_usage_t = 0x8000l  (* bit 8 *)
+let x509_KU_DIGITAL_SIGNATURE :key_usage_payload_t = 0x80l    (* bit 0 *)
+let x509_KU_NON_REPUDIATION   :key_usage_payload_t = 0x40l    (* bit 1 *)
+let x509_KU_KEY_ENCIPHERMENT  :key_usage_payload_t = 0x20l    (* bit 2 *)
+let x509_KU_DATA_ENCIPHERMENT :key_usage_payload_t = 0x10l    (* bit 3 *)
+let x509_KU_KEY_AGREEMENT     :key_usage_payload_t = 0x08l    (* bit 4 *)
+let x509_KU_KEY_CERT_SIGN     :key_usage_payload_t = 0x04l    (* bit 5 *)
+let x509_KU_CRL_SIGN          :key_usage_payload_t = 0x02l    (* bit 6 *)
+let x509_KU_ENCIPHER_ONLY     :key_usage_payload_t = 0x01l    (* bit 7 *)
+let x509_KU_DECIPHER_ONLY     :key_usage_payload_t = 0x8000l  (* bit 8 *)
 
 (* FIXME: Can we normalize bitwise operators? *)
 let lemma_key_usage_close_under_or
-  (ku1 ku2: key_usage_t)
+  (ku1 ku2: key_usage_payload_t)
 : Lemma (
   valid_key_usage (ku1 |^ ku2)
 )
 = admit()
 
 let op_ku_with
-  (ku1 ku2: key_usage_t)
-: Tot (ku: key_usage_t
+  (ku1 ku2: key_usage_payload_t)
+: Tot (ku: key_usage_payload_t
            { ku == (ku1 |^ ku2) })
 = [@inline_let]let ku: int_32 = ku1 |^ ku2 in
   lemma_key_usage_close_under_or ku1 ku2;
@@ -77,7 +77,7 @@ let _filter_x509_key_usage_payload
 
 let _synth_x509_key_usage_payload
   (bs: parse_filter_refine _filter_x509_key_usage_payload)
-: GTot (key_usage_t)
+: GTot (key_usage_payload_t)
 = cast #(Unsigned W8) #(Signed W32) (B32.index bs.bs_s 0) +
   ((cast #(Unsigned W8) #(Signed W32) (B32.index bs.bs_s 1)) * 0x100l)
 
@@ -96,20 +96,22 @@ let lemma_synth_x509_key_usage_injective ()
   (* f *) _synth_x509_key_usage_payload
   (*prf*) lemma_synth_x509_key_usage_payload_injective'
 
+#push-options "--z3rlimit 32 --fuel 4 --ifuel 0"
 let _synth_x509_key_usage_payload_inverse
-  (ku: key_usage_t)
+  (ku: key_usage_payload_t)
 : GTot (bs: parse_filter_refine _filter_x509_key_usage_payload
             { _synth_x509_key_usage_payload bs == ku })
-= let b0: byte = cast (ku % 0x100l) in
-  let b1: byte = cast (ku / 0x100l) in
+= let b0: byte = FStar.Int.Cast.int32_to_uint8 (ku % 0x100l) in
+  let b1: byte = FStar.Int.Cast.int32_to_uint8 (ku / 0x100l) in
   let s = Seq.createL [b0; b1] in
   let s32 = B32.hide s in
   { bs_len         = 3ul;
     bs_unused_bits = 7ul;
     bs_s           = s32 }
+#pop-options
 
 let _parse_x509_key_usage_payload
-: parser _ key_usage_t
+: parser _ key_usage_payload_t
 = lemma_synth_x509_key_usage_injective ();
   parse_asn1_TLV_of_type BIT_STRING
   `parse_filter`
@@ -131,7 +133,7 @@ let _serialize_x509_key_usage_payload
   (* Prf*) (lemma_synth_x509_key_usage_injective ())
 
 let lemma_serialize_x509_key_usage_payload_unfold
-  (ku: key_usage_t)
+  (ku: key_usage_payload_t)
 : Lemma (
   serialize _serialize_x509_key_usage_payload ku ==
   serialize (serialize_asn1_TLV_of_type BIT_STRING) (_synth_x509_key_usage_payload_inverse ku)
@@ -149,7 +151,7 @@ let lemma_serialize_x509_key_usage_payload_unfold
   (* in *) (ku)
 
 let lemma_serialize_x509_key_usage_payload_size
-  (ku: key_usage_t)
+  (ku: key_usage_payload_t)
 : Lemma (
   length_of_opaque_serialization _serialize_x509_key_usage_payload ku ==
   length_of_asn1_primitive_TLV #BIT_STRING (_synth_x509_key_usage_payload_inverse ku)
@@ -161,13 +163,13 @@ let lemma_serialize_x509_key_usage_payload_size
  *  SEQUENCE {
  *    extID   : OID
  *    extValue: OCTET_STRING {
- *      key_usage    : key_usage_t
+ *      key_usage    : key_usage_payload_t
  *    }
  *  }
  *
  *)
 
-let key_usage_t_inbound
+let key_usage_t
 = inbound_sequence_value_of
     (OID_KEY_USAGE
      `serialize_envelop_OID_with`
@@ -176,8 +178,8 @@ let key_usage_t_inbound
      _serialize_x509_key_usage_payload))
 
 let parse_x509_key_usage
-: parser (parse_asn1_envelop_tag_with_TLV_kind SEQUENCE) key_usage_t_inbound
-= key_usage_t_inbound
+: parser (parse_asn1_envelop_tag_with_TLV_kind SEQUENCE) key_usage_t
+= key_usage_t
   `coerce_parser`
  (parse_asn1_sequence_TLV
     (OID_KEY_USAGE
@@ -199,7 +201,7 @@ let serialize_x509_key_usage
   (*prf*) ()
 
 let lemma_serialize_x509_key_usage_unfold
-  (x: key_usage_t_inbound)
+  (x: key_usage_t)
 : Lemma ( predicate_serialize_asn1_sequence_TLV_unfold
             (OID_KEY_USAGE
              `serialize_envelop_OID_with`
@@ -216,7 +218,7 @@ let lemma_serialize_x509_key_usage_unfold
     x
 
 let lemma_serialize_x509_key_usage_size
-  (x: key_usage_t_inbound)
+  (x: key_usage_t)
 : Lemma ( predicate_serialize_asn1_sequence_TLV_size
             (OID_KEY_USAGE
              `serialize_envelop_OID_with`
@@ -235,7 +237,7 @@ let lemma_serialize_x509_key_usage_size
 #restart-solver
 #push-options "--z3rlimit 64 --fuel 0 --fuel 0"
 let length_of_x509_key_usage
-  (ku: key_usage_t)
+  (ku: key_usage_payload_t)
 : GTot (asn1_TLV_length_of_type SEQUENCE)
 = length_of_TLV
     SEQUENCE
@@ -245,7 +247,7 @@ let length_of_x509_key_usage
           ( length_of_asn1_primitive_TLV #OID OID_KEY_USAGE ) ) )
 
 let lemma_serialize_x509_key_usage_size_exact
-  (x: key_usage_t_inbound)
+  (x: key_usage_t)
 : Lemma (
   length_of_opaque_serialization serialize_x509_key_usage x
   == length_of_x509_key_usage (snd x)
@@ -267,15 +269,16 @@ let lemma_serialize_x509_key_usage_size_exact
 
 open ASN1.Low
 
-#push-options "--z3rlimit 64"
+#push-options "--z3rlimit 96 --fuel 4 --ifuel 0"
 let _synth_x509_key_usage_payload_inverse_impl
-  (ku: key_usage_t)
+  (ku: key_usage_payload_t)
 : Tot (bs: parse_filter_refine _filter_x509_key_usage_payload
            { bs == _synth_x509_key_usage_payload_inverse ku })
 = let b0: byte = FStar.Int.Cast.int32_to_uint8 (ku % 0x100l) in
   let b1: byte = FStar.Int.Cast.int32_to_uint8 (ku / 0x100l) in
   let s32 = B32.(create 1ul b0 `append` create 1ul b1) in
   (* Prf *) B32.extensionality s32 (B32.hide (Seq.createL [b0; b1]));
+  (* Prf *) assert ((_synth_x509_key_usage_payload_inverse ku).bs_s == s32 );
   { bs_len         = 3ul;
     bs_unused_bits = 7ul;
     bs_s           = s32 }
@@ -283,7 +286,7 @@ let _synth_x509_key_usage_payload_inverse_impl
 
 #push-options "--z3rlimit 32 --fuel 0 --fuel 0"
 let len_of_x509_key_usage
-  (ku: key_usage_t)
+  (ku: key_usage_payload_t)
 : Tot (len: asn1_TLV_int32_of_type SEQUENCE
             { v len == length_of_x509_key_usage ku })
 = len_of_TLV
@@ -323,8 +326,8 @@ let serialize32_x509_key_usage_backwards
 /// Helper constructor
 #push-options "--z3rlimit 32 --fuel 0 --fuel 0"
 let x509_get_key_usage
-  (ku: key_usage_t)
-// : Tot (key_usage_t_inbound)
+  (ku: key_usage_payload_t)
+: Tot (key_usage_t)
 =
   (* Prf *) lemma_serialize_x509_key_usage_payload_size ku;
   let x: OID_KEY_USAGE
@@ -347,5 +350,5 @@ let x509_get_key_usage
                    (snd x);
   (* Prf *)      (**) lemma_serialize_x509_key_usage_payload_size (snd x);
 
-(*return*) x <: key_usage_t_inbound
+(*return*) x <: key_usage_t
 #pop-options

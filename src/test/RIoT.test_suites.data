@@ -52,7 +52,7 @@ let main ()
   let cdi : B.lbuffer byte_sec 32 = B.alloca (u8 0x00) 32ul in
   let fwid: B.lbuffer byte_sec 32 = B.alloca (u8 0x00) 32ul in
   let version: datatype_of_asn1_type INTEGER = 1l in
-  let ku: key_usage_t = aliasKeyCrt_key_usage in
+  let ku: key_usage_payload_t = aliasKeyCrt_key_usage in
 
   let template_buf: B.lbuffer byte_pub (v template_len) = B.alloca_of_list template_list in
   let deviceID_lbl_len: x:size_t {normalize (valid_hkdf_lbl_len x)} = 5ul in

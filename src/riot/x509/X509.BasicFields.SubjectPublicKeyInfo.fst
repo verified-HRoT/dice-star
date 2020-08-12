@@ -17,14 +17,14 @@ open FStar.Integers
 /// Record repr
 
 //inline_for_extraction
-type subjectPublicKeyInfo_t
+type subjectPublicKeyInfo_payload_t
   // (alg: supported_crypto_alg_t)
-= { subjectPubKey_alg : algorithmIdentifier_t_inbound;
+= { subjectPubKey_alg : algorithmIdentifier_t;
     subjectPubKey     : pubkey_t }
 
-let filter_subjectPublicKeyInfo_t'
+let filter_subjectPublicKeyInfo_payload_t'
   // (alg: supported_crypto_alg_t)
-  (x: (algorithmIdentifier_t_inbound) `tuple2` (datatype_of_asn1_type BIT_STRING))
+  (x: (algorithmIdentifier_t) `tuple2` (datatype_of_asn1_type BIT_STRING))
 : GTot bool
 =
   // match alg with
@@ -36,131 +36,131 @@ let filter_subjectPublicKeyInfo_t'
 /// tuple repr
 
 unfold
-let subjectPublicKeyInfo_t'
+let subjectPublicKeyInfo_payload_t'
   // (alg: supported_crypto_alg_t)
-= parse_filter_refine (filter_subjectPublicKeyInfo_t')
+= parse_filter_refine (filter_subjectPublicKeyInfo_payload_t')
 
-let synth_subjectPublicKeyInfo_t
+let synth_subjectPublicKeyInfo_payload_t
   // (alg: supported_crypto_alg_t)
-  (x': subjectPublicKeyInfo_t')
-: GTot (subjectPublicKeyInfo_t)
+  (x': subjectPublicKeyInfo_payload_t')
+: GTot (subjectPublicKeyInfo_payload_t)
 = { subjectPubKey_alg = fst x';
     subjectPubKey     = snd x' }
 
 
-let synth_subjectPublicKeyInfo_t'
+let synth_subjectPublicKeyInfo_payload_t'
   // (alg: supported_crypto_alg_t)
-  (x: subjectPublicKeyInfo_t)
-: Tot (x': subjectPublicKeyInfo_t' { x == synth_subjectPublicKeyInfo_t x' })
+  (x: subjectPublicKeyInfo_payload_t)
+: Tot (x': subjectPublicKeyInfo_payload_t' { x == synth_subjectPublicKeyInfo_payload_t x' })
 = (x.subjectPubKey_alg , x.subjectPubKey)
 
-let parse_subjectPublicKeyInfo
+let parse_subjectPublicKeyInfo_payload
   // (alg: supported_crypto_alg_t)
-: parser _ (subjectPublicKeyInfo_t)
-= parse_algorithmIdentifier_sequence_TLV
+: parser _ (subjectPublicKeyInfo_payload_t)
+= parse_algorithmIdentifier
   `nondep_then`
   parse_asn1_TLV_of_type BIT_STRING
   `parse_filter`
-  filter_subjectPublicKeyInfo_t'
+  filter_subjectPublicKeyInfo_payload_t'
   `parse_synth`
-  synth_subjectPublicKeyInfo_t
+  synth_subjectPublicKeyInfo_payload_t
 
-let serialize_subjectPublicKeyInfo
+let serialize_subjectPublicKeyInfo_payload
   // (alg: supported_crypto_alg_t)
-: serializer (parse_subjectPublicKeyInfo)
+: serializer (parse_subjectPublicKeyInfo_payload)
 = serialize_synth
-  (* p1 *) (parse_algorithmIdentifier_sequence_TLV
+  (* p1 *) (parse_algorithmIdentifier
             `nondep_then`
             parse_asn1_TLV_of_type BIT_STRING
             `parse_filter`
-            filter_subjectPublicKeyInfo_t')
-  (* f2 *) (synth_subjectPublicKeyInfo_t)
-  (* s1 *) (serialize_algorithmIdentifier_sequence_TLV
+            filter_subjectPublicKeyInfo_payload_t')
+  (* f2 *) (synth_subjectPublicKeyInfo_payload_t)
+  (* s1 *) (serialize_algorithmIdentifier
             `serialize_nondep_then`
             serialize_asn1_TLV_of_type BIT_STRING
             `serialize_filter`
-            filter_subjectPublicKeyInfo_t')
-  (* g1 *) (synth_subjectPublicKeyInfo_t')
+            filter_subjectPublicKeyInfo_payload_t')
+  (* g1 *) (synth_subjectPublicKeyInfo_payload_t')
   (* prf*) ()
 
-let lemma_serialize_subjectPublicKeyInfo_unfold
+let lemma_serialize_subjectPublicKeyInfo_payload_unfold
   // (alg: supported_crypto_alg_t)
-  (x: subjectPublicKeyInfo_t)
+  (x: subjectPublicKeyInfo_payload_t)
 : Lemma (
-  serialize (serialize_subjectPublicKeyInfo) x ==
-  serialize (serialize_algorithmIdentifier_sequence_TLV) x.subjectPubKey_alg
+  serialize (serialize_subjectPublicKeyInfo_payload) x ==
+  serialize (serialize_algorithmIdentifier) x.subjectPubKey_alg
   `Seq.append`
   serialize (serialize_asn1_TLV_of_type BIT_STRING) x.subjectPubKey
 )
 = serialize_nondep_then_eq
-  (* s1 *) (serialize_algorithmIdentifier_sequence_TLV)
+  (* s1 *) (serialize_algorithmIdentifier)
   (* s2 *) (serialize_asn1_TLV_of_type BIT_STRING)
-  (* in *) (synth_subjectPublicKeyInfo_t' x);
+  (* in *) (synth_subjectPublicKeyInfo_payload_t' x);
   serialize_synth_eq
-  (* p1 *) (parse_algorithmIdentifier_sequence_TLV
+  (* p1 *) (parse_algorithmIdentifier
             `nondep_then`
             parse_asn1_TLV_of_type BIT_STRING
             `parse_filter`
-            filter_subjectPublicKeyInfo_t')
-  (* f2 *) (synth_subjectPublicKeyInfo_t)
-  (* s1 *) (serialize_algorithmIdentifier_sequence_TLV
+            filter_subjectPublicKeyInfo_payload_t')
+  (* f2 *) (synth_subjectPublicKeyInfo_payload_t)
+  (* s1 *) (serialize_algorithmIdentifier
             `serialize_nondep_then`
             serialize_asn1_TLV_of_type BIT_STRING
             `serialize_filter`
-            filter_subjectPublicKeyInfo_t')
-  (* g1 *) (synth_subjectPublicKeyInfo_t')
+            filter_subjectPublicKeyInfo_payload_t')
+  (* g1 *) (synth_subjectPublicKeyInfo_payload_t')
   (* prf*) ()
   (* in *) x
+
+let lemma_serialize_subjectPublicKeyInfo_payload_size
+  // (alg: supported_crypto_alg_t)
+  (x: subjectPublicKeyInfo_payload_t)
+: Lemma (
+  Seq.length (serialize (serialize_subjectPublicKeyInfo_payload) x) ==
+  Seq.length (serialize (serialize_algorithmIdentifier) x.subjectPubKey_alg) +
+  Seq.length (serialize (serialize_asn1_TLV_of_type BIT_STRING) x.subjectPubKey)
+)
+= lemma_serialize_subjectPublicKeyInfo_payload_unfold x
+
+let subjectPublicKeyInfo_t
+  // (alg: supported_crypto_alg_t)
+= inbound_sequence_value_of (serialize_subjectPublicKeyInfo_payload)
+
+/// TLV
+///
+let parse_subjectPublicKeyInfo
+  // (alg: supported_crypto_alg_t)
+// : parser _ (subjectPublicKeyInfo_t)
+=
+  subjectPublicKeyInfo_t
+  `coerce_parser`
+  parse_asn1_sequence_TLV (serialize_subjectPublicKeyInfo_payload)
+
+let serialize_subjectPublicKeyInfo
+  // (alg: supported_crypto_alg_t)
+// : serializer (parse_subjectPublicKeyInfo)
+= coerce_parser_serializer
+    parse_subjectPublicKeyInfo
+    (serialize_asn1_sequence_TLV (serialize_subjectPublicKeyInfo_payload))
+    ()
+
+let lemma_serialize_subjectPublicKeyInfo_unfold
+  // (alg: supported_crypto_alg_t)
+  (x: subjectPublicKeyInfo_t)
+: Lemma ( predicate_serialize_asn1_sequence_TLV_unfold (serialize_subjectPublicKeyInfo_payload) x )
+= lemma_serialize_asn1_sequence_TLV_unfold (serialize_subjectPublicKeyInfo_payload) x
 
 let lemma_serialize_subjectPublicKeyInfo_size
   // (alg: supported_crypto_alg_t)
   (x: subjectPublicKeyInfo_t)
-: Lemma (
-  Seq.length (serialize (serialize_subjectPublicKeyInfo) x) ==
-  Seq.length (serialize (serialize_algorithmIdentifier_sequence_TLV) x.subjectPubKey_alg) +
-  Seq.length (serialize (serialize_asn1_TLV_of_type BIT_STRING) x.subjectPubKey)
-)
-= lemma_serialize_subjectPublicKeyInfo_unfold x
-
-let subjectPublicKeyInfo_t_inbound
-  // (alg: supported_crypto_alg_t)
-= inbound_sequence_value_of (serialize_subjectPublicKeyInfo)
-
-/// TLV
-///
-let parse_subjectPublicKeyInfo_sequence_TLV
-  // (alg: supported_crypto_alg_t)
-// : parser _ (subjectPublicKeyInfo_t_inbound)
-=
-  subjectPublicKeyInfo_t_inbound
-  `coerce_parser`
-  parse_asn1_sequence_TLV (serialize_subjectPublicKeyInfo)
-
-let serialize_subjectPublicKeyInfo_sequence_TLV
-  // (alg: supported_crypto_alg_t)
-// : serializer (parse_subjectPublicKeyInfo_sequence_TLV)
-= coerce_parser_serializer
-    parse_subjectPublicKeyInfo_sequence_TLV
-    (serialize_asn1_sequence_TLV (serialize_subjectPublicKeyInfo))
-    ()
-
-let lemma_serialize_subjectPublicKeyInfo_sequence_TLV_unfold
-  // (alg: supported_crypto_alg_t)
-  (x: subjectPublicKeyInfo_t_inbound)
-: Lemma ( predicate_serialize_asn1_sequence_TLV_unfold (serialize_subjectPublicKeyInfo) x )
-= lemma_serialize_asn1_sequence_TLV_unfold (serialize_subjectPublicKeyInfo) x
-
-let lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size
-  // (alg: supported_crypto_alg_t)
-  (x: subjectPublicKeyInfo_t_inbound)
-: Lemma ( predicate_serialize_asn1_sequence_TLV_size (serialize_subjectPublicKeyInfo) x )
-= lemma_serialize_asn1_sequence_TLV_size (serialize_subjectPublicKeyInfo) x
+: Lemma ( predicate_serialize_asn1_sequence_TLV_size (serialize_subjectPublicKeyInfo_payload) x )
+= lemma_serialize_asn1_sequence_TLV_size (serialize_subjectPublicKeyInfo_payload) x
 
 (* NOTE: For a subjectPublicKeyInfo for Ed25519, it consists
          1) a 1-byte tag
          2) a 1-byte length (the value field's length can be represented by 1 byte)
          3) a 7-byte algorithmIdentifier for Ed25519, whose length has been proved is 7,
-            see `lemma_serialize_algorithmIdentifier_sequence_TLV_size_exact`
+            see `lemma_serialize_algorithmIdentifier_size_exact`
          4) a 35-byte bit string TLV (1 byte for tag, 1 byte for length, 33 bytes for a 32-byte bit string),
             see `length_of_asn1_primitive_value` (without tag and length) and `length_of_asn1_primitive_TLV`
             for the length calc.
@@ -188,24 +188,24 @@ let len_of_subjectPublicKeyInfo
 = 44ul
 
 #push-options "--z3rlimit 32 --fuel 0 --ifuel 0"
-let lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size_exact
+let lemma_serialize_subjectPublicKeyInfo_size_exact
   // (alg: supported_crypto_alg_t {alg == AlgID_Ed25519})
-  (x: subjectPublicKeyInfo_t_inbound)
+  (x: subjectPublicKeyInfo_t)
 : Lemma (
   // match alg with
   // | AlgID_Ed25519   ->
-  ( length_of_opaque_serialization (serialize_subjectPublicKeyInfo_sequence_TLV) x
+  ( length_of_opaque_serialization (serialize_subjectPublicKeyInfo) x
     == length_of_subjectPublicKeyInfo )
 )
 =
   // match alg with
   // | AlgID_Ed25519   ->
                      ( (* reveal the SEQUENCE envelop *)
-                   lemma_serialize_subjectPublicKeyInfo_sequence_TLV_unfold x;
-                   lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size   x;
+                   lemma_serialize_subjectPublicKeyInfo_unfold x;
+                   lemma_serialize_subjectPublicKeyInfo_size   x;
                      (* reveal the SEQUENCE body *)
-                     lemma_serialize_subjectPublicKeyInfo_size x;
-                     (**) lemma_serialize_algorithmIdentifier_sequence_TLV_size_exact x.subjectPubKey_alg;
+                     lemma_serialize_subjectPublicKeyInfo_payload_size x;
+                     (**) lemma_serialize_algorithmIdentifier_size_exact x.subjectPubKey_alg;
                      assert ( let bs: pubkey_t = x.subjectPubKey in
                               length_of_asn1_primitive_TLV bs == 35 );
                      () )
@@ -215,28 +215,28 @@ let lemma_serialize_subjectPublicKeyInfo_sequence_TLV_size_exact
 ///
 
 inline_for_extraction
-let serialize32_subjectPublicKeyInfo_backwards
+let serialize32_subjectPublicKeyInfo_payload_backwards
   // (alg: supported_crypto_alg_t)
-: serializer32_backwards (serialize_subjectPublicKeyInfo)
+: serializer32_backwards (serialize_subjectPublicKeyInfo_payload)
 = serialize32_synth_backwards
-  (* ls *) (serialize32_algorithmIdentifier_sequence_TLV_backwards
+  (* ls *) (serialize32_algorithmIdentifier_backwards
             `serialize32_nondep_then_backwards`
             serialize32_asn1_TLV_backwards_of_type BIT_STRING
             `serialize32_filter_backwards`
-            filter_subjectPublicKeyInfo_t')
-  (* f2 *) (synth_subjectPublicKeyInfo_t)
-  (* g1 *) (synth_subjectPublicKeyInfo_t')
-  (* g1'*) (synth_subjectPublicKeyInfo_t')
+            filter_subjectPublicKeyInfo_payload_t')
+  (* f2 *) (synth_subjectPublicKeyInfo_payload_t)
+  (* g1 *) (synth_subjectPublicKeyInfo_payload_t')
+  (* g1'*) (synth_subjectPublicKeyInfo_payload_t')
   (* prf*) ()
 
 inline_for_extraction
-let serialize32_subjectPublicKeyInfo_sequence_TLV_backwards
+let serialize32_subjectPublicKeyInfo_backwards
   // (alg: supported_crypto_alg_t)
-: serializer32_backwards (serialize_subjectPublicKeyInfo_sequence_TLV)
+: serializer32_backwards (serialize_subjectPublicKeyInfo)
 = coerce_serializer32_backwards
-    (serialize_subjectPublicKeyInfo_sequence_TLV)
+    (serialize_subjectPublicKeyInfo)
     (serialize32_asn1_sequence_TLV_backwards
-     (* ls *) (serialize32_subjectPublicKeyInfo_backwards))
+     (* ls *) (serialize32_subjectPublicKeyInfo_payload_backwards))
     ()
 (* helpers *)
 
@@ -253,20 +253,20 @@ let subjectPublicKeyInfo_raw_t
 let x509_get_subjectPublicKeyInfo
   // (pubkey_alg: supported_crypto_alg_t {pubkey_alg == AlgID_Ed25519} )
   (pubkey: B32.lbytes32 32ul)
-: Tot (subjectPublicKeyInfo_t_inbound)
+: Tot (subjectPublicKeyInfo_t)
 =
   lemma_trivial_bit_string_is_valid 33ul pubkey;
   let pubkey_bs: pubkey_t  = Mkbit_string_t 33ul 0ul pubkey in
 
   // if (pubkey_alg = AlgID_Ed25519) then
-  ( let alg_id: algorithmIdentifier_t_inbound = x509_get_algorithmIdentifier () in
-    (* Prf *) lemma_serialize_algorithmIdentifier_sequence_TLV_size_exact alg_id;
+  ( let alg_id: algorithmIdentifier_t = x509_get_algorithmIdentifier () in
+    (* Prf *) lemma_serialize_algorithmIdentifier_size_exact alg_id;
 
-    let aliasPublicKeyInfo: subjectPublicKeyInfo_t = {
+    let aliasPublicKeyInfo: subjectPublicKeyInfo_payload_t = {
        subjectPubKey_alg = alg_id;
        subjectPubKey     = pubkey_bs
     } in
-    (* Prf *) lemma_serialize_subjectPublicKeyInfo_size aliasPublicKeyInfo;
+    (* Prf *) lemma_serialize_subjectPublicKeyInfo_payload_size aliasPublicKeyInfo;
     (* Prf *) (**) lemma_serialize_asn1_bit_string_TLV_size aliasPublicKeyInfo.subjectPubKey;
 
     (* return *) aliasPublicKeyInfo )

@@ -33,7 +33,7 @@ let riot
 (* inputs *)
   (cdi : B.lbuffer byte_sec 32)
   (fwid: B.lbuffer byte_sec 32)
-  (ku: key_usage_t)
+  (ku: key_usage_payload_t)
   (version: datatype_of_asn1_type INTEGER)
   (aliasKeyTBS_template_len: size_t)
   (aliasKeyTBS_template: B.lbuffer byte_pub (v aliasKeyTBS_template_len))
@@ -89,7 +89,7 @@ let riot
                                                  (B.as_seq h0 cdi)
                                                  (deviceID_label_len)
                                                  (B.as_seq h0 deviceID_label) in
-     let aliasKeyTBS: aliasKeyTBS_t_inbound aliasKeyTBS_template_len = create_aliasKeyTBS_spec
+     let aliasKeyTBS: aliasKeyTBS_t aliasKeyTBS_template_len = create_aliasKeyTBS_spec
                                                                          (aliasKeyTBS_template_len)
                                                                          (B.as_seq h0 aliasKeyTBS_template)
                                                                          (ku)
@@ -98,14 +98,14 @@ let riot
                                                                          (deviceID_pub_seq)
                                                                          (B.as_seq h1 aliasKey_pub)
                                                                          in
-     let aliasKeyTBS_seq = serialize_aliasKeyTBS_sequence_TLV aliasKeyTBS_template_len `serialize` aliasKeyTBS in
+     let aliasKeyTBS_seq = serialize_aliasKeyTBS aliasKeyTBS_template_len `serialize` aliasKeyTBS in
      let aliasKeyTBS_len = len_of_aliasKeyTBS aliasKeyTBS_template_len ku version in
-     (* Prf *) lemma_serialize_aliasKeyTBS_sequence_TLV_size_exact aliasKeyTBS_template_len aliasKeyTBS;
-    (let aliasKeyCRT: aliasKeyCRT_t_inbound aliasKeyTBS_len = sign_and_finalize_aliasKeyCRT_spec
+     (* Prf *) lemma_serialize_aliasKeyTBS_size_exact aliasKeyTBS_template_len aliasKeyTBS;
+    (let aliasKeyCRT: aliasKeyCRT_t aliasKeyTBS_len = sign_and_finalize_aliasKeyCRT_spec
                                                                 (deviceID_priv_seq)
                                                                 (aliasKeyTBS_len)
                                                                 (aliasKeyTBS_seq) in
-     B.as_seq h1 aliasKeyCRT_buf == serialize_aliasKeyCRT_sequence_TLV aliasKeyTBS_len `serialize` aliasKeyCRT)))
+     B.as_seq h1 aliasKeyCRT_buf == serialize_aliasKeyCRT aliasKeyTBS_len `serialize` aliasKeyCRT)))
 =
  HST.push_frame ();
 
