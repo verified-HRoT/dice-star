@@ -55,6 +55,9 @@ let oid_EC_GRP_SECP256R1_as_buffer         = IB.igcmalloc_of_list HS.root (oid_E
 let oid_DIGEST_ALG_SHA256_as_buffer        = IB.igcmalloc_of_list HS.root (oid_DIGEST_ALG_SHA256)
 let oid_ED25519_as_bufffer                 = IB.igcmalloc_of_list HS.root (oid_ED25519)
 let oid_X25519_as_bufffer                  = IB.igcmalloc_of_list HS.root (oid_X25519)
+let oid_PKCS9_CSR_EXT_REQ_as_buffer        = IB.igcmalloc_of_list HS.root (oid_PKCS9_CSR_EXT_REQ)
+
+
 
 (* FIXME: A workaround
    To not extract any (total) seq, we split the `oid_buffer_t` into three
@@ -84,6 +87,7 @@ let len_of_oid
   | OID_EC_GRP_SECP256R1         -> 6ul
   | OID_ED25519                  -> 3ul
   | OID_X25519                   -> 3ul
+  | OID_PKCS9_CSR_EXT_REQ        -> 9ul
 
 (* FIXME: The order will affect Z3 for some reason. *)
 let oid_buffer_of_oid
@@ -103,6 +107,7 @@ let oid_buffer_of_oid
   | OID_ED25519                  -> oid_ED25519_as_bufffer
   | OID_X25519                   -> oid_X25519_as_bufffer
   | OID_DIGEST_SHA256            -> oid_DIGEST_ALG_SHA256_as_buffer
+  | OID_PKCS9_CSR_EXT_REQ        -> oid_PKCS9_CSR_EXT_REQ_as_buffer
 
 let len_of_oid_buffer
   (oid: oid_t)
@@ -124,6 +129,7 @@ let len_of_oid_buffer
   | OID_ED25519                  -> 3ul
   | OID_X25519                   -> 3ul
   | OID_DIGEST_SHA256            -> 9ul //oid_DIGEST_ALG_SHA256_as_buffer
+  | OID_PKCS9_CSR_EXT_REQ        -> 9ul
 
 noextract
 let seq_of_oid_buffer
