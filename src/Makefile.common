@@ -23,6 +23,7 @@ find-all = $(filter $1,$(addsuffix $2,$(ALL_FSTAR_FILES)))
 
 # Includes
 INCLUDES=$(FSTAR_HOME)/ulib/.cache \
+  $(KREMLIN_HOME)/kremlib/obj \
   $(KREMLIN_HOME)/include \
   $(KREMLIN_HOME)/kremlib/dist/generic \
   $(HACL_HOME)/specs \
