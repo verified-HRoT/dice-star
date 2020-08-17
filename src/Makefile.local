@@ -67,14 +67,14 @@ src-of = $(filter %$(subst $2,,$(notdir $1)),$(ALL_FSTAR_FILES))
 hint-of = $(HINT_DIR)/$(notdir $1).hints
 
 $(OUTPUT_DIR)/%.checked:
-#	@echo "[CACHE]" $@
-#	@echo "[HINT]" $(call hint-of,$*)
-	@echo "[VERIFY]" $<
-	@$(FSTAR) \
-    $(FSTAR_VERIFY_FLAGS) \
-    $(OTHERFLAGS) \
-    $<
-	@touch $@
+	$(call run-with-log,\
+    $(FSTAR) \
+      $(FSTAR_VERIFY_FLAGS) \
+      $(OTHERFLAGS) \
+     $< && touch $@ \
+    ,[VERIFY] $< \
+    ,$@)
+	
 
 ## Verify Current Target
 verify-all: $(ALL_CHECKED_FILES)
@@ -84,13 +84,14 @@ verify-all: $(ALL_CHECKED_FILES)
 #
 
 $(OUTPUT_DIR)/%.krml:
-#	@echo "[CACHE]" $<
-	@echo "[EXTRACT]" $(subst .checked,,$<)
-	@$(FSTAR) \
-    $(FSTAR_EXTRACT_FLAGS) \
-    $(OTHERFLAGS) \
-    --extract_module $(basename $(notdir $(subst .checked,,$<))) \
-    $(notdir $(subst .checked,,$<))
+	$(call run-with-log,\
+	  $(FSTAR) \
+      $(FSTAR_EXTRACT_FLAGS) \
+      $(OTHERFLAGS) \
+      --extract_module $(basename $(notdir $(subst .checked,,$<))) \
+      $(notdir $(subst .checked,,$<)) \
+    ,[EXTRACT] $(subst .checked,,$<) \
+    ,$@)
 
 ## Extract Current Target
 extract-all: $(ALL_KRML_FILES)

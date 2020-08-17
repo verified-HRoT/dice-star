@@ -1,5 +1,49 @@
 EVERPARSE_HOME ?= $(FSTAR_HOME)/../everparse
 
+SHELL=/bin/bash
+
+ifeq ($(shell uname -s),Darwin)
+  ifeq (,$(shell which gsed))
+    $(error gsed not found; try brew install gnu-sed)
+  endif
+  SED := gsed
+  ifeq (,$(shell which gtime))
+    $(error gtime not found; try brew install gnu-time)
+  endif
+  TIME := gtime
+else
+  SED := sed
+  TIME := /usr/bin/time
+endif
+
+# A helper to generate pretty logs, callable as:
+#   $(call run-with-log,CMD,TXT,STEM)
+#
+# Arguments:
+#  CMD: command to execute (may contain double quotes, but not escaped)
+#  TXT: readable text to print out once the command terminates
+#  STEM: path stem for the logs, stdout will be in STEM.out, stderr in STEM.err, CMD in STEM.cmd
+ifeq (,$(NOSHORTLOG))
+run-with-log = \
+  @echo "$(subst ",\",$1)" > $3.cmd; \
+  $(TIME) -q -f '%E' -o $3.time sh -c "$(subst ",\",$1)" > $3.out 2> >( tee $3.err 1>&2 ); \
+  ret=$$?; \
+  time=$$(cat $3.time); \
+  if [ $$ret -eq 0 ]; then \
+    echo "$2, $$time"; \
+  else \
+    echo "<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>"; \
+    echo -e "\033[31mFatal error while running\033[0m: $1"; \
+    echo -e "\033[31mFailed after\033[0m: $$time"; \
+    echo -e "\033[36mFull log is in $3.{out,err}, see excerpt below\033[0m:"; \
+    tail -n 20 $3.err; \
+    echo "<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>"; \
+    false; \
+  fi
+else
+run-with-log = $1
+endif
+
 # Helpers from hacl-star (https://github.com/project-everest/hacl-star/blob/master/Makefile)
 
 # Transforms any foo/bar/baz.qux into $2/baz.qux
@@ -23,6 +67,7 @@ find-all = $(filter $1,$(addsuffix $2,$(ALL_FSTAR_FILES)))
 
 # Includes
 INCLUDES=$(FSTAR_HOME)/ulib/.cache \
+  $(KREMLIN_HOME)/kremlib/obj \
   $(KREMLIN_HOME)/include \
   $(KREMLIN_HOME)/kremlib/dist/generic \
   $(HACL_HOME)/specs \

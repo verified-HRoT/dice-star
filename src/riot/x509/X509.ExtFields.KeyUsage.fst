@@ -78,15 +78,27 @@ let _filter_x509_key_usage_payload
 let _synth_x509_key_usage_payload
   (bs: parse_filter_refine _filter_x509_key_usage_payload)
 : GTot (key_usage_payload_t)
-= cast #(Unsigned W8) #(Signed W32) (B32.index bs.bs_s 0) +
-  ((cast #(Unsigned W8) #(Signed W32) (B32.index bs.bs_s 1)) * 0x100l)
+= FStar.Int.Cast.uint8_to_int32 (B32.index bs.bs_s 0) +
+  ((FStar.Int.Cast.uint8_to_int32 (B32.index bs.bs_s 1)) * 0x100l)
 
+#push-options "--z3rlimit 32 --fuel 0 --ifuel 0"
 let lemma_synth_x509_key_usage_payload_injective'
   (bs1 bs2: parse_filter_refine _filter_x509_key_usage_payload)
 : Lemma
   (requires _synth_x509_key_usage_payload bs1 == _synth_x509_key_usage_payload bs2)
   (ensures bs1 == bs2)
-= admit ()
+= let x1 = _synth_x509_key_usage_payload bs1 in
+  let x2 = _synth_x509_key_usage_payload bs2 in
+  assert_norm (x1 % 0x100l == x2 % 0x100l);
+  assert_norm (x1 % 0x100l == FStar.Int.Cast.uint8_to_int32 (B32.index bs1.bs_s 0));
+  assert_norm (x2 % 0x100l == FStar.Int.Cast.uint8_to_int32 (B32.index bs2.bs_s 0));
+  assert_norm (x1 / 0x100l == x2 / 0x100l);
+  assert_norm (x1 / 0x100l == FStar.Int.Cast.uint8_to_int32 (B32.index bs1.bs_s 1));
+  assert_norm (x2 / 0x100l == FStar.Int.Cast.uint8_to_int32 (B32.index bs2.bs_s 1));
+  assert (bs1.bs_s `B32.equal` bs2.bs_s);
+  B32.extensionality bs1.bs_s bs2.bs_s;
+()
+#pop-options
 
 let lemma_synth_x509_key_usage_injective ()
 : Lemma (
