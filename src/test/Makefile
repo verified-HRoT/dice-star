@@ -3,7 +3,7 @@ include ../Makefile.common
 include ../Makefile.local
 
 clean-test:
-	rm -f .depend ASN1.Test.fst RIoT.Test.fst *.exe *.key *.hex *.pem
+	rm -f .depend ASN1.Test.fst *.exe *.key *.hex *.pem
 
 test-asn1: clean-test
 	$(TEST_DIR)/generate_test_script.py --target asn1
@@ -11,7 +11,6 @@ test-asn1: clean-test
 	@./test.exe
 
 test-riot: clean-test
-	$(TEST_DIR)/generate_test_script.py --target riot
 	$(MAKE) verify-all; $(MAKE) extract-all; $(MAKE) compile-all
 	@./test.exe
 	@cat AliasKeyCrt.hex | xxd -r -p | openssl x509 -inform DER -out AliasKeyCrt.pem
