@@ -35,6 +35,9 @@ noextract inline_for_extraction let oid_head_ISO_ITU_COUNTRY    = normalize_term
                                         MBEDTLS_OID_ORG_ANSI_X9_62
 *)
 noextract inline_for_extraction let oid_node_COUNTRY_US     = normalize_term([0x86uy; 0x48uy])
+noextract inline_for_extraction let oid_node_ORG_RSA_DATA_SECURITY = normalize_term([0x86uy; 0xF7uy; 0x0Duy])
+noextract inline_for_extraction let oid_RSA_COMPANY         = normalize_term(oid_head_ISO_MEMBER_BODIES @ oid_node_COUNTRY_US @ oid_node_ORG_RSA_DATA_SECURITY)
+
 noextract inline_for_extraction let oid_node_ORG_ANSI_X9_62 = normalize_term([0xceuy; 0x3duy])
 noextract inline_for_extraction let oid_ANSI_X9_62          = normalize_term(oid_head_ISO_MEMBER_BODIES @ oid_node_ORG_ANSI_X9_62)
 
@@ -245,6 +248,30 @@ noextract inline_for_extraction let oid_ED25519 = normalize_term(oid_EDWARDS_CUR
 
 noextract inline_for_extraction let oid_X25519 = normalize_term(oid_EDWARDS_CURVE_ALGS @ [0x6Euy])
 
+(*
+/*
+ * PKCS definition OIDs
+ */
+
+#define MBEDTLS_OID_PKCS                MBEDTLS_OID_RSA_COMPANY "\x01" /**< pkcs OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) 1 } */
+#define MBEDTLS_OID_PKCS1               MBEDTLS_OID_PKCS "\x01" /**< pkcs-1 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) 1 } */
+#define MBEDTLS_OID_PKCS5               MBEDTLS_OID_PKCS "\x05" /**< pkcs-5 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) 5 } */
+#define MBEDTLS_OID_PKCS9               MBEDTLS_OID_PKCS "\x09" /**< pkcs-9 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) 9 } */
+#define MBEDTLS_OID_PKCS12              MBEDTLS_OID_PKCS "\x0c" /**< pkcs-12 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) 12 } */
+*)
+
+noextract inline_for_extraction let oid_PKCS = normalize_term(oid_RSA_COMPANY @ [0x01uy])
+noextract inline_for_extraction let oid_PKCS9 = normalize_term(oid_PKCS @ [0x09uy])
+
+(*
+/*
+ * PKCS#8 OIDs
+ */
+#define MBEDTLS_OID_PKCS9_CSR_EXT_REQ           MBEDTLS_OID_PKCS9 "\x0e" /**< extensionRequest OBJECT IDENTIFIER ::= {pkcs-9 14} */
+*)
+
+noextract inline_for_extraction let oid_PKCS9_CSR_EXT_REQ = normalize_term(oid_PKCS9 @ [0x0Euy])
+
 (* RIoT OID
   =========
 1.3.6.1.4.1.311.89.3.1
@@ -271,7 +298,8 @@ let known_oids_as_list =
     oid_EC_ALG_UNRESTRICTED;
     oid_EC_GRP_SECP256R1;
     oid_ED25519;
-    oid_X25519
+    oid_X25519;
+    oid_PKCS9_CSR_EXT_REQ
     ]
 
 module T = FStar.Tactics
@@ -358,6 +386,8 @@ by (T.norm ([iota; zeta; delta_only [  //before sending the VC to the solver, un
   `%oid_head_ISO_CCITT_DS;
   `%oid_head_ISO_ITU_COUNTRY;
   `%oid_node_COUNTRY_US;
+  `%oid_node_ORG_RSA_DATA_SECURITY;
+  `%oid_RSA_COMPANY;
   `%oid_node_ORGANIZATION;
   `%oid_ISO_ITU_US_ORG;
   `%oid_node_ISO_ORG_GOV;
@@ -388,7 +418,10 @@ by (T.norm ([iota; zeta; delta_only [  //before sending the VC to the solver, un
   `%oid_EC_GRP_SECP256R1;
   `%oid_EDWARDS_CURVE_ALGS;
   `%oid_ED25519;
-  `%oid_X25519] ]))
+  `%oid_X25519;
+  `%oid_PKCS;
+  `%oid_PKCS9;
+  `%oid_PKCS9_CSR_EXT_REQ] ]))
 
 = let aux (#a:Type) (l:list a)
     : Lemma (Seq.seq_to_list (Seq.seq_of_list l) == l)
@@ -421,6 +454,7 @@ let oid_seq_of
   | OID_EC_GRP_SECP256R1         -> Seq.createL oid_EC_GRP_SECP256R1
   | OID_ED25519                  -> Seq.createL oid_ED25519
   | OID_X25519                   -> Seq.createL oid_X25519
+  | OID_PKCS9_CSR_EXT_REQ        -> Seq.createL oid_PKCS9_CSR_EXT_REQ
 #pop-options
 
 
@@ -464,6 +498,7 @@ let length_of_oid
   | OID_EC_GRP_SECP256R1         -> assert_norm (List.length oid_EC_GRP_SECP256R1 == 6); 6
   | OID_ED25519                  -> assert_norm (List.length oid_ED25519 == 3); 3
   | OID_X25519                   -> assert_norm (List.length oid_X25519 == 3); 3
+  | OID_PKCS9_CSR_EXT_REQ        -> assert_norm (List.length oid_PKCS9_CSR_EXT_REQ == 9); 9
 
 noextract
 let filter_asn1_oid
@@ -525,6 +560,8 @@ let synth_asn1_oid
   ( OID_ED25519 )
   else if ( oid_seq = Seq.createL oid_X25519 ) then
   ( OID_X25519 )
+  else if ( oid_seq = Seq.createL oid_PKCS9_CSR_EXT_REQ ) then
+  ( OID_PKCS9_CSR_EXT_REQ )
   else
   ( false_elim() )
 #pop-options

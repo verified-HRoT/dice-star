@@ -314,6 +314,7 @@ type oid_t =
 | OID_EC_GRP_SECP256R1
 | OID_ED25519
 | OID_X25519
+| OID_PKCS9_CSR_EXT_REQ
 
 #push-options "--z3rlimit 32"
 unfold
