@@ -67,8 +67,6 @@ let main ()
   let aliasKey_pub : B.lbuffer byte_pub 32 = B.alloca 0x00uy 32ul in
   let aliasKey_priv: B.lbuffer byte_sec 32 = B.alloca (u8 0x00) 32ul in
 
-  let x = serialize32_asn1_oid_TLV_backwards () OID_RIOT aliasKeyCRT_buf aliasKeyCRT_len in
-
   comment "Call riot main function";
   printf "Enter RIoT\n" done;
   riot
