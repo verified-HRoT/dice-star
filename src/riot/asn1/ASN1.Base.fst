@@ -30,6 +30,8 @@ type asn1_tag_t: Type =
 | INTEGER
 | ASN1_NULL
 | OCTET_STRING
+| PRINTABLE_STRING
+| IA5_STRING
 | BIT_STRING
 | OID
 | SEQUENCE
@@ -95,7 +97,9 @@ let asn1_value_length_min_of_type
   | BOOLEAN      -> 1                 (* Any `BOOLEAN` value {true, false} has length 1. *)
   | INTEGER      -> 1                 (* `INTEGER` values range in [0x00, 0x7F] has length 1. *)
   | ASN1_NULL    -> 0                 (* Any `ASN1_NULL` value has nothing to serialize and has length 0. *)
-  | OCTET_STRING -> asn1_length_min   (* An empty `OCTET_STRING` [] has length 0. *)
+  | OCTET_STRING
+  | IA5_STRING
+  | PRINTABLE_STRING  -> asn1_length_min   (* An empty `OCTET_STRING` [] has length 0. *)
   | OID          -> asn1_length_min   (* `OID` is just `OCTET_STRING`. *)
   | BIT_STRING   -> 1                 (* An empty `BIT_STRING` with a leading byte of `unused_bits` has length 0. *)
   | SEQUENCE     -> asn1_length_min   (* An empty `SEQUENCE` has length 0. *)
@@ -110,7 +114,9 @@ let asn1_value_length_max_of_type
   | BOOLEAN      -> 1                    (* Any `BOOLEAN` value {true, false} has length 1. *)
   | INTEGER      -> 4                    (* `INTEGER` values range in (0x7FFFFF, 0x7FFFFFFF] has length 4. *)
   | ASN1_NULL    -> 0                    (* Any `ASN1_NULL` value has nothing to serialize and has length 0. *)
-  | OCTET_STRING -> asn1_length_max - 6  (* An `OCTET_STRING` of size `asn1_length_max - 6`. *)
+  | OCTET_STRING
+  | IA5_STRING
+  | PRINTABLE_STRING -> asn1_length_max - 6  (* An `OCTET_STRING` of size `asn1_length_max - 6`. *)
   | OID          -> asn1_length_max - 6  (* `OID` is just `OCTET_STRING`. *)
   | BIT_STRING   -> asn1_length_max - 6  (* An `BIT_STRING` of size `asn1_length_max - 7` with a leading byte of `unused_bits`. *)
   | SEQUENCE     -> asn1_length_max - 6  (* An `SEQUENCE` whose value has length `asn1_length_max - 6` *)
@@ -147,7 +153,9 @@ let asn1_TLV_length_min_of_type
   | BOOLEAN      -> 3 (*  1 + 1 + 1  *)
   | INTEGER      -> 3 (*  1 + 1 + 1  *)
   | ASN1_NULL    -> 2 (*  1 + 1 + 0  *)
-  | OCTET_STRING -> 2 (*  1 + 1 + 0  *)
+  | OCTET_STRING
+  | IA5_STRING
+  | PRINTABLE_STRING -> 2 (*  1 + 1 + 0  *)
   | OID          -> 2 (*  1 + 1 + 0  *)
   | BIT_STRING   -> 3 (*  1 + 1 + 1  *)
   | SEQUENCE     -> 2 (*  1 + 1 + 0  *)
@@ -162,7 +170,9 @@ let asn1_TLV_length_max_of_type
   | BOOLEAN      -> 3                (*  1 + 1 + 1  *)
   | INTEGER      -> 6                (*  1 + 1 + 4  *)
   | ASN1_NULL    -> 2                (*  1 + 1 + 0  *)
-  | OCTET_STRING -> asn1_length_max  (*  1 + 5 + _  *)
+  | OCTET_STRING
+  | IA5_STRING
+  | PRINTABLE_STRING -> asn1_length_max  (*  1 + 5 + _  *)
   | OID          -> asn1_length_max  (*  1 + 5 + _  *)
   | BIT_STRING   -> asn1_length_max  (*  1 + 5 + _  *)
   | SEQUENCE     -> asn1_length_max  (*  1 + 5 + _  *)
@@ -206,7 +216,9 @@ let asn1_value_int32_min_of_type
   | BOOLEAN      -> 1ul
   | INTEGER      -> 1ul
   | ASN1_NULL    -> 0ul
-  | OCTET_STRING -> asn1_int32_min
+  | OCTET_STRING
+  | IA5_STRING
+  | PRINTABLE_STRING -> asn1_int32_min
   | OID          -> asn1_int32_min
   | BIT_STRING   -> 1ul
   | SEQUENCE     -> asn1_int32_min
@@ -221,7 +233,9 @@ let asn1_value_int32_max_of_type
   | BOOLEAN      -> 1ul
   | INTEGER      -> 4ul
   | ASN1_NULL    -> 0ul
-  | OCTET_STRING -> asn1_int32_max - 6ul
+  | OCTET_STRING
+  | IA5_STRING
+  | PRINTABLE_STRING -> asn1_int32_max - 6ul
   | OID          -> asn1_int32_max - 6ul
   | BIT_STRING   -> asn1_int32_max - 6ul
   | SEQUENCE     -> asn1_int32_max - 6ul
@@ -251,7 +265,9 @@ let asn1_TLV_int32_min_of_type
   | BOOLEAN      -> 3ul
   | INTEGER      -> 3ul
   | ASN1_NULL    -> 2ul
-  | OCTET_STRING -> 2ul
+  | OCTET_STRING
+  | IA5_STRING
+  | PRINTABLE_STRING -> 2ul
   | OID          -> 2ul
   | BIT_STRING   -> 3ul
   | SEQUENCE     -> 2ul
@@ -265,7 +281,9 @@ let asn1_TLV_int32_max_of_type
   | BOOLEAN      -> 3ul
   | INTEGER      -> 6ul
   | ASN1_NULL    -> 2ul
-  | OCTET_STRING -> asn1_int32_max
+  | OCTET_STRING
+  | IA5_STRING
+  | PRINTABLE_STRING -> asn1_int32_max
   | OID          -> asn1_int32_max
   | BIT_STRING   -> asn1_int32_max
   | SEQUENCE     -> asn1_int32_max
@@ -347,6 +365,24 @@ let lemma_trivial_bit_string_is_valid
 )
 = ()
 
+let valid_IA5_byte
+  (b: byte)
+: bool
+= b <= 0x7Fuy
+
+let byte_IA5: Type = b: byte { valid_IA5_byte b }
+let bytes_IA5 = Seq.seq byte_IA5
+let lbytes_IA5 = Seq.lseq byte_IA5
+
+let bytes32_IA5
+= s32: B32.bytes
+       { forall (i:nat { 0 <= i /\ i < B32.length s32 }). valid_IA5_byte (B32.index s32 i) }
+
+let valid_PRINTABLE_byte
+  (b: byte)
+: Tot (bool)
+= (0x41uy <= b && b <= 0x5Auy)
+
 ////////////////////////////////////////////////////////////////////////
 ////            Representation of ASN1 Values
 //// NOTE: They will be directly used in both spec and impl level
@@ -359,13 +395,19 @@ let datatype_of_asn1_type (a: asn1_primitive_type): Type
   (* Positive 32-bit _signed_ integer. *)
   | INTEGER      -> ( i: int_32{v i >= 0} )
 
-  | ASN1_NULL         -> unit
+  | ASN1_NULL    -> unit
 
   (* An octet string is represented as
      1. `len`: the length of the octet string;
      2. `s`: the octet string. *)
   | OCTET_STRING -> ( len: asn1_value_int32_of_type OCTET_STRING &
                       s  : B32.bytes { B32.length s == v len } )
+
+  | PRINTABLE_STRING -> ( len: asn1_value_int32_of_type OCTET_STRING &
+                          s  : B32.bytes { B32.length s == v len /\ Seq.for_all valid_PRINTABLE_byte (B32.reveal s) } )
+
+  | IA5_STRING   -> ( len: asn1_value_int32_of_type IA5_STRING &
+                      s  : B32.bytes { B32.length s == v len /\ Seq.for_all valid_IA5_byte (B32.reveal s) } )
 
   (* WIP *)
   | OID          -> oid_t

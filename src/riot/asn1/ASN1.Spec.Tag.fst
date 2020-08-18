@@ -34,7 +34,7 @@ let filter_asn1_tag
   (b: byte)
 : GTot bool
 = match b with
-  | 0x01uy | 0x04uy | 0x05uy | 0x30uy | 0x31uy | 0x03uy | 0x02uy | 0x06uy -> true
+  | 0x01uy | 0x04uy | 0x05uy | 0x13uy | 0x16uy | 0x30uy | 0x31uy | 0x03uy | 0x02uy | 0x06uy -> true
   | _ -> if (b / 0b01000000uy <> 00uy) then true else false
 
 /// decode input bytes
@@ -48,6 +48,8 @@ let synth_asn1_tag
   | 0x02uy -> INTEGER
   | 0x03uy -> BIT_STRING
   | 0x04uy -> OCTET_STRING
+  | 0x13uy -> PRINTABLE_STRING
+  | 0x16uy -> IA5_STRING
   | 0x05uy -> ASN1_NULL
   | 0x06uy -> OID
   | 0x30uy -> SEQUENCE
@@ -72,6 +74,8 @@ let synth_asn1_tag_inverse
   | INTEGER      -> 0x02uy
   | BIT_STRING   -> 0x03uy
   | OCTET_STRING -> 0x04uy
+  | PRINTABLE_STRING -> 0x13uy
+  | IA5_STRING   -> 0x16uy
   | ASN1_NULL    -> 0x05uy
   | OID          -> 0x06uy
   | SEQUENCE     -> 0x30uy
