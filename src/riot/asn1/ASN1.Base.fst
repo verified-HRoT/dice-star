@@ -377,6 +377,11 @@ let bytes32_IA5
 = s32: B32.bytes
        { forall (i:nat { 0 <= i /\ i < B32.length s32 }). valid_IA5_byte (B32.index s32 i) }
 
+let valid_PRINTABLE_byte
+  (b: byte)
+: Tot (bool)
+= (0x41uy <= b && b <= 0x5Auy)
+
 ////////////////////////////////////////////////////////////////////////
 ////            Representation of ASN1 Values
 //// NOTE: They will be directly used in both spec and impl level
@@ -394,9 +399,11 @@ let datatype_of_asn1_type (a: asn1_primitive_type): Type
   (* An octet string is represented as
      1. `len`: the length of the octet string;
      2. `s`: the octet string. *)
-  | OCTET_STRING
+  | OCTET_STRING -> ( len: asn1_value_int32_of_type OCTET_STRING &
+                      s  : B32.bytes { B32.length s == v len } )
+
   | PRINTABLE_STRING -> ( len: asn1_value_int32_of_type OCTET_STRING &
-                          s  : B32.bytes { B32.length s == v len } )
+                          s  : B32.bytes { B32.length s == v len /\ Seq.for_all valid_PRINTABLE_byte (B32.reveal s) } )
 
   | IA5_STRING   -> ( len: asn1_value_int32_of_type IA5_STRING &
                       s  : B32.bytes { B32.length s == v len /\ Seq.for_all valid_IA5_byte (B32.reveal s) } )

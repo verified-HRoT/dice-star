@@ -23,7 +23,7 @@ let parse_asn1_string
                                   { len_of_string x== len }))
   (prf: unit { forall len. synth_injective (synth_string len) })
   (len: asn1_value_int32_of_type t)
-: parser _ (x: datatype_of_asn1_type t {len_of_string x== len})
+: parser _ (x: datatype_of_asn1_type t {len_of_string x == len})
 = parse_flbytes (v len)
   `parse_filter`
   filter_string len
@@ -110,7 +110,8 @@ let lemma_serialize_asn1_string_size
   (x: datatype_of_asn1_type t { len_of_string x== len })
 : Lemma (
   length_of_opaque_serialization (serialize_asn1_string t len_of_string filter_string synth_string synth_string_inverse prf len) x
-  == v len
+  == v len /\
+  len == len_of_string x
 )
 = lemma_serialize_asn1_string_unfold t len_of_string filter_string synth_string synth_string_inverse prf len x
 
@@ -307,46 +308,88 @@ let lemma_serialize_asn1_string_TLV_unfold
   (* tg *) (parser_tag_of_asn1_string t len_of_string)
   (* s  *) (serialize_asn1_string_V t len_of_string filter_string synth_string synth_string_inverse prf)
   (* in *) (x)
+
+let lemma_serialize_asn1_string_TLV_size
+  (t: asn1_type { t == IA5_STRING \/ t == PRINTABLE_STRING \/ t == OCTET_STRING })
+  (len_of_string: datatype_of_asn1_type t -> asn1_value_int32_of_type t)
+  (filter_string: (len: asn1_value_int32_of_type t)
+                  -> (s32: B32.lbytes32 len)
+                  -> GTot (bool))
+  (synth_string: (len: asn1_value_int32_of_type t)
+                       -> (s32: parse_filter_refine (filter_string len))
+                       -> GTot (x: datatype_of_asn1_type t
+                                  { len_of_string x== len }))
+  (synth_string_inverse: (len: asn1_value_int32_of_type t)
+                         -> (x: datatype_of_asn1_type t { len_of_string x== len })
+                         -> (s32: parse_filter_refine (filter_string len)
+                                 { x == synth_string len s32 }))
+  (prf: unit { forall len. synth_injective (synth_string len) })
+  (x: datatype_of_asn1_type t)
+: Lemma (
+  length_of_opaque_serialization (serialize_asn1_string_TLV t len_of_string filter_string synth_string synth_string_inverse prf) x ==
+  1 + length_of_asn1_length (len_of_string x) + v (len_of_string x)
+)
+= lemma_serialize_asn1_string_TLV_unfold t len_of_string filter_string synth_string synth_string_inverse prf x;
+  lemma_serialize_asn1_tag_of_type_size t t;
+  lemma_serialize_asn1_length_size (len_of_string x);
+  serialize_asn1_length_of_type_eq t (len_of_string x);
+  lemma_serialize_asn1_string_size t len_of_string filter_string synth_string synth_string_inverse prf (len_of_string x) x
 #pop-options
 
-let filter_asn1_ia5_string
-  (len: asn1_value_int32_of_type IA5_STRING)
-  (s32: B32.lbytes32 len)
-: GTot (bool)
-= let s = B32.reveal s32 in
-  Seq.for_all valid_IA5_byte s
+let filter_asn1_string_with_character_bound
+  (t: asn1_type { t == IA5_STRING \/ t == PRINTABLE_STRING \/ t == OCTET_STRING })
+  (count_character: (x: datatype_of_asn1_type t) -> Tot (asn1_int32))
+  (lb: asn1_int32)
+  (ub: asn1_int32 { lb <= ub })
+  (x: datatype_of_asn1_type t)
+: Tot (bool)
+= lb <= count_character x && count_character x <= ub
 
-let synth_asn1_ia5_string
-  (len: asn1_value_int32_of_type IA5_STRING)
-  (s32: parse_filter_refine (filter_asn1_ia5_string len))
-: GTot (value: datatype_of_asn1_type IA5_STRING{(dfst value) == len})
-= (|len, s32|)
+let asn1_string_with_character_bound_t
+  (t: asn1_type { t == IA5_STRING \/ t == PRINTABLE_STRING \/ t == OCTET_STRING })
+  (count_character: (x: datatype_of_asn1_type t) -> Tot (asn1_int32))
+  (lb: asn1_int32)
+  (ub: asn1_int32 { lb <= ub })
+= parse_filter_refine (filter_asn1_string_with_character_bound t count_character lb ub)
 
-let synth_asn1_ia5_string_inverse
-  (len: asn1_value_int32_of_type IA5_STRING)
-  (value: datatype_of_asn1_type IA5_STRING{(dfst value) == len})
-: Tot (s32: parse_filter_refine (filter_asn1_ia5_string len)
-             { value == synth_asn1_ia5_string len s32 })
-= dsnd value
+let parse_asn1_string_TLV_with_character_bound
+  (t: asn1_type { t == IA5_STRING \/ t == PRINTABLE_STRING \/ t == OCTET_STRING })
+  (len_of_string: datatype_of_asn1_type t -> asn1_value_int32_of_type t)
+  (filter_string: (len: asn1_value_int32_of_type t)
+                  -> (s32: B32.lbytes32 len)
+                  -> GTot (bool))
+  (synth_string: (len: asn1_value_int32_of_type t)
+                       -> (s32: parse_filter_refine (filter_string len))
+                       -> GTot (x: datatype_of_asn1_type t
+                                  { len_of_string x== len }))
+  (prf: unit { forall len. synth_injective (synth_string len) })
+  (count_character: (x: datatype_of_asn1_type t) -> Tot (asn1_int32))
+  (lb: asn1_int32)
+  (ub: asn1_int32 { lb <= ub })
+: parser (parse_asn1_string_TLV_kind t) (asn1_string_with_character_bound_t t count_character lb ub)
+= parse_asn1_string_TLV t len_of_string filter_string synth_string prf
+  `parse_filter`
+  filter_asn1_string_with_character_bound t count_character lb ub
 
-let parse_asn1_ia5_string_TLV
-= parse_asn1_string_TLV
-    (IA5_STRING)
-    (dfst)
-    (filter_asn1_ia5_string)
-    (synth_asn1_ia5_string)
-    ()
-
-let serialize_asn1_ia5_string_TLV
-: serializer (parse_asn1_ia5_string_TLV)
-= serialize_asn1_string_TLV
-    (IA5_STRING)
-    (dfst)
-    (filter_asn1_ia5_string)
-    (synth_asn1_ia5_string)
-    (synth_asn1_ia5_string_inverse)
-    ()
-
-/// TODO: upper bound
-///
-
+let serialize_asn1_string_TLV_with_character_bound
+  (t: asn1_type { t == IA5_STRING \/ t == PRINTABLE_STRING \/ t == OCTET_STRING })
+  (len_of_string: datatype_of_asn1_type t -> asn1_value_int32_of_type t)
+  (filter_string: (len: asn1_value_int32_of_type t)
+                  -> (s32: B32.lbytes32 len)
+                  -> GTot (bool))
+  (synth_string: (len: asn1_value_int32_of_type t)
+                       -> (s32: parse_filter_refine (filter_string len))
+                       -> GTot (x: datatype_of_asn1_type t
+                                  { len_of_string x== len }))
+  (synth_string_inverse: (len: asn1_value_int32_of_type t)
+                         -> (x: datatype_of_asn1_type t { len_of_string x== len })
+                         -> (s32: parse_filter_refine (filter_string len)
+                                 { x == synth_string len s32 }))
+  (prf: unit { forall len. synth_injective (synth_string len) })
+  (count_character: (x: datatype_of_asn1_type t) -> Tot (asn1_int32))
+  (lb: asn1_int32)
+  (ub: asn1_int32 { lb <= ub })
+: serializer (parse_asn1_string_TLV_with_character_bound t len_of_string filter_string synth_string prf count_character lb ub)
+= serialize_asn1_string_TLV t len_of_string filter_string synth_string synth_string_inverse prf
+  `serialize_filter`
+  filter_asn1_string_with_character_bound t count_character lb ub
