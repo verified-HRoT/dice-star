@@ -65,7 +65,7 @@ find-all = $(filter $1,$(addsuffix $2,$(ALL_FSTAR_FILES)))
 
 # FStar
 
-ifneq ($(wildcard $(KREMLIN_HOME)/kremlib/obj),)
+ifneq ($(wildcard $(KREMLIN_HOME)/kremlib/obj/.),)
         KRML_OBJ_DIR=$(KREMLIN_HOME)/kremlib/obj
 else
         KRML_OBJ_DIR=
