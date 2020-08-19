@@ -65,9 +65,15 @@ find-all = $(filter $1,$(addsuffix $2,$(ALL_FSTAR_FILES)))
 
 # FStar
 
+ifneq ($(wildcard $(KREMLIN_HOME)/kremlib/obj),)
+        KRML_OBJ_DIR=$(KREMLIN_HOME)/kremlib/obj
+else
+        KRML_OBJ_DIR=
+endif
+
 # Includes
 INCLUDES=$(FSTAR_HOME)/ulib/.cache \
-  $(KREMLIN_HOME)/kremlib/obj \
+  $(KRML_OBJ_DIR) \
   $(KREMLIN_HOME)/include \
   $(KREMLIN_HOME)/kremlib/dist/generic \
   $(HACL_HOME)/specs \
