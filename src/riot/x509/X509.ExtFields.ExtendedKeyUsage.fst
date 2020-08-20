@@ -9,6 +9,9 @@ open ASN1.Spec
 open X509.Base
 
 module B32 = FStar.Bytes
+
+#set-options "--z3rlimit 32"
+
 (*)
 noextract unfold
 let valid_keyPurposeIDs
@@ -28,18 +31,21 @@ let rec x509_ext_key_usage_t
             `tuple2`
             get_parser_type (parse_asn1_oid_TLV_of oid) )
 
-let rec get_x509_ext_key_usage
-  (oids: list (datatype_of_asn1_type OID) { valid_keyPurposeIDs oids})
-: Tot (x509_ext_key_usage_t oids)
-  (decreases (List.length oids))
-= let oids', oid = List.Tot.Base.unsnoc oids in
-  List.Tot.Properties.lemma_unsnoc_length oids;
-  match oids' with
-  | [] -> ( oid )
-  | _  -> ( (get_x509_ext_key_usage oids', oid)
-             <: x509_ext_key_usage_t oids'
-                `tuple2`
-                get_parser_type (parse_asn1_oid_TLV_of oid) )
+// let rec get_x509_ext_key_usage
+//   (oids: list (datatype_of_asn1_type OID) { valid_keyPurposeIDs oids})
+// : Tot (x509_ext_key_usage_t oids)
+//   (decreases (List.length oids))
+// = let oids', oid = List.Tot.Base.unsnoc oids in
+//   List.Tot.Properties.lemma_unsnoc_length oids;
+//   match oids' with
+//   | [] -> ( oid )
+//   | _  -> ( assert ( x509_ext_key_usage_t oids == x509_ext_key_usage_t oids'
+//                 `tuple2`
+//                 get_parser_type (parse_asn1_oid_TLV_of oid) ); admit();
+//             (get_x509_ext_key_usage oids', oid)
+//              <: x509_ext_key_usage_t oids'
+//                 `tuple2`
+//                 get_parser_type (parse_asn1_oid_TLV_of oid) )
 
 let rec parse_x509_ext_key_usage_kind
   (oids: list (datatype_of_asn1_type OID) { valid_keyPurposeIDs oids})
