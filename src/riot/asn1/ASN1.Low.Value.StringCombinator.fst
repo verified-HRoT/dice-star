@@ -1,7 +1,7 @@
-module ASN1.Low.Value.StringTypes
+module ASN1.Low.Value.StringCombinator
 
 open ASN1.Base
-open ASN1.Spec.Value.StringTypes
+open ASN1.Spec.Value.StringCombinator
 open ASN1.Low.Base
 open LowParse.Low.Bytes
 
@@ -101,8 +101,8 @@ let serialize32_asn1_string_TLV_with_character_bound_backwards
                                  { x == synth_string len s32 }))
   (prf: unit { forall len. synth_injective (synth_string len) })
   (count_character: (x: datatype_of_asn1_type t) -> Tot (asn1_int32))
-  (lb: asn1_int32)
-  (ub: asn1_int32 { lb <= ub })
+  (lb: asn1_value_int32_of_type t)
+  (ub: asn1_value_int32_of_type t { lb <= ub })
 : serializer32_backwards (serialize_asn1_string_TLV_with_character_bound t len_of_string filter_string synth_string synth_string_inverse prf count_character lb ub)
 = serialize32_asn1_string_TLV_backwards t len_of_string filter_string synth_string synth_string_inverse prf
   `serialize32_filter_backwards`

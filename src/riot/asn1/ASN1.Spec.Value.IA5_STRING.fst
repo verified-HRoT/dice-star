@@ -6,7 +6,7 @@ open LowParse.Spec.Bytes
 open ASN1.Base
 open ASN1.Spec.Tag
 open ASN1.Spec.Length
-open ASN1.Spec.Value.StringTypes
+open ASN1.Spec.Value.StringCombinator
 
 open FStar.Integers
 
@@ -88,6 +88,17 @@ let serialize_asn1_ia5_string_TLV
     ()
 
 let lemma_serialize_asn1_ia5_string_TLV_unfold
+  (x: datatype_of_asn1_type IA5_STRING)
+: Lemma (
+  predicate_serialize_asn1_string_TLV_unfold
+    (IA5_STRING)
+    (dfst)
+    (filter_asn1_ia5_string)
+    (synth_asn1_ia5_string)
+    (synth_asn1_ia5_string_inverse)
+    ()
+    (x)
+)
 = lemma_serialize_asn1_string_TLV_unfold
     (IA5_STRING)
     (dfst)
@@ -95,8 +106,20 @@ let lemma_serialize_asn1_ia5_string_TLV_unfold
     (synth_asn1_ia5_string)
     (synth_asn1_ia5_string_inverse)
     ()
+    (x)
 
 let lemma_serialize_asn1_ia5_string_TLV_size
+  (x: datatype_of_asn1_type IA5_STRING)
+: Lemma (
+  predicate_serialize_asn1_string_TLV_size
+    (IA5_STRING)
+    (dfst)
+    (filter_asn1_ia5_string)
+    (synth_asn1_ia5_string)
+    (synth_asn1_ia5_string_inverse)
+    ()
+    (x)
+)
 = lemma_serialize_asn1_string_TLV_size
     (IA5_STRING)
     (dfst)
@@ -104,6 +127,7 @@ let lemma_serialize_asn1_ia5_string_TLV_size
     (synth_asn1_ia5_string)
     (synth_asn1_ia5_string_inverse)
     ()
+    (x)
 
 let count_ia5_character
   (x: datatype_of_asn1_type IA5_STRING)
@@ -111,8 +135,8 @@ let count_ia5_character
 = dfst x
 
 let parse_asn1_ia5_string_TLV_with_character_bound
-  (lb: asn1_int32)
-  (ub: asn1_int32 { lb <= ub })
+  (lb: asn1_value_int32_of_type IA5_STRING)
+  (ub: asn1_value_int32_of_type IA5_STRING { lb <= ub })
 : parser parse_asn1_ia5_string_TLV_kind (asn1_string_with_character_bound_t IA5_STRING count_ia5_character lb ub)
 = parse_asn1_string_TLV_with_character_bound
     (IA5_STRING)
@@ -125,8 +149,8 @@ let parse_asn1_ia5_string_TLV_with_character_bound
     (ub)
 
 let serialize_asn1_ia5_string_TLV_with_character_bound
-  (lb: asn1_int32)
-  (ub: asn1_int32 { lb <= ub })
+  (lb: asn1_value_int32_of_type IA5_STRING)
+  (ub: asn1_value_int32_of_type IA5_STRING { lb <= ub })
 : serializer (parse_asn1_ia5_string_TLV_with_character_bound lb ub)
 = serialize_asn1_string_TLV_with_character_bound
     (IA5_STRING)

@@ -2,7 +2,7 @@ module ASN1.Low.Value.IA5_STRING
 
 open ASN1.Base
 open ASN1.Spec.Value.IA5_STRING
-open ASN1.Low.Value.StringTypes
+open ASN1.Low.Value.StringCombinator
 open ASN1.Low.Base
 open LowParse.Low.Bytes
 

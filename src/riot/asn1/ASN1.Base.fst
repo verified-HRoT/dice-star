@@ -58,6 +58,9 @@ let the_asn1_tag (a: asn1_tag_t)
 let asn1_primitive_type
 = (a: asn1_type{a =!= SEQUENCE /\ a =!= SET})
 
+let character_string_type : Type
+= a: asn1_tag_t { a == IA5_STRING \/ a == PRINTABLE_STRING }
+
 let asn1_implicit_tagging
   (t1 t2: asn1_tag_t)
 : asn1_tag_t
@@ -381,7 +384,52 @@ let bytes32_IA5
 let valid_PRINTABLE_byte
   (b: byte)
 : Tot (bool)
-= (0x41uy <= b && b <= 0x5Auy)
+= (0x41uy <= b && b <= 0x5Auy) || (* Latin capital letters: A,B, ... Z *)
+  (0x61uy <= b && b <= 0x7Auy) || (* Latin small letters: a,b, ... z*)
+  (0x30uy <= b && b <= 0x39uy) || (* Numbers: 0,1, ... 9*)
+  b = 0x20uy || (* SPACE: (space) *)
+  b = 0x27uy || (* APOSTROPHE: ' *)
+  b = 0x28uy || (* LEFT PARENTHESIS: ( *)
+  b = 0x29uy || (* RIGHT PARENTHESIS: ) *)
+  b = 0x2Buy || (* PLUS SIGN: + *)
+  b = 0x2Cuy || (* COMMA: , *)
+  b = 0x2Duy || (* HYPHEN-MINUS: - *)
+  b = 0x2Euy || (* FULL STOP: . *)
+  b = 0x2Fuy || (* SOLIDUS: / *)
+  b = 0x3Auy || (* COLON: : *)
+  b = 0x3Duy || (* EQUALS SIGN: = *)
+  b = 0x3Fuy   (* QUESTION MARK: ? *)
+
+let valid_character_string_byte
+  (t: character_string_type)
+  (b: byte)
+: Tot (bool)
+= match t with
+  | IA5_STRING -> valid_IA5_byte b
+  | PRINTABLE_STRING -> valid_PRINTABLE_byte b
+
+let valid_character_string_bytes
+  (t: character_string_type)
+  (s: bytes)
+: Tot (bool)
+= Seq.for_all (valid_character_string_byte t) s
+
+let character_string_bytes32
+  (t: character_string_type)
+: Type
+= s32: B32.bytes { valid_character_string_bytes t (B32.reveal s32) }
+
+let character_string_lbytes32
+  (t: character_string_type)
+  (len: asn1_value_int32_of_type t)
+: Type
+= s32: B32.lbytes32 len { valid_character_string_bytes t (B32.reveal s32) }
+
+let character_string_t
+  (t: character_string_type)
+: Type
+= ( len: asn1_value_int32_of_type t &
+    character_string_lbytes32 t len)
 
 ////////////////////////////////////////////////////////////////////////
 ////            Representation of ASN1 Values
@@ -403,11 +451,9 @@ let datatype_of_asn1_type (a: asn1_primitive_type): Type
   | OCTET_STRING -> ( len: asn1_value_int32_of_type OCTET_STRING &
                       s  : B32.bytes { B32.length s == v len } )
 
-  | PRINTABLE_STRING -> ( len: asn1_value_int32_of_type OCTET_STRING &
-                          s  : B32.bytes { B32.length s == v len /\ Seq.for_all valid_PRINTABLE_byte (B32.reveal s) } )
+  | PRINTABLE_STRING -> character_string_t PRINTABLE_STRING
 
-  | IA5_STRING   -> ( len: asn1_value_int32_of_type IA5_STRING &
-                      s  : B32.bytes { B32.length s == v len /\ Seq.for_all valid_IA5_byte (B32.reveal s) } )
+  | IA5_STRING   -> character_string_t IA5_STRING
 
   (* WIP *)
   | OID          -> oid_t
