@@ -40,13 +40,14 @@ let aliasKeyTBS_template_list: List.llist byte_pub (v aliasKeyTBS_template_len)
   assert_norm (List.length l == v aliasKeyTBS_template_len);
   l
 
-let deviceIDCRI_template_len: size_t = 41ul
 
-unfold noextract inline_for_extraction
-let deviceIDCRI_template_list: List.llist byte_pub (v deviceIDCRI_template_len)
-= [@inline_let]let l = [0x30uy; 0x27uy; 0x31uy; 0x0Buy; 0x30uy; 0x09uy; 0x06uy; 0x03uy; 0x55uy; 0x04uy; 0x06uy; 0x13uy; 0x02uy; 0x44uy; 0x45uy; 0x31uy; 0x18uy; 0x30uy; 0x16uy; 0x06uy; 0x03uy; 0x55uy; 0x04uy; 0x03uy; 0x0Cuy; 0x0Fuy; 0x77uy; 0x77uy; 0x77uy; 0x2Euy; 0x65uy; 0x78uy; 0x61uy; 0x6Duy; 0x70uy; 0x6Cuy; 0x65uy; 0x2Euy; 0x63uy; 0x6Fuy; 0x6Duy] in
-  assert_norm (List.length l == v deviceIDCRI_template_len);
-  l
+// let deviceIDCRI_template_len: size_t = 41ul
+
+// unfold noextract inline_for_extraction
+// let deviceIDCRI_template_list: List.llist byte_pub (v deviceIDCRI_template_len)
+// = [@inline_let]let l = [0x30uy; 0x27uy; 0x31uy; 0x0Buy; 0x30uy; 0x09uy; 0x06uy; 0x03uy; 0x55uy; 0x04uy; 0x06uy; 0x13uy; 0x02uy; 0x44uy; 0x45uy; 0x31uy; 0x18uy; 0x30uy; 0x16uy; 0x06uy; 0x03uy; 0x55uy; 0x04uy; 0x03uy; 0x0Cuy; 0x0Fuy; 0x77uy; 0x77uy; 0x77uy; 0x2Euy; 0x65uy; 0x78uy; 0x61uy; 0x6Duy; 0x70uy; 0x6Cuy; 0x65uy; 0x2Euy; 0x63uy; 0x6Fuy; 0x6Duy] in
+//   assert_norm (List.length l == v deviceIDCRI_template_len);
+//   l
 
 #restart-solver
 #push-options "--z3rlimit 1024 --fuel 0 --ifuel 0"
@@ -57,6 +58,18 @@ let main ()
 =
   HST.push_frame();
 
+  let buf_common: B.lbuffer byte_pub 2 = B.alloca 0uy 2ul in
+  let s_common: x509_RDN_x520_attribute_string_t COMMON_NAME IA5_STRING
+    = asn1_get_character_string #IA5_STRING 2ul (B32.of_buffer 2ul buf_common) in
+
+  let buf_org: B.lbuffer byte_pub 2 = B.alloca 0uy 2ul in
+  let s_org: x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING
+    = asn1_get_character_string #IA5_STRING 2ul (B32.of_buffer 2ul buf_org) in
+
+  let buf_country: B.lbuffer byte_pub 2 = B.alloca 0x41uy 2ul in
+  let s_country: x509_RDN_x520_attribute_string_t COMMON_NAME PRINTABLE_STRING
+    = asn1_get_character_string #PRINTABLE_STRING 2ul (B32.of_buffer 2ul buf_country) in
+
   comment "Inputs";
   let cdi : B.lbuffer byte_sec 32 = B.alloca (u8 0x00) 32ul in
   let fwid: B.lbuffer byte_sec 32 = B.alloca (u8 0x00) 32ul in
@@ -64,7 +77,6 @@ let main ()
   let deviceIDCSR_version: datatype_of_asn1_type INTEGER = 0l in
   let ku: key_usage_payload_t = aliasKeyCrt_key_usage in
 
-  let deviceIDCRI_template_buf: B.lbuffer byte_pub (v deviceIDCRI_template_len) = B.alloca_of_list deviceIDCRI_template_list in
   let aliasKeyTBS_template_buf: B.lbuffer byte_pub (v aliasKeyTBS_template_len) = B.alloca_of_list aliasKeyTBS_template_list in
   let deviceID_lbl_len: x:size_t {normalize (valid_hkdf_lbl_len x)} = 5ul in
   let deviceID_lbl: B.lbuffer byte_sec (v deviceID_lbl_len) = B.alloca (u8 0x00) deviceID_lbl_len in
@@ -73,7 +85,7 @@ let main ()
   (* Prf *) assert_norm (valid_hkdf_lbl_len deviceID_lbl_len /\ valid_hkdf_lbl_len aliasKey_lbl_len);
 
   comment "Outputs";
-  let deviceIDCSR_len = len_of_deviceIDCSR (len_of_deviceIDCRI deviceIDCRI_template_len deviceIDCSR_version ku) in
+  let deviceIDCSR_len = len_of_deviceIDCSR (len_of_deviceIDCRI deviceIDCSR_version s_common s_org s_country ku) in
   let deviceIDCSR_buf: B.lbuffer byte_pub (v deviceIDCSR_len) = B.alloca 0x00uy deviceIDCSR_len in
   let aliasKeyCRT_len = len_of_aliasKeyCRT (len_of_aliasKeyTBS aliasKeyTBS_template_len ku riot_version) in
   let aliasKeyCRT_buf: B.lbuffer byte_pub (v aliasKeyCRT_len) = B.alloca 0x00uy aliasKeyCRT_len in
@@ -94,8 +106,9 @@ let main ()
 
                     ku
                     deviceIDCSR_version
-                    deviceIDCRI_template_len
-                    deviceIDCRI_template_buf
+                    s_common
+                    s_org
+                    s_country
 
     (* key usage *) ku
     (* version   *) riot_version

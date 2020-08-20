@@ -140,23 +140,24 @@ let sign_and_finalize_aliasKeyCRT_spec
 
 
 let create_deviceIDCRI_spec
-  (subject_len: asn1_int32)
-  (subject: lbytes_pub (v subject_len))
   (version: datatype_of_asn1_type INTEGER)
+  (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
+  (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
+  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
   (ku: key_usage_payload_t
-       { valid_deviceIDCRI_ingredients subject_len version ku })
+       { valid_deviceIDCRI_ingredients version s_common s_org s_country ku })
   (deviceIDPub: lbytes_pub 32)
-: GTot (deviceIDCRI_t subject_len)
+: GTot (deviceIDCRI_t)
 =
-  let subject32: B32.lbytes32 subject_len = B32.hide subject in
   let deviceIDPub32: B32.lbytes32 32ul = B32.hide deviceIDPub in
 
-  let deviceIDCRI: deviceIDCRI_t subject_len = x509_get_deviceIDCRI
-                                                 subject_len
-                                                 subject32
-                                                 version
-                                                 ku
-                                                 deviceIDPub32 in
+  let deviceIDCRI: deviceIDCRI_t = x509_get_deviceIDCRI
+                                     version
+                                     s_common
+                                     s_org
+                                     s_country
+                                     ku
+                                     deviceIDPub32 in
 (*return*) deviceIDCRI
 
 #push-options "--z3rlimit 96"

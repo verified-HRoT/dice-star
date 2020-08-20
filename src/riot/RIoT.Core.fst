@@ -40,8 +40,9 @@ let riot
 (* DeviceID CSR Inputs*)
   (deviceIDCSR_ku: key_usage_payload_t)
   (deviceIDCSR_version: datatype_of_asn1_type INTEGER)
-  (deviceIDCRI_template_len: size_t)
-  (deviceIDCRI_template: B.lbuffer byte_pub (v deviceIDCRI_template_len))
+  (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
+  (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
+  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
 (* AliasKey Crt Inputs*)
   (aliasKeyCrt_ku: key_usage_payload_t)
   (riot_version: datatype_of_asn1_type INTEGER)
@@ -62,7 +63,6 @@ let riot
                    buf fwid;
                    buf deviceID_label;
                    buf aliasKey_label;
-                   buf deviceIDCRI_template;
                    buf aliasKeyTBS_template;
                    buf deviceIDCSR_buf;
                    buf aliasKeyCRT_buf;
@@ -72,7 +72,6 @@ let riot
                      loc_buffer fwid;
                      loc_buffer deviceID_label;
                      loc_buffer aliasKey_label;
-                     loc_buffer deviceIDCRI_template;
                      loc_buffer aliasKeyTBS_template;
                      loc_buffer deviceIDCSR_buf;
                      loc_buffer aliasKeyCRT_buf;
@@ -82,11 +81,11 @@ let riot
    valid_hkdf_lbl_len deviceID_label_len /\
    valid_hkdf_lbl_len aliasKey_label_len /\
    (* Pre: DeviceIDCRI template has a valid length *)
-   valid_deviceIDCRI_ingredients deviceIDCRI_template_len deviceIDCSR_version deviceIDCSR_ku /\
+   valid_deviceIDCRI_ingredients deviceIDCSR_version s_common s_org s_country deviceIDCSR_ku /\
    (* Pre: DeviceIDCSR will have a valid length *)
-   valid_deviceIDCSR_ingredients (len_of_deviceIDCRI deviceIDCRI_template_len deviceIDCSR_version deviceIDCSR_ku) /\
+   valid_deviceIDCSR_ingredients (len_of_deviceIDCRI deviceIDCSR_version s_common s_org s_country deviceIDCSR_ku) /\
    (* Pre: `deviceIDCSR_buf` has exact size to write DeviceIDCSR *)
-   v deviceIDCSR_len == length_of_deviceIDCSR (len_of_deviceIDCRI deviceIDCRI_template_len deviceIDCSR_version deviceIDCSR_ku) /\
+   v deviceIDCSR_len == length_of_deviceIDCSR (len_of_deviceIDCRI deviceIDCSR_version s_common s_org s_country deviceIDCSR_ku) /\
    (* Pre: AliasKeyTBS template has a valid length *)
    valid_aliasKeyTBS_ingredients aliasKeyTBS_template_len aliasKeyCrt_ku riot_version /\
    (* Pre: AliasKeyTBS will have a valid length *)
@@ -112,16 +111,17 @@ let riot
                                                  (B.as_seq h0 cdi)
                                                  (deviceID_label_len)
                                                  (B.as_seq h0 deviceID_label) in
-     let deviceIDCRI: deviceIDCRI_t deviceIDCRI_template_len = create_deviceIDCRI_spec
-                                                                         (deviceIDCRI_template_len)
-                                                                         (B.as_seq h0 deviceIDCRI_template)
+     let deviceIDCRI: deviceIDCRI_t = create_deviceIDCRI_spec
                                                                          (deviceIDCSR_version)
+                                                                         (s_common)
+                                                                         (s_org)
+                                                                         (s_country)
                                                                          (deviceIDCSR_ku)
                                                                          (deviceID_pub_seq)
                                                                          in
-     let deviceIDCRI_seq = serialize_deviceIDCRI deviceIDCRI_template_len `serialize` deviceIDCRI in
-     let deviceIDCRI_len = len_of_deviceIDCRI deviceIDCRI_template_len deviceIDCSR_version deviceIDCSR_ku in
-     let (* Prf *) _ = lemma_serialize_deviceIDCRI_size_exact deviceIDCRI_template_len deviceIDCRI in
+     let deviceIDCRI_seq = serialize_deviceIDCRI `serialize` deviceIDCRI in
+     let deviceIDCRI_len = len_of_deviceIDCRI deviceIDCSR_version s_common s_org s_country deviceIDCSR_ku in
+     let (* Prf *) _ = lemma_serialize_deviceIDCRI_size_exact deviceIDCRI in
      let deviceIDCSR: deviceIDCSR_t deviceIDCRI_len = sign_and_finalize_deviceIDCSR_spec
                                                                 (deviceID_priv_seq)
                                                                 (deviceIDCRI_len)
@@ -168,16 +168,17 @@ let riot
               aliasKey_label;
 
 (* Create DeviceIDCRI *)
-   let deviceIDCRI_len: asn1_TLV_int32_of_type SEQUENCE = len_of_deviceIDCRI deviceIDCRI_template_len deviceIDCSR_version deviceIDCSR_ku in
+   let deviceIDCRI_len: asn1_TLV_int32_of_type SEQUENCE = len_of_deviceIDCRI deviceIDCSR_version s_common s_org s_country deviceIDCSR_ku in
    let deviceIDCRI_buf: B.lbuffer byte_pub (v deviceIDCRI_len) = B.alloca 0x00uy deviceIDCRI_len in
 
    printf "Creating DeviceID Certificate Signing Request Information\n" done;
    create_deviceIDCRI
     (* version   *) deviceIDCSR_version
+                    s_common
+                    s_org
+                    s_country
     (* key usage *) deviceIDCSR_ku
     (* DeviceID  *) deviceID_pub
-    (* Template  *) deviceIDCRI_template_len
-                    deviceIDCRI_template
     (*DeviceIDCRI*) deviceIDCRI_len
                     deviceIDCRI_buf;
 

@@ -224,55 +224,54 @@ let sign_and_finalize_aliasKeyCRT
 
 let create_deviceIDCRI
   (csr_version: datatype_of_asn1_type INTEGER)
+  (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
+  (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
+  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
   (ku: key_usage_payload_t)
   (deviceID_pub: B.lbuffer byte_pub 32)
-  (deviceIDCRI_template_len: size_t)
-  (deviceIDCRI_template: B.lbuffer byte_pub (v deviceIDCRI_template_len))
   (deviceIDCRI_len: size_t)
   (deviceIDCRI_buf: B.lbuffer byte_pub (v deviceIDCRI_len))
 : HST.Stack unit
   (requires fun h ->
     B.(all_live h [buf deviceID_pub;
-                   buf deviceIDCRI_template;
                    buf deviceIDCRI_buf]) /\
     B.(all_disjoint [loc_buffer deviceID_pub;
-                     loc_buffer deviceIDCRI_template;
                      loc_buffer deviceIDCRI_buf]) /\
-    valid_deviceIDCRI_ingredients deviceIDCRI_template_len csr_version ku /\
-    v deviceIDCRI_len == length_of_deviceIDCRI deviceIDCRI_template_len csr_version ku
+    valid_deviceIDCRI_ingredients csr_version s_common s_org s_country ku /\
+    v deviceIDCRI_len == length_of_deviceIDCRI csr_version s_common s_org s_country ku
    )
   (ensures fun h0 _ h1 ->
-    let deviceIDCRI: deviceIDCRI_t deviceIDCRI_template_len = create_deviceIDCRI_spec
-                                                                      (deviceIDCRI_template_len)
-                                                                      (B.as_seq h0 deviceIDCRI_template)
+    let deviceIDCRI: deviceIDCRI_t = create_deviceIDCRI_spec
                                                                       (csr_version)
+                                                                      (s_common)
+                                                                      (s_org)
+                                                                      (s_country)
                                                                       (ku)
                                                                       (B.as_seq h0 deviceID_pub) in
-    (* Prf *) lemma_serialize_deviceIDCRI_size_exact deviceIDCRI_template_len deviceIDCRI;
+    (* Prf *) lemma_serialize_deviceIDCRI_size_exact deviceIDCRI;
     B.(modifies (loc_buffer deviceIDCRI_buf) h0 h1) /\
-    B.as_seq h1 deviceIDCRI_buf == serialize_deviceIDCRI deviceIDCRI_template_len `serialize` deviceIDCRI
+    B.as_seq h1 deviceIDCRI_buf == serialize_deviceIDCRI `serialize` deviceIDCRI
   )
 =
   HST.push_frame ();
 
 (* Create deviceIDCRI *)
-  let deviceIDCRI_template32: B32.lbytes32 deviceIDCRI_template_len = B32.of_buffer deviceIDCRI_template_len deviceIDCRI_template in
   let deviceID_pub32: B32.lbytes32 32ul = B32.of_buffer 32ul deviceID_pub in
 
   printf "Creating AliasKey Certificate TBS Message\n" done;
-  let deviceIDCRI: deviceIDCRI_t deviceIDCRI_template_len = x509_get_deviceIDCRI
-                                                                    deviceIDCRI_template_len
-                                                                    deviceIDCRI_template32
+  let deviceIDCRI: deviceIDCRI_t = x509_get_deviceIDCRI
                                                                     csr_version
+                                                                    s_common
+                                                                    s_org
+                                                                    s_country
                                                                     ku
                                                                     deviceID_pub32 in
 
-  (* Prf *) lemma_serialize_deviceIDCRI_size_exact deviceIDCRI_template_len deviceIDCRI;
+  (* Prf *) lemma_serialize_deviceIDCRI_size_exact deviceIDCRI;
 
   printf "Serializing AliasKey Certificate TBS\n" done;
 (* Serialize deviceIDCRI *)
   let offset = serialize32_deviceIDCRI_backwards
-                 deviceIDCRI_template_len
                  deviceIDCRI
                  deviceIDCRI_buf
                  deviceIDCRI_len in
