@@ -1,0 +1,255 @@
+EVERPARSE_HOME ?= $(FSTAR_HOME)/../everparse
+
+SHELL=/bin/bash
+
+ifeq ($(shell uname -s),Darwin)
+  ifeq (,$(shell which gsed))
+    $(error gsed not found; try brew install gnu-sed)
+  endif
+  SED := gsed
+  ifeq (,$(shell which gtime))
+    $(error gtime not found; try brew install gnu-time)
+  endif
+  TIME := gtime
+else
+  SED := sed
+  TIME := /usr/bin/time
+endif
+
+# A helper to generate pretty logs, callable as:
+#   $(call run-with-log,CMD,TXT,STEM)
+#
+# Arguments:
+#  CMD: command to execute (may contain double quotes, but not escaped)
+#  TXT: readable text to print out once the command terminates
+#  STEM: path stem for the logs, stdout will be in STEM.out, stderr in STEM.err, CMD in STEM.cmd
+ifeq (,$(NOSHORTLOG))
+run-with-log = \
+  @echo "$(subst ",\",$1)" > $3.cmd; \
+  $(TIME) -q -f '%E' -o $3.time sh -c "$(subst ",\",$1)" > $3.out 2> >( tee $3.err 1>&2 ); \
+  ret=$$?; \
+  time=$$(cat $3.time); \
+  if [ $$ret -eq 0 ]; then \
+    echo "$2, $$time"; \
+  else \
+    echo "<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>"; \
+    echo -e "\033[31mFatal error while running\033[0m: $1"; \
+    echo -e "\033[31mFailed after\033[0m: $$time"; \
+    echo -e "\033[36mFull log is in $3.{out,err}, see excerpt below\033[0m:"; \
+    tail -n 20 $3.err; \
+    echo "<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>"; \
+    false; \
+  fi
+else
+run-with-log = $1
+endif
+
+# Helpers from hacl-star (https://github.com/project-everest/hacl-star/blob/master/Makefile)
+
+# Transforms any foo/bar/baz.qux into $2/baz.qux
+to-dir = $(addprefix $2/,$(notdir $1))
+
+# $(call only-for,<filter>) retains all the checked files that match <filter>,
+# taken from the source directories, then returns the corresponding set of
+# targets in obj/. For instance, $(call only-for,$(HACL_HOME)/code/%.checked)
+# returns obj/Hacl.Hash.Definitions.fst.checked, and all the other targets that
+# originate from source files in code/.
+#
+# With this macro, we no longer rely on pattern rules for file-specific options,
+# meaning we also no longer rely on the shortest stem rule. Many of the rules
+# below match the same file multiple times (as we the case in the original
+# SConstruct). The last match has precedence and overrides previous variable
+# assignments.
+find-all = $(filter $1,$(addsuffix $2,$(ALL_FSTAR_FILES)))
+# only-for = $(call o-dir,$(filter $1,$(addsuffix $2,$(ALL_FSTAR_FILES))),$(OUTPUT_DIR)/)
+
+# FStar
+
+ifneq ($(wildcard $(KREMLIN_HOME)/kremlib/obj/.),)
+        KRML_OBJ_DIR=$(KREMLIN_HOME)/kremlib/obj
+else
+        KRML_OBJ_DIR=
+endif
+
+# Includes
+INCLUDES=$(FSTAR_HOME)/ulib/.cache \
+  $(KRML_OBJ_DIR) \
+  $(KREMLIN_HOME)/include \
+  $(KREMLIN_HOME)/kremlib/dist/generic \
+  $(HACL_HOME)/specs \
+  $(HACL_HOME)/specs/lemmas \
+  $(HACL_HOME)/vale/specs/hardware \
+  $(HACL_HOME)/vale/specs/defs \
+  $(HACL_HOME)/code/meta \
+  $(HACL_HOME)/code/hash \
+  $(HACL_HOME)/code/hkdf \
+  $(HACL_HOME)/code/hmac\
+  $(HACL_HOME)/code/curve25519 \
+  $(HACL_HOME)/code/ed25519 \
+  $(HACL_HOME)/lib \
+  $(HACL_HOME)/providers/evercrypt \
+  $(KREMLIN_HOME)/kremlib \
+  $(HACL_HOME)/obj \
+  $(EVERPARSE_HOME)/src/lowparse \
+  $(OUTPUT_DIR) \
+  $(DICE_DIR) \
+  $(RIOT_DIR) \
+  $(ASN1_DIR) \
+  $(X509_DIR) \
+  $(TEST_DIR)
+
+FSTAR_INCLUDES = $(addprefix --include ,$(INCLUDES))
+
+# Hints
+ifeq ($(OTHERFLAGS),$(subst --admit_smt_queries true,,$(OTHERFLAGS)))
+  FSTAR_HINTS ?= --use_hints --use_hint_hashes --record_hints
+else 
+  FSTAR_HINTS ?= --use_hints --use_hint_hashes
+endif
+
+# Checked
+ALREADY_CACHED = Prims FStar LowStar Hacl Spec Lib EverCrypt Vale C Meta LowParse
+
+ifeq ($(shell basename "`pwd`"),dice)
+  FSTAR_ALREADY_CACHED = --already_cached '$(ALREADY_CACHED)'
+else
+ifeq ($(shell basename "`pwd`"),asn1)
+  FSTAR_ALREADY_CACHED = --already_cached '$(ALREADY_CACHED)'
+else
+ifeq ($(shell basename "`pwd`"),x509)
+  FSTAR_ALREADY_CACHED = --already_cached '$(ALREADY_CACHED)'
+else
+ifeq ($(shell basename "`pwd`"),riot)
+  FSTAR_ALREADY_CACHED = --already_cached '$(ALREADY_CACHED)'
+else
+ifeq ($(shell basename "`pwd`"),test)
+  FSTAR_ALREADY_CACHED = --already_cached '$(ALREADY_CACHED)'
+else
+  FSTAR_ALREADY_CACHED = --already_cached '$(ALREADY_CACHED)'
+endif
+endif
+endif
+endif
+endif
+
+# 272: top-level bindings must be total
+# 247: checked file not written because some of its dependencies...
+# 241: corrupt cache file AND stale cache file (argh!) we wish to make the
+#      former fatal, and the latter non-fatal if it's the file we're about to
+#      verify... see https://github.com/FStarLang/FStar/issues/1652
+# 331: the name is being ignored
+# 333: unable to open hints file
+FSTAR_VERIFY_FLAGS = $(FSTAR_INCLUDES) \
+  $(FSTAR_HINTS) \
+  $(FSTAR_ALREADY_CACHED) \
+  --cache_checked_modules \
+  --odir $(OUTPUT_DIR) \
+  --cache_dir $(OUTPUT_DIR) \
+  --warn_error -272-241-247-331-333
+
+FSTAR_EXTRACT_FLAGS = $(FSTAR_INCLUDES) \
+  $(FSTAR_HINTS) \
+  $(FSTAR_ALREADY_CACHED) \
+  --cache_checked_modules \
+  --odir $(OUTPUT_DIR) \
+  --cache_dir $(OUTPUT_DIR) \
+  --warn_error -272-241-247-331-333 \
+  --codegen Kremlin \
+  --cmi
+
+FSTAR = $(FSTAR_HOME)/bin/fstar.exe
+
+# 2. KreMLin
+
+KRML=$(KREMLIN_HOME)/krml
+
+KRML_NO_PREFIXS = \
+  -no-prefix 'DICE.Definitions' \
+  -no-prefix 'DICE.Core' \
+  -no-prefix 'DICE.Test' \
+  -no-prefix 'HWAbstraction' \
+  -no-prefix 'ASN1.Test' \
+  -no-prefix 'ASN1.Test.Helpers' \
+  -no-prefix 'RIoT.Base' \
+  -no-prefix 'RIoT.Spec' \
+  -no-prefix 'RIoT.Impl' \
+  -no-prefix 'RIoT.Core' \
+  -no-prefix 'RIoT.Test' \
+  -no-prefix 'RIoT.Helpers'
+
+ifeq ($(shell basename "`pwd`"),test)
+#  KRML_LDOPTS = \
+    -ldopt -lmbedcrypto \
+    -ldopt -lmbedtls \
+    -ldopt -lmbedx509
+else
+  KRML_LDOPTS =
+endif
+ 
+KRML_LIBRARIES = \
+  -library HWAbstraction \
+  -library RIoT.Declassify \
+  -library ASN1.Test.Helpers \
+  -library RIoT.Helpers
+
+KRML_BUNDLES = \
+  -bundle DICE.Definitions \
+  -bundle ASN1.*,X509.* \
+  -bundle LowParse.* \
+  -bundle Prims,C.Failure,C,C.*,FStar.*,Hacl.*,Spec.*,Vale.*,Lib.*,LowStar.*,Meta.*[rename=Hacl_Lib]
+
+KRML_MISC_FLAGS = \
+  -fparentheses -fno-shadow -fcurly-braces \
+  -minimal \
+  -fnoreturn-else \
+  -drop Lib.IntVector.Intrinsics \
+  -drop WasmSupport \
+  -verbose
+
+KRML_C_INCLUDES = \
+  -add-include '"kremlin/internal/types.h"' \
+  -add-include '"kremlin/lowstar_endianness.h"' \
+  -add-include '"LowStar_Printf.h"' \
+  -add-include '<string.h>'
+
+KRML_FSTAR_INCLUDES = $(addprefix -I , $(INCLUDES))
+
+ifeq ($(shell basename "`pwd`"),dice)
+  KRML_EXECUTABLE = dice.exe
+else
+ifeq ($(shell basename "`pwd`"),riot)
+  KRML_EXECUTABLE = riot.exe
+else
+ifeq ($(shell basename "`pwd`"),test)
+  KRML_EXECUTABLE = test.exe
+else
+  KRML_EXECUTABLE =
+endif
+endif
+endif
+
+KREMLIN_FLAGS = \
+  $(KRML_NO_PREFIXS) \
+  $(KRML_LIBRARIES) \
+  $(KRML_LDOPTS) \
+  $(KRML_BUNDLES) \
+  $(KRML_MISC_FLAGS) \
+  $(KRML_C_INCLUDES) \
+  $(KRML_FSTAR_INCLUDES) \
+  -tmpdir $(OUTPUT_DIR) \
+  -o $(KRML_EXECUTABLE)
+
+# C Implementations
+ifeq ($(shell basename "`pwd`"),dice)
+  C_FILES = $(C_DIR)/HWAbstraction.c
+else
+ifeq ($(shell basename "`pwd`"),riot)
+  C_FILES = $(C_DIR)/Declassification.c
+else
+ifeq ($(shell basename "`pwd`"),test)
+  C_FILES = $(C_DIR)/Declassification.c $(C_DIR)/ASN1.Test.Helpers.c $(C_DIR)/RIoT.Helpers.c
+else
+  C_FILES =
+endif
+endif
+endif
