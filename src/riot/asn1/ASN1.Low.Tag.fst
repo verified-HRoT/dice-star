@@ -28,6 +28,8 @@ let encode_asn1_tag
   | INTEGER      -> 0x02uy
   | BIT_STRING   -> 0x03uy
   | OCTET_STRING -> 0x04uy
+  | PRINTABLE_STRING -> 0x13uy
+  | IA5_STRING   -> 0x16uy
   | ASN1_NULL    -> 0x05uy
   | OID          -> 0x06uy
   | SEQUENCE     -> 0x30uy

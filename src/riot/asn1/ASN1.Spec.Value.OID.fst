@@ -961,7 +961,7 @@ let lemma_serialize_asn1_oid_TLV_of_size
 let envelop_OID_with_t
   (oid: datatype_of_asn1_type OID)
   (t: Type0)
-= x: datatype_of_asn1_type OID {x == oid} `tuple2` t
+= parse_filter_refine (filter_asn1_oid_TLV_of oid) `tuple2` t
 
 let parse_envelop_OID_with
   (oid: datatype_of_asn1_type OID)

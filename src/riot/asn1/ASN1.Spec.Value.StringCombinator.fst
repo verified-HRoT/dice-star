@@ -58,6 +58,27 @@ let serialize_asn1_string
   (* g1 *) (synth_string_inverse len)
   (* Prf*) (prf)
 
+let predicate_serialize_asn1_string_unfold
+  (t: asn1_type { t == IA5_STRING \/ t == PRINTABLE_STRING \/ t == OCTET_STRING })
+  (len_of_string: datatype_of_asn1_type t -> asn1_value_int32_of_type t)
+  (filter_string: (len: asn1_value_int32_of_type t)
+                  -> (s32: B32.lbytes32 len)
+                  -> GTot (bool))
+  (synth_string: (len: asn1_value_int32_of_type t)
+                 -> (s32: parse_filter_refine (filter_string len))
+                 -> GTot (x: datatype_of_asn1_type t
+                            { len_of_string x== len }))
+  (synth_string_inverse: (len: asn1_value_int32_of_type t)
+                         -> (x: datatype_of_asn1_type t { len_of_string x== len })
+                         -> (s32: parse_filter_refine (filter_string len)
+                                 { x == synth_string len s32 }))
+  (prf: unit { forall len. synth_injective (synth_string len) })
+  (len: asn1_value_int32_of_type t)
+  (x: datatype_of_asn1_type t { len_of_string x== len })
+: Type0
+= serialize (serialize_asn1_string t len_of_string filter_string synth_string synth_string_inverse prf len) x
+  == serialize (serialize_flbytes (v len)) (synth_string_inverse len x)
+
 let lemma_serialize_asn1_string_unfold
   (t: asn1_type { t == IA5_STRING \/ t == PRINTABLE_STRING \/ t == OCTET_STRING })
   (len_of_string: datatype_of_asn1_type t -> asn1_value_int32_of_type t)
@@ -76,8 +97,7 @@ let lemma_serialize_asn1_string_unfold
   (len: asn1_value_int32_of_type t)
   (x: datatype_of_asn1_type t { len_of_string x== len })
 : Lemma (
-  serialize (serialize_asn1_string t len_of_string filter_string synth_string synth_string_inverse prf len) x
-  == serialize (serialize_flbytes (v len)) (synth_string_inverse len x)
+  predicate_serialize_asn1_string_unfold t len_of_string filter_string synth_string synth_string_inverse prf len x
 )
 = serialize_synth_eq
   (* p1 *) (parse_flbytes (v len)
@@ -90,6 +110,29 @@ let lemma_serialize_asn1_string_unfold
   (* g1 *) (synth_string_inverse len)
   (* Prf*) (prf)
   (* in *) (x)
+
+let predicate_serialize_asn1_string_size
+  (t: asn1_type { t == IA5_STRING \/ t == PRINTABLE_STRING \/ t == OCTET_STRING })
+  (len_of_string: datatype_of_asn1_type t -> asn1_value_int32_of_type t)
+  (filter_string: (len: asn1_value_int32_of_type t)
+                  -> (s32: B32.lbytes32 len)
+                  -> GTot (bool))
+  (synth_string: (len: asn1_value_int32_of_type t)
+                 -> (s32: parse_filter_refine (filter_string len))
+                 -> GTot (x: datatype_of_asn1_type t
+                            { len_of_string x== len }))
+  (synth_string_inverse: (len: asn1_value_int32_of_type t)
+                         -> (x: datatype_of_asn1_type t { len_of_string x== len })
+                         -> (s32: parse_filter_refine (filter_string len)
+                                 { x == synth_string len s32 }))
+  (prf: unit { forall len. synth_injective (synth_string len) })
+  (len: asn1_value_int32_of_type t)
+  (x: datatype_of_asn1_type t { len_of_string x== len })
+: Type0
+= let length = length_of_opaque_serialization (serialize_asn1_string t len_of_string filter_string synth_string synth_string_inverse prf len) x in
+  length == v len /\
+  len == len_of_string x /\
+  asn1_value_length_inbound_of_type t length
 
 let lemma_serialize_asn1_string_size
   (t: asn1_type { t == IA5_STRING \/ t == PRINTABLE_STRING \/ t == OCTET_STRING })
@@ -109,9 +152,7 @@ let lemma_serialize_asn1_string_size
   (len: asn1_value_int32_of_type t)
   (x: datatype_of_asn1_type t { len_of_string x== len })
 : Lemma (
-  length_of_opaque_serialization (serialize_asn1_string t len_of_string filter_string synth_string synth_string_inverse prf len) x
-  == v len /\
-  len == len_of_string x
+  predicate_serialize_asn1_string_size t len_of_string filter_string synth_string synth_string_inverse prf len x
 )
 = lemma_serialize_asn1_string_unfold t len_of_string filter_string synth_string synth_string_inverse prf len x
 
@@ -345,8 +386,9 @@ let predicate_serialize_asn1_string_TLV_size
   (prf: unit { forall len. synth_injective (synth_string len) })
   (x: datatype_of_asn1_type t)
 : Type0
-= length_of_opaque_serialization (serialize_asn1_string_TLV t len_of_string filter_string synth_string synth_string_inverse prf) x ==
-  1 + length_of_asn1_length (len_of_string x) + v (len_of_string x)
+= let length: nat = length_of_opaque_serialization (serialize_asn1_string_TLV t len_of_string filter_string synth_string synth_string_inverse prf) x in
+  length == 1 + length_of_asn1_length (len_of_string x) + v (len_of_string x) /\
+  asn1_TLV_length_inbound_of_type t length
 
 let lemma_serialize_asn1_string_TLV_size
   (t: asn1_type { t == IA5_STRING \/ t == PRINTABLE_STRING \/ t == OCTET_STRING })
