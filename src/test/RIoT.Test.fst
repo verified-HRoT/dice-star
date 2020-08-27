@@ -70,6 +70,8 @@ let main ()
   let s_country: x509_RDN_x520_attribute_string_t COMMON_NAME PRINTABLE_STRING
     = asn1_get_character_string #PRINTABLE_STRING 2ul (B32.of_buffer 2ul buf_country) in
 
+  let x: datatype_of_asn1_type IA5_STRING = asn1_get_character_string 2ul (B32.of_buffer 2ul buf_common) in
+
   comment "Inputs";
   let cdi : B.lbuffer byte_sec 32 = B.alloca (u8 0x00) 32ul in
   let fwid: B.lbuffer byte_sec 32 = B.alloca (u8 0x00) 32ul in

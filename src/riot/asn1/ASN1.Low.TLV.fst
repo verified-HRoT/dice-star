@@ -13,7 +13,9 @@ open ASN1.Spec.Value.PRINTABLE_STRING
 open ASN1.Spec.Value.BIT_STRING
 open ASN1.Spec.Value.OID
 open ASN1.Spec.Value.SEQUENCE
+open ASN1.Spec.Value.Generalized_Time
 open ASN1.Spec.TLV
+open ASN1.Spec.Bytes32
 
 open LowParse.Low.Base
 open LowParse.Low.Combinators
@@ -29,7 +31,9 @@ open ASN1.Low.Value.IA5_STRING
 open ASN1.Low.Value.PRINTABLE_STRING
 open ASN1.Low.Value.BIT_STRING
 open ASN1.Low.Value.OID
+open ASN1.Low.Value.Generalized_Time
 open ASN1.Low.Value.SEQUENCE
+open ASN1.Low.Bytes32
 
 module U8 = FStar.UInt8
 module U32 = FStar.UInt32
@@ -74,6 +78,8 @@ let len_of_asn1_primitive_value
 
   | OID          -> ( let value = value <: datatype_of_asn1_type OID in
                       len_of_oid_buffer value )
+  | Generalized_Time
+                 -> ( 13ul )
 #pop-options
 
 #restart-solver
@@ -100,7 +106,10 @@ let len_of_asn1_primitive_TLV
               | BIT_STRING   -> ( lemma_serialize_asn1_bit_string_TLV_size     (value <: datatype_of_asn1_type BIT_STRING  )
                                 ; lemma_serialize_asn1_bit_string_TLV_unfold   (value <: datatype_of_asn1_type BIT_STRING  ) )
               | OID          -> ( lemma_serialize_asn1_oid_TLV_size            (value <: datatype_of_asn1_type OID         )
-                                ; lemma_serialize_asn1_oid_TLV_unfold          (value <: datatype_of_asn1_type OID         ) ) );
+                                ; lemma_serialize_asn1_oid_TLV_unfold          (value <: datatype_of_asn1_type OID         ) )
+              | Generalized_Time
+                             -> ( lemma_serialize_asn1_generalized_time_TLV_unfold (value <: datatype_of_asn1_type Generalized_Time)
+                                ; lemma_serialize_asn1_generalized_time_TLV_size   (value <: datatype_of_asn1_type Generalized_Time) ));
 
   let value_len = len_of_asn1_primitive_value value in
 
@@ -127,6 +136,8 @@ let serialize32_asn1_TLV_backwards_of_type
   | IA5_STRING   -> serialize32_asn1_ia5_string_TLV_backwards
   | BIT_STRING   -> serialize32_asn1_bit_string_TLV_backwards   ()
   | OID          -> serialize32_asn1_oid_TLV_backwards          ()
+  | Generalized_Time
+                 -> serialize32_asn1_generalized_time_TLV_backwards
 
 unfold
 let len_of_TLV

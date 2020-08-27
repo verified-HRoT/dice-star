@@ -11,7 +11,7 @@ open X509.BasicFields.RelativeDistinguishedName
 open FStar.Integers
 
 #set-options "--z3rlimit 32 --initial_fuel  2 --initial_ifuel  2"
-(*
+(*)
 let x509_name_pair_t
 : Type = ( name: x501_name_t & t:directory_string_type { (name == COUNTRY) ==> (t == PRINTABLE_STRING) } )
 

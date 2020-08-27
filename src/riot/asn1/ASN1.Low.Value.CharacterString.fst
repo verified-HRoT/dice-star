@@ -15,6 +15,7 @@ open FStar.Integers
 
 module B32 = FStar.Bytes
 
+noextract inline_for_extraction
 let serialize32_asn1_character_string_with_character_bound_backwards
   (t: character_string_type)
   (lb: asn1_value_int32_of_type t)

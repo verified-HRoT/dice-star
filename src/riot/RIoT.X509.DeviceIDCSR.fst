@@ -108,7 +108,7 @@ let length_of_deviceIDCSR_payload
   (cri_len: asn1_int32)
 = v cri_len + 74
 
-#push-options "--z3rlimit 32"
+#push-options "--z3rlimit 64"
 let len_of_deviceIDCSR_payload
   (cri_len: asn1_int32
             { length_of_deviceIDCSR_payload cri_len
@@ -119,7 +119,7 @@ let len_of_deviceIDCSR_payload
 #pop-options
 
 #restart-solver
-#push-options "--z3rlimit 64 --fuel 0 --ifuel 0"
+#push-options "--z3rlimit 128 --fuel 0 --ifuel 0"
 let lemma_serialize_deviceIDCSR_payload_size
   (cri_len: asn1_int32)
   (x: deviceIDCSR_payload_t cri_len)
@@ -173,22 +173,26 @@ let lemma_serialize_deviceIDCSR_size
 
 let valid_deviceIDCSR_ingredients
   (cri_len: asn1_int32)
+:Type0
 = length_of_deviceIDCSR_payload cri_len <= asn1_value_length_max_of_type SEQUENCE
 
+#push-options "--z3rlimit 64 --fuel 0 --ifuel 0"
 let length_of_deviceIDCSR
   (cri_len: asn1_int32
             { valid_deviceIDCSR_ingredients cri_len })
-= 1 + length_of_asn1_length (len_of_deviceIDCSR_payload cri_len) +
-    length_of_deviceIDCSR_payload cri_len
+: GTot (asn1_TLV_length_of_type SEQUENCE)
+= length_of_TLV
+    (SEQUENCE)
+    (length_of_deviceIDCSR_payload cri_len)
 
-#push-options "--z3rlimit 64 --fuel 0 --ifuel 0"
 let len_of_deviceIDCSR
   (cri_len: asn1_int32
             { valid_deviceIDCSR_ingredients cri_len })
 : Tot (len: asn1_TLV_int32_of_type SEQUENCE
             { v len == length_of_deviceIDCSR cri_len })
-= 1ul + len_of_asn1_length (len_of_deviceIDCSR_payload cri_len) +
-    len_of_deviceIDCSR_payload cri_len
+= len_of_TLV
+    (SEQUENCE)
+    (len_of_deviceIDCSR_payload cri_len)
 #pop-options
 
 #push-options "--z3rlimit 64 --fuel 0 --ifuel 0"

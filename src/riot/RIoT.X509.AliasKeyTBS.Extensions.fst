@@ -200,6 +200,7 @@ let lemma_serialize_aliasKeyTBS_extensions_size
 : Lemma ( predicate_serialize_asn1_sequence_TLV_size serialize_aliasKeyTBS_extensions_payload x )
 = lemma_serialize_asn1_sequence_TLV_size serialize_aliasKeyTBS_extensions_payload x
 
+#push-options "--z3rlimit 64 --fuel 0 --ifuel 0"
 let length_of_aliasKeyTBS_extensions
     (ku: key_usage_payload_t)
     (version: datatype_of_asn1_type INTEGER)
@@ -208,7 +209,6 @@ let length_of_aliasKeyTBS_extensions
     (length_of_riot_extension version +
      length_of_x509_key_usage ku)
 
-#push-options "--z3rlimit 64 --fuel 0 --ifuel 0"
 let len_of_aliasKeyTBS_extensions
     (ku: key_usage_payload_t)
     (version: datatype_of_asn1_type INTEGER

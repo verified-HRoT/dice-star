@@ -20,7 +20,7 @@ module Cast = FStar.Int.Cast
 
 module B32 = FStar.Bytes
 
-inline_for_extraction
+noextract inline_for_extraction
 let serialize32_asn1_string_backwards
   (t: asn1_type { t == IA5_STRING \/ t == PRINTABLE_STRING \/ t == OCTET_STRING })
   (len_of_string: datatype_of_asn1_type t -> asn1_value_int32_of_type t)
@@ -54,6 +54,7 @@ let serialize32_asn1_string_backwards
 (* return *) len
 
 #push-options "--z3rlimit 32 --fuel 2 --ifuel 2"
+noextract inline_for_extraction
 let serialize32_asn1_string_TLV_backwards
   (t: asn1_type { t == IA5_STRING \/ t == PRINTABLE_STRING \/ t == OCTET_STRING })
   (len_of_string: datatype_of_asn1_type t -> asn1_value_int32_of_type t)
@@ -84,7 +85,7 @@ let serialize32_asn1_string_TLV_backwards
                     (* g1'*) (synth_asn1_string_V_inverse t len_of_string x)
                     (* prf*) ()))
 
-
+noextract inline_for_extraction
 let serialize32_asn1_string_TLV_with_character_bound_backwards
   (t: asn1_type { t == IA5_STRING \/ t == PRINTABLE_STRING \/ t == OCTET_STRING })
   (len_of_string: datatype_of_asn1_type t -> asn1_value_int32_of_type t)

@@ -358,6 +358,7 @@ let serialize32_asn1_oid_TLV_backwards ()
                      (* Prf *) ()))
 #pop-options
 
+noextract inline_for_extraction
 let serialize32_asn1_oid_TLV_of_backwards
   (oid: datatype_of_asn1_type OID)
 : serializer32_backwards (serialize_asn1_oid_TLV_of oid)

@@ -144,7 +144,7 @@ let lemma_serialize_deviceIDCRI_payload_unfold
   (* prf*) ()
   (* in *) (x)
 
-#push-options "--z3rlimit 128"
+#push-options "--z3rlimit 256"
 let length_of_deviceIDCRI_payload
   (version: datatype_of_asn1_type INTEGER)
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
@@ -309,7 +309,8 @@ let lemma_serialize_deviceIDCRI_size_exact
   (**) lemma_serialize_deviceIDCRI_payload_size x
 
 (* low *)
-
+#push-options "--z3rlimit 64"
+noextract inline_for_extraction
 let serialize32_deviceIDCRI_payload_backwards
 : serializer32_backwards (serialize_deviceIDCRI_payload)
 = serialize32_synth_backwards
@@ -324,7 +325,9 @@ let serialize32_deviceIDCRI_payload_backwards
   (* g1 *) (synth_deviceIDCRI_payload_t')
   (* g1'*) (synth_deviceIDCRI_payload_t')
   (* prf*) ()
+#pop-options
 
+noextract inline_for_extraction
 let serialize32_deviceIDCRI_backwards
 : serializer32_backwards (serialize_deviceIDCRI)
 = coerce_serializer32_backwards

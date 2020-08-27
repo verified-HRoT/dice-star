@@ -25,6 +25,7 @@ let synth_asn1_printable_string
 : GTot (value: datatype_of_asn1_type PRINTABLE_STRING{(dfst value) == len})
 = (|len, s32|)
 
+noextract inline_for_extraction
 let synth_asn1_printable_string_inverse
   (len: asn1_value_int32_of_type PRINTABLE_STRING)
   (value: datatype_of_asn1_type PRINTABLE_STRING{(dfst value) == len})

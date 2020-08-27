@@ -25,6 +25,7 @@ let synth_asn1_ia5_string
 : GTot (value: datatype_of_asn1_type IA5_STRING{(dfst value) == len})
 = (|len, s32|)
 
+noextract inline_for_extraction
 let synth_asn1_ia5_string_inverse
   (len: asn1_value_int32_of_type IA5_STRING)
   (value: datatype_of_asn1_type IA5_STRING{(dfst value) == len})

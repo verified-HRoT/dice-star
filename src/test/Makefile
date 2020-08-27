@@ -7,11 +7,11 @@ clean-test:
 
 test-asn1: clean-test
 	$(TEST_DIR)/generate_test_script.py --target asn1
-	$(MAKE) verify-all; $(MAKE) extract-all; $(MAKE) compile-all
+	$(MAKE) verify-all && $(MAKE) extract-all && $(MAKE) compile-all
 	@./test.exe
 
 test-riot: clean-test
-	$(MAKE) verify-all; $(MAKE) extract-all; $(MAKE) compile-all
+	$(MAKE) verify-all && $(MAKE) extract-all && $(MAKE) compile-all
 	@./test.exe
 	@cat DeviceIDCSR.hex | xxd -r -p | openssl req -inform DER -out DeviceIDCSR.csr
 	@cat AliasKeyCrt.hex | xxd -r -p | openssl x509 -inform DER -out AliasKeyCrt.pem

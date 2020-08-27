@@ -16,6 +16,7 @@ module B32 = FStar.Bytes
 
 #set-options "--z3rlimit 32 --fuel 0 --ifuel 0"
 
+noextract inline_for_extraction
 let len_of_character_string
   (t: character_string_type)
   (x: datatype_of_asn1_type t)
@@ -42,6 +43,7 @@ let synth_character_string
   | IA5_STRING -> synth_asn1_ia5_string len s32
   | PRINTABLE_STRING -> synth_asn1_printable_string len s32
 
+noextract inline_for_extraction
 let synth_character_string_inverse
   (t: character_string_type)
   (len: asn1_value_int32_of_type t)
@@ -52,12 +54,14 @@ let synth_character_string_inverse
   | IA5_STRING -> synth_asn1_ia5_string_inverse len x
   | PRINTABLE_STRING -> synth_asn1_printable_string_inverse len x
 
+noextract
 let string_prf
   (t: character_string_type)
 = match t with
   | IA5_STRING -> ()
   | PRINTABLE_STRING -> ()
 
+noextract inline_for_extraction
 let count_character
   (t: character_string_type)
   (x: datatype_of_asn1_type t)

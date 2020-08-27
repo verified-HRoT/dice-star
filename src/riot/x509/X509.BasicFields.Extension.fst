@@ -10,6 +10,8 @@ open X509.Base
 
 module B32 = FStar.Bytes
 
+#set-options "--z3rlimit 32 --fuel 0 --ifuel 0"
+
 // inline_for_extraction
 // type x509_extension_t
 //   (#k: parser_kind)
@@ -29,7 +31,7 @@ let x509_extension_t'
   (#p: parser k t)
   (oid: datatype_of_asn1_type OID)
   (s: serializer p)
-= x: datatype_of_asn1_type OID {x == oid}
+= parse_filter_refine (filter_asn1_oid_TLV_of oid)
   `tuple2`
   datatype_of_asn1_type BOOLEAN
   `tuple2`
@@ -184,8 +186,8 @@ let lemma_serialize_x509_extension_size
   (x: instance_t)
 : Lemma (
   Seq.length (serialize (serialize_x509_extension oid s f g prf) x) ==
-  length_of_asn1_primitive_TLV (fst (fst (g x))) +
-  length_of_asn1_primitive_TLV (snd (fst (g x))) +
+  length_of_asn1_primitive_TLV #OID (fst (fst (g x))) +
+  length_of_asn1_primitive_TLV #BOOLEAN (snd (fst (g x))) +
   length_of_TLV OCTET_STRING (length_of_opaque_serialization s (snd (g x))) /\
   length_of_asn1_primitive_TLV (snd (fst (g x))) == 3
 )

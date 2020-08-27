@@ -11,6 +11,7 @@ open FStar.Integers
 
 module B32 = FStar.Bytes
 
+noextract
 let parse_asn1_string
   (t: asn1_type { t == IA5_STRING \/ t == PRINTABLE_STRING \/ t == OCTET_STRING })
   (len_of_string: datatype_of_asn1_type t -> asn1_value_int32_of_type t)
@@ -30,6 +31,7 @@ let parse_asn1_string
   `parse_synth`
   synth_string len
 
+noextract
 let serialize_asn1_string
   (t: asn1_type { t == IA5_STRING \/ t == PRINTABLE_STRING \/ t == OCTET_STRING })
   (len_of_string: datatype_of_asn1_type t -> asn1_value_int32_of_type t)
@@ -156,6 +158,7 @@ let lemma_serialize_asn1_string_size
 )
 = lemma_serialize_asn1_string_unfold t len_of_string filter_string synth_string synth_string_inverse prf len x
 
+noextract inline_for_extraction
 let parser_tag_of_asn1_string
   (t: asn1_type { t == IA5_STRING \/ t == PRINTABLE_STRING \/ t == OCTET_STRING })
   (len_of_string: datatype_of_asn1_type t -> asn1_value_int32_of_type t)
@@ -171,6 +174,7 @@ let synth_asn1_string_V
 : GTot (refine_with_tag (parser_tag_of_asn1_string t len_of_string) tag)
 = value
 
+noextract inline_for_extraction
 let synth_asn1_string_V_inverse
   (t: asn1_type { t == IA5_STRING \/ t == PRINTABLE_STRING \/ t == OCTET_STRING })
   (len_of_string: datatype_of_asn1_type t -> asn1_value_int32_of_type t)
@@ -425,6 +429,7 @@ let filter_asn1_string_with_character_bound
 : Tot (bool)
 = lb <= count_character x && count_character x <= ub
 
+noextract inline_for_extraction
 let asn1_string_with_character_bound_t
   (t: asn1_type { t == IA5_STRING \/ t == PRINTABLE_STRING \/ t == OCTET_STRING })
   (count_character: (x: datatype_of_asn1_type t) -> Tot (asn1_int32))

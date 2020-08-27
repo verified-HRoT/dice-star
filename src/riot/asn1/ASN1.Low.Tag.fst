@@ -32,6 +32,7 @@ let encode_asn1_tag
   | IA5_STRING   -> 0x16uy
   | ASN1_NULL    -> 0x05uy
   | OID          -> 0x06uy
+  | Generalized_Time -> 0x18uy
   | SEQUENCE     -> 0x30uy
   | SET          -> 0x31uy
   | CUSTOM_TAG tag_class tag_form tag_value -> ( let b_tag_class = match tag_class with

@@ -10,5 +10,6 @@ include ASN1.Low.Value.PRINTABLE_STRING
 include ASN1.Low.Value.CharacterString
 include ASN1.Low.Value.BIT_STRING
 include ASN1.Low.Value.OID
+include ASN1.Low.Value.Generalized_Time
 include ASN1.Low.Value.Envelop
 include ASN1.Low.Value.SEQUENCE

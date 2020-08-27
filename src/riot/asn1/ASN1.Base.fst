@@ -34,6 +34,7 @@ type asn1_tag_t: Type =
 | IA5_STRING
 | BIT_STRING
 | OID
+| Generalized_Time
 | SEQUENCE
 | SET
 | CUSTOM_TAG: tag_class: asn1_tag_class_t ->
@@ -104,6 +105,7 @@ let asn1_value_length_min_of_type
   | IA5_STRING
   | PRINTABLE_STRING  -> asn1_length_min   (* An empty `OCTET_STRING` [] has length 0. *)
   | OID          -> asn1_length_min   (* `OID` is just `OCTET_STRING`. *)
+  | Generalized_Time -> 13
   | BIT_STRING   -> 1                 (* An empty `BIT_STRING` with a leading byte of `unused_bits` has length 0. *)
   | SEQUENCE     -> asn1_length_min   (* An empty `SEQUENCE` has length 0. *)
   | SET          -> asn1_length_min   (* An empty `SET` has length 0. *)
@@ -121,6 +123,7 @@ let asn1_value_length_max_of_type
   | IA5_STRING
   | PRINTABLE_STRING -> asn1_length_max - 6  (* An `OCTET_STRING` of size `asn1_length_max - 6`. *)
   | OID          -> asn1_length_max - 6  (* `OID` is just `OCTET_STRING`. *)
+  | Generalized_Time -> 13
   | BIT_STRING   -> asn1_length_max - 6  (* An `BIT_STRING` of size `asn1_length_max - 7` with a leading byte of `unused_bits`. *)
   | SEQUENCE     -> asn1_length_max - 6  (* An `SEQUENCE` whose value has length `asn1_length_max - 6` *)
   | SET          -> asn1_length_max - 6  (* An `SET` whose value has length `asn1_length_max - 6` *)
@@ -160,6 +163,7 @@ let asn1_TLV_length_min_of_type
   | IA5_STRING
   | PRINTABLE_STRING -> 2 (*  1 + 1 + 0  *)
   | OID          -> 2 (*  1 + 1 + 0  *)
+  | Generalized_Time -> 15
   | BIT_STRING   -> 3 (*  1 + 1 + 1  *)
   | SEQUENCE     -> 2 (*  1 + 1 + 0  *)
   | SET          -> 2 (*  1 + 1 + 0  *)
@@ -177,6 +181,7 @@ let asn1_TLV_length_max_of_type
   | IA5_STRING
   | PRINTABLE_STRING -> asn1_length_max  (*  1 + 5 + _  *)
   | OID          -> asn1_length_max  (*  1 + 5 + _  *)
+  | Generalized_Time -> 15
   | BIT_STRING   -> asn1_length_max  (*  1 + 5 + _  *)
   | SEQUENCE     -> asn1_length_max  (*  1 + 5 + _  *)
   | SET          -> asn1_length_max  (*  1 + 5 + _  *)
@@ -223,6 +228,7 @@ let asn1_value_int32_min_of_type
   | IA5_STRING
   | PRINTABLE_STRING -> asn1_int32_min
   | OID          -> asn1_int32_min
+  | Generalized_Time -> 13ul
   | BIT_STRING   -> 1ul
   | SEQUENCE     -> asn1_int32_min
   | SET          -> asn1_int32_min
@@ -240,6 +246,7 @@ let asn1_value_int32_max_of_type
   | IA5_STRING
   | PRINTABLE_STRING -> asn1_int32_max - 6ul
   | OID          -> asn1_int32_max - 6ul
+  | Generalized_Time -> 13ul
   | BIT_STRING   -> asn1_int32_max - 6ul
   | SEQUENCE     -> asn1_int32_max - 6ul
   | SET          -> asn1_int32_max - 6ul
@@ -272,6 +279,7 @@ let asn1_TLV_int32_min_of_type
   | IA5_STRING
   | PRINTABLE_STRING -> 2ul
   | OID          -> 2ul
+  | Generalized_Time -> 15ul
   | BIT_STRING   -> 3ul
   | SEQUENCE     -> 2ul
   | SET          -> 2ul
@@ -288,6 +296,7 @@ let asn1_TLV_int32_max_of_type
   | IA5_STRING
   | PRINTABLE_STRING -> asn1_int32_max
   | OID          -> asn1_int32_max
+  | Generalized_Time -> 15ul
   | BIT_STRING   -> asn1_int32_max
   | SEQUENCE     -> asn1_int32_max
   | SET          -> asn1_int32_max
@@ -414,6 +423,7 @@ let valid_character_string_bytes
 : Tot (bool)
 = Seq.for_all (valid_character_string_byte t) s
 
+inline_for_extraction
 let character_string_bytes32
   (t: character_string_type)
 : Type
@@ -425,11 +435,20 @@ let character_string_lbytes32
 : Type
 = s32: B32.lbytes32 len { valid_character_string_bytes t (B32.reveal s32) }
 
+// inline_for_extraction
 let character_string_t
   (t: character_string_type)
-: Type
+// : Type
 = ( len: asn1_value_int32_of_type t &
     character_string_lbytes32 t len)
+
+let valid_generalized_time
+  (x: B32.lbytes32 13ul)
+: Tot bool
+= true
+
+let generalized_time_t: Type
+= LowParse.Spec.Combinators.parse_filter_refine valid_generalized_time
 
 ////////////////////////////////////////////////////////////////////////
 ////            Representation of ASN1 Values
@@ -451,12 +470,15 @@ let datatype_of_asn1_type (a: asn1_primitive_type): Type
   | OCTET_STRING -> ( len: asn1_value_int32_of_type OCTET_STRING &
                       s  : B32.bytes { B32.length s == v len } )
 
-  | PRINTABLE_STRING -> character_string_t PRINTABLE_STRING
+  | PRINTABLE_STRING
+                 -> character_string_t PRINTABLE_STRING
 
   | IA5_STRING   -> character_string_t IA5_STRING
 
   (* WIP *)
   | OID          -> oid_t
+
+  | Generalized_Time -> generalized_time_t
 
   (* A bit string is represent as
      1. `len`: the length of both `unused_bits` and `s`;

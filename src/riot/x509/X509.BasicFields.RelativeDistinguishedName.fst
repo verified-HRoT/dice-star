@@ -74,6 +74,42 @@ let directory_string_type : Type
 //   | RDN_ORGANIZATION t _ -> t
 // #pop-options
 
+let x509_RDN_payload_t
+  (oid: x509_RDN_attribute_oid)
+  (t: directory_string_type)
+  (lb: asn1_int32)
+  (ub: asn1_value_int32_of_type t { lb <= ub })
+= (oid `envelop_OID_with_t`
+  (asn1_string_with_character_bound_t t (count_character t) lb ub))
+
+let parse_RDN_payload
+  (oid: x509_RDN_attribute_oid)
+  (t: directory_string_type)
+  (lb: asn1_int32)
+  (ub: asn1_value_int32_of_type t { lb <= ub })
+: parser _ (x509_RDN_payload_t oid t lb ub)
+= (oid `parse_envelop_OID_with`
+   serialize_asn1_character_string_with_character_bound t lb ub)
+
+let serialize_RDN_payload
+  (oid: x509_RDN_attribute_oid)
+  (t: directory_string_type)
+  (lb: asn1_int32)
+  (ub: asn1_value_int32_of_type t { lb <= ub })
+: serializer (parse_RDN_payload oid t lb ub)
+= (oid `serialize_envelop_OID_with`
+   serialize_asn1_character_string_with_character_bound t lb ub)
+
+noextract inline_for_extraction
+let serialize32_RDN_payload_backwards
+  (oid: x509_RDN_attribute_oid)
+  (t: directory_string_type)
+  (lb: asn1_int32)
+  (ub: asn1_value_int32_of_type t { lb <= ub })
+: serializer32_backwards (serialize_RDN_payload oid t lb ub)
+= (oid `serialize32_envelop_OID_with_backwards`
+   serialize32_asn1_character_string_with_character_bound_backwards t lb ub)
+
 let x509_RDN_t
   (oid: x509_RDN_attribute_oid)
   (t: directory_string_type)
@@ -81,8 +117,7 @@ let x509_RDN_t
   (ub: asn1_value_int32_of_type t { lb <= ub })
 = SET `inbound_envelop_tag_with_value_of`
   (**) (SEQUENCE `serialize_asn1_envelop_tag_with_TLV`
-       (**) (oid `serialize_envelop_OID_with`
-       (**)  serialize_asn1_character_string_with_character_bound t lb ub))
+       (**) (serialize_RDN_payload oid t lb ub))
 
 let parse_RDN
   (oid: x509_RDN_attribute_oid)
@@ -94,8 +129,7 @@ let parse_RDN
   `coerce_parser`
   (SET `parse_asn1_envelop_tag_with_TLV`
   (**) (SEQUENCE `serialize_asn1_envelop_tag_with_TLV`
-       (**) (oid `serialize_envelop_OID_with`
-       (**)  serialize_asn1_character_string_with_character_bound t lb ub)))
+       (**) (serialize_RDN_payload oid t lb ub)))
 
 let serialize_RDN
   (oid: x509_RDN_attribute_oid)
@@ -107,8 +141,7 @@ let serialize_RDN
     (parse_RDN oid t lb ub)
     (SET `serialize_asn1_envelop_tag_with_TLV`
     (**) (SEQUENCE `serialize_asn1_envelop_tag_with_TLV`
-         (**) (oid `serialize_envelop_OID_with`
-         (**)  serialize_asn1_character_string_with_character_bound t lb ub)))
+       (**) (serialize_RDN_payload oid t lb ub)))
     ()
 
 let valid_RDN_ingredients
@@ -140,6 +173,7 @@ let length_of_RDN
        (**) (length_of_asn1_primitive_TLV #OID oid +
              length_of_asn1_primitive_TLV #t s)))
 
+noextract inline_for_extraction
 let len_of_RDN
   (oid: x509_RDN_attribute_oid)
   (t: directory_string_type)
@@ -299,6 +333,7 @@ let lemma_serialize_RDN_size_exact
   // lemma_serialize_asn1_oid_TLV_of_size oid oid
 ()
 
+noextract inline_for_extraction
 let serialize32_RDN_backwards
   (oid: x509_RDN_attribute_oid)
   (t: directory_string_type)
@@ -308,8 +343,7 @@ let serialize32_RDN_backwards
   (* s2  *) (serialize_RDN oid t lb ub)
   (* s32 *) (SET `serialize32_asn1_envelop_tag_with_TLV_backwards`
             (**) (SEQUENCE `serialize32_asn1_envelop_tag_with_TLV_backwards`
-                 (**) (oid `serialize32_envelop_OID_with_backwards`
-                 (**)  serialize32_asn1_character_string_with_character_bound_backwards t lb ub)))
+                 (**) (serialize32_RDN_payload_backwards oid t lb ub)))
   (* prf *) ()
 
 (*  *)
@@ -357,6 +391,7 @@ let x509_RDN_x520_attribute_t
     (x520_attribute_lb t)
     (x520_attribute_ub t)
 
+noextract inline_for_extraction
 let x509_RDN_x520_attribute_string_t
   (t: x520_attribute_t)
   (string_t: directory_string_type { ((t == COUNTRY) ==> (string_t == PRINTABLE_STRING)) })
@@ -420,6 +455,7 @@ let length_of_RDN_x520_attribute
     (string_t)
     (s)
 
+noextract inline_for_extraction
 let len_of_RDN_x520_attribute
   (#t: x520_attribute_t)
   (#string_t: directory_string_type { ((t == COUNTRY) ==> (string_t == PRINTABLE_STRING)) })
@@ -431,6 +467,7 @@ let len_of_RDN_x520_attribute
     (string_t)
     (s)
 
+noextract inline_for_extraction
 let get_RDN_x520_attribute_string
   (#t: x520_attribute_t)
   (#string_t: directory_string_type { ((t == COUNTRY) ==> (string_t == PRINTABLE_STRING)) })
@@ -467,6 +504,7 @@ let lemma_serialize_RDN_x520_attribute_size_exact
 = lemma_serialize_RDN_size_exact (x520_attribute_oid t) (string_t) (x520_attribute_lb t) (x520_attribute_ub t) x
 #pop-options
 
+noextract inline_for_extraction
 let serialize32_RDN_x520_attribute_backwards
   (t: x520_attribute_t)
   (string_t: directory_string_type { ((t == COUNTRY) ==> (string_t == PRINTABLE_STRING)) })
@@ -484,6 +522,7 @@ let serialize32_RDN_x520_attribute_backwards
 //   (|3ul, B32.hide (Seq.createL [0x10uy; 0x11uy; 0x12uy])|) <: datatype_of_asn1_type IA5_STRING
 
 // #push-options "--max_fuel 4 --max_ifuel 4"
+noextract inline_for_extraction
 let asn1_get_character_string
   (#string_t: character_string_type)
   (len: asn1_value_int32_of_type string_t)
@@ -491,6 +530,7 @@ let asn1_get_character_string
 : Tot (datatype_of_asn1_type string_t)
 = (|len, s32|) <: character_string_t string_t
 
+noextract inline_for_extraction
 let x509_get_RDN_x520_attribute_string
   (#t: x520_attribute_t)
   (#string_t: directory_string_type { ((t == COUNTRY) ==> (string_t == PRINTABLE_STRING)) })
@@ -502,6 +542,7 @@ let x509_get_RDN_x520_attribute_string
 = x
 
 #push-options "--z3rlimit 96"
+noextract inline_for_extraction
 let x509_get_RDN_x520_attribute
   (#t: x520_attribute_t)
   (#string_t: directory_string_type { ((t == COUNTRY) ==> (string_t == PRINTABLE_STRING)) })
