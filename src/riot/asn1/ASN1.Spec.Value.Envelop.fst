@@ -16,6 +16,7 @@ open FStar.Integers
  *)
 
 // unfold
+inline_for_extraction
 let inbound_envelop_tag_with_value_of
   (#k: parser_kind)
   (#t: Type0)

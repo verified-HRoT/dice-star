@@ -74,6 +74,7 @@ let directory_string_type : Type
 //   | RDN_ORGANIZATION t _ -> t
 // #pop-options
 
+inline_for_extraction
 let x509_RDN_payload_t
   (oid: x509_RDN_attribute_oid)
   (t: directory_string_type)
@@ -110,6 +111,7 @@ let serialize32_RDN_payload_backwards
 = (oid `serialize32_envelop_OID_with_backwards`
    serialize32_asn1_character_string_with_character_bound_backwards t lb ub)
 
+inline_for_extraction
 let x509_RDN_t
   (oid: x509_RDN_attribute_oid)
   (t: directory_string_type)
@@ -374,6 +376,7 @@ let x520_attribute_ub
   | ORGANIZATION -> 64ul
   | COMMON_NAME  -> 32768ul
 
+inline_for_extraction
 let x520_attribute_oid
   (t: x520_attribute_t)
 : Tot (datatype_of_asn1_type OID)
@@ -382,6 +385,7 @@ let x520_attribute_oid
   | ORGANIZATION -> OID_AT_ORGANIZATION
   | COMMON_NAME  -> OID_AT_CN
 
+inline_for_extraction
 let x509_RDN_x520_attribute_t
   (t: x520_attribute_t)
   (string_t: directory_string_type { ((t == COUNTRY) ==> (string_t == PRINTABLE_STRING)) })
@@ -549,6 +553,7 @@ let x509_get_RDN_x520_attribute
   (x: x509_RDN_x520_attribute_string_t t string_t)
 : Tot (x509_RDN_x520_attribute_t t string_t)
 =
+  [@inline_let]
   let attr: (x520_attribute_oid t) `envelop_OID_with_t`
             (x509_RDN_x520_attribute_string_t t string_t) = (
       x520_attribute_oid t,
