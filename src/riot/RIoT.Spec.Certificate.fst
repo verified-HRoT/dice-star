@@ -15,7 +15,7 @@ module IB = LowStar.ImmutableBuffer
 module HS  = FStar.HyperStack
 module HST = FStar.HyperStack.ST
 
-#set-options "--z3rlimit 64 --fuel 0 --ifuel 0"
+#set-options "--z3rlimit 512 --fuel 0 --ifuel 0"
 
 (* Create AliasKey To-Be-Signed Certificate
   =======================================
@@ -35,19 +35,6 @@ module HST = FStar.HyperStack.ST
         extensions      [3]  EXPLICIT Extensions OPTIONAL
                              -- If present, version MUST be v3
         }
-
-   In our case:
-      TBSCertificate  ::=  SEQUENCE  {
-        ----------------
-        |              |
-        |   Template   |
-        |              |
-        ----------------
-        subjectPublicKeyInfo for AliasKey,
-        extensions           for RIoT
-        }
-   NOTE: The SEQUENCE Tag and Length of TBS is __NOT__ part of the template
-   NOTE: Other extensions like Key Usage are __NOT__ included in this version.
 *)
 
 (* A predicate says that the length of created TBS (computed
@@ -55,39 +42,62 @@ module HST = FStar.HyperStack.ST
    or equal to 2^32 - 6 *)
 unfold
 let valid_aliasKeyTBS_ingredients
-  (template_len: asn1_int32)
+  (serialNumber: datatype_of_asn1_type INTEGER)
+  (i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
+  (i_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
+  (i_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
+  (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
+  (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
+  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
   (ku: key_usage_payload_t)
   (version: datatype_of_asn1_type INTEGER)
-= length_of_aliasKeyTBS_payload template_len ku version
+= length_of_aliasKeyTBS_payload
+    serialNumber
+    i_common i_org i_country
+    s_common s_org s_country
+    ku version
   <= asn1_value_length_max_of_type SEQUENCE
 
 let create_aliasKeyTBS_spec
-  (template_len: asn1_int32)
-  (aliasKeyTBS_template: lbytes_pub (v template_len))
+  (crt_version: x509_version_t)
+  (serialNumber: datatype_of_asn1_type INTEGER)
+  (i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
+  (i_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
+  (i_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
+  (notBefore: datatype_of_asn1_type Generalized_Time)
+  (notAfter : datatype_of_asn1_type Generalized_Time)
+  (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
+  (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
+  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
   (ku: key_usage_payload_t)
   (version: datatype_of_asn1_type INTEGER
-            { length_of_aliasKeyTBS_payload template_len ku version
-              <= asn1_value_length_max_of_type SEQUENCE })
+            { valid_aliasKeyTBS_ingredients
+                serialNumber
+                i_common i_org i_country
+                s_common s_org s_country
+                ku version })
   (fwid: lbytes_sec 32)
   (deviceID_pub: lbytes_pub 32)
   (aliasKey_pub: lbytes_pub 32)
-: GTot (aliasKeyTBS_t template_len)
+: GTot (aliasKeyTBS_t)
 =
 (* Create AliasKeyTBS *)
-  let aliasKeyTBS_template32: B32.lbytes32 template_len = B32.hide aliasKeyTBS_template in
   let deviceID_pub32: B32.lbytes32 32ul = B32.hide deviceID_pub in
   let fwid32        : B32.lbytes32 32ul = B32.hide (declassify_secret_bytes fwid) in
   let aliasKey_pub32: B32.lbytes32 32ul = B32.hide aliasKey_pub in
-  let aliasKeyTBS: aliasKeyTBS_t template_len = x509_get_AliasKeyTBS
-                                                        template_len
-                                                        aliasKeyTBS_template32
-                                                        ku
-                                                        version
-                                                        fwid32
-                                                        deviceID_pub32
-                                                        aliasKey_pub32 in
-  (* Prf *) lemma_serialize_aliasKeyTBS_payload_size template_len aliasKeyTBS;
-  (* Prf *) lemma_serialize_aliasKeyTBS_size_exact template_len aliasKeyTBS;
+  let aliasKeyTBS: aliasKeyTBS_t = x509_get_AliasKeyTBS
+                                     crt_version
+                                     serialNumber
+                                     i_common i_org i_country
+                                     notBefore notAfter
+                                     s_common s_org s_country
+                                     ku
+                                     version
+                                     fwid32
+                                     deviceID_pub32
+                                     aliasKey_pub32 in
+  (* Prf *) lemma_serialize_aliasKeyTBS_payload_size aliasKeyTBS;
+  (* Prf *) lemma_serialize_aliasKeyTBS_size_exact aliasKeyTBS;
 
 (* return *) aliasKeyTBS
 

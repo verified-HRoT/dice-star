@@ -21,7 +21,7 @@ open LowStar.Printf
 
 open RIoT.Spec.Certificate
 
-#set-options "--z3rlimit 512 --fuel 0 --ifuel 0"
+#set-options "--z3rlimit 1024 --fuel 0 --ifuel 0"
 
 (* Create AliasKey To-Be-Signed Certificate
   =======================================
@@ -56,49 +56,144 @@ open RIoT.Spec.Certificate
    NOTE: Other extensions like Key Usage are __NOT__ included in this version.
 *)
 
-let create_aliasKeyTBS
+let create_aliasKeyTBS_pre
+  (h: HS.mem)
+  (crt_version: x509_version_t)
+  (serialNumber: datatype_of_asn1_type INTEGER)
+  (i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
+  (i_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
+  (i_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
+  (notBefore: datatype_of_asn1_type Generalized_Time)
+  (notAfter : datatype_of_asn1_type Generalized_Time)
+  (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
+  (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
+  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
   (fwid: B.lbuffer byte_sec 32)
   (ku: key_usage_payload_t)
   (riot_version: datatype_of_asn1_type INTEGER)
   (deviceID_pub: B.lbuffer byte_pub 32)
   (aliasKey_pub: B.lbuffer byte_pub 32)
-  (aliasKeyTBS_template_len: size_t)
-  (aliasKeyTBS_template: B.lbuffer byte_pub (v aliasKeyTBS_template_len))
+  (aliasKeyTBS_len: size_t)
+  (aliasKeyTBS_buf: B.lbuffer byte_pub (v aliasKeyTBS_len))
+: Type0
+= B.(all_live h [buf fwid;
+                 buf deviceID_pub;
+                 buf aliasKey_pub;
+                 buf aliasKeyTBS_buf]) /\
+  B.(all_disjoint [loc_buffer fwid;
+                   loc_buffer deviceID_pub;
+                   loc_buffer aliasKey_pub;
+                   loc_buffer aliasKeyTBS_buf]) /\
+  valid_aliasKeyTBS_ingredients
+    serialNumber
+    i_common i_org i_country
+    s_common s_org s_country
+    ku riot_version /\
+  v aliasKeyTBS_len == length_of_aliasKeyTBS
+                         serialNumber
+                         i_common i_org i_country
+                         s_common s_org s_country
+                         ku riot_version
+
+#restart-solver
+let create_aliasKeyTBS_post
+  (h0: HS.mem)
+  (r: unit)
+  (h1: HS.mem)
+  (crt_version: x509_version_t)
+  (serialNumber: datatype_of_asn1_type INTEGER)
+  (i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
+  (i_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
+  (i_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
+  (notBefore: datatype_of_asn1_type Generalized_Time)
+  (notAfter : datatype_of_asn1_type Generalized_Time)
+  (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
+  (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
+  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
+  (fwid: B.lbuffer byte_sec 32)
+  (ku: key_usage_payload_t)
+  (riot_version: datatype_of_asn1_type INTEGER)
+  (deviceID_pub: B.lbuffer byte_pub 32)
+  (aliasKey_pub: B.lbuffer byte_pub 32)
+  (aliasKeyTBS_len: size_t)
+  (aliasKeyTBS_buf: B.lbuffer byte_pub (v aliasKeyTBS_len)
+                    { create_aliasKeyTBS_pre
+                     (h0)
+                     (crt_version)
+                     (serialNumber)
+                     (i_common) (i_org) (i_country)
+                     (notBefore) (notAfter)
+                     (s_common) (s_org) (s_country)
+                     (fwid)
+                     (ku)
+                     (riot_version)
+                     (deviceID_pub)
+                     (aliasKey_pub)
+                     (aliasKeyTBS_len) (aliasKeyTBS_buf) })
+: Type0
+= let aliasKeyTBS: aliasKeyTBS_t = create_aliasKeyTBS_spec
+                                     (crt_version)
+                                     (serialNumber)
+                                     (i_common) (i_org) (i_country)
+                                     (notBefore) (notAfter)
+                                     (s_common) (s_org) (s_country)
+                                     (ku)
+                                     (riot_version)
+                                     (B.as_seq h0 fwid)
+                                     (B.as_seq h0 deviceID_pub)
+                                     (B.as_seq h0 aliasKey_pub) in
+  (* Prf *) lemma_serialize_aliasKeyTBS_size_exact aliasKeyTBS;
+  B.(modifies (loc_buffer aliasKeyTBS_buf) h0 h1) /\
+  B.as_seq h1 aliasKeyTBS_buf == serialize_aliasKeyTBS `serialize` aliasKeyTBS
+
+let create_aliasKeyTBS
+  (crt_version: x509_version_t)
+  (serialNumber: datatype_of_asn1_type INTEGER)
+  (i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
+  (i_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
+  (i_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
+  (notBefore: datatype_of_asn1_type Generalized_Time)
+  (notAfter : datatype_of_asn1_type Generalized_Time)
+  (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
+  (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
+  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
+  (fwid: B.lbuffer byte_sec 32)
+  (ku: key_usage_payload_t)
+  (riot_version: datatype_of_asn1_type INTEGER)
+  (deviceID_pub: B.lbuffer byte_pub 32)
+  (aliasKey_pub: B.lbuffer byte_pub 32)
   (aliasKeyTBS_len: size_t)
   (aliasKeyTBS_buf: B.lbuffer byte_pub (v aliasKeyTBS_len))
 : HST.Stack unit
-  (requires fun h ->
-    B.(all_live h [buf fwid;
-                   buf deviceID_pub;
-                   buf aliasKey_pub;
-                   buf aliasKeyTBS_template;
-                   buf aliasKeyTBS_buf]) /\
-    B.(all_disjoint [loc_buffer fwid;
-                     loc_buffer deviceID_pub;
-                     loc_buffer aliasKey_pub;
-                     loc_buffer aliasKeyTBS_template;
-                     loc_buffer aliasKeyTBS_buf]) /\
-    valid_aliasKeyTBS_ingredients aliasKeyTBS_template_len ku riot_version /\
-    v aliasKeyTBS_len == length_of_aliasKeyTBS aliasKeyTBS_template_len ku riot_version
-   )
-  (ensures fun h0 _ h1 ->
-    let aliasKeyTBS: aliasKeyTBS_t aliasKeyTBS_template_len = create_aliasKeyTBS_spec
-                                                                      (aliasKeyTBS_template_len)
-                                                                      (B.as_seq h0 aliasKeyTBS_template)
-                                                                      (ku)
-                                                                      (riot_version)
-                                                                      (B.as_seq h0 fwid)
-                                                                      (B.as_seq h0 deviceID_pub)
-                                                                      (B.as_seq h0 aliasKey_pub) in
-    (* Prf *) lemma_serialize_aliasKeyTBS_size_exact aliasKeyTBS_template_len aliasKeyTBS;
-    B.(modifies (loc_buffer aliasKeyTBS_buf) h0 h1) /\
-    B.as_seq h1 aliasKeyTBS_buf == serialize_aliasKeyTBS aliasKeyTBS_template_len `serialize` aliasKeyTBS
-  )
-=
-  HST.push_frame ();
+  (requires fun h -> create_aliasKeyTBS_pre
+                     (h)
+                     (crt_version)
+                     (serialNumber)
+                     (i_common) (i_org) (i_country)
+                     (notBefore) (notAfter)
+                     (s_common) (s_org) (s_country)
+                     (fwid)
+                     (ku)
+                     (riot_version)
+                     (deviceID_pub)
+                     (aliasKey_pub)
+                     (aliasKeyTBS_len) (aliasKeyTBS_buf))
+  (ensures fun h0 _ h1 -> create_aliasKeyTBS_post
+                         (h0) () (h1)
+                         (crt_version)
+                         (serialNumber)
+                         (i_common) (i_org) (i_country)
+                         (notBefore) (notAfter)
+                         (s_common) (s_org) (s_country)
+                         (fwid)
+                         (ku)
+                         (riot_version)
+                         (deviceID_pub)
+                         (aliasKey_pub)
+                         (aliasKeyTBS_len) (aliasKeyTBS_buf))
+= HST.push_frame ();
 
 (* Create AliasKeyTBS *)
-  let aliasKeyTBS_template32: B32.lbytes32 aliasKeyTBS_template_len = B32.of_buffer aliasKeyTBS_template_len aliasKeyTBS_template in
   let fwid_pub      : B.lbuffer byte_pub 32 = B.alloca 0x00uy 32ul in
   declassify_secret_buffer 32ul fwid fwid_pub;
   let fwid_pub32    : B32.lbytes32 32ul = B32.of_buffer 32ul fwid_pub in
@@ -106,21 +201,22 @@ let create_aliasKeyTBS
   let aliasKey_pub32: B32.lbytes32 32ul = B32.of_buffer 32ul aliasKey_pub in
 
   printf "Creating AliasKey Certificate TBS Message\n" done;
-  let aliasKeyTBS: aliasKeyTBS_t aliasKeyTBS_template_len = x509_get_AliasKeyTBS
-                                                                    aliasKeyTBS_template_len
-                                                                    aliasKeyTBS_template32
-                                                                    ku
-                                                                    riot_version
-                                                                    fwid_pub32
-                                                                    deviceID_pub32
-                                                                    aliasKey_pub32 in
-
-  (* Prf *) lemma_serialize_aliasKeyTBS_size_exact aliasKeyTBS_template_len aliasKeyTBS;
+  let aliasKeyTBS: aliasKeyTBS_t = x509_get_AliasKeyTBS
+                                     crt_version
+                                     serialNumber
+                                     i_common i_org i_country
+                                     notBefore notAfter
+                                     s_common s_org s_country
+                                     ku
+                                     riot_version
+                                     fwid_pub32
+                                     deviceID_pub32
+                                     aliasKey_pub32 in
+  (* Prf *) lemma_serialize_aliasKeyTBS_size_exact aliasKeyTBS;
 
   printf "Serializing AliasKey Certificate TBS\n" done;
 (* Serialize AliasKeyTBS *)
   let offset = serialize32_aliasKeyTBS_backwards
-                 aliasKeyTBS_template_len
                  aliasKeyTBS
                  aliasKeyTBS_buf
                  aliasKeyTBS_len in
@@ -221,7 +317,8 @@ let sign_and_finalize_aliasKeyCRT
  *=====================================
  *)
 
-
+#restart-solver
+#push-options "--z3rlimit 10240"
 let create_deviceIDCRI
   (csr_version: datatype_of_asn1_type INTEGER)
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)

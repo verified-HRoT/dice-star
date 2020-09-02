@@ -38,9 +38,9 @@ type asn1_tag_t: Type =
 | SEQUENCE
 | SET
 | CUSTOM_TAG: tag_class: asn1_tag_class_t ->
-                tag_form : asn1_tag_form_t  ->
-                tag_value: asn1_tag_value_t ->
-                asn1_tag_t
+              tag_form : asn1_tag_form_t  ->
+              tag_value: asn1_tag_value_t ->
+              asn1_tag_t
 
 type asn1_type = t: asn1_tag_t {not (CUSTOM_TAG? t)}
 
@@ -444,7 +444,7 @@ let character_string_t
 
 let valid_generalized_time
   (x: B32.lbytes32 13ul)
-: Tot bool
+: GTot bool
 = true
 
 let generalized_time_t: Type
@@ -475,7 +475,6 @@ let datatype_of_asn1_type (a: asn1_primitive_type): Type
 
   | IA5_STRING   -> character_string_t IA5_STRING
 
-  (* WIP *)
   | OID          -> oid_t
 
   | Generalized_Time -> generalized_time_t
