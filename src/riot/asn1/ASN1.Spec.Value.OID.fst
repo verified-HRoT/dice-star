@@ -773,8 +773,12 @@ noextract
 let filter_asn1_oid_TLV_of
   (oid: datatype_of_asn1_type OID)
   (x: datatype_of_asn1_type OID)
-: GTot bool
+: Tot bool
 = x = oid
+
+let the_asn1_oid
+  (oid: datatype_of_asn1_type OID)
+= parse_filter_refine (filter_asn1_oid_TLV_of oid)
 
 noextract
 let synth_asn1_oid_TLV_of
@@ -787,7 +791,7 @@ noextract
 let parse_asn1_oid_TLV_of
   (oid: datatype_of_asn1_type OID)
 // : parser _ (x: datatype_of_asn1_type OID {x == oid})
-: parser _ (parse_filter_refine (filter_asn1_oid_TLV_of oid))
+: parser _ (the_asn1_oid oid)
 = parse_asn1_oid_TLV
   `parse_filter`
   filter_asn1_oid_TLV_of oid

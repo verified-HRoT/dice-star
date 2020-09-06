@@ -21,7 +21,7 @@ open LowStar.Printf
 
 open RIoT.Spec.Certificate
 
-#set-options "--z3rlimit 1024 --fuel 0 --ifuel 0"
+#set-options "--z3rlimit 2048 --fuel 0 --ifuel 0"
 
 (* Create AliasKey To-Be-Signed Certificate
   =======================================
@@ -59,7 +59,7 @@ open RIoT.Spec.Certificate
 let create_aliasKeyTBS_pre
   (h: HS.mem)
   (crt_version: x509_version_t)
-  (serialNumber: datatype_of_asn1_type INTEGER)
+  (serialNumber: x509_serialNumber_t)
   (i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (i_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (i_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
@@ -101,7 +101,7 @@ let create_aliasKeyTBS_post
   (r: unit)
   (h1: HS.mem)
   (crt_version: x509_version_t)
-  (serialNumber: datatype_of_asn1_type INTEGER)
+  (serialNumber: x509_serialNumber_t)
   (i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (i_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (i_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
@@ -148,7 +148,7 @@ let create_aliasKeyTBS_post
 
 let create_aliasKeyTBS
   (crt_version: x509_version_t)
-  (serialNumber: datatype_of_asn1_type INTEGER)
+  (serialNumber: x509_serialNumber_t)
   (i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (i_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (i_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)

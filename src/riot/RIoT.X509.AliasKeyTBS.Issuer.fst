@@ -7,7 +7,7 @@ open FStar.Integers
 
 module B32 = FStar.Bytes
 
-#set-options "--z3rlimit 32 --fuel 0 --ifuel 0"
+#set-options "--z3rlimit 64 --fuel 0 --ifuel 0"
 
 type aliasKeyTBS_issuer_payload_t = {
   aliasKeyTBS_issuer_Common      : x509_RDN_x520_attribute_t COMMON_NAME  IA5_STRING;

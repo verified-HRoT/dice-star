@@ -222,11 +222,16 @@ endif
 endif
 endif
 
+KRML_WARN_ERRORS = \
+  -warn_error +4
+
 KREMLIN_FLAGS = \
+  $(OTHER_KRML_FLAGS) \
   $(KRML_NO_PREFIXS) \
   $(KRML_LIBRARIES) \
   $(KRML_LDOPTS) \
   $(KRML_BUNDLES) \
+  $(KRML_WARN_ERRORS) \
   $(KRML_MISC_FLAGS) \
   $(KRML_C_INCLUDES) \
   $(KRML_FSTAR_INCLUDES) \

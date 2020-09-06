@@ -20,7 +20,7 @@ type aliasKeyTBS_payload_t = {
 (*
  *       serialNumber         CertificateSerialNumber,
  *)
-  aliasKeyTBS_serialNumber: datatype_of_asn1_type INTEGER;
+  aliasKeyTBS_serialNumber: x509_serialNumber_t;
 (*
  *       signature            AlgorithmIdentifier,
  *)
@@ -56,7 +56,7 @@ let aliasKeyTBS_payload_t' = (
 (*
  *       serialNumber         CertificateSerialNumber,
  *)
-  datatype_of_asn1_type INTEGER `tuple2`
+  x509_serialNumber_t `tuple2`
 (*
  *       signature            AlgorithmIdentifier,
  *)
@@ -111,7 +111,7 @@ let parse_aliasKeyTBS_payload
 : parser _ aliasKeyTBS_payload_t
 = parse_x509_version
   `nondep_then`
-  parse_asn1_TLV_of_type INTEGER
+  parse_x509_serialNumber
   `nondep_then`
   parse_algorithmIdentifier
   `nondep_then`
@@ -132,7 +132,7 @@ let serialize_aliasKeyTBS_payload
 = serialize_synth
   (* p1 *) (parse_x509_version
             `nondep_then`
-            parse_asn1_TLV_of_type INTEGER
+            parse_x509_serialNumber
             `nondep_then`
             parse_algorithmIdentifier
             `nondep_then`
@@ -148,7 +148,7 @@ let serialize_aliasKeyTBS_payload
   (* f2 *) (synth_aliasKeyTBS_payload_t)
   (* s1 *) (serialize_x509_version
             `serialize_nondep_then`
-            serialize_asn1_TLV_of_type INTEGER
+            serialize_x509_serialNumber
             `serialize_nondep_then`
             serialize_algorithmIdentifier
             `serialize_nondep_then`
@@ -170,7 +170,7 @@ let lemma_serialize_aliasKeyTBS_payload_unfold
   serialize_aliasKeyTBS_payload `serialize` x ==
  (serialize_x509_version `serialize` x.aliasKeyTBS_version)
   `Seq.append`
- (serialize_asn1_TLV_of_type INTEGER `serialize` x.aliasKeyTBS_serialNumber)
+ (serialize_x509_serialNumber `serialize` x.aliasKeyTBS_serialNumber)
   `Seq.append`
  (serialize_algorithmIdentifier `serialize` x.aliasKeyTBS_signatureAlg)
   `Seq.append`
@@ -187,20 +187,20 @@ let lemma_serialize_aliasKeyTBS_payload_unfold
 =
   serialize_nondep_then_eq
   (* s1 *) (serialize_x509_version)
-  (* s2 *) (serialize_asn1_TLV_of_type INTEGER)
+  (* s2 *) (serialize_x509_serialNumber)
   (* in *) (fst (fst (fst(fst (fst (fst (synth_aliasKeyTBS_payload_t' x)))))));
 
   serialize_nondep_then_eq
   (* s1 *) (serialize_x509_version
             `serialize_nondep_then`
-            serialize_asn1_TLV_of_type INTEGER)
+            serialize_x509_serialNumber)
   (* s2 *) (serialize_algorithmIdentifier)
   (* in *) (fst (fst(fst (fst (fst (synth_aliasKeyTBS_payload_t' x))))));
 
   serialize_nondep_then_eq
   (* s1 *) (serialize_x509_version
             `serialize_nondep_then`
-            serialize_asn1_TLV_of_type INTEGER
+            serialize_x509_serialNumber
             `serialize_nondep_then`
             serialize_algorithmIdentifier)
   (* s2 *) (serialize_aliasKeyTBS_issuer)
@@ -209,7 +209,7 @@ let lemma_serialize_aliasKeyTBS_payload_unfold
   serialize_nondep_then_eq
   (* s1 *) (serialize_x509_version
             `serialize_nondep_then`
-            serialize_asn1_TLV_of_type INTEGER
+            serialize_x509_serialNumber
             `serialize_nondep_then`
             serialize_algorithmIdentifier
             `serialize_nondep_then`
@@ -220,7 +220,7 @@ let lemma_serialize_aliasKeyTBS_payload_unfold
   serialize_nondep_then_eq
   (* s1 *) (serialize_x509_version
             `serialize_nondep_then`
-            serialize_asn1_TLV_of_type INTEGER
+            serialize_x509_serialNumber
             `serialize_nondep_then`
             serialize_algorithmIdentifier
             `serialize_nondep_then`
@@ -233,7 +233,7 @@ let lemma_serialize_aliasKeyTBS_payload_unfold
   serialize_nondep_then_eq
   (* s1 *) (serialize_x509_version
             `serialize_nondep_then`
-            serialize_asn1_TLV_of_type INTEGER
+            serialize_x509_serialNumber
             `serialize_nondep_then`
             serialize_algorithmIdentifier
             `serialize_nondep_then`
@@ -248,7 +248,7 @@ let lemma_serialize_aliasKeyTBS_payload_unfold
   serialize_nondep_then_eq
   (* s1 *) (serialize_x509_version
             `serialize_nondep_then`
-            serialize_asn1_TLV_of_type INTEGER
+            serialize_x509_serialNumber
             `serialize_nondep_then`
             serialize_algorithmIdentifier
             `serialize_nondep_then`
@@ -265,7 +265,7 @@ let lemma_serialize_aliasKeyTBS_payload_unfold
   serialize_synth_eq
   (* p1 *) (parse_x509_version
             `nondep_then`
-            parse_asn1_TLV_of_type INTEGER
+            parse_x509_serialNumber
             `nondep_then`
             parse_algorithmIdentifier
             `nondep_then`
@@ -281,7 +281,7 @@ let lemma_serialize_aliasKeyTBS_payload_unfold
   (* f2 *) (synth_aliasKeyTBS_payload_t)
   (* s1 *) (serialize_x509_version
             `serialize_nondep_then`
-            serialize_asn1_TLV_of_type INTEGER
+            serialize_x509_serialNumber
             `serialize_nondep_then`
             serialize_algorithmIdentifier
             `serialize_nondep_then`
@@ -299,7 +299,7 @@ let lemma_serialize_aliasKeyTBS_payload_unfold
   (* in *) (x)
 
 let length_of_aliasKeyTBS_payload
-  (serialNumber: datatype_of_asn1_type INTEGER)
+  (serialNumber: x509_serialNumber_t)
   (i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (i_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (i_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
@@ -310,7 +310,7 @@ let length_of_aliasKeyTBS_payload
   (version: datatype_of_asn1_type INTEGER)
 : GTot (nat)
 = length_of_x509_version () +
-  length_of_asn1_primitive_TLV serialNumber +
+  length_of_x509_serialNumber serialNumber +
   length_of_algorithmIdentifier () +
   length_of_aliasKeyTBS_issuer i_common i_org i_country +
   length_of_x509_validity () +
@@ -319,7 +319,7 @@ let length_of_aliasKeyTBS_payload
   length_of_x509_extensions (length_of_aliasKeyTBS_extensions ku version)
 
 let len_of_aliasKeyTBS_payload
-  (serialNumber: datatype_of_asn1_type INTEGER)
+  (serialNumber: x509_serialNumber_t)
   (i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (i_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (i_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
@@ -341,7 +341,7 @@ let len_of_aliasKeyTBS_payload
                          s_common s_org s_country
                          ku version })
 = len_of_x509_version () +
-  len_of_asn1_primitive_TLV serialNumber +
+  len_of_x509_serialNumber serialNumber +
   len_of_algorithmIdentifier () +
   len_of_aliasKeyTBS_issuer i_common i_org i_country +
   len_of_x509_validity () +
@@ -359,7 +359,7 @@ let lemma_serialize_aliasKeyTBS_payload_size
   (* unfold *)
   length_of_opaque_serialization (serialize_aliasKeyTBS_payload) x ==
   length_of_opaque_serialization (serialize_x509_version)             x.aliasKeyTBS_version      +
-  length_of_opaque_serialization (serialize_asn1_TLV_of_type INTEGER) x.aliasKeyTBS_serialNumber +
+  length_of_opaque_serialization (serialize_x509_serialNumber)        x.aliasKeyTBS_serialNumber +
   length_of_opaque_serialization (serialize_algorithmIdentifier)      x.aliasKeyTBS_signatureAlg +
   length_of_opaque_serialization (serialize_aliasKeyTBS_issuer)       x.aliasKeyTBS_issuer     +
   length_of_opaque_serialization (serialize_x509_validity)            x.aliasKeyTBS_validity     +
@@ -382,7 +382,7 @@ let lemma_serialize_aliasKeyTBS_payload_size
 )
 = lemma_serialize_aliasKeyTBS_payload_unfold x;
     lemma_serialize_x509_version_size_exact x.aliasKeyTBS_version;
-    lemma_serialize_asn1_integer_TLV_size x.aliasKeyTBS_serialNumber;
+    lemma_serialize_x509_serialNumber_size x.aliasKeyTBS_serialNumber;
     lemma_serialize_algorithmIdentifier_size_exact x.aliasKeyTBS_signatureAlg;
     lemma_serialize_aliasKeyTBS_issuer_size_exact x.aliasKeyTBS_issuer;
     lemma_serialize_x509_validity_size_exact x.aliasKeyTBS_validity;
@@ -420,7 +420,7 @@ let lemma_serialize_aliasKeyTBS_size
 = lemma_serialize_asn1_sequence_TLV_size (serialize_aliasKeyTBS_payload) x
 
 let length_of_aliasKeyTBS
-  (serialNumber: datatype_of_asn1_type INTEGER)
+  (serialNumber: x509_serialNumber_t)
   (i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (i_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (i_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
@@ -446,7 +446,7 @@ let length_of_aliasKeyTBS
 
 #restart-solver
 let len_of_aliasKeyTBS
-  (serialNumber: datatype_of_asn1_type INTEGER)
+  (serialNumber: x509_serialNumber_t)
   (i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (i_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (i_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
@@ -506,7 +506,7 @@ let serialize32_aliasKeyTBS_payload_backwards
 = serialize32_synth_backwards
   (* s1 *) (serialize32_x509_version_backwards
             `serialize32_nondep_then_backwards`
-            serialize32_asn1_TLV_backwards_of_type INTEGER
+            serialize32_x509_serialNumber_backwards
             `serialize32_nondep_then_backwards`
             serialize32_algorithmIdentifier_backwards
             `serialize32_nondep_then_backwards`
@@ -537,7 +537,7 @@ let serialize32_aliasKeyTBS_backwards
 #restart-solver
 let x509_get_AliasKeyTBS
   (crt_version: x509_version_t)
-  (serialNumber: datatype_of_asn1_type INTEGER)
+  (serialNumber: x509_serialNumber_t)
   (i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (i_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (i_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING
@@ -611,6 +611,6 @@ let x509_get_AliasKeyTBS
   (* Prf *) lemma_serialize_aliasKeyTBS_payload_unfold aliasKeyTBS;
   (* Prf *) lemma_serialize_aliasKeyTBS_payload_size   aliasKeyTBS;
   (* Prf *) (**) lemma_serialize_x509_version_size_exact crt_version;
-  (* Prf *) (**) lemma_serialize_asn1_integer_TLV_size serialNumber;
+  (* Prf *) (**) lemma_serialize_x509_serialNumber_size serialNumber;
 
 (*return*) aliasKeyTBS

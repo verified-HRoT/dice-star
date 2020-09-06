@@ -42,7 +42,7 @@ module HST = FStar.HyperStack.ST
    or equal to 2^32 - 6 *)
 unfold
 let valid_aliasKeyTBS_ingredients
-  (serialNumber: datatype_of_asn1_type INTEGER)
+  (serialNumber: x509_serialNumber_t)
   (i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (i_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (i_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
@@ -60,7 +60,7 @@ let valid_aliasKeyTBS_ingredients
 
 let create_aliasKeyTBS_spec
   (crt_version: x509_version_t)
-  (serialNumber: datatype_of_asn1_type INTEGER)
+  (serialNumber: x509_serialNumber_t)
   (i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (i_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (i_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
