@@ -81,6 +81,7 @@ INCLUDES=$(FSTAR_HOME)/ulib/.cache \
   $(HACL_HOME)/vale/specs/hardware \
   $(HACL_HOME)/vale/specs/defs \
   $(HACL_HOME)/code/meta \
+  $(HACL_HOME)/code/blake2 \
   $(HACL_HOME)/code/hash \
   $(HACL_HOME)/code/hkdf \
   $(HACL_HOME)/code/hmac\
