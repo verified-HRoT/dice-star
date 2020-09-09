@@ -223,7 +223,7 @@ endif
 endif
 
 KRML_WARN_ERRORS = \
-  -warn_error +4
+  -warn-error @4
 
 KREMLIN_FLAGS = \
   $(OTHER_KRML_FLAGS) \

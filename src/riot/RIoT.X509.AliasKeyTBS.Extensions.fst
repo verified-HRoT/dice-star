@@ -14,7 +14,8 @@ module B32 = FStar.Bytes
 open LowParse.Spec.SeqBytes.Base
 open LowParse.Spec.Bytes
 
-#set-options "--z3rlimit 32 --fuel 0 --ifuel 0"
+(* 4 fuels for the recursively defined 3-oid extendedKeyUsage *)
+#set-options "--z3rlimit 64 --fuel 4 --ifuel 0"
 
 (* Extensions of the AliasKey Certificate
  * Includes the RIoT Extension (`CompositeDeviceID`) and others
@@ -32,6 +33,17 @@ open LowParse.Spec.Bytes
  * }
  *)
 
+noextract inline_for_extraction
+let aliasKeyCrt_extendedKeyUsage_oids
+: l: keyPurposeIDs_oids_t
+     { valid_x509_ext_key_usage_ingredients l }
+= [@inline_let]
+  let l = [OID_AT_CN; OID_AT_COUNTRY; OID_AT_ORGANIZATION] in
+  assert_norm (  valid_keyPurposeIDs l  );
+  // lemma_serialize_x509_keyPurposeIDs_size_norm l;
+  lemma_serialize_x509_keyPurposeIDs_size l;
+  l
+
 (* Exposed message record type (struct) for manipulation *)
 type aliasKeyTBS_extensions_payload_t = {
   (* More extensions could be added here.
@@ -39,6 +51,7 @@ type aliasKeyTBS_extensions_payload_t = {
    * aliasKeyTBS_extensions_key_usage: key_usage_t;
    *)
   aliasKeyTBS_extensions_key_usage: key_usage_t;
+  aliasKeyTBS_extensions_extendedKeyUsage: x509_ext_key_usage_t aliasKeyCrt_extendedKeyUsage_oids;
   aliasKeyTBS_extensions_riot: riot_extension_t
 }
 
@@ -52,6 +65,7 @@ let aliasKeyTBS_extensions_payload_t' = (
    * key_usage_t &
    *)
   key_usage_t `tuple2`
+  x509_ext_key_usage_t aliasKeyCrt_extendedKeyUsage_oids `tuple2`
   riot_extension_t
 )
 
@@ -63,7 +77,8 @@ let synth_aliasKeyTBS_extensions_payload_t
    * For example:
    * aliasKeyTBS_extensions_key_usage = fst x;
    *)
-   aliasKeyTBS_extensions_key_usage = fst x';
+   aliasKeyTBS_extensions_key_usage = fst (fst x');
+   aliasKeyTBS_extensions_extendedKeyUsage = snd (fst x');
    aliasKeyTBS_extensions_riot      = snd x'
 }
 
@@ -75,7 +90,8 @@ let synth_aliasKeyTBS_extensions_payload_t'
    * For example:
    * x.aliasKeyTBS_extensions_key_usage,
    *)
-   x.aliasKeyTBS_extensions_key_usage,
+  (x.aliasKeyTBS_extensions_key_usage,
+   x.aliasKeyTBS_extensions_extendedKeyUsage),
    x.aliasKeyTBS_extensions_riot
 )
 
@@ -83,6 +99,8 @@ let synth_aliasKeyTBS_extensions_payload_t'
 let parse_aliasKeyTBS_extensions_payload
 : parser _ (aliasKeyTBS_extensions_payload_t)
 = parse_x509_key_usage
+  `nondep_then`
+  parse_x509_ext_key_usage aliasKeyCrt_extendedKeyUsage_oids
   `nondep_then`
   parse_riot_extension
   `parse_synth`
@@ -94,9 +112,13 @@ let serialize_aliasKeyTBS_extensions_payload
 = serialize_synth
   (* p1 *) (parse_x509_key_usage
             `nondep_then`
+            parse_x509_ext_key_usage aliasKeyCrt_extendedKeyUsage_oids
+            `nondep_then`
             parse_riot_extension)
   (* f2 *) (synth_aliasKeyTBS_extensions_payload_t)
   (* s1 *) (serialize_x509_key_usage
+            `serialize_nondep_then`
+            serialize_x509_ext_key_usage aliasKeyCrt_extendedKeyUsage_oids
             `serialize_nondep_then`
             serialize_riot_extension)
   (* g1 *) (synth_aliasKeyTBS_extensions_payload_t')
@@ -109,18 +131,31 @@ let lemma_serialize_aliasKeyTBS_extensions_payload_unfold
   serialize_aliasKeyTBS_extensions_payload `serialize` x ==
   (serialize_x509_key_usage `serialize` x.aliasKeyTBS_extensions_key_usage)
   `Seq.append`
+  (serialize_x509_ext_key_usage aliasKeyCrt_extendedKeyUsage_oids
+                            `serialize` x.aliasKeyTBS_extensions_extendedKeyUsage)
+  `Seq.append`
   (serialize_riot_extension `serialize` x.aliasKeyTBS_extensions_riot)
 )
 = serialize_nondep_then_eq
   (* s1 *) (serialize_x509_key_usage)
+  (* s2 *) (serialize_x509_ext_key_usage aliasKeyCrt_extendedKeyUsage_oids)
+  (* in *) (fst (synth_aliasKeyTBS_extensions_payload_t' x));
+  serialize_nondep_then_eq
+  (* s1 *) (serialize_x509_key_usage
+            `serialize_nondep_then`
+            serialize_x509_ext_key_usage aliasKeyCrt_extendedKeyUsage_oids)
   (* s2 *) (serialize_riot_extension)
   (* in *) (synth_aliasKeyTBS_extensions_payload_t' x);
   serialize_synth_eq
   (* p1 *) (parse_x509_key_usage
             `nondep_then`
+            parse_x509_ext_key_usage aliasKeyCrt_extendedKeyUsage_oids
+            `nondep_then`
             parse_riot_extension)
   (* f2 *) (synth_aliasKeyTBS_extensions_payload_t)
   (* s1 *) (serialize_x509_key_usage
+            `serialize_nondep_then`
+            serialize_x509_ext_key_usage aliasKeyCrt_extendedKeyUsage_oids
             `serialize_nondep_then`
             serialize_riot_extension)
   (* g1 *) (synth_aliasKeyTBS_extensions_payload_t')
@@ -128,43 +163,50 @@ let lemma_serialize_aliasKeyTBS_extensions_payload_unfold
   (* in *) (x)
 
 let length_of_aliasKeyTBS_extensions_payload
-    (ku: key_usage_payload_t)
-    (version: datatype_of_asn1_type INTEGER)
+  (ku: key_usage_payload_t)
+  (version: datatype_of_asn1_type INTEGER)
 = length_of_riot_extension version +
+  length_of_x509_ext_key_usage (aliasKeyCrt_extendedKeyUsage_oids) +
   length_of_x509_key_usage ku
 
 let len_of_aliasKeyTBS_extensions_payload
-    (ku: key_usage_payload_t)
-    (version: datatype_of_asn1_type INTEGER
-              { length_of_aliasKeyTBS_extensions_payload ku version
-                <= asn1_value_length_max_of_type SEQUENCE })
+  (ku: key_usage_payload_t)
+  (version: datatype_of_asn1_type INTEGER
+            { length_of_aliasKeyTBS_extensions_payload ku version
+              <= asn1_value_length_max_of_type SEQUENCE })
 : Tot (len: asn1_TLV_int32_of_type SEQUENCE
             { v len == length_of_aliasKeyTBS_extensions_payload ku version })
-= len_of_riot_extension version +
+= (* Why do we need to proof this? Is this related to the refinement on `len_of_x509_extension`'s `x_len` param? *)
+  lemma_serialize_x509_ext_key_usage_payload_size_exact (aliasKeyCrt_extendedKeyUsage_oids);
+  len_of_riot_extension version +
+  len_of_x509_ext_key_usage (aliasKeyCrt_extendedKeyUsage_oids) +
   len_of_x509_key_usage ku
 
-#push-options "--z3rlimit 64 --fuel 0 --ifuel 0"
+#restart-solver
+#push-options "--z3rlimit 128"
 let lemma_serialize_aliasKeyTBS_extensions_payload_size
   (x: aliasKeyTBS_extensions_payload_t)
 : Lemma (
   (* unfold *)
   length_of_opaque_serialization (serialize_aliasKeyTBS_extensions_payload)      x ==
-  length_of_opaque_serialization (serialize_riot_extension)              x.aliasKeyTBS_extensions_riot +
-  length_of_opaque_serialization (serialize_x509_key_usage)              x.aliasKeyTBS_extensions_key_usage /\
-  (* exact size of the VALUE of SEQUENCE
-   * For now its just the size of the RIoT Extension
-   *)
+  length_of_opaque_serialization (serialize_x509_key_usage)              x.aliasKeyTBS_extensions_key_usage +
+  length_of_opaque_serialization (serialize_x509_ext_key_usage aliasKeyCrt_extendedKeyUsage_oids)
+                                                                         x.aliasKeyTBS_extensions_extendedKeyUsage +
+  length_of_opaque_serialization (serialize_riot_extension)              x.aliasKeyTBS_extensions_riot /\
+  (* exact size *)
   length_of_opaque_serialization (serialize_aliasKeyTBS_extensions_payload)      x
   == length_of_aliasKeyTBS_extensions_payload
        (snd x.aliasKeyTBS_extensions_key_usage)
-       (x.aliasKeyTBS_extensions_riot.x509_extValue_riot.riot_version)
-  (* upper bound *)
-  // length_of_opaque_serialization (serialize_aliasKeyTBS_extensions)      x
-  // <= 117
+       (x.aliasKeyTBS_extensions_riot.x509_extValue_riot.riot_version) /\
+  True
 )
 = lemma_serialize_aliasKeyTBS_extensions_payload_unfold x;
+    lemma_serialize_x509_key_usage_size_exact x.aliasKeyTBS_extensions_key_usage;
+    lemma_x509_keyPurposeIDs_unique aliasKeyCrt_extendedKeyUsage_oids;
+    lemma_serialize_x509_ext_key_usage_size_exact aliasKeyCrt_extendedKeyUsage_oids
+                                              x.aliasKeyTBS_extensions_extendedKeyUsage;
     lemma_serialize_riot_extension_size_exact x.aliasKeyTBS_extensions_riot;
-    lemma_serialize_x509_key_usage_size_exact x.aliasKeyTBS_extensions_key_usage
+()
 #pop-options
 
 (*
@@ -200,46 +242,48 @@ let lemma_serialize_aliasKeyTBS_extensions_size
 : Lemma ( predicate_serialize_asn1_sequence_TLV_size serialize_aliasKeyTBS_extensions_payload x )
 = lemma_serialize_asn1_sequence_TLV_size serialize_aliasKeyTBS_extensions_payload x
 
+let valid_aliasKeyTBS_ingredients
+  (ku: key_usage_payload_t)
+  (version: datatype_of_asn1_type INTEGER)
+: Type0
+= length_of_aliasKeyTBS_extensions_payload ku version
+  <= asn1_value_length_max_of_type SEQUENCE
+
 #push-options "--z3rlimit 64 --fuel 0 --ifuel 0"
 let length_of_aliasKeyTBS_extensions
-    (ku: key_usage_payload_t)
-    (version: datatype_of_asn1_type INTEGER)
+  (ku: key_usage_payload_t)
+  (version: datatype_of_asn1_type INTEGER
+            { valid_aliasKeyTBS_ingredients ku version })
 : GTot (asn1_TLV_length_of_type SEQUENCE)
 = length_of_TLV SEQUENCE
-    (length_of_riot_extension version +
-     length_of_x509_key_usage ku)
+    (length_of_aliasKeyTBS_extensions_payload ku version)
 
 let len_of_aliasKeyTBS_extensions
-    (ku: key_usage_payload_t)
-    (version: datatype_of_asn1_type INTEGER
-              { length_of_aliasKeyTBS_extensions ku version
-                <= asn1_value_length_max_of_type SEQUENCE })
+  (ku: key_usage_payload_t)
+  (version: datatype_of_asn1_type INTEGER
+            { valid_aliasKeyTBS_ingredients ku version })
 : Tot (len: asn1_TLV_int32_of_type SEQUENCE
             { v len == length_of_aliasKeyTBS_extensions ku version })
 = len_of_TLV SEQUENCE
-    (len_of_riot_extension version +
-     len_of_x509_key_usage ku)
+    (len_of_aliasKeyTBS_extensions_payload ku version)
 #pop-options
 
-#push-options "--z3rlimit 64 --fuel 0 --ifuel 0"
 let lemma_serialize_aliasKeyTBS_extensions_size_exact
-  (x: aliasKeyTBS_extensions_t)
+  (x: aliasKeyTBS_extensions_t
+      { valid_aliasKeyTBS_ingredients
+          (snd x.aliasKeyTBS_extensions_key_usage)
+          (x.aliasKeyTBS_extensions_riot.x509_extValue_riot.riot_version) })
 : Lemma (
-  (* exact size of the VALUE of SEQUENCE
-   * For now its just the size of the RIoT Extension
-   *)
+  (* exact size *)
   length_of_opaque_serialization (serialize_aliasKeyTBS_extensions) x
   == length_of_aliasKeyTBS_extensions
        (snd x.aliasKeyTBS_extensions_key_usage)
        (x.aliasKeyTBS_extensions_riot.x509_extValue_riot.riot_version)
-  (* upper bound *)
-  // length_of_opaque_serialization (serialize_aliasKeyTBS_extensions)      x
-  // <= 6 +
-  //      117
 )
 = lemma_serialize_aliasKeyTBS_extensions_size x;
-  lemma_serialize_aliasKeyTBS_extensions_payload_size x
-#pop-options
+  lemma_serialize_aliasKeyTBS_extensions_payload_size x;
+()
+
 
 (*
  * Low Level Serializer
@@ -249,6 +293,8 @@ let serialize32_aliasKeyTBS_extensions_payload_backwards
 : serializer32_backwards (serialize_aliasKeyTBS_extensions_payload)
 = serialize32_synth_backwards
   (* s32 *) (serialize32_x509_key_usage_backwards
+             `serialize32_nondep_then_backwards`
+             serialize32_x509_ext_key_usage_backwards aliasKeyCrt_extendedKeyUsage_oids
              `serialize32_nondep_then_backwards`
              serialize32_riot_extension_backwards)
   (* f2  *) synth_aliasKeyTBS_extensions_payload_t
@@ -265,7 +311,8 @@ let serialize32_aliasKeyTBS_extensions_backwards
              (* ls *) (serialize32_aliasKeyTBS_extensions_payload_backwards))
   (* prf *) ()
 
-#push-options "--z3rlimit 64 --fuel 0 --ifuel 0"
+#restart-solver
+#push-options "--z3rlimit 256 --fuel 4 --ifuel 0"
 let x509_get_aliasKeyTBS_extensions
   (ku: key_usage_payload_t)
   (version: datatype_of_asn1_type INTEGER
@@ -275,18 +322,24 @@ let x509_get_aliasKeyTBS_extensions
   (deviceIDPub: B32.lbytes32 32ul)
 : Tot (aliasKeyTBS_extensions_t)
 =
+  let key_usage = x509_get_key_usage ku in
+  (* Prf *) lemma_serialize_x509_key_usage_size_exact key_usage;
+
+  let extendedKeyUsage = x509_get_ext_extendedKeyUsage
+                           aliasKeyCrt_extendedKeyUsage_oids
+                           (*TODO: FIXME: Maybe move criticality to params *) true in
+  (* Prf *) lemma_serialize_x509_ext_key_usage_size_exact aliasKeyCrt_extendedKeyUsage_oids extendedKeyUsage;
+
   let riot_extension= x509_get_riot_extension
                         version
                         fwid
                         deviceIDPub in
   (* Prf *) lemma_serialize_riot_extension_size_exact riot_extension;
 
-  let key_usage = x509_get_key_usage ku in
-  (* Prf *) lemma_serialize_x509_key_usage_size_exact key_usage;
-
   let aliasKeyTBS_extensions: aliasKeyTBS_extensions_payload_t = {
-    aliasKeyTBS_extensions_riot = riot_extension;
-    aliasKeyTBS_extensions_key_usage = key_usage
+    aliasKeyTBS_extensions_key_usage = key_usage;
+    aliasKeyTBS_extensions_extendedKeyUsage = extendedKeyUsage;
+    aliasKeyTBS_extensions_riot = riot_extension
   } in
   (* Prf *) lemma_serialize_aliasKeyTBS_extensions_payload_unfold aliasKeyTBS_extensions;
   (* Prf *) lemma_serialize_aliasKeyTBS_extensions_payload_size   aliasKeyTBS_extensions;
