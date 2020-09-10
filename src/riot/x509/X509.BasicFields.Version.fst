@@ -14,10 +14,14 @@ open FStar.Integers
 let filter_x509_version
   (x: datatype_of_asn1_type INTEGER)
 : GTot bool
-= 0l < x && x < 2l
+= 0l <= x && x <= 2l
 
 let x509_version_t: Type
 = parse_filter_refine filter_x509_version
+
+let x509_version_1: x509_version_t = 0l
+let x509_version_2: x509_version_t = 1l
+let x509_version_3: x509_version_t = 2l
 
 let parse_x509_version
 : parser _ x509_version_t

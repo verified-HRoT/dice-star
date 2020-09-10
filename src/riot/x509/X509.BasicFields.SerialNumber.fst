@@ -47,6 +47,11 @@ let filter_x509_serialNumber
 let x509_serialNumber_t
 = parse_filter_refine filter_x509_serialNumber
 
+// let x509_serialNumber_dummy: x509_serialNumber_t
+// = [@inline_let] let x: big_integer_as_octet_string_t = (|1ul, B32.create 1ul 1uy|) in
+//   assert_norm (filter_x509_serialNumber x);
+//   x
+
 let parse_x509_serialNumber
 : parser _ x509_serialNumber_t
 = parse_big_integer_as_octet_string_TLV

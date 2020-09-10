@@ -47,7 +47,7 @@ let riot_pre
   (deviceIDCSR_s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
 (* AliasKey Crt Inputs*)
   (aliasKeyCrt_version: x509_version_t)
-  (aliasKeyCrt_serialNumber: datatype_of_asn1_type INTEGER)
+  (aliasKeyCrt_serialNumber: x509_serialNumber_t)
   (aliasKeyCrt_i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (aliasKeyCrt_i_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (aliasKeyCrt_i_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
@@ -148,7 +148,7 @@ let riot_post
   (deviceIDCSR_s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
 (* AliasKey Crt Inputs*)
   (aliasKeyCrt_version: x509_version_t)
-  (aliasKeyCrt_serialNumber: datatype_of_asn1_type INTEGER)
+  (aliasKeyCrt_serialNumber: x509_serialNumber_t)
   (aliasKeyCrt_i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (aliasKeyCrt_i_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (aliasKeyCrt_i_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
@@ -268,7 +268,7 @@ let riot
   (deviceIDCSR_s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
 (* AliasKey Crt Inputs*)
   (aliasKeyCrt_version: x509_version_t)
-  (aliasKeyCrt_serialNumber: datatype_of_asn1_type INTEGER)
+  (aliasKeyCrt_serialNumber: x509_serialNumber_t)
   (aliasKeyCrt_i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (aliasKeyCrt_i_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (aliasKeyCrt_i_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
@@ -415,4 +415,3 @@ let riot
                     aliasKeyCRT_buf;
 
   HST.pop_frame()
-#pop-options

@@ -14,6 +14,9 @@ module B32 = FStar.Bytes
 open LowParse.Spec.SeqBytes.Base
 open LowParse.Spec.Bytes
 
+module T = FStar.Tactics
+module P = FStar.Pervasives
+
 (* 4 fuels for the recursively defined 3-oid extendedKeyUsage *)
 #set-options "--z3rlimit 64 --fuel 4 --ifuel 0"
 
@@ -44,7 +47,10 @@ let aliasKeyCrt_extendedKeyUsage_oids
   lemma_serialize_x509_keyPurposeIDs_size l;
   l
 
-(* Exposed message record type (struct) for manipulation *)
+(* FIXME: Seems postprocess does not work on type indices.
+   Potential fixes: 1. separately define a suite of parser/serializer for the normalized type;
+                    2. get rid of the record type and just use the internal tuple type. *)
+// [@@T.postprocess_with (postprocess_x509_keyPurposeIDs (`%aliasKeyCrt_extendedKeyUsage_oids))]
 type aliasKeyTBS_extensions_payload_t = {
   (* More extensions could be added here.
    * For example:
@@ -52,6 +58,7 @@ type aliasKeyTBS_extensions_payload_t = {
    *)
   aliasKeyTBS_extensions_key_usage: key_usage_t;
   aliasKeyTBS_extensions_extendedKeyUsage: x509_ext_key_usage_t aliasKeyCrt_extendedKeyUsage_oids;
+  // aliasKeyTBS_extensions_extendedKeyUsage: aliasKeyTBS_extensions_extendedKeyUsage_t;
   aliasKeyTBS_extensions_riot: riot_extension_t
 }
 
@@ -59,6 +66,7 @@ type aliasKeyTBS_extensions_payload_t = {
  * new extensions are added to the type above
  *)
 (* Actual message tuple type for serialization *)
+// [@@T.postprocess_with (postprocess_x509_keyPurposeIDs (`%aliasKeyCrt_extendedKeyUsage_oids))]
 let aliasKeyTBS_extensions_payload_t' = (
   (* More extensions could be added here.
    * For example:
@@ -66,6 +74,7 @@ let aliasKeyTBS_extensions_payload_t' = (
    *)
   key_usage_t `tuple2`
   x509_ext_key_usage_t aliasKeyCrt_extendedKeyUsage_oids `tuple2`
+  // aliasKeyTBS_extensions_extendedKeyUsage_t `tuple2`
   riot_extension_t
 )
 
@@ -162,13 +171,16 @@ let lemma_serialize_aliasKeyTBS_extensions_payload_unfold
   (* prf*) ()
   (* in *) (x)
 
+noextract
 let length_of_aliasKeyTBS_extensions_payload
   (ku: key_usage_payload_t)
   (version: datatype_of_asn1_type INTEGER)
+: GTot (nat)
 = length_of_riot_extension version +
   length_of_x509_ext_key_usage (aliasKeyCrt_extendedKeyUsage_oids) +
   length_of_x509_key_usage ku
 
+[@@T.postprocess_with (postprocess_x509_keyPurposeIDs (`%aliasKeyCrt_extendedKeyUsage_oids))]
 let len_of_aliasKeyTBS_extensions_payload
   (ku: key_usage_payload_t)
   (version: datatype_of_asn1_type INTEGER
@@ -289,6 +301,7 @@ let lemma_serialize_aliasKeyTBS_extensions_size_exact
  * Low Level Serializer
  *)
 (* aliasKeyTBS_extensions: low level serializer for VALUE *)
+[@@T.postprocess_with (postprocess_x509_keyPurposeIDs (`%aliasKeyCrt_extendedKeyUsage_oids))]
 let serialize32_aliasKeyTBS_extensions_payload_backwards
 : serializer32_backwards (serialize_aliasKeyTBS_extensions_payload)
 = serialize32_synth_backwards
@@ -313,6 +326,7 @@ let serialize32_aliasKeyTBS_extensions_backwards
 
 #restart-solver
 #push-options "--z3rlimit 256 --fuel 4 --ifuel 0"
+[@@T.postprocess_with (postprocess_x509_keyPurposeIDs (`%aliasKeyCrt_extendedKeyUsage_oids))]
 let x509_get_aliasKeyTBS_extensions
   (ku: key_usage_payload_t)
   (version: datatype_of_asn1_type INTEGER
