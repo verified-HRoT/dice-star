@@ -32,10 +32,6 @@ let uds : b:IB.ibuffer byte_sec{
   uds
 
 
-let l0_image_header_size = 1ul
-
-let l0_image_size = 1ul
-
 let st : state =
   let l0_image_header_size = 1ul in
   let l0_binary_size = 1ul in
@@ -47,19 +43,15 @@ let st : state =
   let l0_binary_hash = B.gcmalloc HS.root (I.u8 0) digest_len in
   let l0_image_auth_pubkey = B.gcmalloc HS.root (I.u8 0) 32ul in
 
-  let l0 = {
+  { ghost_state = ghost_state;
+    cdi = cdi;
     l0_image_header_size = l0_image_header_size;
     l0_image_header = l0_image_header;
     l0_image_header_sig = l0_image_header_sig;
     l0_binary_size = l0_binary_size;
     l0_binary = l0_binary;
     l0_binary_hash = l0_binary_hash;
-    l0_image_auth_pubkey = l0_image_auth_pubkey
-  } in
-
-  { ghost_state = ghost_state;
-    cdi = cdi;
-    l0 = l0 }
+    l0_image_auth_pubkey = l0_image_auth_pubkey }
 
 let uds_is_enabled h = b2t (fst (B.get h st.ghost_state 0))
 

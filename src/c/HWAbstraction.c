@@ -2,15 +2,17 @@
 
 uint32_t uds_len = 32;
 
-image_t get_riot_image () {
-  uint32_t header_size = 100U;
-  uint8_t *image_header = (uint8_t *) malloc(header_size);
-  uint8_t *image_hash = (uint8_t *) malloc(32U);
-  uint8_t *header_sig = (uint8_t *) malloc(32U);
-  uint32_t image_size = 100U;
-  uint8_t *image_base = (uint8_t *) malloc(image_size);
-  return ( (image_t) { header_size, image_header, image_hash, header_sig, image_size, image_base } );
-}
+uint8_t *b = (uint8_t *) 1;
+
+HWState_state st = {
+		    (uint8_t *) 1,
+		    1U,
+		    (uint8_t *) 1,
+		    (uint8_t *) 1,
+		    1U,
+		    (uint8_t *) 1,
+		    (uint8_t *) 1,
+		    (uint8_t *) 1 };
 
 void read_uds(uint8_t *uds) {
   return;
