@@ -27,49 +27,49 @@ open HWAbstraction
 
 open HWState
 
-let l0_image_is_valid (h:HS.mem) =
+let l0_image_is_valid (img:l0_image_t) (h:HS.mem) =
   Spec.Ed25519.verify
-    (B.as_seq h st.l0_image_auth_pubkey)
-    (B.as_seq h st.l0_image_header)
-    (B.as_seq h st.l0_image_header_sig) /\
+    (B.as_seq h img.l0_image_auth_pubkey)
+    (B.as_seq h img.l0_image_header)
+    (B.as_seq h img.l0_image_header_sig) /\
 
-  Spec.Agile.Hash.hash alg (B.as_seq h st.l0_binary) ==
-  B.as_seq h st.l0_binary_hash
+  Spec.Agile.Hash.hash alg (B.as_seq h img.l0_binary) ==
+  B.as_seq h img.l0_binary_hash
 
 inline_for_extraction
-let verify_l0_image_hash ()
+let verify_l0_image_hash (img:l0_image_t)
   : Stack bool
       (requires fun _ -> True)
       (ensures fun h0 b h1 ->
         B.(modifies loc_none h0 h1) /\
-        (b <==> Spec.Agile.Hash.hash alg (B.as_seq h1 st.l0_binary) == B.as_seq h1 st.l0_binary_hash))
-  = recall_st_liveness ();
+        (b <==> Spec.Agile.Hash.hash alg (B.as_seq h1 img.l0_binary) == B.as_seq h1 img.l0_binary_hash))
+  = recall_image_liveness img;
 
     HST.push_frame ();
 
     let hash_buf = B.alloca (u8 0x00) digest_len in
     dice_hash alg
-      (* msg *) st.l0_binary st.l0_binary_size
+      (* msg *) img.l0_binary img.l0_binary_size
       (* dst *) hash_buf;
-    let b = lbytes_eq #digest_len st.l0_binary_hash hash_buf in
+    let b = lbytes_eq #digest_len img.l0_binary_hash hash_buf in
 
     HST.pop_frame ();
 
     b
 
-let authenticate_l0_image ()
+let authenticate_l0_image (img:l0_image_t)
   : Stack bool
       (requires fun _ -> True)
       (ensures fun h0 b h1 ->
         B.modifies B.loc_none h0 h1 /\
-        (b <==> l0_image_is_valid h1))
-  = recall_st_liveness ();
+        (b <==> l0_image_is_valid img h1))
+  = recall_image_liveness img;
     
     let valid_header_sig = Ed25519.verify
-                           (* pub *) st.l0_image_auth_pubkey
-                           (* msg *) st.l0_image_header_size st.l0_image_header
-                           (* sig *) st.l0_image_header_sig in
-    if valid_header_sig then verify_l0_image_hash () else false
+                           (* pub *) img.l0_image_auth_pubkey
+                           (* msg *) img.l0_image_header_size img.l0_image_header
+                           (* sig *) img.l0_image_header_sig in
+    if valid_header_sig then verify_l0_image_hash img else false
 
 let lemma_hmac_preconditions ()
   : Lemma
@@ -79,25 +79,26 @@ let lemma_hmac_preconditions ()
                v digest_len + S.block_length alg <= S.max_input_length alg)
 
 
-let cdi_functional_correctness (h:HS.mem) =
+let cdi_functional_correctness (st:state) (h:HS.mem) =
   lemma_hmac_preconditions ();
 
   B.as_seq h st.cdi ==
   Spec.Agile.HMAC.hmac alg
     (Spec.Agile.Hash.hash alg uds_bytes)
-    (Spec.Agile.Hash.hash alg (B.as_seq h st.l0_binary))
+    (Spec.Agile.Hash.hash alg (B.as_seq h st.l0.l0_binary))
 
 #push-options "--z3rlimit 40 --fuel 0 --ifuel 0"
 inline_for_extraction
-let compute_cdi ()
+let compute_cdi (st:state)
   : Stack unit
       (requires fun h ->
+        st == HW.st () /\
         uds_is_enabled h /\
-        Spec.Agile.Hash.hash alg (B.as_seq h st.l0_binary) == B.as_seq h st.l0_binary_hash)
+        Spec.Agile.Hash.hash alg (B.as_seq h st.l0.l0_binary) == B.as_seq h st.l0.l0_binary_hash)
       (ensures fun h0 _ h1 ->
         B.(modifies (loc_buffer st.cdi) h0 h1) /\
-        cdi_functional_correctness h1)
-  = recall_st_liveness ();
+        cdi_functional_correctness st h1)
+  = recall_st_liveness st;
 
     let h0 = get () in
     HST.push_frame ();
@@ -119,7 +120,7 @@ let compute_cdi ()
     dice_hmac alg
       (* dst *) st.cdi
       (* key *) uds_digest digest_len
-      (* msg *) st.l0_binary_hash digest_len;
+      (* msg *) st.l0.l0_binary_hash digest_len;
 
     HST.pop_frame ()
 #pop-options
@@ -133,19 +134,20 @@ let dice_main ()
     (ensures fun h0 r h1 ->
       (~ (uds_is_enabled h1)) /\
       stack_is_erased h1 /\
-      B.(modifies (loc_union (loc_buffer st.ghost_state)
-                             (loc_buffer st.cdi)) h0 h1) /\
-      (r == DICE_SUCCESS <==> (l0_image_is_valid h1 /\ cdi_functional_correctness h1)))
-  = recall_st_liveness ();
+      B.(modifies (loc_union (loc_buffer (st ()).ghost_state)
+                             (loc_buffer (st ()).cdi)) h0 h1) /\
+      (r == DICE_SUCCESS <==> (l0_image_is_valid (st ()).l0 h1 /\ cdi_functional_correctness (st ()) h1)))
+  = let s = HW.st () in
+    recall_st_liveness s;
     let h0 = get () in
-    let b = authenticate_l0_image () in
+    let b = authenticate_l0_image s.l0 in
     let h1 = get () in
     frame_ghost_state B.loc_none h0 h1;
     let r = 
-      if b then begin compute_cdi (); DICE_SUCCESS end
+      if b then begin compute_cdi s; DICE_SUCCESS end
       else DICE_ERROR in
     let h2 = get () in
-    frame_ghost_state (B.loc_buffer st.cdi) h1 h2;
+    frame_ghost_state (B.loc_buffer s.cdi) h1 h2;
     disable_uds ();
     platform_zeroize_stack ();
     r

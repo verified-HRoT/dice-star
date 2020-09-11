@@ -9,7 +9,8 @@ let main ()
   : Stack C.exit_code
       (requires fun h -> uds_is_enabled h)
       (ensures fun _ _ _ -> True)
-= recall_st_liveness ();
+= let s = HWAbstraction.st () in
+  recall_st_liveness s;
   let h0 = get () in
   push_frame ();
   let h1 = get () in

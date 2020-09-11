@@ -32,7 +32,7 @@ let uds : b:IB.ibuffer byte_sec{
   uds
 
 
-let st : state =
+let st_var : state =
   let l0_image_header_size = 1ul in
   let l0_binary_size = 1ul in
   let ghost_state = B.gcmalloc HS.root (G.hide (true, true)) 1ul in
@@ -43,19 +43,24 @@ let st : state =
   let l0_binary_hash = B.gcmalloc HS.root (I.u8 0) digest_len in
   let l0_image_auth_pubkey = B.gcmalloc HS.root (I.u8 0) 32ul in
 
-  { ghost_state = ghost_state;
-    cdi = cdi;
+  let l0 = {
     l0_image_header_size = l0_image_header_size;
     l0_image_header = l0_image_header;
     l0_image_header_sig = l0_image_header_sig;
     l0_binary_size = l0_binary_size;
     l0_binary = l0_binary;
     l0_binary_hash = l0_binary_hash;
-    l0_image_auth_pubkey = l0_image_auth_pubkey }
+    l0_image_auth_pubkey = l0_image_auth_pubkey } in
 
-let uds_is_enabled h = b2t (fst (B.get h st.ghost_state 0))
+  { ghost_state = ghost_state;
+    cdi = cdi;
+    l0 = l0 }
 
-let stack_is_erased h = b2t (snd (B.get h st.ghost_state 0))
+let st _ = st_var
+
+let uds_is_enabled h = b2t (fst (B.get h st_var.ghost_state 0))
+
+let stack_is_erased h = b2t (snd (B.get h st_var.ghost_state 0))
 
 let frame_ghost_state _ _ _ = ()
 
@@ -65,20 +70,20 @@ let read_uds uds_out =
   B.blit uds 0ul uds_out 0ul uds_len
 
 let disable_uds () =
-  B.recall st.ghost_state;
-  let old_val = B.index st.ghost_state 0ul in
+  B.recall st_var.ghost_state;
+  let old_val = B.index st_var.ghost_state 0ul in
   let new_val : (G.erased (bool & bool)) =
     let (b1, b2) = G.reveal old_val in
     G.hide (false, b2) in
-  B.upd st.ghost_state 0ul new_val
+  B.upd st_var.ghost_state 0ul new_val
 
 let platform_zeroize_stack () =
-  B.recall st.ghost_state;
-  let old_val = B.index st.ghost_state 0ul in
+  B.recall st_var.ghost_state;
+  let old_val = B.index st_var.ghost_state 0ul in
   let new_val : (G.erased (bool & bool)) =
     let (b1, b2) = G.reveal old_val in
     G.hide (b1, true) in
-  B.upd st.ghost_state 0ul new_val
+  B.upd st_var.ghost_state 0ul new_val
 
 let platform_zeroize len b =
   B.fill b (I.u8 0) len;
