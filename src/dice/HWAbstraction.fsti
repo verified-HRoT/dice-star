@@ -75,9 +75,7 @@ val frame_ghost_state (l:B.loc) (h0 h1:HS.mem)
         B.(loc_disjoint (loc_buffer (st ()).ghost_state) l) /\
         B.(modifies l h0 h1) /\
         B.live h0 (st ()).ghost_state)
-      (ensures
-        uds_is_enabled h0 == uds_is_enabled h1 /\
-        stack_is_erased h0 == stack_is_erased h1)
+      (ensures uds_is_enabled h0 == uds_is_enabled h1)
 
 val read_uds (uds_out:B.lbuffer byte_sec (v uds_len))
   : Stack unit
