@@ -2,8 +2,6 @@
 
 uint32_t uds_len = 32;
 
-uint8_t *b = (uint8_t *) 1;
-
 HWState_state st = {
 		    (uint8_t *) 1,
 		    1U,
