@@ -23,6 +23,6 @@ void disable_uds () {
   return;
 }
 
-void platform_zeroize (uint32_t len, uint8_t* buf) {
+void zeroize (uint32_t len, uint8_t* buf) {
   return;
 }

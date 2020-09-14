@@ -112,7 +112,7 @@ val platform_zeroize_stack (_:unit)
         stack_is_erased h1 /\
         all_heap_buffers_except_ghost_state_remain_same h0 h1)
 
-val platform_zeroize (len:I.size_t) (b:B.lbuffer byte_sec (v len))
+val zeroize (len:I.size_t) (b:B.lbuffer byte_sec (v len))
   : Stack unit
       (requires fun h -> B.live h b)
       (ensures fun h0 _ h1 ->

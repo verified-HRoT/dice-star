@@ -86,7 +86,7 @@ let platform_zeroize_stack () =
     G.hide (b1, true) in
   B.upd st_var.ghost_state 0ul new_val
 
-let platform_zeroize len b =
+let zeroize len b =
   B.fill b (I.u8 0) len;
   let h = get () in
   assert (Seq.equal (Seq.slice (B.as_seq h b) 0 (UInt32.v len))

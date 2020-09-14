@@ -122,6 +122,8 @@ let compute_cdi (st:state)
       (* key *) uds_digest digest_len
       (* msg *) st.l0.l0_binary_hash digest_len;
 
+    zeroize uds_len uds;
+
     HST.pop_frame ()
 #pop-options
 
