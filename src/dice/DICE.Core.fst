@@ -127,6 +127,16 @@ let compute_cdi (st:state)
 
 type dice_return_code = | DICE_SUCCESS | DICE_ERROR
 
+module ST = FStar.HyperStack.ST
+
+unfold let all_heap_buffers_except_cdi_and_ghost_state_remain_same (h0 h1:HS.mem) =
+  let s = st () in
+  forall (a:Type0) (b:B.buffer a).
+    (ST.is_eternal_region (B.frameOf b) /\
+     B.disjoint b s.ghost_state /\
+     B.disjoint b s.cdi /\
+     B.live h0 b) ==> (B.as_seq h0 b == B.as_seq h1 b /\ B.live h1 b)
+
 #push-options "--fuel 0 --ifuel 1"
 let dice_main ()
   : Stack dice_return_code
@@ -134,8 +144,7 @@ let dice_main ()
     (ensures fun h0 r h1 ->
       (~ (uds_is_enabled h1)) /\
       stack_is_erased h1 /\
-      B.(modifies (loc_union (loc_buffer (st ()).ghost_state)
-                             (loc_buffer (st ()).cdi)) h0 h1) /\
+      all_heap_buffers_except_cdi_and_ghost_state_remain_same h0 h1 /\
       (r == DICE_SUCCESS <==> (l0_image_is_valid (st ()).l0 h1 /\ cdi_functional_correctness (st ()) h1)))
   = let s = HW.st () in
     recall_st_liveness s;

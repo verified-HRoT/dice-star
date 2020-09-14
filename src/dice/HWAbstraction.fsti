@@ -95,13 +95,22 @@ val disable_uds (_:unit)
         stack_is_erased h0 == stack_is_erased h1 /\
         B.(modifies (loc_buffer (st ()).ghost_state) h0 h1))
 
+module ST = FStar.HyperStack.ST
+
+unfold let all_heap_buffers_except_ghost_state_remain_same (h0 h1:HS.mem) =
+  let s = st () in
+  forall (a:Type0) (b:B.buffer a).
+    (ST.is_eternal_region (B.frameOf b) /\
+     B.disjoint b s.ghost_state /\
+     B.live h0 b) ==> (B.as_seq h0 b == B.as_seq h1 b /\ B.live h1 b)
+
 val platform_zeroize_stack (_:unit)
   : Stack unit
       (requires fun h -> ~ (uds_is_enabled h))
       (ensures fun h0 _ h1 ->
         (~ (uds_is_enabled h1)) /\
         stack_is_erased h1 /\
-        B.(modifies (loc_buffer (st ()).ghost_state) h0 h1))
+        all_heap_buffers_except_ghost_state_remain_same h0 h1)
 
 val platform_zeroize (len:I.size_t) (b:B.lbuffer byte_sec (v len))
   : Stack unit

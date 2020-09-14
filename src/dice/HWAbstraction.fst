@@ -79,6 +79,7 @@ let disable_uds () =
 
 let platform_zeroize_stack () =
   B.recall st_var.ghost_state;
+  B.recall st_var.cdi;
   let old_val = B.index st_var.ghost_state 0ul in
   let new_val : (G.erased (bool & bool)) =
     let (b1, b2) = G.reveal old_val in
