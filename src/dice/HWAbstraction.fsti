@@ -92,7 +92,6 @@ val disable_uds (_:unit)
       (requires fun h -> uds_is_enabled h)
       (ensures fun h0 _ h1 ->
         (~ (uds_is_enabled h1)) /\
-        stack_is_erased h0 == stack_is_erased h1 /\
         B.(modifies (loc_buffer (st ()).ghost_state) h0 h1))
 
 module ST = FStar.HyperStack.ST
