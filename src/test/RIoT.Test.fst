@@ -71,6 +71,7 @@ let main ()
                             s_common s_org s_country
                             s_common s_org s_country
                             ku
+                            aliasKeyCrt_keyID
                             riot_version) in
   let aliasKeyCRT_buf: B.lbuffer byte_pub (v aliasKeyCRT_len) = B.alloca 0x00uy aliasKeyCRT_len in
 
@@ -105,6 +106,7 @@ let main ()
                     s_org
                     s_country
     (* key usage *) ku
+                    aliasKeyCrt_keyID
                     riot_version
 (* Common Outputs *)
     (* aliasKey  *) aliasKey_pub
@@ -121,10 +123,10 @@ let main ()
   let aliasKey_priv_pub: B.lbuffer byte_pub 32 = B.alloca 0x00uy 32ul in
   declassify_secret_buffer 32ul aliasKey_priv aliasKey_priv_pub;
 
-  printf "AliasKey Public  Key: %xuy \n" 32ul aliasKey_pub  done;
-  printf "AliasKey Private Key: %xuy \n" 32ul aliasKey_priv_pub done;
-  printf "DeviceID CSR        : %xuy \n" deviceIDCSR_len deviceIDCSR_buf done;
-  printf "AliasKey Certificate: %xuy \n" aliasKeyCRT_len aliasKeyCRT_buf done;
+  // printf "AliasKey Public  Key: %xuy \n" 32ul aliasKey_pub  done;
+  // printf "AliasKey Private Key: %xuy \n" 32ul aliasKey_priv_pub done;
+  // printf "DeviceID CSR        : %xuy \n" deviceIDCSR_len deviceIDCSR_buf done;
+  // printf "AliasKey Certificate: %xuy \n" aliasKeyCRT_len aliasKeyCRT_buf done;
 
   write_out "AliasKeyPublicKey.hex" aliasKey_pub 32ul;
   write_out "AliasKeyPrivateKey.hex" aliasKey_priv_pub 32ul;

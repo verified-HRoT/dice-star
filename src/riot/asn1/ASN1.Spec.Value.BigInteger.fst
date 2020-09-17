@@ -191,7 +191,6 @@ let lemma_serialize_big_integer_as_octet_string_size
 ///////////////////////////////////////////////////////////
 
 /// parser tag for the `tagged_union` combinators
-noextract
 let parser_tag_of_big_integer_as_octet_string
   (x: big_integer_as_octet_string_t)
 : Tot (the_asn1_tag INTEGER & asn1_value_int32_of_big_integer)

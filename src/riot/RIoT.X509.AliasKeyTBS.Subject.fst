@@ -63,7 +63,6 @@ let serialize_aliasKeyTBS_subject_payload
   (* g1 *) (synth_aliasKeyTBS_subject_payload_t')
   (* prf*) ()
 
-#push-options "--z3rlimit 64"
 let length_of_aliasKeyTBS_subject_payload
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
@@ -84,7 +83,6 @@ let len_of_aliasKeyTBS_subject_payload
 = len_of_RDN_x520_attribute s_common +
   len_of_RDN_x520_attribute s_org +
   len_of_RDN_x520_attribute s_country
-#pop-options
 
 let lemma_serialize_aliasKeyTBS_subject_payload_unfold
   (x: aliasKeyTBS_subject_payload_t)
@@ -162,28 +160,34 @@ let serialize_aliasKeyTBS_subject
           (**) (serialize_aliasKeyTBS_subject_payload))
   (*prf*) ()
 
-#push-options "--z3rlimit 64"
+let lemma_aliasKeyTBS_subject_valid
+  (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
+  (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
+  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
+: Lemma (
+  length_of_aliasKeyTBS_subject_payload s_common s_org s_country
+  <= asn1_value_length_max_of_type SEQUENCE
+)
+= ()
+
 let length_of_aliasKeyTBS_subject
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
-  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING
-              { length_of_aliasKeyTBS_subject_payload s_common s_org s_country
-                <= asn1_value_length_max_of_type SEQUENCE })
+  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
 : GTot (asn1_TLV_length_of_type SEQUENCE)
-= SEQUENCE `length_of_TLV`
+= lemma_aliasKeyTBS_subject_valid s_common s_org s_country;
+  SEQUENCE `length_of_TLV`
   (**) (length_of_aliasKeyTBS_subject_payload s_common s_org s_country)
 
 let len_of_aliasKeyTBS_subject
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
-  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING
-              { length_of_aliasKeyTBS_subject_payload s_common s_org s_country
-                <= asn1_value_length_max_of_type SEQUENCE })
+  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
 : Tot (len: asn1_TLV_int32_of_type SEQUENCE
             { v len == length_of_aliasKeyTBS_subject s_common s_org s_country })
-= SEQUENCE `len_of_TLV`
+= lemma_aliasKeyTBS_subject_valid s_common s_org s_country;
+  SEQUENCE `len_of_TLV`
   (**) (len_of_aliasKeyTBS_subject_payload s_common s_org s_country)
-#pop-options
 
 let lemma_serialize_aliasKeyTBS_subject_unfold
   (x: aliasKeyTBS_subject_t)

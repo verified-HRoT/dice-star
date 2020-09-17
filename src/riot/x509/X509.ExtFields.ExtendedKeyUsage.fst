@@ -641,6 +641,11 @@ let lemma_serialize_x509_keyPurposeIDs_size_norm
     (serialize_x509_keyPurposeIDs_size_spec oids)
   ==
     (serialize_x509_keyPurposeIDs_size_spec oids) /\
+  // P.norm
+  //   (norm_steps_x509_keyPurposeIDs "oids")
+  //   (length_of_x509_keyPurposeIDs oids)
+  // ==
+  //   (length_of_x509_keyPurposeIDs oids) /\
   P.norm
     (norm_steps_x509_keyPurposeIDs "oids")
     (predicate_serialize_x509_keyPurposeIDs_size_oids oids)
@@ -650,9 +655,29 @@ let lemma_serialize_x509_keyPurposeIDs_size_norm
 = P.norm_spec
     (norm_steps_x509_keyPurposeIDs "oids")
     (serialize_x509_keyPurposeIDs_size_spec oids);
+  // P.norm_spec
+  //   (norm_steps_x509_keyPurposeIDs "oids")
+  //   (length_of_x509_keyPurposeIDs oids);
   P.norm_spec
     (norm_steps_x509_keyPurposeIDs "oids")
     (predicate_serialize_x509_keyPurposeIDs_size_oids oids)
+
+let lemma_length_of_x509_keyPurposeIDs_norm
+  (oids: keyPurposeIDs_oids_t
+         { valid_x509_ext_keyPurposeIDs_ingredients oids })
+: Lemma (
+  P.norm
+    (norm_steps_x509_keyPurposeIDs "oids")
+    (length_of_x509_keyPurposeIDs oids)
+  ==
+    (length_of_x509_keyPurposeIDs oids)
+)
+=
+  P.norm_spec
+    (norm_steps_x509_keyPurposeIDs "oids")
+    (length_of_x509_keyPurposeIDs oids)
+
+(* Experiment Section *)
 
 // noextract unfold inline_for_extraction
 // let oids: l: list (datatype_of_asn1_type OID) { valid_keyPurposeIDs l }

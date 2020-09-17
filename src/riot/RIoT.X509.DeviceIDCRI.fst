@@ -9,7 +9,7 @@ open FStar.Integers
 
 module B32 = FStar.Bytes
 
-#set-options "--z3rlimit 32 --fuel 0 --ifuel 0"
+#set-options "--z3rlimit 128 --fuel 0 --ifuel 0"
 
 (*     (To-Be-Signed) DeviceID Certification Request Info
  *================================================================

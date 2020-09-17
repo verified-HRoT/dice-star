@@ -29,6 +29,16 @@ let x509_extension_payload_t
   `tuple2`
  (OCTET_STRING `inbound_envelop_tag_with_value_of` s)
 
+let x509_get_extension_extValue
+  (#k: parser_kind)
+  (#t: Type0)
+  (#p: parser k t)
+  (#oid: datatype_of_asn1_type OID)
+  (#s: serializer p)
+  (ext: x509_extension_payload_t oid s)
+: Tot (t)
+= snd ext
+
 let parse_x509_extension_payload_kind
 = parse_asn1_TLV_kind_of_type OID
   `and_then_kind`
@@ -195,7 +205,7 @@ let len_of_x509_extension_payload
   (#t: Type0)
   (#p: parser k t)
   (oid: datatype_of_asn1_type OID)
-  (s: serializer p)
+  (s: Ghost.erased (serializer p))
   (x: t)
   (x_len: asn1_value_int32_of_type OCTET_STRING
           { length_of_opaque_serialization s x == v x_len /\
@@ -370,12 +380,13 @@ let length_of_x509_extension
 //     (SEQUENCE)
 //     (len_of_x509_extension_payload oid s length_of_t len_of_t x prf)
 
+noextract inline_for_extraction
 let len_of_x509_extension
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
   (oid: datatype_of_asn1_type OID)
-  (s: serializer p)
+  (s: Ghost.erased (serializer p))
   (x: t)
   (x_len: asn1_value_int32_of_type OCTET_STRING
           { length_of_opaque_serialization s x == v x_len /\
@@ -465,7 +476,7 @@ let x509_get_extension
   (#t: Type0)
   (#p: parser k t)
   (oid: datatype_of_asn1_type OID)
-  (s: serializer p)
+  (s: Ghost.erased (serializer p))
   (x: t)
   (x_len: asn1_value_int32_of_type OCTET_STRING
           { length_of_opaque_serialization s x == v x_len /\

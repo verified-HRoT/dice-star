@@ -40,23 +40,22 @@ module HST = FStar.HyperStack.ST
 (* A predicate says that the length of created TBS (computed
    from `template_len` and `version`) is valid, i.e., less than
    or equal to 2^32 - 6 *)
-unfold
-let valid_aliasKeyTBS_ingredients
-  (serialNumber: x509_serialNumber_t)
-  (i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
-  (i_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
-  (i_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-  (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
-  (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
-  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-  (ku: key_usage_payload_t)
-  (version: datatype_of_asn1_type INTEGER)
-= length_of_aliasKeyTBS_payload
-    serialNumber
-    i_common i_org i_country
-    s_common s_org s_country
-    ku version
-  <= asn1_value_length_max_of_type SEQUENCE
+// let valid_aliasKeyTBS_ingredients
+//   (serialNumber: x509_serialNumber_t)
+//   (i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
+//   (i_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
+//   (i_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
+//   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
+//   (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
+//   (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
+//   (ku: key_usage_payload_t)
+//   (version: datatype_of_asn1_type INTEGER)
+// = length_of_aliasKeyTBS_payload
+//     serialNumber
+//     i_common i_org i_country
+//     s_common s_org s_country
+//     ku version
+//   <= asn1_value_length_max_of_type SEQUENCE
 
 let create_aliasKeyTBS_spec
   (crt_version: x509_version_t)
@@ -70,28 +69,30 @@ let create_aliasKeyTBS_spec
   (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
   (ku: key_usage_payload_t)
+  (keyID: datatype_of_asn1_type OCTET_STRING)
   (version: datatype_of_asn1_type INTEGER
             { valid_aliasKeyTBS_ingredients
                 serialNumber
                 i_common i_org i_country
                 s_common s_org s_country
-                ku version })
+                ku keyID version })
   (fwid: lbytes_sec 32)
   (deviceID_pub: lbytes_pub 32)
   (aliasKey_pub: lbytes_pub 32)
-: GTot (aliasKeyTBS_t)
+: GTot (x: aliasKeyTBS_t { valid_aliasKeyTBS x })
 =
 (* Create AliasKeyTBS *)
   let deviceID_pub32: B32.lbytes32 32ul = B32.hide deviceID_pub in
   let fwid32        : B32.lbytes32 32ul = B32.hide (declassify_secret_bytes fwid) in
   let aliasKey_pub32: B32.lbytes32 32ul = B32.hide aliasKey_pub in
-  let aliasKeyTBS: aliasKeyTBS_t = x509_get_AliasKeyTBS
+  let aliasKeyTBS = x509_get_AliasKeyTBS
                                      crt_version
                                      serialNumber
                                      i_common i_org i_country
                                      notBefore notAfter
                                      s_common s_org s_country
                                      ku
+                                     keyID
                                      version
                                      fwid32
                                      deviceID_pub32
@@ -120,7 +121,6 @@ let valid_aliasKeyCRT_ingredients
 = // (* implied *) length_of_aliasKeyCRT_payload tbs_len <= max_size_t /\
   length_of_aliasKeyCRT_payload tbs_len <= asn1_value_length_max_of_type SEQUENCE
 
-#push-options "--z3rlimit 96"
 let sign_and_finalize_aliasKeyCRT_spec
   (deviceID_priv: lbytes_sec 32)
   (aliasKeyTBS_len: size_t
@@ -148,7 +148,6 @@ let sign_and_finalize_aliasKeyCRT_spec
 
 (* return *) aliasKeyCRT
 
-
 let create_deviceIDCRI_spec
   (version: datatype_of_asn1_type INTEGER)
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
@@ -170,7 +169,6 @@ let create_deviceIDCRI_spec
                                      deviceIDPub32 in
 (*return*) deviceIDCRI
 
-#push-options "--z3rlimit 96"
 let sign_and_finalize_deviceIDCSR_spec
   (deviceID_priv: lbytes_sec 32)
   (deviceIDCRI_len: size_t

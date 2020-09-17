@@ -57,6 +57,7 @@ let riot_pre
   (aliasKeyCrt_s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (aliasKeyCrt_s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
   (aliasKeyCrt_ku: key_usage_payload_t)
+  (aliasKeyCrt_keyID: datatype_of_asn1_type OCTET_STRING)
   (riot_version: datatype_of_asn1_type INTEGER)
 (* Common Outputs *)
   (aliasKey_pub: B.lbuffer byte_pub 32)
@@ -110,6 +111,7 @@ let riot_pre
      aliasKeyCrt_i_common aliasKeyCrt_i_org aliasKeyCrt_i_country
      aliasKeyCrt_s_common aliasKeyCrt_s_org aliasKeyCrt_s_country
      aliasKeyCrt_ku
+     aliasKeyCrt_keyID
      riot_version /\
    (* Pre: AliasKeyTBS will have a valid length *)
    valid_aliasKeyCRT_ingredients
@@ -118,6 +120,7 @@ let riot_pre
        aliasKeyCrt_i_common aliasKeyCrt_i_org aliasKeyCrt_i_country
        aliasKeyCrt_s_common aliasKeyCrt_s_org aliasKeyCrt_s_country
        aliasKeyCrt_ku
+       aliasKeyCrt_keyID
        riot_version) /\
    (* Pre: `aliasKeyCRT_buf` has exact size to write AliasKeyCRT *)
    v aliasKeyCRT_len == length_of_aliasKeyCRT
@@ -126,6 +129,7 @@ let riot_pre
                             aliasKeyCrt_i_common aliasKeyCrt_i_org aliasKeyCrt_i_country
                             aliasKeyCrt_s_common aliasKeyCrt_s_org aliasKeyCrt_s_country
                             aliasKeyCrt_ku
+                            aliasKeyCrt_keyID
                             riot_version)
 
 #restart-solver
@@ -158,6 +162,7 @@ let riot_post
   (aliasKeyCrt_s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (aliasKeyCrt_s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
   (aliasKeyCrt_ku: key_usage_payload_t)
+  (aliasKeyCrt_keyID: datatype_of_asn1_type OCTET_STRING)
   (riot_version: datatype_of_asn1_type INTEGER)
 (* Common Outputs *)
   (aliasKey_pub: B.lbuffer byte_pub 32)
@@ -183,6 +188,7 @@ let riot_post
                         (aliasKeyCrt_notBefore) (aliasKeyCrt_notAfter)
                         (aliasKeyCrt_s_common) (aliasKeyCrt_s_org) (aliasKeyCrt_s_country)
                         (aliasKeyCrt_ku)
+                        (aliasKeyCrt_keyID)
                         (riot_version)
                         (aliasKey_pub)
                         (aliasKey_priv)
@@ -224,13 +230,14 @@ let riot_post
                                                                 (deviceID_priv_seq)
                                                                 (deviceIDCRI_len)
                                                                 (deviceIDCRI_seq) in
-     let aliasKeyTBS: aliasKeyTBS_t = create_aliasKeyTBS_spec
+     let aliasKeyTBS = create_aliasKeyTBS_spec
                                         (aliasKeyCrt_version)
                                         (aliasKeyCrt_serialNumber)
                                         (aliasKeyCrt_i_common) (aliasKeyCrt_i_org) (aliasKeyCrt_i_country)
                                         (aliasKeyCrt_notBefore) (aliasKeyCrt_notAfter)
                                         (aliasKeyCrt_s_common) (aliasKeyCrt_s_org) (aliasKeyCrt_s_country)
                                         (aliasKeyCrt_ku)
+                                        (aliasKeyCrt_keyID)
                                         (riot_version)
                                         (B.as_seq h0 fwid)
                                         (deviceID_pub_seq)
@@ -242,6 +249,7 @@ let riot_post
                             aliasKeyCrt_i_common aliasKeyCrt_i_org aliasKeyCrt_i_country
                             aliasKeyCrt_s_common aliasKeyCrt_s_org aliasKeyCrt_s_country
                             aliasKeyCrt_ku
+                            aliasKeyCrt_keyID
                             riot_version in
      let (* Prf *) _ = lemma_serialize_aliasKeyTBS_size_exact aliasKeyTBS in
      let aliasKeyCRT: aliasKeyCRT_t aliasKeyTBS_len = sign_and_finalize_aliasKeyCRT_spec
@@ -278,6 +286,7 @@ let riot
   (aliasKeyCrt_s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (aliasKeyCrt_s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
   (aliasKeyCrt_ku: key_usage_payload_t)
+  (aliasKeyCrt_keyID: datatype_of_asn1_type OCTET_STRING)
   (riot_version: datatype_of_asn1_type INTEGER)
 (* Common Outputs *)
   (aliasKey_pub: B.lbuffer byte_pub 32)
@@ -304,6 +313,7 @@ let riot
                         (aliasKeyCrt_notBefore) (aliasKeyCrt_notAfter)
                         (aliasKeyCrt_s_common) (aliasKeyCrt_s_org) (aliasKeyCrt_s_country)
                         (aliasKeyCrt_ku)
+                        (aliasKeyCrt_keyID)
                         (riot_version)
                         (aliasKey_pub)
                         (aliasKey_priv)
@@ -325,6 +335,7 @@ let riot
                         (aliasKeyCrt_notBefore) (aliasKeyCrt_notAfter)
                         (aliasKeyCrt_s_common) (aliasKeyCrt_s_org) (aliasKeyCrt_s_country)
                         (aliasKeyCrt_ku)
+                        (aliasKeyCrt_keyID)
                         (riot_version)
                         (aliasKey_pub)
                         (aliasKey_priv)
@@ -387,6 +398,7 @@ let riot
                                                            aliasKeyCrt_i_common aliasKeyCrt_i_org aliasKeyCrt_i_country
                                                            aliasKeyCrt_s_common aliasKeyCrt_s_org aliasKeyCrt_s_country
                                                            aliasKeyCrt_ku
+                                                           aliasKeyCrt_keyID
                                                            riot_version in
   let aliasKeyTBS_buf: B.lbuffer byte_pub (v aliasKeyTBS_len) = B.alloca 0x00uy aliasKeyTBS_len in
 
@@ -399,6 +411,7 @@ let riot
     (aliasKeyCrt_s_common) (aliasKeyCrt_s_org) (aliasKeyCrt_s_country)
     (fwid)
     (aliasKeyCrt_ku)
+    (aliasKeyCrt_keyID)
     (riot_version)
     (* DeviceID  *) deviceID_pub
     (* AliasKey  *) aliasKey_pub

@@ -96,3 +96,15 @@ let serialize32_asn1_boolean_TLV_backwards ()
   (* g1 *) (synth_asn1_boolean_TLV_inverse)
   (* lg1*) (synth_asn1_boolean_TLV_inverse_impl)
   (* Prf*) ()
+
+let serialize32_asn1_boolean_TLV_true_backwards ()
+: Tot (serializer32_backwards serialize_asn1_boolean_TLV_true)
+= serialize32_asn1_boolean_TLV_backwards ()
+  `serialize32_filter_backwards`
+  filter_asn1_boolean_true
+
+let serialize32_asn1_boolean_TLV_false_backwards ()
+: Tot (serializer32_backwards serialize_asn1_boolean_TLV_false)
+= serialize32_asn1_boolean_TLV_backwards ()
+  `serialize32_filter_backwards`
+  filter_asn1_boolean_false

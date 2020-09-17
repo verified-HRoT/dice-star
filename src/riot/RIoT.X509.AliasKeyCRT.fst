@@ -109,6 +109,7 @@ let lemma_serialize_aliasKeyCRT_payload_unfold
 
 let length_of_aliasKeyCRT_payload
   (tbs_len: asn1_int32)
+: GTot (nat)
 = v tbs_len + 74
 
 #push-options "--z3rlimit 32"

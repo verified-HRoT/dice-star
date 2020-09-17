@@ -183,6 +183,7 @@ let serialize_asn1_envelop_tag_with_weak
 ///
 ///
 
+noextract
 let parse_asn1_envelop_tag_with_TLV_kind
   (a: asn1_tag_t)
 : parser_kind

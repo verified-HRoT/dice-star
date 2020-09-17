@@ -70,6 +70,7 @@ let create_aliasKeyTBS_pre
   (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
   (fwid: B.lbuffer byte_sec 32)
   (ku: key_usage_payload_t)
+  (keyID: datatype_of_asn1_type OCTET_STRING)
   (riot_version: datatype_of_asn1_type INTEGER)
   (deviceID_pub: B.lbuffer byte_pub 32)
   (aliasKey_pub: B.lbuffer byte_pub 32)
@@ -88,12 +89,12 @@ let create_aliasKeyTBS_pre
     serialNumber
     i_common i_org i_country
     s_common s_org s_country
-    ku riot_version /\
+    ku keyID riot_version /\
   v aliasKeyTBS_len == length_of_aliasKeyTBS
                          serialNumber
                          i_common i_org i_country
                          s_common s_org s_country
-                         ku riot_version
+                         ku keyID riot_version
 
 #restart-solver
 let create_aliasKeyTBS_post
@@ -112,6 +113,7 @@ let create_aliasKeyTBS_post
   (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
   (fwid: B.lbuffer byte_sec 32)
   (ku: key_usage_payload_t)
+  (keyID: datatype_of_asn1_type OCTET_STRING)
   (riot_version: datatype_of_asn1_type INTEGER)
   (deviceID_pub: B.lbuffer byte_pub 32)
   (aliasKey_pub: B.lbuffer byte_pub 32)
@@ -126,18 +128,20 @@ let create_aliasKeyTBS_post
                      (s_common) (s_org) (s_country)
                      (fwid)
                      (ku)
+                     (keyID)
                      (riot_version)
                      (deviceID_pub)
                      (aliasKey_pub)
                      (aliasKeyTBS_len) (aliasKeyTBS_buf) })
 : Type0
-= let aliasKeyTBS: aliasKeyTBS_t = create_aliasKeyTBS_spec
+= let aliasKeyTBS = create_aliasKeyTBS_spec
                                      (crt_version)
                                      (serialNumber)
                                      (i_common) (i_org) (i_country)
                                      (notBefore) (notAfter)
                                      (s_common) (s_org) (s_country)
                                      (ku)
+                                     (keyID)
                                      (riot_version)
                                      (B.as_seq h0 fwid)
                                      (B.as_seq h0 deviceID_pub)
@@ -159,6 +163,7 @@ let create_aliasKeyTBS
   (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
   (fwid: B.lbuffer byte_sec 32)
   (ku: key_usage_payload_t)
+  (keyID: datatype_of_asn1_type OCTET_STRING)
   (riot_version: datatype_of_asn1_type INTEGER)
   (deviceID_pub: B.lbuffer byte_pub 32)
   (aliasKey_pub: B.lbuffer byte_pub 32)
@@ -174,6 +179,7 @@ let create_aliasKeyTBS
                      (s_common) (s_org) (s_country)
                      (fwid)
                      (ku)
+                     (keyID)
                      (riot_version)
                      (deviceID_pub)
                      (aliasKey_pub)
@@ -187,6 +193,7 @@ let create_aliasKeyTBS
                          (s_common) (s_org) (s_country)
                          (fwid)
                          (ku)
+                         (keyID)
                          (riot_version)
                          (deviceID_pub)
                          (aliasKey_pub)
@@ -201,13 +208,14 @@ let create_aliasKeyTBS
   let aliasKey_pub32: B32.lbytes32 32ul = B32.of_buffer 32ul aliasKey_pub in
 
   printf "Creating AliasKey Certificate TBS Message\n" done;
-  let aliasKeyTBS: aliasKeyTBS_t = x509_get_AliasKeyTBS
+  let aliasKeyTBS = x509_get_AliasKeyTBS
                                      crt_version
                                      serialNumber
                                      i_common i_org i_country
                                      notBefore notAfter
                                      s_common s_org s_country
                                      ku
+                                     keyID
                                      riot_version
                                      fwid_pub32
                                      deviceID_pub32

@@ -75,6 +75,7 @@ INCLUDES=$(FSTAR_HOME)/ulib/.cache \
   $(HACL_HOME)/vale/specs/hardware \
   $(HACL_HOME)/vale/specs/defs \
   $(HACL_HOME)/code/meta \
+  $(HACL_HOME)/code/blake2 \
   $(HACL_HOME)/code/hash \
   $(HACL_HOME)/code/hkdf \
   $(HACL_HOME)/code/hmac\
@@ -222,8 +223,14 @@ endif
 endif
 endif
 
+# @2: found a reference to a function without implementation
+# @4: type error / malformed input
+# -6: variable-length array (stack newbuf _ is a non-constant size,
+#     stack-allocated array; this is not supported by CompCert and
+#     requires the use of alloca(3) for MSVC)
+# @15: function is not Low*; need compatibility headers
 KRML_WARN_ERRORS = \
-  -warn-error @4
+  -warn-error @2@4-6@15
 
 KREMLIN_FLAGS = \
   $(OTHER_KRML_FLAGS) \
