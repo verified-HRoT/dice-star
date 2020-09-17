@@ -36,7 +36,7 @@ let l0_image_is_valid (img:l0_image_t) (h:HS.mem) =
   Spec.Agile.Hash.hash alg (B.as_seq h img.l0_binary) ==
   B.as_seq h img.l0_binary_hash
 
-inline_for_extraction
+inline_for_extraction noextract
 let verify_l0_image_hash (img:l0_image_t)
   : Stack bool
       (requires fun _ -> True)
@@ -88,7 +88,7 @@ let cdi_functional_correctness (st:state) (h:HS.mem) =
     (Spec.Agile.Hash.hash alg (B.as_seq h st.l0.l0_binary))
 
 #push-options "--z3rlimit 40 --fuel 0 --ifuel 0"
-inline_for_extraction
+inline_for_extraction noextract
 let compute_cdi (st:state)
   : Stack unit
       (requires fun h ->
