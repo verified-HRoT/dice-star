@@ -93,8 +93,7 @@ let compute_cdi (st:state)
   : Stack unit
       (requires fun h ->
         st == HW.st () /\
-        uds_is_enabled h /\
-        Spec.Agile.Hash.hash alg (B.as_seq h st.l0.l0_binary) == B.as_seq h st.l0.l0_binary_hash)
+        uds_is_enabled h)
       (ensures fun h0 _ h1 ->
         B.(modifies (loc_buffer st.cdi) h0 h1) /\
         cdi_functional_correctness st h1)
@@ -105,22 +104,23 @@ let compute_cdi (st:state)
 
     let uds = B.alloca (u8 0x00) HW.uds_len in
 
-     
     let h1 = get () in
     frame_ghost_state B.loc_none h0 h1;
 
     read_uds uds;
 
     let uds_digest = B.alloca (u8 0x00) digest_len in
+    let l0_digest = B.alloca (u8 0x00) digest_len in
     
     dice_hash alg uds uds_len uds_digest;
+    dice_hash alg st.l0.l0_binary st.l0.l0_binary_size l0_digest;
     
     (* Prf *) lemma_hmac_preconditions ();
 
     dice_hmac alg
       (* dst *) st.cdi
       (* key *) uds_digest digest_len
-      (* msg *) st.l0.l0_binary_hash digest_len;
+      (* msg *) l0_digest digest_len;
 
     zeroize uds_len uds;
 
