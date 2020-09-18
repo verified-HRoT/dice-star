@@ -16,7 +16,7 @@ module B32 = FStar.Bytes
 
 let serialize32_asn1_generalized_time_backwards
 : serializer32_backwards (serialize_asn1_generalized_time)
-= serialize32_flbytes32_backwards 13ul
+= serialize32_flbytes32_backwards 15ul
   `serialize32_filter_backwards`
   valid_generalized_time
 

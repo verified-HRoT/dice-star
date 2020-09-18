@@ -79,7 +79,7 @@ let len_of_asn1_primitive_value
   | OID          -> ( let value = value <: datatype_of_asn1_type OID in
                       len_of_oid_buffer value )
   | Generalized_Time
-                 -> ( 13ul )
+                 -> ( 15ul )
 #pop-options
 
 #restart-solver

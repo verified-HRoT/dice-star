@@ -52,10 +52,14 @@ let main ()
 
   comment "DeviceID CSR Inputs";
 
-  (* TODO: replace with version *)
-  let deviceIDCSR_version: datatype_of_asn1_type INTEGER = 0l in
+  let deviceIDCSR_version: x509_version_t = x509_version_3 in
 
   comment "AliasKey Crt Inputs";
+
+  IB.recall x509_validity_notAfter_default_buffer;
+  IB.recall_contents x509_validity_notAfter_default_buffer asn1_generalized_time_for_x509_validity_notAfter_default_seq;
+  let notBefore: datatype_of_asn1_type Generalized_Time = B32.of_buffer 15ul x509_validity_notAfter_default_buffer in
+  let notAfter : datatype_of_asn1_type Generalized_Time = B32.of_buffer 15ul x509_validity_notAfter_default_buffer in
 
   comment "Outputs";
   let deviceIDCSR_len = len_of_deviceIDCSR

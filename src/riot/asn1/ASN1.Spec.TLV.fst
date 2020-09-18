@@ -138,8 +138,8 @@ let length_of_asn1_primitive_value
 
   | Generalized_Time
                  -> ( let value = value <: datatype_of_asn1_type Generalized_Time in
-                      let length = 13 in
-                      lemma_serialize_flbytes32_size 13ul value
+                      let length = 15 in
+                      lemma_serialize_flbytes32_size 15ul value
                     ; length )
 #pop-options
 
@@ -187,8 +187,8 @@ let length_of_asn1_primitive_TLV
                                     lemma_serialize_asn1_oid_size length value )
                 | Generalized_Time
                                -> ( let value = value <: datatype_of_asn1_type Generalized_Time in
-                                    let length = 13 in
-                                    lemma_serialize_flbytes32_size 13ul value )) in
+                                    let length = 15 in
+                                    lemma_serialize_flbytes32_size 15ul value )) in
                 length == Seq.length (serialize (serialize_asn1_TLV_of_type _a) value)
 })
 = match _a with
@@ -239,7 +239,7 @@ let length_of_asn1_primitive_TLV
 
   | Generalized_Time
                  -> ( let value = value <: datatype_of_asn1_type Generalized_Time in
-                      let length = 13 in
+                      let length = 15 in
                       let len: asn1_value_int32_of_type Generalized_Time = u length in
                       lemma_serialize_asn1_generalized_time_TLV_size value
                     ; 1 + length_of_asn1_length len + length )

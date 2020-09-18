@@ -105,7 +105,7 @@ let asn1_value_length_min_of_type
   | IA5_STRING
   | PRINTABLE_STRING  -> asn1_length_min   (* An empty `OCTET_STRING` [] has length 0. *)
   | OID          -> asn1_length_min   (* `OID` is just `OCTET_STRING`. *)
-  | Generalized_Time -> 13
+  | Generalized_Time -> 15
   | BIT_STRING   -> 1                 (* An empty `BIT_STRING` with a leading byte of `unused_bits` has length 0. *)
   | SEQUENCE     -> asn1_length_min   (* An empty `SEQUENCE` has length 0. *)
   | SET          -> asn1_length_min   (* An empty `SET` has length 0. *)
@@ -123,7 +123,7 @@ let asn1_value_length_max_of_type
   | IA5_STRING
   | PRINTABLE_STRING -> asn1_length_max - 6  (* An `OCTET_STRING` of size `asn1_length_max - 6`. *)
   | OID          -> asn1_length_max - 6  (* `OID` is just `OCTET_STRING`. *)
-  | Generalized_Time -> 13
+  | Generalized_Time -> 15
   | BIT_STRING   -> asn1_length_max - 6  (* An `BIT_STRING` of size `asn1_length_max - 7` with a leading byte of `unused_bits`. *)
   | SEQUENCE     -> asn1_length_max - 6  (* An `SEQUENCE` whose value has length `asn1_length_max - 6` *)
   | SET          -> asn1_length_max - 6  (* An `SET` whose value has length `asn1_length_max - 6` *)
@@ -163,7 +163,7 @@ let asn1_TLV_length_min_of_type
   | IA5_STRING
   | PRINTABLE_STRING -> 2 (*  1 + 1 + 0  *)
   | OID          -> 2 (*  1 + 1 + 0  *)
-  | Generalized_Time -> 15
+  | Generalized_Time -> 17
   | BIT_STRING   -> 3 (*  1 + 1 + 1  *)
   | SEQUENCE     -> 2 (*  1 + 1 + 0  *)
   | SET          -> 2 (*  1 + 1 + 0  *)
@@ -181,7 +181,7 @@ let asn1_TLV_length_max_of_type
   | IA5_STRING
   | PRINTABLE_STRING -> asn1_length_max  (*  1 + 5 + _  *)
   | OID          -> asn1_length_max  (*  1 + 5 + _  *)
-  | Generalized_Time -> 15
+  | Generalized_Time -> 17
   | BIT_STRING   -> asn1_length_max  (*  1 + 5 + _  *)
   | SEQUENCE     -> asn1_length_max  (*  1 + 5 + _  *)
   | SET          -> asn1_length_max  (*  1 + 5 + _  *)
@@ -228,7 +228,7 @@ let asn1_value_int32_min_of_type
   | IA5_STRING
   | PRINTABLE_STRING -> asn1_int32_min
   | OID          -> asn1_int32_min
-  | Generalized_Time -> 13ul
+  | Generalized_Time -> 15ul
   | BIT_STRING   -> 1ul
   | SEQUENCE     -> asn1_int32_min
   | SET          -> asn1_int32_min
@@ -246,7 +246,7 @@ let asn1_value_int32_max_of_type
   | IA5_STRING
   | PRINTABLE_STRING -> asn1_int32_max - 6ul
   | OID          -> asn1_int32_max - 6ul
-  | Generalized_Time -> 13ul
+  | Generalized_Time -> 15ul
   | BIT_STRING   -> asn1_int32_max - 6ul
   | SEQUENCE     -> asn1_int32_max - 6ul
   | SET          -> asn1_int32_max - 6ul
@@ -279,7 +279,7 @@ let asn1_TLV_int32_min_of_type
   | IA5_STRING
   | PRINTABLE_STRING -> 2ul
   | OID          -> 2ul
-  | Generalized_Time -> 15ul
+  | Generalized_Time -> 17ul
   | BIT_STRING   -> 3ul
   | SEQUENCE     -> 2ul
   | SET          -> 2ul
@@ -296,7 +296,7 @@ let asn1_TLV_int32_max_of_type
   | IA5_STRING
   | PRINTABLE_STRING -> asn1_int32_max
   | OID          -> asn1_int32_max
-  | Generalized_Time -> 15ul
+  | Generalized_Time -> 17ul
   | BIT_STRING   -> asn1_int32_max
   | SEQUENCE     -> asn1_int32_max
   | SET          -> asn1_int32_max
@@ -442,10 +442,27 @@ let character_string_t
 = ( len: asn1_value_int32_of_type t &
     character_string_lbytes32 t len)
 
+noextract inline_for_extraction
+let asn1_generalized_time_for_x509_validity_notAfter_default_list
+: l: list byte { List.length l == 15 }
+= [@inline_let] let l = [0x39uy; 0x39uy; 0x39uy; 0x39uy; 0x31uy; 0x32uy; 0x33uy; 0x31uy; 0x32uy; 0x33uy; 0x35uy; 0x39uy; 0x35uy; 0x39uy; 0x5Auy] in
+  assert_norm (List.length l == 15);
+  l
+
+noextract inline_for_extraction
+let asn1_generalized_time_for_x509_validity_notAfter_default_seq
+: s: bytes { Seq.createL_post asn1_generalized_time_for_x509_validity_notAfter_default_list s }
+= Seq.createL asn1_generalized_time_for_x509_validity_notAfter_default_list
+
+// noextract inline_for_extraction
+// let x509_validity_notAfter_default_seq
+// : s: bytes { Seq.createL_post x509_validity_notAfter_default_list s }
+// = Seq.createL x509_validity_notAfter_default_list
+
 let valid_generalized_time
-  (x: B32.lbytes32 13ul)
+  (x: B32.lbytes32 15ul)
 : GTot bool
-= true
+= x = B32.hide (Seq.createL asn1_generalized_time_for_x509_validity_notAfter_default_list)
 
 let generalized_time_t: Type
 = LowParse.Spec.Combinators.parse_filter_refine valid_generalized_time

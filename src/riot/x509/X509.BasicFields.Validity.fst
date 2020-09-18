@@ -42,6 +42,18 @@ open FStar.Integers
 
 #set-options "--z3rlimit 32 --fuel 0 --ifuel 0"
 
+module HS = FStar.HyperStack
+module HST = FStar.HyperStack.ST
+module B = LowStar.Buffer
+module IB = LowStar.ImmutableBuffer
+module B32 = FStar.Bytes
+
+let x509_validity_notAfter_default_buffer
+: b: IB.libuffer byte 15 asn1_generalized_time_for_x509_validity_notAfter_default_seq
+  { IB.frameOf b == HS.root /\
+    IB.recallable b }
+= IB.igcmalloc_of_list HS.root (asn1_generalized_time_for_x509_validity_notAfter_default_list)
+
 type x509_validity_payload_t: Type = {
   notBefore: generalized_time_t;
   notAfter: generalized_time_t
@@ -112,13 +124,13 @@ let lemma_x509_validity_payload_unfold
 
 let length_of_x509_validity_payload ()
 : GTot (asn1_value_length_of_type SEQUENCE)
-= 30
+= 34
 
 noextract inline_for_extraction
 let len_of_x509_validity_payload ()
 : Tot (len: asn1_value_int32_of_type SEQUENCE
             { v len == length_of_x509_validity_payload () })
-= 30ul
+= 34ul
 
 let lemma_x509_validity_payload_size
   (x: x509_validity_payload_t)
@@ -162,12 +174,12 @@ let lemma_serialize_x509_validity_size
 
 let length_of_x509_validity ()
 : GTot (asn1_TLV_length_of_type SEQUENCE)
-= 32
+= 36
 
 let len_of_x509_validity ()
 : Tot (len: asn1_TLV_int32_of_type SEQUENCE
             { v len == length_of_x509_validity () })
-= 32ul
+= 36ul
 
 let lemma_serialize_x509_validity_size_exact
   (x: x509_validity_t)

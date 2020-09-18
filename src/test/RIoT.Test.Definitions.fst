@@ -46,11 +46,11 @@ let s_org: x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING
 let s_country: x509_RDN_x520_attribute_string_t COMMON_NAME PRINTABLE_STRING
 = normalize_term (asn1_get_character_string #PRINTABLE_STRING 2ul (B32.create 2ul 0x41uy))
 
-let notBefore: datatype_of_asn1_type Generalized_Time
-= normalize_term (B32.create 13ul 0uy)
+// let notBefore: datatype_of_asn1_type Generalized_Time
+// = x509_validity_notAfter_default
 
-let notAfter: datatype_of_asn1_type Generalized_Time
-= normalize_term (B32.create 13ul 0uy)
+// let notAfter: datatype_of_asn1_type Generalized_Time
+// = x509_validity_notAfter_default
 
 let aliasKeyCrt_keyID: datatype_of_asn1_type OCTET_STRING
 = normalize_term (|1ul, B32.create 1ul 1uy|)
