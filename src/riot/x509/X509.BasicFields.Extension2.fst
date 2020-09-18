@@ -17,18 +17,20 @@ module B32 = FStar.Bytes
 
 (* one extension *)
 /// tuple repr
+noextract inline_for_extraction
 let x509_extension_payload_t
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
   (oid: datatype_of_asn1_type OID)
-  (s: serializer p)
+  (s: Ghost.erased (serializer p))
 = parse_filter_refine (filter_asn1_oid_TLV_of oid)
   `tuple2`
   datatype_of_asn1_type BOOLEAN
   `tuple2`
  (OCTET_STRING `inbound_envelop_tag_with_value_of` s)
 
+noextract inline_for_extraction
 let x509_get_extension_extValue
   (#k: parser_kind)
   (#t: Type0)
@@ -105,23 +107,6 @@ let lemma_serialize_x509_extension_payload_unfold
             s)
   (* in *) (x)
 
-// let length_of_x509_extension_payload_unbounded
-//   (#k: parser_kind)
-//   (#t: Type0)
-//   (#p: parser k t)
-//   (oid: datatype_of_asn1_type OID)
-//   (s: serializer p)
-//   (length_of_t: (y: t { length_of_opaque_serialization s y <= asn1_value_length_max_of_type OCTET_STRING })
-//                 -> GTot (asn1_value_length_of_type OCTET_STRING))
-//   (x: t { length_of_opaque_serialization s x <= asn1_value_length_max_of_type OCTET_STRING } )
-//   (prf: unit { length_of_t x == length_of_opaque_serialization s x })
-// : GTot (nat)
-// = length_of_asn1_primitive_TLV oid +
-//   length_of_asn1_primitive_TLV true +
-//   length_of_TLV
-//     (OCTET_STRING)
-//     (length_of_t x)
-
 let length_of_x509_extension_payload_unbounded
   (#k: parser_kind)
   (#t: Type0)
@@ -137,26 +122,6 @@ let length_of_x509_extension_payload_unbounded
   length_of_TLV
     (OCTET_STRING)
     (x_length)
-
-// let length_of_x509_extension_payload
-//   (#k: parser_kind)
-//   (#t: Type0)
-//   (#p: parser k t)
-//   (oid: datatype_of_asn1_type OID)
-//   (s: serializer p)
-//   (length_of_t: (y: t { length_of_opaque_serialization s y <= asn1_value_length_max_of_type OCTET_STRING })
-//                 -> GTot (asn1_value_length_of_type OCTET_STRING))
-//   (x: t { length_of_opaque_serialization s x
-//           <= asn1_value_length_max_of_type OCTET_STRING } )
-//   (prf: unit { length_of_t x == length_of_opaque_serialization s x /\
-//                length_of_x509_extension_payload_unbounded oid s length_of_t x ()
-//                <= asn1_value_length_max_of_type OCTET_STRING })
-// : GTot (asn1_value_length_of_type SEQUENCE)
-// = length_of_asn1_primitive_TLV oid +
-//   length_of_asn1_primitive_TLV true +
-//   length_of_TLV
-//     (OCTET_STRING)
-//     (length_of_t x)
 
 let length_of_x509_extension_payload
   (#k: parser_kind)
@@ -176,30 +141,7 @@ let length_of_x509_extension_payload
     (OCTET_STRING)
     (x_length)
 
-// let len_of_x509_extension_payload
-//   (#k: parser_kind)
-//   (#t: Type0)
-//   (#p: parser k t)
-//   (oid: datatype_of_asn1_type OID)
-//   (s: serializer p)
-//   (length_of_t: (y: t { length_of_opaque_serialization s y <= asn1_value_length_max_of_type OCTET_STRING })
-//                 -> GTot (asn1_value_length_of_type OCTET_STRING))
-//   (len_of_t: (y: t { length_of_opaque_serialization s y <= asn1_value_length_max_of_type OCTET_STRING })
-//                 -> Tot (len: asn1_value_int32_of_type OCTET_STRING
-//                               { v len == length_of_t y }))
-//   (x: t { length_of_opaque_serialization s x
-//           <= asn1_value_length_max_of_type OCTET_STRING } )
-//   (prf: unit { length_of_t x == length_of_opaque_serialization s x /\
-//                length_of_x509_extension_payload_unbounded oid s length_of_t x ()
-//                <= asn1_value_length_max_of_type OCTET_STRING })
-// : Tot (len: asn1_value_int32_of_type SEQUENCE
-//             { v len == length_of_x509_extension_payload oid s length_of_t x () })
-// = len_of_asn1_primitive_TLV oid +
-//   len_of_asn1_primitive_TLV true +
-//   len_of_TLV
-//     (OCTET_STRING)
-//     (len_of_t x)
-
+noextract inline_for_extraction
 let len_of_x509_extension_payload
   (#k: parser_kind)
   (#t: Type0)
@@ -241,27 +183,11 @@ let lemma_serialize_x509_extension_payload_size
     (snd x);
   lemma_serialize_asn1_boolean_TLV_size (snd (fst x))
 
-// let lemma_serialize_x509_extension_payload_size_exact
-//   (#k: parser_kind)
-//   (#t: Type0)
-//   (#p: parser k t)
-//   (oid: datatype_of_asn1_type OID)
-//   (s: serializer p)
-//   (x: x509_extension_payload_t oid s)
-//   (x_length: asn1_value_length_of_type OCTET_STRING
-//              { length_of_opaque_serialization s (snd x) == x_length /\
-//                length_of_x509_extension_payload_unbounded oid s (snd x) x_length
-//                <= asn1_value_length_max_of_type SEQUENCE })
-// : Lemma (
-//   length_of_opaque_serialization (serialize_x509_extension_payload oid s) x ==
-//   length_of_x509_extension_payload_unbounded oid s (snd x) x_length
-// )
-// = lemma_serialize_x509_extension_payload_size oid s x
-
 (*
  * X.509 Extension Combinators
  *)
 
+noextract inline_for_extraction
 let x509_extension_t
   (#k: parser_kind)
   (#t: Type0)
@@ -324,24 +250,6 @@ let lemma_serialize_x509_extension_unfold
   (* s *) (serialize_x509_extension_payload oid s)
   x
 
-// let length_of_x509_extension
-//   (#k: parser_kind)
-//   (#t: Type0)
-//   (#p: parser k t)
-//   (oid: datatype_of_asn1_type OID)
-//   (s: serializer p)
-//   (length_of_t: (y: t { length_of_opaque_serialization s y <= asn1_value_length_max_of_type OCTET_STRING })
-//                 -> GTot (asn1_value_length_of_type OCTET_STRING))
-//   (x: t { length_of_opaque_serialization s x
-//           <= asn1_value_length_max_of_type OCTET_STRING } )
-//   (prf: unit { length_of_t x == length_of_opaque_serialization s x /\
-//                length_of_x509_extension_payload_unbounded oid s length_of_t x ()
-//                <= asn1_value_length_max_of_type OCTET_STRING})
-// : GTot (asn1_TLV_length_of_type SEQUENCE)
-// = length_of_TLV
-//     (SEQUENCE)
-//     (length_of_x509_extension_payload oid s length_of_t x prf)
-
 let length_of_x509_extension
   (#k: parser_kind)
   (#t: Type0)
@@ -357,28 +265,6 @@ let length_of_x509_extension
 = length_of_TLV
     (SEQUENCE)
     (length_of_x509_extension_payload oid s x x_length)
-
-// let len_of_x509_extension
-//   (#k: parser_kind)
-//   (#t: Type0)
-//   (#p: parser k t)
-//   (oid: datatype_of_asn1_type OID)
-//   (s: serializer p)
-//   (length_of_t: (y: t { length_of_opaque_serialization s y <= asn1_value_length_max_of_type OCTET_STRING })
-//                 -> GTot (asn1_value_length_of_type OCTET_STRING))
-//   (len_of_t: (y: t { length_of_opaque_serialization s y <= asn1_value_length_max_of_type OCTET_STRING })
-//                 -> Tot (len: asn1_value_int32_of_type OCTET_STRING
-//                               { v len == length_of_t y }))
-//   (x: t { length_of_opaque_serialization s x
-//           <= asn1_value_length_max_of_type OCTET_STRING } )
-//   (prf: unit { length_of_t x == length_of_opaque_serialization s x /\
-//                length_of_x509_extension_payload_unbounded oid s length_of_t x ()
-//                <= asn1_value_length_max_of_type OCTET_STRING})
-// : Tot (len: asn1_TLV_int32_of_type SEQUENCE
-//             { v len == length_of_x509_extension oid s length_of_t x prf })
-// = len_of_TLV
-//     (SEQUENCE)
-//     (len_of_x509_extension_payload oid s length_of_t len_of_t x prf)
 
 noextract inline_for_extraction
 let len_of_x509_extension

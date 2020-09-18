@@ -15,7 +15,6 @@ let aliasKeyTBS_extensions_basicConstraints_isCA: bool = false
 let aliasKeyTBS_extensions_basicConstraints_t: Type
 = x509_basicConstraints_t aliasKeyTBS_extensions_basicConstraints_isCA
 
-noextract inline_for_extraction
 let parse_aliasKeyTBS_extensions_basicConstraints
 // : parser parse_x509_extension_kind aliasKeyTBS_extensions_basicConstraints_t
 = aliasKeyTBS_extensions_basicConstraints_t

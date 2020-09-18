@@ -487,6 +487,7 @@ let x509_get_basicConstraints_isCA
                                             in
   (* return *) ext
 
+noextract inline_for_extraction
 let x509_get_basicConstraints_isNotCA
   (isCA: bool { isCA == false })
   (criticality: datatype_of_asn1_type BOOLEAN)
@@ -499,7 +500,7 @@ let x509_get_basicConstraints_isNotCA
 
   let ext: x509_basicConstraints_t isCA = x509_get_extension
                                             (OID_BASIC_CONSTRAINTS)
-                                            (serialize_x509_basicConstraints_extValue isCA)
+                                            (Ghost.hide (serialize_x509_basicConstraints_extValue isCA))
                                             (extValue)
                                             (len_of_x509_basicConstraints_extValue isCA)
                                             (criticality)

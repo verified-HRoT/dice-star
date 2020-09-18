@@ -288,7 +288,7 @@ let x509_get_aliasKeyTBS_extensions_authKeyID
                                      `coerce`
                                      x509_get_extension
                                        (OID_AUTHORITY_KEY_IDENTIFIER)
-                                       (serialize_aliasKeyTBS_extensions_authKeyID_extValue)
+                                       (Ghost.hide serialize_aliasKeyTBS_extensions_authKeyID_extValue)
                                        (extValue)
                                        (len_of_aliasKeyTBS_extensions_authKeyID_extValue keyID)
                                        (criticality)

@@ -69,8 +69,13 @@ let x509_version_t: Type
   `inbound_envelop_tag_with_value_of`
   serialize_x509_version_payload
 
+noextract inline_for_extraction
 let x509_version_1: x509_version_t = 0l
+
+noextract inline_for_extraction
 let x509_version_2: x509_version_t = 1l
+
+noextract inline_for_extraction
 let x509_version_3: x509_version_t = 2l
 
 let parse_x509_version
