@@ -663,6 +663,7 @@ let serialize32_aliasKeyTBS_backwards
 
 (* helpers *)
 #restart-solver
+[@@ "opaque_to_smt"]
 let x509_get_AliasKeyTBS
   (crt_version: x509_version_t)
   (serialNumber: x509_serialNumber_t)

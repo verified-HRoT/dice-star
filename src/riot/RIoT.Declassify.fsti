@@ -25,9 +25,9 @@ val classify_public_bytes
               v (Seq.index sec i) == v (Seq.index pub i)) })
 
 val declassify_secret_buffer
-  (len: size_t)
-  (src: B.lbuffer uint8 (v len))
-  (dst: B.lbuffer pub_uint8 (v len))
+  (len: UInt32.t)
+  (src: B.lbuffer uint8 (UInt32.v len))
+  (dst: B.lbuffer pub_uint8 (UInt32.v len))
 : HST.Stack unit
   (requires fun h ->
     B.live h src /\ B.live h dst /\

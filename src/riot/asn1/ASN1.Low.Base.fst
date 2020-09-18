@@ -52,19 +52,19 @@ let serializer32_backwards
 = (x: t) ->
   (#rrel: _) -> (#rel: _) ->
   (b: B.mbuffer byte rrel rel) ->
-  (pos: size_t) ->
-  HST.Stack size_t
+  (pos: UInt32.t) ->
+  HST.Stack UInt32.t
   (* NOTE: b[pos] is already written, and b[pos - offset, pos - 1] will be written. *)
   (requires fun h ->
     let offset = Seq.length (s `serialize` x) in
     B.live h b /\
-    offset <= v pos /\ v pos <= B.length b /\
-    writable b (v pos - offset) (v pos) h)
+    offset <= UInt32.v pos /\ UInt32.v pos <= B.length b /\
+    writable b (UInt32.v pos - offset) (UInt32.v pos) h)
   (ensures fun h offset h' ->
     Seq.length (s `serialize` x) == v offset /\
-    B.modifies (B.loc_buffer_from_to b (pos - offset) (pos)) h h' /\
+    B.modifies (B.loc_buffer_from_to b (UInt32.sub pos offset) (pos)) h h' /\
     B.live h' b /\
-    Seq.slice (B.as_seq h' b) (v (pos - offset)) (v pos) `Seq.equal` (s `serialize` x))
+    Seq.slice (B.as_seq h' b) (UInt32.v (UInt32.sub pos offset)) (v pos) `Seq.equal` (s `serialize` x))
 
 unfold
 let coerce_serializer32_backwards
