@@ -35,7 +35,7 @@ let uds : b:IB.ibuffer byte_sec{
 let st_var : state =
   let l0_image_header_size = 1ul in
   let l0_binary_size = 1ul in
-  let ghost_state = B.gcmalloc HS.root (G.hide (true, true)) 1ul in
+  let ghost_state = B.mgcmalloc HS.root (G.hide (true, true)) 1ul in
   let cdi = B.gcmalloc HS.root (I.u8 0) digest_len in
   let l0_image_header = B.gcmalloc HS.root (I.u8 0) l0_image_header_size in
   let l0_image_header_sig = B.gcmalloc HS.root (I.u8 0) 64ul in

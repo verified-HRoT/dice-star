@@ -12,7 +12,12 @@ open DICE.Definitions
 type mbuffer (a:Type0) (len:nat) =
   b:B.lbuffer a len{B.frameOf b == HS.root /\ B.recallable b}
 
+type mpointer (a:Type0) (rel:B.srel a) =
+  b:B.mbuffer a rel rel{B.frameOf b == HS.root /\ B.recallable b /\ B.length b == 1}
+
 val t : Type0
+
+val t_rel : B.srel (G.erased t)
 
 noeq
 type l0_image_t = {
@@ -33,7 +38,7 @@ type l0_image_t = {
 
 noeq
 type state = {
-  ghost_state : mbuffer (G.erased t) 1;
+  ghost_state : mpointer (G.erased t) t_rel;
 
   cdi : mbuffer byte_sec (v digest_len);
 
