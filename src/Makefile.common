@@ -203,6 +203,7 @@ KRML_MISC_FLAGS = \
   -fparentheses -fno-shadow -fcurly-braces \
   -minimal \
   -fnoreturn-else \
+  -fextern-c \
   -drop Lib.IntVector.Intrinsics \
   -drop WasmSupport \
   -verbose
