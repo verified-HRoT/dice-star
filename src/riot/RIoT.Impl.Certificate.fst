@@ -72,30 +72,28 @@ let create_aliasKeyTBS_pre
   (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
   (fwid: B.lbuffer byte_sec 32)
   (ku: key_usage_payload_t)
-  (keyID: datatype_of_asn1_type OCTET_STRING)
+  (keyID: B.lbuffer byte_pub 20)
   (riot_version: datatype_of_asn1_type INTEGER)
   (deviceID_pub: B.lbuffer byte_pub 32)
   (aliasKey_pub: B.lbuffer byte_pub 32)
   (aliasKeyTBS_len: UInt32.t)
   (aliasKeyTBS_buf: B.lbuffer byte_pub (UInt32.v aliasKeyTBS_len)) : Type0
-= B.(all_live h [buf fwid;
+= // let keyID_string = sha1_digest_to_octet_string_spec (B.as_seq h keyID) in
+  B.(all_live h [buf fwid;
                  buf deviceID_pub;
                  buf aliasKey_pub;
+                 buf keyID;
                  buf aliasKeyTBS_buf]) /\
   B.(all_disjoint [loc_buffer fwid;
                    loc_buffer deviceID_pub;
                    loc_buffer aliasKey_pub;
+                   loc_buffer keyID;
                    loc_buffer aliasKeyTBS_buf]) /\
-  valid_aliasKeyTBS_ingredients
-    serialNumber
-    i_common i_org i_country
-    s_common s_org s_country
-    ku keyID riot_version /\
   UInt32.v aliasKeyTBS_len == length_of_aliasKeyTBS
                          serialNumber
                          i_common i_org i_country
                          s_common s_org s_country
-                         ku keyID riot_version
+                         ku riot_version
 
 unfold
 let create_aliasKeyTBS_post
@@ -114,7 +112,7 @@ let create_aliasKeyTBS_post
   (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
   (fwid: B.lbuffer byte_sec 32)
   (ku: key_usage_payload_t)
-  (keyID: datatype_of_asn1_type OCTET_STRING)
+  (keyID: B.lbuffer byte_pub 20)
   (riot_version: datatype_of_asn1_type INTEGER)
   (deviceID_pub: B.lbuffer byte_pub 32)
   (aliasKey_pub: B.lbuffer byte_pub 32)
@@ -142,7 +140,7 @@ let create_aliasKeyTBS_post
                                      (notBefore) (notAfter)
                                      (s_common) (s_org) (s_country)
                                      (ku)
-                                     (keyID)
+                                     (B.as_seq h0 keyID)
                                      (riot_version)
                                      (B.as_seq h0 fwid)
                                      (B.as_seq h0 deviceID_pub)
@@ -152,7 +150,7 @@ let create_aliasKeyTBS_post
 
   (* AR: 09/18: this doesn't seem the right postcondition
    *            see (Postcondition - 1) in the proof below *)
-  //B.as_seq h1 aliasKeyTBS_buf == serialize_aliasKeyTBS `serialize` aliasKeyTBS
+  // /\ B.as_seq h1 aliasKeyTBS_buf == serialize_aliasKeyTBS `serialize` aliasKeyTBS
 
 #set-options "--z3rlimit 50"
 let create_aliasKeyTBS
@@ -168,7 +166,7 @@ let create_aliasKeyTBS
   (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
   (fwid: B.lbuffer byte_sec 32)
   (ku: key_usage_payload_t)
-  (keyID: datatype_of_asn1_type OCTET_STRING)
+  (keyID: B.lbuffer byte_pub 20)
   (riot_version: datatype_of_asn1_type INTEGER)
   (deviceID_pub: B.lbuffer byte_pub 32)
   (aliasKey_pub: B.lbuffer byte_pub 32)
@@ -244,7 +242,7 @@ let create_aliasKeyTBS
   B.modifies_buffer_elim deviceID_pub (B.loc_buffer fwid_pub) h0 h4;
   assert (B.as_seq h4 aliasKey_pub == B.as_seq h0 aliasKey_pub);
   let aliasKey_pub32: B32.lbytes32 32ul = B32.of_buffer 32ul aliasKey_pub in
-
+  let keyID_string: datatype_of_asn1_type OCTET_STRING = (|20ul, B32.of_buffer 20ul keyID|) in
   let h40 = HST.get () in
 
   // assert (B32.hide (declassify_secret_bytes (B.as_seq h0 fwid)) == fwid_pub32);
@@ -259,7 +257,7 @@ let create_aliasKeyTBS
                                      notBefore notAfter
                                      s_common s_org s_country
                                      ku
-                                     keyID
+                                     keyID_string
                                      riot_version
                                      fwid_pub32
                                      deviceID_pub32
@@ -277,7 +275,7 @@ let create_aliasKeyTBS
                                      (notBefore) (notAfter)
                                      (s_common) (s_org) (s_country)
                                      (ku)
-                                     (keyID)
+                                     (keyID_string)
                                      (riot_version)
                                      (B.as_seq h0 fwid)
                                      (B.as_seq h0 deviceID_pub)

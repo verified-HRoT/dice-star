@@ -27,8 +27,6 @@ open Hacl.Hash.Definitions
 
 #set-options "--__temp_no_proj RIoT.Definitions"
 
-(* ZT: restrict it to `SHA2_256` for convenience,
-       because `Hacl.Curve25519` only support it *)
 type riot_hash_alg = a:hash_alg{a == SHA2_256}
 
 inline_for_extraction
@@ -40,7 +38,7 @@ let riot_hash (alg:riot_hash_alg) : hash_st alg =
   | SHA2_256 -> Hacl.Hash.SHA2.hash_256
   | SHA2_384 -> Hacl.Hash.SHA2.hash_384
   | SHA2_512 -> Hacl.Hash.SHA2.hash_512
-  | SHA1     -> Hacl.Hash.SHA1.legacy_hash
+  // | SHA1     -> Hacl.Hash.SHA1.legacy_hash
 
 inline_for_extraction noextract
 let riot_hmac (alg:riot_hash_alg) : Hacl.HMAC.compute_st alg =
@@ -48,7 +46,7 @@ let riot_hmac (alg:riot_hash_alg) : Hacl.HMAC.compute_st alg =
   | SHA2_256 -> Hacl.HMAC.compute_sha2_256
   | SHA2_384 -> Hacl.HMAC.compute_sha2_384
   | SHA2_512 -> Hacl.HMAC.compute_sha2_512
-  | SHA1     -> Hacl.HMAC.legacy_compute_sha1
+  // | SHA1     -> Hacl.HMAC.legacy_compute_sha1
 
 unfold let digest_len = hash_len alg
 

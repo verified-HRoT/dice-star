@@ -12,20 +12,35 @@ module B32 = FStar.Bytes
 
 (* extValue payload *)
 
+let filter_aliasKeyTBS_extensions_authKeyID_extValue_payload
+  (x: x509_authKeyID_keyIdentifier_t)
+: Tot (bool)
+= dfst (x <: datatype_of_asn1_type OCTET_STRING) = 20ul
+
 let aliasKeyTBS_extensions_authKeyID_extValue_payload_t: Type0
-= x509_authKeyID_keyIdentifier_t
+= parse_filter_refine filter_aliasKeyTBS_extensions_authKeyID_extValue_payload
 
 let parse_aliasKeyTBS_extensions_authKeyID_extValue_payload
 : parser _ aliasKeyTBS_extensions_authKeyID_extValue_payload_t
 = parse_x509_authKeyID_keyIdentifier
+  `parse_filter`
+  filter_aliasKeyTBS_extensions_authKeyID_extValue_payload
 
 let serialize_aliasKeyTBS_extensions_authKeyID_extValue_payload
 : serializer parse_aliasKeyTBS_extensions_authKeyID_extValue_payload
 = serialize_x509_authKeyID_keyIdentifier
+  `serialize_filter`
+  filter_aliasKeyTBS_extensions_authKeyID_extValue_payload
+  `coerce_parser_serializer _`
+  ()
 
 let serialize32_aliasKeyTBS_extensions_authKeyID_extValue_payload_backwards
 : serializer32_backwards serialize_aliasKeyTBS_extensions_authKeyID_extValue_payload
 = serialize32_x509_authKeyID_keyIdentifier_backwards
+  `serialize32_filter_backwards`
+  filter_aliasKeyTBS_extensions_authKeyID_extValue_payload
+  `coerce_serializer32_backwards _`
+  ()
 
 let lemma_serialize_aliasKeyTBS_extensions_authKeyID_extValue_payload_unfold
   (x: aliasKeyTBS_extensions_authKeyID_extValue_payload_t)
@@ -35,34 +50,24 @@ let lemma_serialize_aliasKeyTBS_extensions_authKeyID_extValue_payload_unfold
 )
 = ()
 
-let length_of_aliasKeyTBS_extensions_authKeyID_extValue_payload
-  (keyID: datatype_of_asn1_type OCTET_STRING
-          { valid_authKeyID_keyIdentifier_ingredients keyID })
+let length_of_aliasKeyTBS_extensions_authKeyID_extValue_payload ()
 : GTot (nat)
-= length_of_x509_authKeyID_keyIdentifier keyID
-
-let valid_aliasKeyTBS_extensions_authKeyID_extValue_payload_ingredients
-  (keyID: datatype_of_asn1_type OCTET_STRING)
-: Type0
-= valid_authKeyID_keyIdentifier_ingredients keyID /\
-  length_of_aliasKeyTBS_extensions_authKeyID_extValue_payload keyID
-  <= asn1_value_length_max_of_type SEQUENCE
+= 24
 
 let len_of_aliasKeyTBS_extensions_authKeyID_extValue_payload
-  (keyID: datatype_of_asn1_type OCTET_STRING
-          { valid_aliasKeyTBS_extensions_authKeyID_extValue_payload_ingredients keyID })
+  (keyID: datatype_of_asn1_type OCTET_STRING)
 : Tot (len: asn1_value_int32_of_type SEQUENCE
-            { v len == length_of_aliasKeyTBS_extensions_authKeyID_extValue_payload keyID })
-= len_of_x509_authKeyID_keyIdentifier keyID
+            { v len == length_of_aliasKeyTBS_extensions_authKeyID_extValue_payload () })
+= 24ul
 
 let lemma_serialize_aliasKeyTBS_extensions_authKeyID_extValue_payload_size
-  (x: aliasKeyTBS_extensions_authKeyID_extValue_payload_t
-      { valid_aliasKeyTBS_extensions_authKeyID_extValue_payload_ingredients x })
+  (x: aliasKeyTBS_extensions_authKeyID_extValue_payload_t)
 : Lemma (
+  valid_authKeyID_keyIdentifier_ingredients x /\
   length_of_opaque_serialization serialize_aliasKeyTBS_extensions_authKeyID_extValue_payload x ==
   length_of_opaque_serialization serialize_x509_authKeyID_keyIdentifier x /\
   length_of_opaque_serialization serialize_aliasKeyTBS_extensions_authKeyID_extValue_payload x ==
-  length_of_aliasKeyTBS_extensions_authKeyID_extValue_payload x
+  length_of_aliasKeyTBS_extensions_authKeyID_extValue_payload ()
 )
 = lemma_serialize_aliasKeyTBS_extensions_authKeyID_extValue_payload_unfold x;
   lemma_serialize_x509_authKeyID_keyIdentifier_size_exact x
@@ -118,47 +123,30 @@ let lemma_serialize_aliasKeyTBS_extensions_authKeyID_extValue_size
     (serialize_aliasKeyTBS_extensions_authKeyID_extValue_payload)
     (x)
 
-let valid_aliasKeyTBS_extensions_authKeyID_extValue_ingredients
-  (keyID: datatype_of_asn1_type OCTET_STRING)
-= valid_aliasKeyTBS_extensions_authKeyID_extValue_payload_ingredients keyID /\
-  length_of_TLV
-    (SEQUENCE)
-    (length_of_aliasKeyTBS_extensions_authKeyID_extValue_payload keyID)
-  <= asn1_value_length_max_of_type OCTET_STRING
 
-let length_of_aliasKeyTBS_extensions_authKeyID_extValue
-  (keyID: datatype_of_asn1_type OCTET_STRING
-          { valid_aliasKeyTBS_extensions_authKeyID_extValue_ingredients keyID })
+let length_of_aliasKeyTBS_extensions_authKeyID_extValue ()
 : GTot (asn1_value_length_of_type OCTET_STRING)
-= length_of_TLV
-    (SEQUENCE)
-    (length_of_aliasKeyTBS_extensions_authKeyID_extValue_payload keyID)
+= 26
 
-let len_of_aliasKeyTBS_extensions_authKeyID_extValue
-  (keyID: datatype_of_asn1_type OCTET_STRING
-          { valid_aliasKeyTBS_extensions_authKeyID_extValue_ingredients keyID })
+let len_of_aliasKeyTBS_extensions_authKeyID_extValue ()
 : Tot (len: asn1_value_int32_of_type OCTET_STRING
-            { v len == length_of_aliasKeyTBS_extensions_authKeyID_extValue keyID })
-= len_of_TLV
-    (SEQUENCE)
-    (len_of_aliasKeyTBS_extensions_authKeyID_extValue_payload keyID)
+            { v len == length_of_aliasKeyTBS_extensions_authKeyID_extValue () })
+= 26ul
 
 let lemma_serialize_aliasKeyTBS_extensions_authKeyID_extValue_size_exact
-  (x: aliasKeyTBS_extensions_authKeyID_extValue_t
-      { valid_aliasKeyTBS_extensions_authKeyID_extValue_ingredients x })
+  (x: aliasKeyTBS_extensions_authKeyID_extValue_t)
 : Lemma (
   length_of_opaque_serialization serialize_aliasKeyTBS_extensions_authKeyID_extValue x ==
-  length_of_aliasKeyTBS_extensions_authKeyID_extValue x
+  length_of_aliasKeyTBS_extensions_authKeyID_extValue ()
 )
 = lemma_serialize_aliasKeyTBS_extensions_authKeyID_extValue_size x;
     lemma_serialize_aliasKeyTBS_extensions_authKeyID_extValue_payload_size x
 
-let x509_get_aliasKeyTBS_extensions_authKeyID_extValue
-  (keyID: datatype_of_asn1_type OCTET_STRING
-          { valid_aliasKeyTBS_extensions_authKeyID_extValue_ingredients keyID })
-: Tot (aliasKeyTBS_extensions_authKeyID_extValue_t)
-= (* Prf *) Classical.forall_intro lemma_serialize_x509_authKeyID_keyIdentifier_size_exact;
-  x509_get_authKeyID_keyIdentifier keyID
+// let x509_get_aliasKeyTBS_extensions_authKeyID_extValue
+//   (keyID: datatype_of_asn1_type OCTET_STRING)
+// : Tot (aliasKeyTBS_extensions_authKeyID_extValue_t)
+// = (* Prf *) Classical.forall_intro lemma_serialize_x509_authKeyID_keyIdentifier_size_exact;
+//   x509_get_authKeyID_keyIdentifier keyID
 
 (* ext *)
 
@@ -220,50 +208,27 @@ let lemma_serialize_aliasKeyTBS_extensions_authKeyID_size
     (**) (serialize_aliasKeyTBS_extensions_authKeyID_extValue)
     (**) (x)
 
-let valid_aliasKeyTBS_extensions_authKeyID_ingredients
-  (keyID: datatype_of_asn1_type OCTET_STRING)
-: Type0
-= valid_aliasKeyTBS_extensions_authKeyID_extValue_ingredients keyID /\
-  (let _ = lemma_serialize_aliasKeyTBS_extensions_authKeyID_extValue_payload_size keyID;
-           lemma_serialize_aliasKeyTBS_extensions_authKeyID_extValue_size_exact (x509_get_aliasKeyTBS_extensions_authKeyID_extValue keyID) in
-   length_of_x509_extension_payload_unbounded
-     (OID_AUTHORITY_KEY_IDENTIFIER)
-     (serialize_aliasKeyTBS_extensions_authKeyID_extValue)
-     (x509_get_aliasKeyTBS_extensions_authKeyID_extValue keyID)
-     (length_of_aliasKeyTBS_extensions_authKeyID_extValue (x509_get_aliasKeyTBS_extensions_authKeyID_extValue keyID))
-   <= asn1_value_length_max_of_type (SEQUENCE))
-
-let length_of_aliasKeyTBS_extensions_authKeyID
-  (keyID: datatype_of_asn1_type OCTET_STRING
-          { valid_aliasKeyTBS_extensions_authKeyID_ingredients keyID })
+let length_of_aliasKeyTBS_extensions_authKeyID ()
 : GTot (asn1_TLV_length_of_type SEQUENCE)
-= lemma_serialize_aliasKeyTBS_extensions_authKeyID_extValue_payload_size keyID;
-  lemma_serialize_aliasKeyTBS_extensions_authKeyID_extValue_size_exact (x509_get_aliasKeyTBS_extensions_authKeyID_extValue keyID);
-  length_of_x509_extension
-    (OID_AUTHORITY_KEY_IDENTIFIER)
-    (serialize_aliasKeyTBS_extensions_authKeyID_extValue)
-    (x509_get_aliasKeyTBS_extensions_authKeyID_extValue keyID)
-    (length_of_aliasKeyTBS_extensions_authKeyID_extValue (x509_get_aliasKeyTBS_extensions_authKeyID_extValue keyID))
+= 38
+  // Classical.forall_intro lemma_serialize_aliasKeyTBS_extensions_authKeyID_extValue_payload_size;
+  // Classical.forall_intro lemma_serialize_aliasKeyTBS_extensions_authKeyID_extValue_size_exact;
+  // length_of_x509_extension
+  //   (OID_AUTHORITY_KEY_IDENTIFIER)
+  //   (serialize_aliasKeyTBS_extensions_authKeyID_extValue)
+  //   (x509_get_aliasKeyTBS_extensions_authKeyID_extValue keyID)
+  //   (length_of_aliasKeyTBS_extensions_authKeyID_extValue ())
 
-let len_of_aliasKeyTBS_extensions_authKeyID
-  (keyID: datatype_of_asn1_type OCTET_STRING
-          { valid_aliasKeyTBS_extensions_authKeyID_ingredients keyID })
+let len_of_aliasKeyTBS_extensions_authKeyID ()
 : Tot (len: asn1_TLV_int32_of_type SEQUENCE
-            { v len == length_of_aliasKeyTBS_extensions_authKeyID keyID })
-= lemma_serialize_aliasKeyTBS_extensions_authKeyID_extValue_payload_size keyID;
-  lemma_serialize_aliasKeyTBS_extensions_authKeyID_extValue_size_exact (x509_get_aliasKeyTBS_extensions_authKeyID_extValue keyID);
-  len_of_x509_extension
-    (OID_AUTHORITY_KEY_IDENTIFIER)
-    (Ghost.hide serialize_aliasKeyTBS_extensions_authKeyID_extValue)
-    (x509_get_aliasKeyTBS_extensions_authKeyID_extValue keyID)
-    (len_of_aliasKeyTBS_extensions_authKeyID_extValue (x509_get_aliasKeyTBS_extensions_authKeyID_extValue keyID))
+            { v len == length_of_aliasKeyTBS_extensions_authKeyID () })
+= 38ul
 
 let lemma_serialize_aliasKeyTBS_extensions_authKeyID_size_exact
-  (ext: aliasKeyTBS_extensions_authKeyID_t
-        { valid_aliasKeyTBS_extensions_authKeyID_ingredients (snd ext) })
+  (ext: aliasKeyTBS_extensions_authKeyID_t)
 : Lemma (
   length_of_opaque_serialization serialize_aliasKeyTBS_extensions_authKeyID ext ==
-  length_of_aliasKeyTBS_extensions_authKeyID (snd ext)
+  length_of_aliasKeyTBS_extensions_authKeyID ()
 )
 = lemma_serialize_aliasKeyTBS_extensions_authKeyID_extValue_size_exact (snd ext);
   lemma_serialize_aliasKeyTBS_extensions_authKeyID_extValue_payload_size (snd ext <: aliasKeyTBS_extensions_authKeyID_extValue_t);
@@ -271,14 +236,14 @@ let lemma_serialize_aliasKeyTBS_extensions_authKeyID_size_exact
     (OID_AUTHORITY_KEY_IDENTIFIER)
     (serialize_aliasKeyTBS_extensions_authKeyID_extValue)
     (ext)
-    (length_of_aliasKeyTBS_extensions_authKeyID_extValue (snd ext))
+    (length_of_aliasKeyTBS_extensions_authKeyID_extValue ())
 
 let x509_get_aliasKeyTBS_extensions_authKeyID
   (criticality: datatype_of_asn1_type BOOLEAN)
-  (keyID: datatype_of_asn1_type OCTET_STRING
-          { valid_aliasKeyTBS_extensions_authKeyID_ingredients keyID })
+  (keyID: datatype_of_asn1_type OCTET_STRING { dfst keyID == 20ul })
 : Tot (aliasKeyTBS_extensions_authKeyID_t)
-= let extValue_payload: aliasKeyTBS_extensions_authKeyID_extValue_payload_t = keyID in
+= (* Prf *) lemma_serialize_asn1_octet_string_TLV_size keyID;
+  let extValue_payload: aliasKeyTBS_extensions_authKeyID_extValue_payload_t = keyID in
   (* Prf *) lemma_serialize_aliasKeyTBS_extensions_authKeyID_extValue_payload_size extValue_payload;
 
   let extValue: aliasKeyTBS_extensions_authKeyID_extValue_t = extValue_payload in
@@ -290,7 +255,7 @@ let x509_get_aliasKeyTBS_extensions_authKeyID
                                        (OID_AUTHORITY_KEY_IDENTIFIER)
                                        (Ghost.hide serialize_aliasKeyTBS_extensions_authKeyID_extValue)
                                        (extValue)
-                                       (len_of_aliasKeyTBS_extensions_authKeyID_extValue keyID)
+                                       (len_of_aliasKeyTBS_extensions_authKeyID_extValue ())
                                        (criticality)
                                        in
 

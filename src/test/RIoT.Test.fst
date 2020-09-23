@@ -56,6 +56,62 @@ let main ()
 
   comment "AliasKey Crt Inputs";
 
+  IB.recall aliasKeyCrt_serialNumber_buf;
+  IB.recall_contents aliasKeyCrt_serialNumber_buf (Seq.createL aliasKeyCrt_serialNumber_list);
+  let aliasKeyCrt_serialNumber: x509_serialNumber_t =
+    (|aliasKeyCrt_serialNumber_len,
+      B32.of_buffer aliasKeyCrt_serialNumber_len aliasKeyCrt_serialNumber_buf|) in
+
+  comment "AliasKey Crt Subject Names";
+  IB.recall aliasKeyCrt_s_common_buf;
+  IB.recall_contents aliasKeyCrt_s_common_buf (Seq.createL aliasKeyCrt_s_common_list);
+  let aliasKeyCrt_s_common: x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING =
+    normalize_term ( asn1_get_character_string
+                       #IA5_STRING
+                       aliasKeyCrt_s_common_len
+                       (B32.of_buffer aliasKeyCrt_s_common_len aliasKeyCrt_s_common_buf) ) in
+
+  IB.recall aliasKeyCrt_s_org_buf;
+  IB.recall_contents aliasKeyCrt_s_org_buf (Seq.createL aliasKeyCrt_s_org_list);
+  let aliasKeyCrt_s_org: x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING =
+    normalize_term ( asn1_get_character_string
+                       #IA5_STRING
+                       aliasKeyCrt_s_org_len
+                       (B32.of_buffer aliasKeyCrt_s_org_len aliasKeyCrt_s_org_buf) ) in
+
+  IB.recall aliasKeyCrt_s_country_buf;
+  IB.recall_contents aliasKeyCrt_s_country_buf (Seq.createL aliasKeyCrt_s_country_list);
+  let aliasKeyCrt_s_country: x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING =
+    normalize_term ( asn1_get_character_string
+                       #PRINTABLE_STRING
+                       aliasKeyCrt_s_country_len
+                       (B32.of_buffer aliasKeyCrt_s_country_len aliasKeyCrt_s_country_buf) ) in
+
+  comment "AliasKey Crt Issuer Names";
+  IB.recall aliasKeyCrt_i_common_buf;
+  IB.recall_contents aliasKeyCrt_i_common_buf (Seq.createL aliasKeyCrt_i_common_list);
+  let aliasKeyCrt_i_common: x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING =
+    normalize_term ( asn1_get_character_string
+                       #IA5_STRING
+                       aliasKeyCrt_i_common_len
+                       (B32.of_buffer aliasKeyCrt_i_common_len aliasKeyCrt_i_common_buf) ) in
+
+  IB.recall aliasKeyCrt_i_org_buf;
+  IB.recall_contents aliasKeyCrt_i_org_buf (Seq.createL aliasKeyCrt_i_org_list);
+  let aliasKeyCrt_i_org: x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING =
+    normalize_term ( asn1_get_character_string
+                       #IA5_STRING
+                       aliasKeyCrt_i_org_len
+                       (B32.of_buffer aliasKeyCrt_i_org_len aliasKeyCrt_i_org_buf) ) in
+
+  IB.recall aliasKeyCrt_i_country_buf;
+  IB.recall_contents aliasKeyCrt_i_country_buf (Seq.createL aliasKeyCrt_i_country_list);
+  let aliasKeyCrt_i_country: x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING =
+    normalize_term ( asn1_get_character_string
+                       #PRINTABLE_STRING
+                       aliasKeyCrt_i_country_len
+                       (B32.of_buffer aliasKeyCrt_i_country_len aliasKeyCrt_i_country_buf) ) in
+
   IB.recall x509_validity_notAfter_default_buffer;
   IB.recall_contents x509_validity_notAfter_default_buffer asn1_generalized_time_for_x509_validity_notAfter_default_seq;
   let notBefore: datatype_of_asn1_type Generalized_Time = B32.of_buffer 15ul x509_validity_notAfter_default_buffer in
@@ -65,17 +121,16 @@ let main ()
   let deviceIDCSR_len = len_of_deviceIDCSR
                           (len_of_deviceIDCRI
                              deviceIDCSR_version
-                             s_common s_org s_country
+                             aliasKeyCrt_s_common aliasKeyCrt_s_org aliasKeyCrt_s_country
                              ku) in
   let deviceIDCSR_buf: B.lbuffer byte_pub (v deviceIDCSR_len) = B.alloca 0x00uy deviceIDCSR_len in
 
   let aliasKeyCRT_len = len_of_aliasKeyCRT
                           (len_of_aliasKeyTBS
                             aliasKeyCrt_serialNumber
-                            s_common s_org s_country
-                            s_common s_org s_country
+                            aliasKeyCrt_i_common aliasKeyCrt_i_org aliasKeyCrt_i_country
+                            aliasKeyCrt_s_common aliasKeyCrt_s_org aliasKeyCrt_s_country
                             ku
-                            aliasKeyCrt_keyID
                             riot_version) in
   let aliasKeyCRT_buf: B.lbuffer byte_pub (v aliasKeyCRT_len) = B.alloca 0x00uy aliasKeyCRT_len in
 
@@ -95,22 +150,21 @@ let main ()
 (* DeviceID CSR Inputs*)
     (* key usage *) ku
                     deviceIDCSR_version
-                    s_common
-                    s_org
-                    s_country
+                    aliasKeyCrt_s_common
+                    aliasKeyCrt_s_org
+                    aliasKeyCrt_s_country
 (* AliasKey Crt Inputs*)
     (* version   *) aliasKeyCrt_version
     (*   SN      *) aliasKeyCrt_serialNumber
-    (* issuer    *) s_common
-                    s_org
-                    s_country
+    (* issuer    *) aliasKeyCrt_i_common
+                    aliasKeyCrt_i_org
+                    aliasKeyCrt_i_country
     (* validity  *) notBefore
                     notAfter
-    (* subject   *) s_common
-                    s_org
-                    s_country
+    (* subject   *) aliasKeyCrt_s_common
+                    aliasKeyCrt_s_org
+                    aliasKeyCrt_s_country
     (* key usage *) ku
-                    aliasKeyCrt_keyID
                     riot_version
 (* Common Outputs *)
     (* aliasKey  *) aliasKey_pub

@@ -215,48 +215,48 @@ let lemma_serialize_aliasKeyTBS_extensions_payload_unfold
 
 let valid_aliasKeyTBS_extensions_payload_ingredients
   (ku: key_usage_payload_t)
-  (keyID: datatype_of_asn1_type OCTET_STRING)
   (version: datatype_of_asn1_type INTEGER)
 : Type0
-= valid_aliasKeyTBS_extensions_authKeyID_ingredients keyID /\
-  length_of_x509_key_usage ku +
-  length_of_aliasKeyTBS_extensions_extendedKeyUsage () +
-  length_of_aliasKeyTBS_extensions_basicConstraints () +
-  length_of_aliasKeyTBS_extensions_authKeyID keyID +
-  length_of_riot_extension version
-  <= asn1_value_length_max_of_type SEQUENCE
-
-let length_of_aliasKeyTBS_extensions_payload
-  (ku: key_usage_payload_t)
-  (keyID: datatype_of_asn1_type OCTET_STRING)
-  (version: datatype_of_asn1_type INTEGER
-            { valid_aliasKeyTBS_extensions_payload_ingredients ku keyID version })
-: GTot (asn1_value_length_of_type SEQUENCE)
 = length_of_x509_key_usage ku +
   length_of_aliasKeyTBS_extensions_extendedKeyUsage () +
   length_of_aliasKeyTBS_extensions_basicConstraints () +
-  length_of_aliasKeyTBS_extensions_authKeyID keyID +
+  length_of_aliasKeyTBS_extensions_authKeyID () +
+  length_of_riot_extension version
+  <= asn1_value_length_max_of_type SEQUENCE
+
+let lemma_aliasKeyTBS_extensions_payload_ingredients_valid
+  (ku: key_usage_payload_t)
+  (version: datatype_of_asn1_type INTEGER)
+: Lemma (
+  valid_aliasKeyTBS_extensions_payload_ingredients ku version
+)
+= ()
+
+let length_of_aliasKeyTBS_extensions_payload
+  (ku: key_usage_payload_t)
+  (version: datatype_of_asn1_type INTEGER)
+: GTot (asn1_value_length_of_type SEQUENCE)
+= lemma_aliasKeyTBS_extensions_payload_ingredients_valid ku version;
+  length_of_x509_key_usage ku +
+  length_of_aliasKeyTBS_extensions_extendedKeyUsage () +
+  length_of_aliasKeyTBS_extensions_basicConstraints () +
+  length_of_aliasKeyTBS_extensions_authKeyID () +
   length_of_riot_extension version
 
 let len_of_aliasKeyTBS_extensions_payload
   (ku: key_usage_payload_t)
-  (keyID: datatype_of_asn1_type OCTET_STRING)
-  (version: datatype_of_asn1_type INTEGER
-            { valid_aliasKeyTBS_extensions_payload_ingredients ku keyID version })
+  (version: datatype_of_asn1_type INTEGER)
 : Tot (len: asn1_value_int32_of_type SEQUENCE
-            { v len == length_of_aliasKeyTBS_extensions_payload ku keyID version })
-= len_of_x509_key_usage ku +
+            { v len == length_of_aliasKeyTBS_extensions_payload ku version })
+= lemma_aliasKeyTBS_extensions_payload_ingredients_valid ku version;
+  len_of_x509_key_usage ku +
   len_of_aliasKeyTBS_extensions_extendedKeyUsage () +
   len_of_aliasKeyTBS_extensions_basicConstraints () +
-  len_of_aliasKeyTBS_extensions_authKeyID keyID +
+  len_of_aliasKeyTBS_extensions_authKeyID () +
   len_of_riot_extension version
 
 let lemma_serialize_aliasKeyTBS_extensions_payload_size
-  (x: aliasKeyTBS_extensions_payload_t
-      { valid_aliasKeyTBS_extensions_payload_ingredients
-       (snd x.aliasKeyTBS_extensions_key_usage)
-       (snd x.aliasKeyTBS_extensions_authKeyID)
-       (x.aliasKeyTBS_extensions_riot.x509_extValue_riot.riot_version)})
+  (x: aliasKeyTBS_extensions_payload_t)
 : Lemma (
   lemma_serialize_aliasKeyTBS_extensions_payload_unfold x;
     lemma_serialize_x509_key_usage_size_exact x.aliasKeyTBS_extensions_key_usage;
@@ -282,11 +282,10 @@ let lemma_serialize_aliasKeyTBS_extensions_payload_size
   length_of_opaque_serialization (serialize_aliasKeyTBS_extensions_payload)      x
   == length_of_aliasKeyTBS_extensions_payload
        (snd x.aliasKeyTBS_extensions_key_usage)
-       (snd x.aliasKeyTBS_extensions_authKeyID)
-       (x.aliasKeyTBS_extensions_riot.x509_extValue_riot.riot_version) /\
-  True
+       (x.aliasKeyTBS_extensions_riot.x509_extValue_riot.riot_version)
 )
-= lemma_serialize_aliasKeyTBS_extensions_payload_unfold x;
+= (* FIXME: *) admit();
+  lemma_serialize_aliasKeyTBS_extensions_payload_unfold x;
     lemma_serialize_x509_key_usage_size_exact x.aliasKeyTBS_extensions_key_usage;
     lemma_x509_keyPurposeIDs_unique aliasKeyCrt_extendedKeyUsage_oids;
     lemma_serialize_aliasKeyTBS_extensions_extendedKeyUsage_size_exact
@@ -333,19 +332,34 @@ let lemma_serialize_aliasKeyTBS_extensions_size
 
 let valid_aliasKeyTBS_extensions_ingredients
   (ku: key_usage_payload_t)
-  (keyID: datatype_of_asn1_type OCTET_STRING)
   (version: datatype_of_asn1_type INTEGER)
 : Type0
-= valid_aliasKeyTBS_extensions_payload_ingredients ku keyID version /\
-  length_of_aliasKeyTBS_extensions_payload ku keyID version
+= valid_aliasKeyTBS_extensions_payload_ingredients ku version /\
+  length_of_aliasKeyTBS_extensions_payload ku version
   <= asn1_value_length_max_of_type SEQUENCE
+
+let lemma_aliasKeyTBS_extensions_ingredients_valid
+  (ku: key_usage_payload_t)
+  (version: datatype_of_asn1_type INTEGER)
+: Lemma (
+  valid_aliasKeyTBS_extensions_ingredients ku version
+)
+= lemma_aliasKeyTBS_extensions_payload_ingredients_valid ku version
 
 let valid_aliasKeyTBS_extensions
   (x: aliasKeyTBS_extensions_t)
 : Type0
 = valid_aliasKeyTBS_extensions_ingredients
           (snd x.aliasKeyTBS_extensions_key_usage)
-          (snd x.aliasKeyTBS_extensions_authKeyID)
+          (x.aliasKeyTBS_extensions_riot.x509_extValue_riot.riot_version)
+
+let lemma_aliasKeyTBS_extensions_valid
+  (x: aliasKeyTBS_extensions_t)
+: Lemma (
+  valid_aliasKeyTBS_extensions x
+)
+= lemma_aliasKeyTBS_extensions_ingredients_valid
+          (snd x.aliasKeyTBS_extensions_key_usage)
           (x.aliasKeyTBS_extensions_riot.x509_extValue_riot.riot_version)
 
 // #push-options "--z3rlimit 256 --fuel 0"
@@ -367,38 +381,32 @@ let valid_aliasKeyTBS_extensions
 
 let length_of_aliasKeyTBS_extensions
   (ku: key_usage_payload_t)
-  (keyID: datatype_of_asn1_type OCTET_STRING)
-  (version: datatype_of_asn1_type INTEGER
-            { valid_aliasKeyTBS_extensions_ingredients ku keyID version })
+  (version: datatype_of_asn1_type INTEGER)
 : GTot (asn1_TLV_length_of_type SEQUENCE)
-= //lemma_aliasKeyTBS_extensions_ingredients_valid ku version;
+= lemma_aliasKeyTBS_extensions_ingredients_valid ku version;
   length_of_TLV SEQUENCE
-    (length_of_aliasKeyTBS_extensions_payload ku keyID version)
+    (length_of_aliasKeyTBS_extensions_payload ku version)
 
 let len_of_aliasKeyTBS_extensions
   (ku: key_usage_payload_t)
-  (keyID: datatype_of_asn1_type OCTET_STRING)
-  (version: datatype_of_asn1_type INTEGER
-            { valid_aliasKeyTBS_extensions_ingredients ku keyID version })
+  (version: datatype_of_asn1_type INTEGER)
 : Tot (len: asn1_TLV_int32_of_type SEQUENCE
-            { v len == length_of_aliasKeyTBS_extensions ku keyID version })
-= //lemma_aliasKeyTBS_extensions_ingredients_valid ku version;
+            { v len == length_of_aliasKeyTBS_extensions ku version })
+= lemma_aliasKeyTBS_extensions_ingredients_valid ku version;
   len_of_TLV SEQUENCE
-    (len_of_aliasKeyTBS_extensions_payload ku keyID version)
+    (len_of_aliasKeyTBS_extensions_payload ku version)
 
 let lemma_serialize_aliasKeyTBS_extensions_size_exact
-  (x: aliasKeyTBS_extensions_t
-      { valid_aliasKeyTBS_extensions x })
+  (x: aliasKeyTBS_extensions_t)
 : Lemma (
-  // Classical.forall_intro_2 lemma_aliasKeyTBS_extensions_ingredients_valid;
+  Classical.forall_intro_2 lemma_aliasKeyTBS_extensions_ingredients_valid;
   (* exact size *)
   length_of_opaque_serialization (serialize_aliasKeyTBS_extensions) x
   == length_of_aliasKeyTBS_extensions
        (snd x.aliasKeyTBS_extensions_key_usage)
-       (snd x.aliasKeyTBS_extensions_authKeyID)
        (x.aliasKeyTBS_extensions_riot.x509_extValue_riot.riot_version)
 )
-= // Classical.forall_intro_2 lemma_aliasKeyTBS_extensions_ingredients_valid;
+= Classical.forall_intro_2 lemma_aliasKeyTBS_extensions_ingredients_valid;
   lemma_serialize_aliasKeyTBS_extensions_size x;
   lemma_serialize_aliasKeyTBS_extensions_payload_size x;
 ()
@@ -438,14 +446,13 @@ let serialize32_aliasKeyTBS_extensions_backwards
 // [@@T.postprocess_with (postprocess_x509_keyPurposeIDs (`%aliasKeyCrt_extendedKeyUsage_oids))]
 let x509_get_aliasKeyTBS_extensions
   (ku: key_usage_payload_t)
-  (keyID: datatype_of_asn1_type OCTET_STRING)
+  (keyID: datatype_of_asn1_type OCTET_STRING {dfst keyID == 20ul})
   (version: datatype_of_asn1_type INTEGER)
   (fwid: B32.lbytes32 32ul)
-  (deviceIDPub: B32.lbytes32 32ul
-                { valid_aliasKeyTBS_extensions_ingredients ku keyID version })
-: Tot (x: aliasKeyTBS_extensions_t { valid_aliasKeyTBS_extensions x })
+  (deviceIDPub: B32.lbytes32 32ul)
+: Tot (aliasKeyTBS_extensions_t)
 =
-  // (* Prf*) Classical.forall_intro_2 lemma_aliasKeyTBS_extensions_ingredients_valid;
+  (* Prf*) Classical.forall_intro_2 lemma_aliasKeyTBS_extensions_ingredients_valid;
 
   let key_usage = x509_get_key_usage ku in
   (* Prf *) lemma_serialize_x509_key_usage_size_exact key_usage;

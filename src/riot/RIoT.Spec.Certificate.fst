@@ -69,17 +69,12 @@ let create_aliasKeyTBS_spec
   (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
   (ku: key_usage_payload_t)
-  (keyID: datatype_of_asn1_type OCTET_STRING)
-  (version: datatype_of_asn1_type INTEGER
-            { valid_aliasKeyTBS_ingredients
-                serialNumber
-                i_common i_org i_country
-                s_common s_org s_country
-                ku keyID version })
+  (keyID: lbytes_pub 20)
+  (version: datatype_of_asn1_type INTEGER)
   (fwid: lbytes_sec 32)
   (deviceID_pub: lbytes_pub 32)
   (aliasKey_pub: lbytes_pub 32)
-: GTot (x: aliasKeyTBS_t { valid_aliasKeyTBS x })
+: GTot (aliasKeyTBS_t)
 =
 (* Create AliasKeyTBS *)
   let deviceID_pub32: B32.lbytes32 32ul = B32.hide deviceID_pub in
@@ -92,7 +87,7 @@ let create_aliasKeyTBS_spec
                                      notBefore notAfter
                                      s_common s_org s_country
                                      ku
-                                     keyID
+                                     (|20ul, B32.hide keyID|)
                                      version
                                      fwid32
                                      deviceID_pub32

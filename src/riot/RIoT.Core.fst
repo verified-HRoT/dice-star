@@ -27,7 +27,7 @@ open RIoT.Impl
 
 module Ed25519 = Hacl.Ed25519
 
-#set-options "--z3rlimit 4096 --fuel 0 --ifuel 0"
+#set-options "--z3rlimit 50 --fuel 0 --ifuel 0"
 
 #restart-solver
 let riot_pre
@@ -57,7 +57,6 @@ let riot_pre
   (aliasKeyCrt_s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (aliasKeyCrt_s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
   (aliasKeyCrt_ku: key_usage_payload_t)
-  (aliasKeyCrt_keyID: datatype_of_asn1_type OCTET_STRING)
   (riot_version: datatype_of_asn1_type INTEGER)
 (* Common Outputs *)
   (aliasKey_pub: B.lbuffer byte_pub 32)
@@ -88,6 +87,9 @@ let riot_pre
    (* Pre: labels have enough length for HKDF *)
    valid_hkdf_lbl_len deviceID_label_len /\
    valid_hkdf_lbl_len aliasKey_label_len /\
+  // (let aliasKeyCrt_keyID_seq: lbytes_pub 20 =
+  //    derive_authKeyID_from_cdi_spec (B.as_seq h cdi) (deviceID_label_len) (B.as_seq h deviceID_label) in
+  //  let aliasKeyCrt_keyID = sha1_digest_to_octet_string_spec aliasKeyCrt_keyID_seq in
    (* Pre: DeviceIDCRI template has a valid length *)
    valid_deviceIDCRI_ingredients
      deviceIDCSR_version
@@ -105,14 +107,13 @@ let riot_pre
                             deviceIDCSR_version
                             deviceIDCSR_s_common deviceIDCSR_s_org deviceIDCSR_s_country
                             deviceIDCSR_ku) /\
-   (* Pre: AliasKeyTBS template has a valid length *)
-   valid_aliasKeyTBS_ingredients
-     aliasKeyCrt_serialNumber
-     aliasKeyCrt_i_common aliasKeyCrt_i_org aliasKeyCrt_i_country
-     aliasKeyCrt_s_common aliasKeyCrt_s_org aliasKeyCrt_s_country
-     aliasKeyCrt_ku
-     aliasKeyCrt_keyID
-     riot_version /\
+   // (* Pre: AliasKeyTBS template has a valid length *)
+   // valid_aliasKeyTBS_ingredients
+   //   aliasKeyCrt_serialNumber
+   //   aliasKeyCrt_i_common aliasKeyCrt_i_org aliasKeyCrt_i_country
+   //   aliasKeyCrt_s_common aliasKeyCrt_s_org aliasKeyCrt_s_country
+   //   aliasKeyCrt_ku
+   //   riot_version /\
    (* Pre: AliasKeyTBS will have a valid length *)
    valid_aliasKeyCRT_ingredients
      (len_of_aliasKeyTBS
@@ -120,7 +121,6 @@ let riot_pre
        aliasKeyCrt_i_common aliasKeyCrt_i_org aliasKeyCrt_i_country
        aliasKeyCrt_s_common aliasKeyCrt_s_org aliasKeyCrt_s_country
        aliasKeyCrt_ku
-       aliasKeyCrt_keyID
        riot_version) /\
    (* Pre: `aliasKeyCRT_buf` has exact size to write AliasKeyCRT *)
    v aliasKeyCRT_len == length_of_aliasKeyCRT
@@ -129,7 +129,6 @@ let riot_pre
                             aliasKeyCrt_i_common aliasKeyCrt_i_org aliasKeyCrt_i_country
                             aliasKeyCrt_s_common aliasKeyCrt_s_org aliasKeyCrt_s_country
                             aliasKeyCrt_ku
-                            aliasKeyCrt_keyID
                             riot_version)
 
 #restart-solver
@@ -162,7 +161,6 @@ let riot_post
   (aliasKeyCrt_s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (aliasKeyCrt_s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
   (aliasKeyCrt_ku: key_usage_payload_t)
-  (aliasKeyCrt_keyID: datatype_of_asn1_type OCTET_STRING)
   (riot_version: datatype_of_asn1_type INTEGER)
 (* Common Outputs *)
   (aliasKey_pub: B.lbuffer byte_pub 32)
@@ -188,7 +186,6 @@ let riot_post
                         (aliasKeyCrt_notBefore) (aliasKeyCrt_notAfter)
                         (aliasKeyCrt_s_common) (aliasKeyCrt_s_org) (aliasKeyCrt_s_country)
                         (aliasKeyCrt_ku)
-                        (aliasKeyCrt_keyID)
                         (riot_version)
                         (aliasKey_pub)
                         (aliasKey_priv)
@@ -212,6 +209,9 @@ let riot_post
                                                  (B.as_seq h0 cdi)
                                                  (deviceID_label_len)
                                                  (B.as_seq h0 deviceID_label) in
+     let aliasKeyCrt_keyID_seq: lbytes_pub 20 =
+       derive_authKeyID_from_cdi_spec (B.as_seq h0 cdi) (deviceID_label_len) (B.as_seq h0 deviceID_label) in
+     let aliasKeyCrt_keyID = sha1_digest_to_octet_string_spec aliasKeyCrt_keyID_seq in
      let deviceIDCRI: deviceIDCRI_t = create_deviceIDCRI_spec
                                                                          (deviceIDCSR_version)
                                                                          (deviceIDCSR_s_common)
@@ -249,7 +249,6 @@ let riot_post
                             aliasKeyCrt_i_common aliasKeyCrt_i_org aliasKeyCrt_i_country
                             aliasKeyCrt_s_common aliasKeyCrt_s_org aliasKeyCrt_s_country
                             aliasKeyCrt_ku
-                            aliasKeyCrt_keyID
                             riot_version in
      let (* Prf *) _ = lemma_serialize_aliasKeyTBS_size_exact aliasKeyTBS in
      let aliasKeyCRT: aliasKeyCRT_t aliasKeyTBS_len = sign_and_finalize_aliasKeyCRT_spec
@@ -286,7 +285,6 @@ let riot
   (aliasKeyCrt_s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (aliasKeyCrt_s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
   (aliasKeyCrt_ku: key_usage_payload_t)
-  (aliasKeyCrt_keyID: datatype_of_asn1_type OCTET_STRING)
   (riot_version: datatype_of_asn1_type INTEGER)
 (* Common Outputs *)
   (aliasKey_pub: B.lbuffer byte_pub 32)
@@ -313,7 +311,6 @@ let riot
                         (aliasKeyCrt_notBefore) (aliasKeyCrt_notAfter)
                         (aliasKeyCrt_s_common) (aliasKeyCrt_s_org) (aliasKeyCrt_s_country)
                         (aliasKeyCrt_ku)
-                        (aliasKeyCrt_keyID)
                         (riot_version)
                         (aliasKey_pub)
                         (aliasKey_priv)
@@ -335,7 +332,6 @@ let riot
                         (aliasKeyCrt_notBefore) (aliasKeyCrt_notAfter)
                         (aliasKeyCrt_s_common) (aliasKeyCrt_s_org) (aliasKeyCrt_s_country)
                         (aliasKeyCrt_ku)
-                        (aliasKeyCrt_keyID)
                         (riot_version)
                         (aliasKey_pub)
                         (aliasKey_priv)
@@ -353,6 +349,13 @@ let riot
     (* cdi *) cdi
     (* lbl *) deviceID_label_len
               deviceID_label;
+
+(* A workaround to derive authKeyID for now *)
+  let deviceID_pub_sec: B.lbuffer byte_sec 32 = B.alloca (u8 0x00) 32ul in
+  let aliasKeyCrt_keyID: B.lbuffer byte_pub 20 = B.alloca 0x00uy 20ul in
+  classify_public_buffer 32ul deviceID_pub deviceID_pub_sec;
+  derive_authKeyID aliasKeyCrt_keyID deviceID_pub_sec;
+  // let aliasKeyCrt_keyID: datatype_of_asn1_type OCTET_STRING = (|20ul, B32.of_buffer 20ul aliasKeyCrt_keyID_buf|) in
 
 (* Derive AliasKey *)
   printf "Deriving AliasKey\n" done;
@@ -398,7 +401,6 @@ let riot
                                                            aliasKeyCrt_i_common aliasKeyCrt_i_org aliasKeyCrt_i_country
                                                            aliasKeyCrt_s_common aliasKeyCrt_s_org aliasKeyCrt_s_country
                                                            aliasKeyCrt_ku
-                                                           aliasKeyCrt_keyID
                                                            riot_version in
   let aliasKeyTBS_buf: B.lbuffer byte_pub (v aliasKeyTBS_len) = B.alloca 0x00uy aliasKeyTBS_len in
 
