@@ -20,13 +20,17 @@ type fwid_payload_t = {
   fwid_value  : x:datatype_of_asn1_type OCTET_STRING {v (dfst x) == 32}
 }
 
-let filter_fwid_payload
-  (x': datatype_of_asn1_type OID `tuple2` datatype_of_asn1_type OCTET_STRING)
+let filter_fwid_payload_string
+  (s: datatype_of_asn1_type OCTET_STRING)
 : GTot bool
-= fst x' = OID_DIGEST_SHA256 &&
-  v (dfst (snd x')) = 32
+= //fst x' = OID_DIGEST_SHA256 &&
+  v (dfst s) = 32
 
-let fwid_payload_t' = parse_filter_refine filter_fwid_payload
+// let fwid_payload_t' = parse_filter_refine filter_fwid_payload
+
+let fwid_payload_t'
+= (OID_DIGEST_SHA256) `envelop_OID_with_t`
+  (parse_filter_refine filter_fwid_payload_string)
 
 (* Serialier spec *)
 let synth_fwid_payload_t
@@ -42,28 +46,41 @@ let synth_fwid_payload_t'
 
 let parse_fwid_payload
 : parser _ fwid_payload_t
-= parse_asn1_TLV_of_type OID
-  `nondep_then`
-  parse_asn1_TLV_of_type OCTET_STRING
-  `parse_filter`
-  filter_fwid_payload
+=
+  // parse_asn1_TLV_of_type OID
+  // `nondep_then`
+  // parse_asn1_TLV_of_type OCTET_STRING
+  // `parse_filter`
+  // filter_fwid_payload
+  ((OID_DIGEST_SHA256) `parse_envelop_OID_with`
+   (serialize_asn1_TLV_of_type OCTET_STRING
+   `serialize_filter`
+   filter_fwid_payload_string))
   `parse_synth`
   synth_fwid_payload_t
 
 let serialize_fwid_payload
 : serializer parse_fwid_payload
 = serialize_synth
-  (* p1 *) (parse_asn1_TLV_of_type OID
-            `nondep_then`
-            parse_asn1_TLV_of_type OCTET_STRING
-            `parse_filter`
-            filter_fwid_payload)
+  // (* p1 *) (parse_asn1_TLV_of_type OID
+  //           `nondep_then`
+  //           parse_asn1_TLV_of_type OCTET_STRING
+  //           `parse_filter`
+  //           filter_fwid_payload)
+  (* p1 *) ((OID_DIGEST_SHA256) `parse_envelop_OID_with`
+            (serialize_asn1_TLV_of_type OCTET_STRING
+             `serialize_filter`
+             filter_fwid_payload_string))
   (* f2 *) (synth_fwid_payload_t)
-  (* s1 *) (serialize_asn1_TLV_of_type OID
-            `serialize_nondep_then`
-            serialize_asn1_TLV_of_type OCTET_STRING
-            `serialize_filter`
-            filter_fwid_payload)
+  // (* s1 *) (serialize_asn1_TLV_of_type OID
+  //           `serialize_nondep_then`
+  //           serialize_asn1_TLV_of_type OCTET_STRING
+  //           `serialize_filter`
+  //           filter_fwid_payload)
+  (* s1 *) ((OID_DIGEST_SHA256) `serialize_envelop_OID_with`
+            (serialize_asn1_TLV_of_type OCTET_STRING
+             `serialize_filter`
+             filter_fwid_payload_string))
   (* g1 *) (synth_fwid_payload_t')
   (* prf*) ()
 
@@ -75,27 +92,32 @@ let lemma_serialize_fwid_payload_unfold
   `Seq.append`
   serialize serialize_asn1_octet_string_TLV x.fwid_value
 )
-= serialize_nondep_then_eq
-  (* s1 *) (serialize_asn1_TLV_of_type OID)
-  (* s2 *) (serialize_asn1_TLV_of_type OCTET_STRING)
-  (* in *) (synth_fwid_payload_t' x);
+=
+  // serialize_nondep_then_eq
+  // (* s1 *) (serialize_asn1_TLV_of_type OID)
+  // (* s2 *) (serialize_asn1_TLV_of_type OCTET_STRING)
+  // (* in *) (synth_fwid_payload_t' x);
+  lemma_serialize_envelop_OID_with_unfold
+    (OID_DIGEST_SHA256)
+    (serialize_asn1_TLV_of_type OCTET_STRING
+     `serialize_filter`
+     filter_fwid_payload_string)
+    (synth_fwid_payload_t' x);
   serialize_synth_eq
-  (* p1 *) (parse_asn1_TLV_of_type OID
-            `nondep_then`
-            parse_asn1_TLV_of_type OCTET_STRING
-            `parse_filter`
-            filter_fwid_payload)
+  (* p1 *) ((OID_DIGEST_SHA256) `parse_envelop_OID_with`
+            (serialize_asn1_TLV_of_type OCTET_STRING
+             `serialize_filter`
+             filter_fwid_payload_string))
   (* f2 *) (synth_fwid_payload_t)
-  (* s1 *) (serialize_asn1_TLV_of_type OID
-            `serialize_nondep_then`
-            serialize_asn1_TLV_of_type OCTET_STRING
-            `serialize_filter`
-            filter_fwid_payload)
+  (* s1 *) ((OID_DIGEST_SHA256) `serialize_envelop_OID_with`
+            (serialize_asn1_TLV_of_type OCTET_STRING
+             `serialize_filter`
+             filter_fwid_payload_string))
   (* g1 *) (synth_fwid_payload_t')
   (* prf*) ()
   (* in *) x
 
-#push-options "--z3rlimit 32"
+#push-options "--z3rlimit 32 --fuel 0 --ifuel 0"
 let lemma_serialize_fwid_payload_size
   (x: fwid_payload_t)
 : Lemma (
@@ -152,19 +174,26 @@ let lemma_serialize_fwid_size_exact
 #pop-options
 
 (* Low *)
+noextract inline_for_extraction
 let serialize32_fwid_payload_backwards
 : serializer32_backwards serialize_fwid_payload
 = serialize32_synth_backwards
-  (* ls *) (serialize32_asn1_TLV_backwards_of_type OID
-            `serialize32_nondep_then_backwards`
-            serialize32_asn1_TLV_backwards_of_type OCTET_STRING
-            `serialize32_filter_backwards`
-            filter_fwid_payload)
+  // (* ls *) (serialize32_asn1_TLV_backwards_of_type OID
+  //           `serialize32_nondep_then_backwards`
+  //           serialize32_asn1_TLV_backwards_of_type OCTET_STRING
+  //           `serialize32_filter_backwards`
+  //           filter_fwid_payload)
+  (* ls *) (serialize32_envelop_OID_with_backwards
+              (OID_DIGEST_SHA256)
+              (serialize32_asn1_TLV_backwards_of_type OCTET_STRING
+               `serialize32_filter_backwards`
+               filter_fwid_payload_string))
   (* f2 *) (synth_fwid_payload_t)
   (* g1 *) (synth_fwid_payload_t')
   (* g1'*) (synth_fwid_payload_t')
   (* prf*) ()
 
+noextract inline_for_extraction
 let serialize32_fwid_backwards
 : serializer32_backwards serialize_fwid
 = coerce_serializer32_backwards

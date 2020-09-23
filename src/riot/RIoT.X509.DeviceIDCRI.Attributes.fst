@@ -48,7 +48,7 @@ open LowParse.Spec.Bytes
  *   }
  *)
 
-#set-options "--query_stats --z3rlimit 32 --fuel 0 --ifuel 0"
+#set-options "--z3rlimit 128 --fuel 0 --ifuel 0"
 type deviceIDCRI_attributes_extensionRequest_payload_t = {
   deviceID_attr_ext_key_usage: key_usage_t
 }
@@ -345,7 +345,6 @@ let serialize32_deviceIDCRI_attributes_backwards
 ///
 /// helper constructor
 ///
-#push-options "--z3rlimit 64 --ifuel 0"
 let x509_get_deviceIDCRI_attributes
   (ku: key_usage_payload_t)
 : Tot (deviceIDCRI_attributes_t)
@@ -403,4 +402,3 @@ let x509_get_deviceIDCRI_attributes
               (attrs);
 
 (*return*) attrs
-#pop-options

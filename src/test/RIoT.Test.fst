@@ -27,29 +27,10 @@ open RIoT.Core
 
 module Ed25519 = Hacl.Ed25519
 
-open RIoT.Helpers
-
-#set-options "--z3rlimit 32 --fuel 0 --ifuel 0"
-
-let aliasKeyTBS_template_len: size_t = 175ul
-
-unfold noextract inline_for_extraction
-let aliasKeyTBS_template_list: List.llist byte_pub (v aliasKeyTBS_template_len)
-=
-  [@inline_let]let l = [0xA0uy; 0x03uy; 0x02uy; 0x01uy; 0x02uy; 0x02uy; 0x01uy; 0x00uy; 0x30uy; 0x0Duy; 0x06uy; 0x09uy; 0x2Auy; 0x86uy; 0x48uy; 0x86uy; 0xF7uy; 0x0Duy; 0x01uy; 0x01uy; 0x0Duy; 0x05uy; 0x00uy; 0x30uy; 0x3Auy; 0x31uy; 0x0Buy; 0x30uy; 0x09uy; 0x06uy; 0x03uy; 0x55uy; 0x04uy; 0x06uy; 0x13uy; 0x02uy; 0x75uy; 0x73uy; 0x31uy; 0x0Duy; 0x30uy; 0x0Buy; 0x06uy; 0x03uy; 0x55uy; 0x04uy; 0x08uy; 0x0Cuy; 0x04uy; 0x74uy; 0x65uy; 0x73uy; 0x74uy; 0x31uy; 0x0Duy; 0x30uy; 0x0Buy; 0x06uy; 0x03uy; 0x55uy; 0x04uy; 0x0Auy; 0x0Cuy; 0x04uy; 0x74uy; 0x65uy; 0x73uy; 0x74uy; 0x31uy; 0x0Duy; 0x30uy; 0x0Buy; 0x06uy; 0x03uy; 0x55uy; 0x04uy; 0x03uy; 0x0Cuy; 0x04uy; 0x74uy; 0x65uy; 0x73uy; 0x74uy; 0x30uy; 0x1Euy; 0x17uy; 0x0Duy; 0x32uy; 0x30uy; 0x30uy; 0x36uy; 0x32uy; 0x35uy; 0x30uy; 0x32uy; 0x35uy; 0x37uy; 0x30uy; 0x32uy; 0x5Auy; 0x17uy; 0x0Duy; 0x32uy; 0x31uy; 0x30uy; 0x36uy; 0x32uy; 0x35uy; 0x30uy; 0x32uy; 0x35uy; 0x37uy; 0x30uy; 0x32uy; 0x5Auy; 0x30uy; 0x3Auy; 0x31uy; 0x0Buy; 0x30uy; 0x09uy; 0x06uy; 0x03uy; 0x55uy; 0x04uy; 0x06uy; 0x13uy; 0x02uy; 0x75uy; 0x73uy; 0x31uy; 0x0Duy; 0x30uy; 0x0Buy; 0x06uy; 0x03uy; 0x55uy; 0x04uy; 0x08uy; 0x0Cuy; 0x04uy; 0x74uy; 0x65uy; 0x73uy; 0x74uy; 0x31uy; 0x0Duy; 0x30uy; 0x0Buy; 0x06uy; 0x03uy; 0x55uy; 0x04uy; 0x0Auy; 0x0Cuy; 0x04uy; 0x74uy; 0x65uy; 0x73uy; 0x74uy; 0x31uy; 0x0Duy; 0x30uy; 0x0Buy; 0x06uy; 0x03uy; 0x55uy; 0x04uy; 0x03uy; 0x0Cuy; 0x04uy; 0x74uy; 0x65uy; 0x73uy; 0x74uy] in
-  assert_norm (List.length l == v aliasKeyTBS_template_len);
-  l
-
-let deviceIDCRI_template_len: size_t = 41ul
-
-unfold noextract inline_for_extraction
-let deviceIDCRI_template_list: List.llist byte_pub (v deviceIDCRI_template_len)
-= [@inline_let]let l = [0x30uy; 0x27uy; 0x31uy; 0x0Buy; 0x30uy; 0x09uy; 0x06uy; 0x03uy; 0x55uy; 0x04uy; 0x06uy; 0x13uy; 0x02uy; 0x44uy; 0x45uy; 0x31uy; 0x18uy; 0x30uy; 0x16uy; 0x06uy; 0x03uy; 0x55uy; 0x04uy; 0x03uy; 0x0Cuy; 0x0Fuy; 0x77uy; 0x77uy; 0x77uy; 0x2Euy; 0x65uy; 0x78uy; 0x61uy; 0x6Duy; 0x70uy; 0x6Cuy; 0x65uy; 0x2Euy; 0x63uy; 0x6Fuy; 0x6Duy] in
-  assert_norm (List.length l == v deviceIDCRI_template_len);
-  l
+open RIoT.Test.Definitions
 
 #restart-solver
-#push-options "--z3rlimit 1024 --fuel 0 --ifuel 0"
+#push-options "--z3rlimit 256 --fuel 0 --ifuel 0"
 let main ()
 : HST.ST C.exit_code
   (requires fun h -> True)
@@ -57,57 +38,141 @@ let main ()
 =
   HST.push_frame();
 
-  comment "Inputs";
+  comment "Common Inputs";
   let cdi : B.lbuffer byte_sec 32 = B.alloca (u8 0x00) 32ul in
   let fwid: B.lbuffer byte_sec 32 = B.alloca (u8 0x00) 32ul in
   let riot_version: datatype_of_asn1_type INTEGER = 1l in
-  let deviceIDCSR_version: datatype_of_asn1_type INTEGER = 0l in
   let ku: key_usage_payload_t = aliasKeyCrt_key_usage in
 
-  let deviceIDCRI_template_buf: B.lbuffer byte_pub (v deviceIDCRI_template_len) = B.alloca_of_list deviceIDCRI_template_list in
-  let aliasKeyTBS_template_buf: B.lbuffer byte_pub (v aliasKeyTBS_template_len) = B.alloca_of_list aliasKeyTBS_template_list in
   let deviceID_lbl_len: x:size_t {normalize (valid_hkdf_lbl_len x)} = 5ul in
   let deviceID_lbl: B.lbuffer byte_sec (v deviceID_lbl_len) = B.alloca (u8 0x00) deviceID_lbl_len in
   let aliasKey_lbl_len: x:size_t {normalize (valid_hkdf_lbl_len x)} = 5ul in
   let aliasKey_lbl: B.lbuffer byte_sec (v aliasKey_lbl_len) = B.alloca (u8 0x00) aliasKey_lbl_len in
   (* Prf *) assert_norm (valid_hkdf_lbl_len deviceID_lbl_len /\ valid_hkdf_lbl_len aliasKey_lbl_len);
 
+  comment "DeviceID CSR Inputs";
+
+  let deviceIDCSR_version: x509_version_t = x509_version_3 in
+
+  comment "AliasKey Crt Inputs";
+
+  IB.recall aliasKeyCrt_serialNumber_buf;
+  IB.recall_contents aliasKeyCrt_serialNumber_buf (Seq.createL aliasKeyCrt_serialNumber_list);
+  let aliasKeyCrt_serialNumber: x509_serialNumber_t =
+    (|aliasKeyCrt_serialNumber_len,
+      B32.of_buffer aliasKeyCrt_serialNumber_len aliasKeyCrt_serialNumber_buf|) in
+
+  comment "AliasKey Crt Subject Names";
+  IB.recall aliasKeyCrt_s_common_buf;
+  IB.recall_contents aliasKeyCrt_s_common_buf (Seq.createL aliasKeyCrt_s_common_list);
+  let aliasKeyCrt_s_common: x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING =
+    normalize_term ( asn1_get_character_string
+                       #IA5_STRING
+                       aliasKeyCrt_s_common_len
+                       (B32.of_buffer aliasKeyCrt_s_common_len aliasKeyCrt_s_common_buf) ) in
+
+  IB.recall aliasKeyCrt_s_org_buf;
+  IB.recall_contents aliasKeyCrt_s_org_buf (Seq.createL aliasKeyCrt_s_org_list);
+  let aliasKeyCrt_s_org: x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING =
+    normalize_term ( asn1_get_character_string
+                       #IA5_STRING
+                       aliasKeyCrt_s_org_len
+                       (B32.of_buffer aliasKeyCrt_s_org_len aliasKeyCrt_s_org_buf) ) in
+
+  IB.recall aliasKeyCrt_s_country_buf;
+  IB.recall_contents aliasKeyCrt_s_country_buf (Seq.createL aliasKeyCrt_s_country_list);
+  let aliasKeyCrt_s_country: x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING =
+    normalize_term ( asn1_get_character_string
+                       #PRINTABLE_STRING
+                       aliasKeyCrt_s_country_len
+                       (B32.of_buffer aliasKeyCrt_s_country_len aliasKeyCrt_s_country_buf) ) in
+
+  comment "AliasKey Crt Issuer Names";
+  IB.recall aliasKeyCrt_i_common_buf;
+  IB.recall_contents aliasKeyCrt_i_common_buf (Seq.createL aliasKeyCrt_i_common_list);
+  let aliasKeyCrt_i_common: x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING =
+    normalize_term ( asn1_get_character_string
+                       #IA5_STRING
+                       aliasKeyCrt_i_common_len
+                       (B32.of_buffer aliasKeyCrt_i_common_len aliasKeyCrt_i_common_buf) ) in
+
+  IB.recall aliasKeyCrt_i_org_buf;
+  IB.recall_contents aliasKeyCrt_i_org_buf (Seq.createL aliasKeyCrt_i_org_list);
+  let aliasKeyCrt_i_org: x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING =
+    normalize_term ( asn1_get_character_string
+                       #IA5_STRING
+                       aliasKeyCrt_i_org_len
+                       (B32.of_buffer aliasKeyCrt_i_org_len aliasKeyCrt_i_org_buf) ) in
+
+  IB.recall aliasKeyCrt_i_country_buf;
+  IB.recall_contents aliasKeyCrt_i_country_buf (Seq.createL aliasKeyCrt_i_country_list);
+  let aliasKeyCrt_i_country: x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING =
+    normalize_term ( asn1_get_character_string
+                       #PRINTABLE_STRING
+                       aliasKeyCrt_i_country_len
+                       (B32.of_buffer aliasKeyCrt_i_country_len aliasKeyCrt_i_country_buf) ) in
+
+  IB.recall x509_validity_notAfter_default_buffer;
+  IB.recall_contents x509_validity_notAfter_default_buffer asn1_generalized_time_for_x509_validity_notAfter_default_seq;
+  let notBefore: datatype_of_asn1_type Generalized_Time = B32.of_buffer 15ul x509_validity_notAfter_default_buffer in
+  let notAfter : datatype_of_asn1_type Generalized_Time = B32.of_buffer 15ul x509_validity_notAfter_default_buffer in
+
   comment "Outputs";
-  let deviceIDCSR_len = len_of_deviceIDCSR (len_of_deviceIDCRI deviceIDCRI_template_len deviceIDCSR_version ku) in
+  let deviceIDCSR_len = len_of_deviceIDCSR
+                          (len_of_deviceIDCRI
+                             deviceIDCSR_version
+                             aliasKeyCrt_s_common aliasKeyCrt_s_org aliasKeyCrt_s_country
+                             ku) in
   let deviceIDCSR_buf: B.lbuffer byte_pub (v deviceIDCSR_len) = B.alloca 0x00uy deviceIDCSR_len in
-  let aliasKeyCRT_len = len_of_aliasKeyCRT (len_of_aliasKeyTBS aliasKeyTBS_template_len ku riot_version) in
+
+  let aliasKeyCRT_len = len_of_aliasKeyCRT
+                          (len_of_aliasKeyTBS
+                            aliasKeyCrt_serialNumber
+                            aliasKeyCrt_i_common aliasKeyCrt_i_org aliasKeyCrt_i_country
+                            aliasKeyCrt_s_common aliasKeyCrt_s_org aliasKeyCrt_s_country
+                            ku
+                            riot_version) in
   let aliasKeyCRT_buf: B.lbuffer byte_pub (v aliasKeyCRT_len) = B.alloca 0x00uy aliasKeyCRT_len in
+
   let aliasKey_pub : B.lbuffer byte_pub 32 = B.alloca 0x00uy 32ul in
   let aliasKey_priv: B.lbuffer byte_sec 32 = B.alloca (u8 0x00) 32ul in
-
-  let deviceIDCSR_version: datatype_of_asn1_type INTEGER = 0l in
 
   comment "Call riot main function";
   printf "Enter RIoT\n" done;
   riot
+(* Common Inputs *)
     (* cdi       *) cdi
     (* fwid      *) fwid
     (* labels    *) deviceID_lbl_len
                     deviceID_lbl
                     aliasKey_lbl_len
                     aliasKey_lbl
-
-                    ku
-                    deviceIDCSR_version
-                    deviceIDCRI_template_len
-                    deviceIDCRI_template_buf
-
+(* DeviceID CSR Inputs*)
     (* key usage *) ku
-    (* version   *) riot_version
-    (* template  *) aliasKeyTBS_template_len
-                    aliasKeyTBS_template_buf
-
+                    deviceIDCSR_version
+                    aliasKeyCrt_s_common
+                    aliasKeyCrt_s_org
+                    aliasKeyCrt_s_country
+(* AliasKey Crt Inputs*)
+    (* version   *) aliasKeyCrt_version
+    (*   SN      *) aliasKeyCrt_serialNumber
+    (* issuer    *) aliasKeyCrt_i_common
+                    aliasKeyCrt_i_org
+                    aliasKeyCrt_i_country
+    (* validity  *) notBefore
+                    notAfter
+    (* subject   *) aliasKeyCrt_s_common
+                    aliasKeyCrt_s_org
+                    aliasKeyCrt_s_country
+    (* key usage *) ku
+                    riot_version
+(* Common Outputs *)
     (* aliasKey  *) aliasKey_pub
                     aliasKey_priv
-
+(* DeviceID CSR Outputs *)
                     deviceIDCSR_len
                     deviceIDCSR_buf
-
+(* AliasKey Crt Outputs *)
     (*aliasKeyCRT*) aliasKeyCRT_len
                     aliasKeyCRT_buf;
   printf "Exit RIoT\n" done;
@@ -116,10 +181,10 @@ let main ()
   let aliasKey_priv_pub: B.lbuffer byte_pub 32 = B.alloca 0x00uy 32ul in
   declassify_secret_buffer 32ul aliasKey_priv aliasKey_priv_pub;
 
-  printf "AliasKey Public  Key: %xuy \n" 32ul aliasKey_pub  done;
-  printf "AliasKey Private Key: %xuy \n" 32ul aliasKey_priv_pub done;
-  printf "DeviceID CSR        : %xuy \n" deviceIDCSR_len deviceIDCSR_buf done;
-  printf "AliasKey Certificate: %xuy \n" aliasKeyCRT_len aliasKeyCRT_buf done;
+  // printf "AliasKey Public  Key: %xuy \n" 32ul aliasKey_pub  done;
+  // printf "AliasKey Private Key: %xuy \n" 32ul aliasKey_priv_pub done;
+  // printf "DeviceID CSR        : %xuy \n" deviceIDCSR_len deviceIDCSR_buf done;
+  // printf "AliasKey Certificate: %xuy \n" aliasKeyCRT_len aliasKeyCRT_buf done;
 
   write_out "AliasKeyPublicKey.hex" aliasKey_pub 32ul;
   write_out "AliasKeyPrivateKey.hex" aliasKey_priv_pub 32ul;

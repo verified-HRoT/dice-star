@@ -109,6 +109,7 @@ let lemma_serialize_aliasKeyCRT_payload_unfold
 
 let length_of_aliasKeyCRT_payload
   (tbs_len: asn1_int32)
+: GTot (nat)
 = v tbs_len + 74
 
 #push-options "--z3rlimit 32"
@@ -174,22 +175,25 @@ let lemma_serialize_aliasKeyCRT_size
 : Lemma ( predicate_serialize_asn1_sequence_TLV_size (serialize_aliasKeyCRT_payload tbs_len) x )
 = lemma_serialize_asn1_sequence_TLV_size (serialize_aliasKeyCRT_payload tbs_len) x
 
+#push-options "--z3rlimit 64 --fuel 0 --ifuel 0"
 let length_of_aliasKeyCRT
   (tbs_len: asn1_int32
             { length_of_aliasKeyCRT_payload tbs_len
               <= asn1_value_length_max_of_type SEQUENCE })
-= 1 + length_of_asn1_length (len_of_aliasKeyCRT_payload tbs_len) +
-    length_of_aliasKeyCRT_payload tbs_len
+: GTot (asn1_TLV_length_of_type SEQUENCE)
+= length_of_TLV
+    (SEQUENCE)
+    ((length_of_aliasKeyCRT_payload tbs_len))
 
-#push-options "--z3rlimit 64 --fuel 0 --ifuel 0"
 let len_of_aliasKeyCRT
   (tbs_len: asn1_int32
             { length_of_aliasKeyCRT_payload tbs_len
               <= asn1_value_length_max_of_type SEQUENCE })
 : Tot (len: asn1_TLV_int32_of_type SEQUENCE
             { v len == length_of_aliasKeyCRT tbs_len })
-= 1ul + len_of_asn1_length (len_of_aliasKeyCRT_payload tbs_len) +
-    len_of_aliasKeyCRT_payload tbs_len
+= len_of_TLV
+    (SEQUENCE)
+    (len_of_aliasKeyCRT_payload tbs_len)
 #pop-options
 
 #push-options "--z3rlimit 64 --fuel 0 --ifuel 0"

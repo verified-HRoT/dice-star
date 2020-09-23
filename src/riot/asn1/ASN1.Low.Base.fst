@@ -14,6 +14,8 @@ module MB = LowStar.Monotonic.Buffer
 module B = LowStar.Buffer
 module Cast = FStar.Int.Cast
 module G = FStar.Ghost
+module IB = LowStar.ImmutableBuffer
+module B32 = FStar.Bytes
 open FStar.Integers
 
 let size_t = U32.t
@@ -22,6 +24,22 @@ let byte = uint_8
 // AR: are the following used?
 // let bytes = Seq.seq byte
 // let lbytes = Seq.Properties.lseq byte
+
+(* NOTE: Let's see if this works *)
+// #push-options "--fuel 1"
+// noextract inline_for_extraction
+// let igcmalloc_s32_of_list
+//   (r:HS.rid)
+//   (len: size_t)
+//   (init:list byte { List.length init == v len })
+// : HST.ST (s32: B32.bytes
+//                { B32.length s32 == v len /\
+//                  s32 == B32.hide (Seq.createL init) })
+//   (requires fun h -> True)
+//   (ensures fun h0 s32 h1 -> B.(modifies loc_none h0 h1))
+// = let ib = IB.igcmalloc_of_list HS.root init in
+//   B32.of_buffer len ib
+// #pop-options
 
 [@unifier_hint_injective]
 inline_for_extraction
@@ -34,19 +52,19 @@ let serializer32_backwards
 = (x: t) ->
   (#rrel: _) -> (#rel: _) ->
   (b: B.mbuffer byte rrel rel) ->
-  (pos: size_t) ->
-  HST.Stack size_t
+  (pos: UInt32.t) ->
+  HST.Stack UInt32.t
   (* NOTE: b[pos] is already written, and b[pos - offset, pos - 1] will be written. *)
   (requires fun h ->
     let offset = Seq.length (s `serialize` x) in
     B.live h b /\
-    offset <= v pos /\ v pos <= B.length b /\
-    writable b (v pos - offset) (v pos) h)
+    offset <= UInt32.v pos /\ UInt32.v pos <= B.length b /\
+    writable b (UInt32.v pos - offset) (UInt32.v pos) h)
   (ensures fun h offset h' ->
     Seq.length (s `serialize` x) == v offset /\
-    B.modifies (B.loc_buffer_from_to b (pos - offset) (pos)) h h' /\
+    B.modifies (B.loc_buffer_from_to b (UInt32.sub pos offset) (pos)) h h' /\
     B.live h' b /\
-    Seq.slice (B.as_seq h' b) (v (pos - offset)) (v pos) `Seq.equal` (s `serialize` x))
+    Seq.slice (B.as_seq h' b) (UInt32.v (UInt32.sub pos offset)) (v pos) `Seq.equal` (s `serialize` x))
 
 unfold
 let coerce_serializer32_backwards

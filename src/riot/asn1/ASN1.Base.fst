@@ -34,12 +34,13 @@ type asn1_tag_t: Type =
 | IA5_STRING
 | BIT_STRING
 | OID
+| Generalized_Time
 | SEQUENCE
 | SET
 | CUSTOM_TAG: tag_class: asn1_tag_class_t ->
-                tag_form : asn1_tag_form_t  ->
-                tag_value: asn1_tag_value_t ->
-                asn1_tag_t
+              tag_form : asn1_tag_form_t  ->
+              tag_value: asn1_tag_value_t ->
+              asn1_tag_t
 
 type asn1_type = t: asn1_tag_t {not (CUSTOM_TAG? t)}
 
@@ -57,6 +58,9 @@ let the_asn1_tag (a: asn1_tag_t)
 /// Non constructive ASN1 types
 let asn1_primitive_type
 = (a: asn1_type{a =!= SEQUENCE /\ a =!= SET})
+
+let character_string_type : Type
+= a: asn1_tag_t { a == IA5_STRING \/ a == PRINTABLE_STRING }
 
 let asn1_implicit_tagging
   (t1 t2: asn1_tag_t)
@@ -101,6 +105,7 @@ let asn1_value_length_min_of_type
   | IA5_STRING
   | PRINTABLE_STRING  -> asn1_length_min   (* An empty `OCTET_STRING` [] has length 0. *)
   | OID          -> asn1_length_min   (* `OID` is just `OCTET_STRING`. *)
+  | Generalized_Time -> 15
   | BIT_STRING   -> 1                 (* An empty `BIT_STRING` with a leading byte of `unused_bits` has length 0. *)
   | SEQUENCE     -> asn1_length_min   (* An empty `SEQUENCE` has length 0. *)
   | SET          -> asn1_length_min   (* An empty `SET` has length 0. *)
@@ -118,6 +123,7 @@ let asn1_value_length_max_of_type
   | IA5_STRING
   | PRINTABLE_STRING -> asn1_length_max - 6  (* An `OCTET_STRING` of size `asn1_length_max - 6`. *)
   | OID          -> asn1_length_max - 6  (* `OID` is just `OCTET_STRING`. *)
+  | Generalized_Time -> 15
   | BIT_STRING   -> asn1_length_max - 6  (* An `BIT_STRING` of size `asn1_length_max - 7` with a leading byte of `unused_bits`. *)
   | SEQUENCE     -> asn1_length_max - 6  (* An `SEQUENCE` whose value has length `asn1_length_max - 6` *)
   | SET          -> asn1_length_max - 6  (* An `SET` whose value has length `asn1_length_max - 6` *)
@@ -157,6 +163,7 @@ let asn1_TLV_length_min_of_type
   | IA5_STRING
   | PRINTABLE_STRING -> 2 (*  1 + 1 + 0  *)
   | OID          -> 2 (*  1 + 1 + 0  *)
+  | Generalized_Time -> 17
   | BIT_STRING   -> 3 (*  1 + 1 + 1  *)
   | SEQUENCE     -> 2 (*  1 + 1 + 0  *)
   | SET          -> 2 (*  1 + 1 + 0  *)
@@ -174,6 +181,7 @@ let asn1_TLV_length_max_of_type
   | IA5_STRING
   | PRINTABLE_STRING -> asn1_length_max  (*  1 + 5 + _  *)
   | OID          -> asn1_length_max  (*  1 + 5 + _  *)
+  | Generalized_Time -> 17
   | BIT_STRING   -> asn1_length_max  (*  1 + 5 + _  *)
   | SEQUENCE     -> asn1_length_max  (*  1 + 5 + _  *)
   | SET          -> asn1_length_max  (*  1 + 5 + _  *)
@@ -220,6 +228,7 @@ let asn1_value_int32_min_of_type
   | IA5_STRING
   | PRINTABLE_STRING -> asn1_int32_min
   | OID          -> asn1_int32_min
+  | Generalized_Time -> 15ul
   | BIT_STRING   -> 1ul
   | SEQUENCE     -> asn1_int32_min
   | SET          -> asn1_int32_min
@@ -237,6 +246,7 @@ let asn1_value_int32_max_of_type
   | IA5_STRING
   | PRINTABLE_STRING -> asn1_int32_max - 6ul
   | OID          -> asn1_int32_max - 6ul
+  | Generalized_Time -> 15ul
   | BIT_STRING   -> asn1_int32_max - 6ul
   | SEQUENCE     -> asn1_int32_max - 6ul
   | SET          -> asn1_int32_max - 6ul
@@ -269,6 +279,7 @@ let asn1_TLV_int32_min_of_type
   | IA5_STRING
   | PRINTABLE_STRING -> 2ul
   | OID          -> 2ul
+  | Generalized_Time -> 17ul
   | BIT_STRING   -> 3ul
   | SEQUENCE     -> 2ul
   | SET          -> 2ul
@@ -285,6 +296,7 @@ let asn1_TLV_int32_max_of_type
   | IA5_STRING
   | PRINTABLE_STRING -> asn1_int32_max
   | OID          -> asn1_int32_max
+  | Generalized_Time -> 17ul
   | BIT_STRING   -> asn1_int32_max
   | SEQUENCE     -> asn1_int32_max
   | SET          -> asn1_int32_max
@@ -381,7 +393,79 @@ let bytes32_IA5
 let valid_PRINTABLE_byte
   (b: byte)
 : Tot (bool)
-= (0x41uy <= b && b <= 0x5Auy)
+= (0x41uy <= b && b <= 0x5Auy) || (* Latin capital letters: A,B, ... Z *)
+  (0x61uy <= b && b <= 0x7Auy) || (* Latin small letters: a,b, ... z*)
+  (0x30uy <= b && b <= 0x39uy) || (* Numbers: 0,1, ... 9*)
+  b = 0x20uy || (* SPACE: (space) *)
+  b = 0x27uy || (* APOSTROPHE: ' *)
+  b = 0x28uy || (* LEFT PARENTHESIS: ( *)
+  b = 0x29uy || (* RIGHT PARENTHESIS: ) *)
+  b = 0x2Buy || (* PLUS SIGN: + *)
+  b = 0x2Cuy || (* COMMA: , *)
+  b = 0x2Duy || (* HYPHEN-MINUS: - *)
+  b = 0x2Euy || (* FULL STOP: . *)
+  b = 0x2Fuy || (* SOLIDUS: / *)
+  b = 0x3Auy || (* COLON: : *)
+  b = 0x3Duy || (* EQUALS SIGN: = *)
+  b = 0x3Fuy   (* QUESTION MARK: ? *)
+
+let valid_character_string_byte
+  (t: character_string_type)
+  (b: byte)
+: Tot (bool)
+= match t with
+  | IA5_STRING -> valid_IA5_byte b
+  | PRINTABLE_STRING -> valid_PRINTABLE_byte b
+
+let valid_character_string_bytes
+  (t: character_string_type)
+  (s: bytes)
+: Tot (bool)
+= Seq.for_all (valid_character_string_byte t) s
+
+inline_for_extraction
+let character_string_bytes32
+  (t: character_string_type)
+: Type
+= s32: B32.bytes { valid_character_string_bytes t (B32.reveal s32) }
+
+let character_string_lbytes32
+  (t: character_string_type)
+  (len: asn1_value_int32_of_type t)
+: Type
+= s32: B32.lbytes32 len { valid_character_string_bytes t (B32.reveal s32) }
+
+// inline_for_extraction
+let character_string_t
+  (t: character_string_type)
+// : Type
+= ( len: asn1_value_int32_of_type t &
+    character_string_lbytes32 t len)
+
+noextract inline_for_extraction
+let asn1_generalized_time_for_x509_validity_notAfter_default_list
+: l: list byte { List.length l == 15 }
+= [@inline_let] let l = [0x39uy; 0x39uy; 0x39uy; 0x39uy; 0x31uy; 0x32uy; 0x33uy; 0x31uy; 0x32uy; 0x33uy; 0x35uy; 0x39uy; 0x35uy; 0x39uy; 0x5Auy] in
+  assert_norm (List.length l == 15);
+  l
+
+noextract inline_for_extraction
+let asn1_generalized_time_for_x509_validity_notAfter_default_seq
+: s: bytes { Seq.createL_post asn1_generalized_time_for_x509_validity_notAfter_default_list s }
+= Seq.createL asn1_generalized_time_for_x509_validity_notAfter_default_list
+
+// noextract inline_for_extraction
+// let x509_validity_notAfter_default_seq
+// : s: bytes { Seq.createL_post x509_validity_notAfter_default_list s }
+// = Seq.createL x509_validity_notAfter_default_list
+
+let valid_generalized_time
+  (x: B32.lbytes32 15ul)
+: GTot bool
+= x = B32.hide (Seq.createL asn1_generalized_time_for_x509_validity_notAfter_default_list)
+
+let generalized_time_t: Type
+= LowParse.Spec.Combinators.parse_filter_refine valid_generalized_time
 
 ////////////////////////////////////////////////////////////////////////
 ////            Representation of ASN1 Values
@@ -403,14 +487,14 @@ let datatype_of_asn1_type (a: asn1_primitive_type): Type
   | OCTET_STRING -> ( len: asn1_value_int32_of_type OCTET_STRING &
                       s  : B32.bytes { B32.length s == v len } )
 
-  | PRINTABLE_STRING -> ( len: asn1_value_int32_of_type OCTET_STRING &
-                          s  : B32.bytes { B32.length s == v len /\ Seq.for_all valid_PRINTABLE_byte (B32.reveal s) } )
+  | PRINTABLE_STRING
+                 -> character_string_t PRINTABLE_STRING
 
-  | IA5_STRING   -> ( len: asn1_value_int32_of_type IA5_STRING &
-                      s  : B32.bytes { B32.length s == v len /\ Seq.for_all valid_IA5_byte (B32.reveal s) } )
+  | IA5_STRING   -> character_string_t IA5_STRING
 
-  (* WIP *)
   | OID          -> oid_t
+
+  | Generalized_Time -> generalized_time_t
 
   (* A bit string is represent as
      1. `len`: the length of both `unused_bits` and `s`;

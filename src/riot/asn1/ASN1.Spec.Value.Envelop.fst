@@ -16,6 +16,7 @@ open FStar.Integers
  *)
 
 // unfold
+inline_for_extraction
 let inbound_envelop_tag_with_value_of
   (#k: parser_kind)
   (#t: Type0)
@@ -182,6 +183,7 @@ let serialize_asn1_envelop_tag_with_weak
 ///
 ///
 
+noextract
 let parse_asn1_envelop_tag_with_TLV_kind
   (a: asn1_tag_t)
 : parser_kind
@@ -274,7 +276,11 @@ let predicate_serialize_asn1_envelop_tag_with_TLV_size
   == 1 + length_of_asn1_length len + length /\
   (* upper bound *)
   Seq.length (serialize (serialize_asn1_envelop_tag_with_TLV a s) value)
-  <= length + 6
+  <= length + 6 /\
+  Seq.length (serialize (serialize_asn1_envelop_tag_with_TLV a s) value)
+  <= asn1_TLV_length_max_of_type a /\
+  Seq.length (serialize s value)
+  <= asn1_value_length_max_of_type a
 
 let lemma_serialize_asn1_envelop_tag_with_TLV_size
   (#k: parser_kind)

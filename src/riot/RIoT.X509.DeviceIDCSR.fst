@@ -8,7 +8,7 @@ open FStar.Integers
 
 module B32 = FStar.Bytes
 
-#set-options "--z3rlimit 32 --fuel 0 --ifuel 0"
+#set-options "--z3rlimit 128 --fuel 0 --ifuel 0"
 
 type deviceIDCSR_payload_t (cri_len: asn1_int32) = {
   deviceIDCSR_cri: B32.lbytes32 cri_len;
@@ -106,9 +106,9 @@ let lemma_serialize_deviceIDCSR_payload_unfold
 
 let length_of_deviceIDCSR_payload
   (cri_len: asn1_int32)
+: GTot (nat)
 = v cri_len + 74
 
-#push-options "--z3rlimit 32"
 let len_of_deviceIDCSR_payload
   (cri_len: asn1_int32
             { length_of_deviceIDCSR_payload cri_len
@@ -116,10 +116,8 @@ let len_of_deviceIDCSR_payload
 : Tot (len: asn1_TLV_int32_of_type SEQUENCE
             { v len == length_of_deviceIDCSR_payload cri_len })
 = cri_len + 74ul
-#pop-options
 
 #restart-solver
-#push-options "--z3rlimit 64 --fuel 0 --ifuel 0"
 let lemma_serialize_deviceIDCSR_payload_size
   (cri_len: asn1_int32)
   (x: deviceIDCSR_payload_t cri_len)
@@ -136,7 +134,6 @@ let lemma_serialize_deviceIDCSR_payload_size
 = lemma_serialize_deviceIDCSR_payload_unfold cri_len x;
   (**) lemma_serialize_algorithmIdentifier_size_exact x.deviceIDCSR_sig_alg;
   (**) lemma_serialize_x509_signature_size      x.deviceIDCSR_sig
-#pop-options
 
 
 (* SEQUENCE TLV*)
@@ -173,22 +170,26 @@ let lemma_serialize_deviceIDCSR_size
 
 let valid_deviceIDCSR_ingredients
   (cri_len: asn1_int32)
+:Type0
 = length_of_deviceIDCSR_payload cri_len <= asn1_value_length_max_of_type SEQUENCE
 
+#push-options "--z3rlimit 64 --fuel 0 --ifuel 0"
 let length_of_deviceIDCSR
   (cri_len: asn1_int32
             { valid_deviceIDCSR_ingredients cri_len })
-= 1 + length_of_asn1_length (len_of_deviceIDCSR_payload cri_len) +
-    length_of_deviceIDCSR_payload cri_len
+: GTot (asn1_TLV_length_of_type SEQUENCE)
+= length_of_TLV
+    (SEQUENCE)
+    (length_of_deviceIDCSR_payload cri_len)
 
-#push-options "--z3rlimit 64 --fuel 0 --ifuel 0"
 let len_of_deviceIDCSR
   (cri_len: asn1_int32
             { valid_deviceIDCSR_ingredients cri_len })
 : Tot (len: asn1_TLV_int32_of_type SEQUENCE
             { v len == length_of_deviceIDCSR cri_len })
-= 1ul + len_of_asn1_length (len_of_deviceIDCSR_payload cri_len) +
-    len_of_deviceIDCSR_payload cri_len
+= len_of_TLV
+    (SEQUENCE)
+    (len_of_deviceIDCSR_payload cri_len)
 #pop-options
 
 #push-options "--z3rlimit 64 --fuel 0 --ifuel 0"
@@ -235,7 +236,6 @@ let serialize32_deviceIDCSR_backwards
     ()
 
 #restart-solver
-#push-options "--z3rlimit 32 --fuel 0 --ifuel 0"
 let x509_get_deviceIDCSR
   (cri_len: asn1_int32
             { valid_deviceIDCSR_ingredients cri_len })

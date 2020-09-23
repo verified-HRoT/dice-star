@@ -6,6 +6,7 @@ module IB = LowStar.ImmutableBuffer
 module HS  = FStar.HyperStack
 module HST = FStar.HyperStack.ST
 
+module SHA1 = Hacl.Hash.SHA1
 module SHA2 = Hacl.Hash.SHA2
 module HMAC = Hacl.HMAC
 module HKDF = Hacl.HKDF
@@ -16,6 +17,8 @@ open Lib.IntTypes
 
 open RIoT.Base
 open RIoT.Declassify
+
+#set-options "--z3rlimit 64 --fuel 0 --ifuel 0"
 
 unfold
 let valid_hkdf_ikm_len
@@ -36,12 +39,12 @@ let valid_hkdf_lbl_len
 (* Key Pair Derivation using HKDF and Ed25519
    See appendix below
  *)
-let derive_key_pair_spec
+let derive_sec_key_pair_spec
   (ikm_len: size_t { valid_hkdf_ikm_len ikm_len })
   (ikm: Seq.lseq uint8 (v ikm_len))
   (lbl_len: size_t { valid_hkdf_lbl_len lbl_len })
   (lbl: Seq.lseq uint8 (v lbl_len))
-: GTot (Seq.lseq pub_uint8 32 & Seq.lseq uint8 32)
+: GTot (Seq.lseq uint8 32 & Seq.lseq uint8 32)
 = let alg = SHA2_256 in
   (* Derive private key from `ikm` and `lbl` using HKDF *)
   (* Step 1. extract a `prk` (Pseudo Random Key) from an empty `salt` of `hashLen` and `ikm` *)
@@ -57,11 +60,19 @@ let derive_key_pair_spec
                        (* info*) lbl
                        (* len *) (hash_length alg) in
 
-  (* Derive public key from private key using Ed25519 (FIXME: Or Curve25519?) *)
-  let public_key = declassify_secret_bytes (Spec.Ed25519.secret_to_public private_key) in
+  let public_key = Spec.Ed25519.secret_to_public private_key in
 
 (* return *) (public_key, private_key)
 
+let derive_key_pair_spec
+  (ikm_len: size_t { valid_hkdf_ikm_len ikm_len })
+  (ikm: Seq.lseq uint8 (v ikm_len))
+  (lbl_len: size_t { valid_hkdf_lbl_len lbl_len })
+  (lbl: Seq.lseq uint8 (v lbl_len))
+: GTot (Seq.lseq pub_uint8 32 & Seq.lseq uint8 32)
+= let public_key, private_key = derive_sec_key_pair_spec ikm_len ikm lbl_len lbl in
+  let public_key = declassify_secret_bytes public_key in
+(* return *) (public_key, private_key)
 
 (* DeviceID Derivation
  *)
@@ -90,7 +101,29 @@ let derive_AliasKey_spec
     (* ikm *) 32ul adigest
     (* lbl *) riot_label_AliasKey_len riot_label_AliasKey
 
+let lemma_derive_authKeyID_length_valid ()
+: Lemma ( 32 <= max_input_length Spec.Agile.Hash.SHA1 )
+= assert_norm ( 32 <= max_input_length Spec.Agile.Hash.SHA1 )
 
+let derive_authKeyID_spec
+  (deviceIDPub: lbytes_sec 32)
+: GTot (lbytes_pub 20)
+= assert_norm (Seq.length deviceIDPub <= max_input_length Spec.Agile.Hash.SHA1);
+  declassify_secret_bytes
+    (Spec.Agile.Hash.hash
+       Spec.Agile.Hash.SHA1
+       deviceIDPub)
+
+let derive_authKeyID_from_cdi_spec
+  (cdi: lbytes_sec 32)
+  (riot_label_DeviceID_len: size_t {valid_hkdf_lbl_len riot_label_DeviceID_len})
+  (riot_label_DeviceID: lbytes_sec (v riot_label_DeviceID_len))
+: GTot (lbytes_pub 20)
+= let deviceID_pub_seq, deviceID_priv_seq = derive_sec_key_pair_spec
+                                                 (32ul) (Spec.Agile.Hash.hash alg cdi)
+                                                 (riot_label_DeviceID_len)
+                                                 (riot_label_DeviceID) in
+  derive_authKeyID_spec deviceID_pub_seq
 
 (* Appendix:
                                RFC 5869: HKDF

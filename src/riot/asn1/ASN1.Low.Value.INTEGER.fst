@@ -18,7 +18,8 @@ module LE = LowParse.Low.Endianness
 
 (* NOTE: Read after `ASN1.Spec.Tag`, `ASN1.Spec.Length` *)
 
-(* FIXME: Failed when compiling. *)
+#set-options "--z3rlimit 256 --fuel 0 --ifuel 0"
+
 /// Implementation of length computation of `INTEGER` value's serialization
 inline_for_extraction
 let len_of_asn1_integer
@@ -47,7 +48,6 @@ NOTE: Since there are no low-level machine-integer to bytes implementations
       16-bit, 32-bit integer store interfaces. For 3-byte, we need to store
       the first 2 bytes and the last byte separately.
 *)
-#push-options "--z3rlimit 64"
 inline_for_extraction noextract
 let serialize32_asn1_integer_backwards_1byte_without_leading_zero
   (len: asn1_value_int32_of_type INTEGER)
@@ -293,9 +293,8 @@ let serialize32_asn1_integer_backwards_3byte_without_leading_zero
             (* mem'*) h2;
    (* Prf *) Seq.lemma_split (Seq.slice (B.as_seq h2 b) (v pos - 3) (v pos)) 2;
 (*return*) 3ul
-#pop-options
 
-#push-options "--z3rlimit 64"
+
 inline_for_extraction noextract
 let serialize32_asn1_integer_backwards_4byte_with_leading_zero
   (len: asn1_value_int32_of_type INTEGER)

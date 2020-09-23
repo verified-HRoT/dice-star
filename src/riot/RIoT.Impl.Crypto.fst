@@ -166,3 +166,25 @@ let derive_AliasKey
     32ul aDigest
     riot_label_AliasKey_len riot_label_AliasKey;
   HST.pop_frame ()
+
+let derive_authKeyID
+  (authKeyID: B.lbuffer byte_pub 20)
+  (deviceIDPub: B.lbuffer byte_sec 32)
+: HST.Stack unit
+  (requires fun h ->
+    B.live h authKeyID /\ B.live h deviceIDPub /\
+    B.disjoint authKeyID deviceIDPub)
+  (ensures fun h0 _ h1 ->
+    B.modifies (B.loc_buffer authKeyID) h0 h1 /\
+    B.as_seq h1 authKeyID == derive_authKeyID_spec (B.as_seq h0 deviceIDPub))
+= HST.push_frame ();
+
+  let authKeyID_sec = B.alloca (u8 0x00) 20ul in
+  (* Prf *) lemma_derive_authKeyID_length_valid ();
+  Hacl.Hash.SHA1.legacy_hash
+    deviceIDPub 32ul
+    authKeyID_sec;
+
+  declassify_secret_buffer 20ul authKeyID_sec authKeyID;
+
+  HST.pop_frame ()
