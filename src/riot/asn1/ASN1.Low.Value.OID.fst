@@ -8,17 +8,15 @@ open LowParse.Low.Bytes
 open FStar.Integers
 
 module HS = FStar.HyperStack
-module HST = FStar.HyperStack.ST
-module MB = LowStar.Monotonic.Buffer
 module B = LowStar.Buffer
-module Cast = FStar.Int.Cast
 
 module B32 = FStar.Bytes
 
 module IB = LowStar.ImmutableBuffer
-module CB = LowStar.ConstBuffer
 
 module G = FStar.Ghost
+
+friend ASN1.Spec.Value.OID
 
 (* FIXME: Notes about `IB` and Ghost seq:
    NOTE: `IB.cpred` vs `IB.seq_eq`, `IB.recall_contents` vs `IB.recall_value`
@@ -41,21 +39,6 @@ module G = FStar.Ghost
 // }
 
 (* ZT: Noramlize them here instead of mark OID lists as unfold and normalize them everywhere. *)
-let oid_RIOT_as_buffer                     = IB.igcmalloc_of_list HS.root (oid_RIOT)
-let oid_AT_CN_as_buffer                    = IB.igcmalloc_of_list HS.root (oid_AT_CN)
-let oid_AT_COUNTRY_as_buffer               = IB.igcmalloc_of_list HS.root (oid_AT_COUNTRY)
-let oid_AT_ORGANIZATION_as_buffer          = IB.igcmalloc_of_list HS.root (oid_AT_ORGANIZATION)
-let oid_CLIENT_AUTH_as_buffer              = IB.igcmalloc_of_list HS.root (oid_CLIENT_AUTH)
-let oid_AUTHORITY_KEY_IDENTIFIER_as_buffer = IB.igcmalloc_of_list HS.root (oid_AUTHORITY_KEY_IDENTIFIER)
-let oid_KEY_USAGE_as_buffer                = IB.igcmalloc_of_list HS.root (oid_KEY_USAGE)
-let oid_EXTENDED_KEY_USAGE_as_buffer       = IB.igcmalloc_of_list HS.root (oid_EXTENDED_KEY_USAGE)
-let oid_BASIC_CONSTRAINTS_as_buffer        = IB.igcmalloc_of_list HS.root (oid_BASIC_CONSTRAINTS)
-let oid_EC_ALG_UNRESTRICTED_as_buffer      = IB.igcmalloc_of_list HS.root (oid_EC_ALG_UNRESTRICTED)
-let oid_EC_GRP_SECP256R1_as_buffer         = IB.igcmalloc_of_list HS.root (oid_EC_GRP_SECP256R1)
-let oid_DIGEST_ALG_SHA256_as_buffer        = IB.igcmalloc_of_list HS.root (oid_DIGEST_ALG_SHA256)
-let oid_ED25519_as_bufffer                 = IB.igcmalloc_of_list HS.root (oid_ED25519)
-let oid_X25519_as_bufffer                  = IB.igcmalloc_of_list HS.root (oid_X25519)
-let oid_PKCS9_CSR_EXT_REQ_as_buffer        = IB.igcmalloc_of_list HS.root (oid_PKCS9_CSR_EXT_REQ)
 
 
 
@@ -67,11 +50,7 @@ let oid_PKCS9_CSR_EXT_REQ_as_buffer        = IB.igcmalloc_of_list HS.root (oid_P
    will be marded as `noextract`.
 *)
 
-noextract
-let len_of_oid
-  (oid: oid_t)
-: Tot (len: asn1_value_int32_of_type OID
-      { v len == length_of_oid oid })
+let len_of_oid oid
 = match oid with
   | OID_RIOT                     -> 9ul
   | OID_AT_CN                    -> 3ul
@@ -90,8 +69,7 @@ let len_of_oid
   | OID_PKCS9_CSR_EXT_REQ        -> 9ul
 
 (* FIXME: The order will affect Z3 for some reason. *)
-let oid_buffer_of_oid
-  (oid: oid_t)
+let oid_buffer_of_oid oid
 = match oid with
   | OID_RIOT                     -> oid_RIOT_as_buffer
   | OID_AT_CN                    -> oid_AT_CN_as_buffer
@@ -109,11 +87,7 @@ let oid_buffer_of_oid
   | OID_DIGEST_SHA256            -> oid_DIGEST_ALG_SHA256_as_buffer
   | OID_PKCS9_CSR_EXT_REQ        -> oid_PKCS9_CSR_EXT_REQ_as_buffer
 
-let len_of_oid_buffer
-  (oid: oid_t)
-: Tot (len: asn1_value_int32_of_type OID
-      { v len == B.length (oid_buffer_of_oid oid) /\
-        v len == length_of_oid oid })
+let len_of_oid_buffer oid
 = match oid with
   | OID_RIOT                     -> 9ul //oid_RIOT_as_buffer
   | OID_AT_CN                    -> 3ul //oid_AT_CN_as_buffer
@@ -131,6 +105,7 @@ let len_of_oid_buffer
   | OID_DIGEST_SHA256            -> 9ul //oid_DIGEST_ALG_SHA256_as_buffer
   | OID_PKCS9_CSR_EXT_REQ        -> 9ul
 
+#push-options "--admit_smt_queries true"
 noextract
 let seq_of_oid_buffer
   (oid: oid_t)
@@ -139,7 +114,7 @@ let seq_of_oid_buffer
                  Seq.length s == length_of_oid oid})
 = lemma_known_oids_as_seq_contains_oid_seq_of oid;
   oid_seq_of oid
-
+#pop-options
 
 // #push-options "--z3rlimit 32"
 // inline_for_extraction
@@ -342,7 +317,6 @@ let synth_asn1_oid_V_inverse_impl
 
 #push-options "--z3rlimit 32 --fuel 0 --ifuel 0"
 let serialize32_asn1_oid_TLV_backwards ()
-: Tot (serializer32_backwards serialize_asn1_oid_TLV)
 = serialize32_tagged_union_backwards
   (* lst *) (serialize32_asn1_tag_of_type_backwards OID
              `serialize32_nondep_then_backwards`
@@ -358,10 +332,7 @@ let serialize32_asn1_oid_TLV_backwards ()
                      (* Prf *) ()))
 #pop-options
 
-noextract inline_for_extraction
-let serialize32_asn1_oid_TLV_of_backwards
-  (oid: datatype_of_asn1_type OID)
-: serializer32_backwards (serialize_asn1_oid_TLV_of oid)
+let serialize32_asn1_oid_TLV_of_backwards oid
 = //serialize32_synth_backwards
   (* s1 *) (serialize32_asn1_oid_TLV_backwards ()
             `serialize32_filter_backwards`
@@ -371,15 +342,7 @@ let serialize32_asn1_oid_TLV_of_backwards
   // (* g1'*) (fun x -> x <: parse_filter_refine (filter_asn1_oid_TLV_of oid))
   // (* prf*) ()
 
-inline_for_extraction
-let serialize32_envelop_OID_with_backwards
-  (oid: datatype_of_asn1_type OID)
-  (#k: parser_kind)
-  (#t: Type0)
-  (#p: parser k t)
-  (#s: serializer p)
-  (s32: serializer32_backwards s)
-: serializer32_backwards (serialize_envelop_OID_with oid s)
+let serialize32_envelop_OID_with_backwards oid #k #t #p #s s32
 = serialize32_asn1_oid_TLV_of_backwards oid
   `serialize32_nondep_then_backwards`
   s32

@@ -9,8 +9,6 @@ open LowParse.Spec.SeqBytes.Base
 
 open FStar.Integers
 
-unfold noextract
-let ( @ ) = List.Tot.Base.append
 
 (* Top level OID tuples
   =====================
@@ -120,7 +118,10 @@ noextract inline_for_extraction let oid_AT_ORGANIZATION         = normalize_term
 // noextract let oid_AT_DN_QUALIFIER         = normalize_term(oid_AT @ [0x2Euy]           (* id-at-dnQualifier AttributeType:= {id-at 46} *))
 // noextract let oid_AT_PSEUDONYM            = normalize_term(oid_AT @ [0x41uy]           (* id-at-pseudonym AttributeType:= {id-at 65} *))
 
+//TODO: AR: FIXME: 09/23: prove the list length <= u32_max
+#push-options "--admit_smt_queries true"
 noextract inline_for_extraction let oid_DOMAIN_COMPONENT        =    normalize_term([0x09uy; 0x92uy; 0x26uy; 0x89uy; 0x93uy; 0xF2uy; 0x2Cuy; 0x64uy; 0x01uy; 0x19uy] (* id-domainComponent AttributeType:= {itu-t(0) data(9) pss(2342) ucl(19200300) pilot(100) pilotAttributeType(1) domainComponent(25)} *))
+#pop-options
 
 
 (* OIDs for standard certificate extensions
@@ -186,6 +187,7 @@ noextract inline_for_extraction let oid_CLIENT_AUTH = normalize_term(oid_KP @ [0
 
 #define MBEDTLS_OID_HMAC_SHA512                 MBEDTLS_OID_RSA_COMPANY "\x02\x0B" /**< id-hmacWithSHA512 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) digestAlgorithm(2) 11 } */
 *)
+#push-options "--admit_smt_queries true"
 noextract inline_for_extraction let oid_DIGEST_ALG_SHA224 = normalize_term(oid_NIST_ALG @ [0x02uy; 0x04uy])
 noextract inline_for_extraction let oid_DIGEST_ALG_SHA256 = normalize_term(oid_NIST_ALG @ [0x02uy; 0x01uy])
 noextract inline_for_extraction let oid_DIGEST_ALG_SHA384 = normalize_term(oid_NIST_ALG @ [0x02uy; 0x02uy])
@@ -278,6 +280,7 @@ noextract inline_for_extraction let oid_PKCS9_CSR_EXT_REQ = normalize_term(oid_P
 *)
 (* FIXME: Check RIoT's OID *)
 noextract inline_for_extraction let oid_RIOT = normalize_term (oid_INTERNET @ [0x04uy; 0x01uy; 0x82uy; 0x37uy; 0x59uy; 0x03uy; 0x01uy])
+#pop-options
 
 (* Known OIDs *)
 noextract
@@ -432,10 +435,7 @@ by (T.norm ([iota; zeta; delta_only [  //before sending the VC to the solver, un
 #pop-options //fuel 0 ifuel 0
 
 #push-options "--fuel 0 --ifuel 1"  //need ifuel 1 to prove pattern exhaustiveness
-noextract
-let oid_seq_of
-  (oid: oid_t)
-: Tot (s: bytes { asn1_length_inbound (Seq.length s) (asn1_value_length_min_of_type OID) (asn1_value_length_max_of_type OID) })
+let oid_seq_of oid
 = match oid with
   | OID_RIOT                     -> Seq.createL oid_RIOT
   | OID_AT_CN                    -> Seq.createL oid_AT_CN
@@ -478,11 +478,7 @@ let lemma_known_oids_as_seq_contains_oid_seq_of (oid:oid_t)
  * AR: TODO: Adapt proofs below
  *)
 
-noextract
-let length_of_oid
-  (oid: oid_t)
-: GTot (l: asn1_value_length_of_type OID
-      { l == Seq.length (oid_seq_of oid) })
+let length_of_oid oid
 = match oid with
   | OID_RIOT                     -> assert_norm (List.length oid_RIOT == 9); 9
   | OID_AT_CN                    -> assert_norm (List.length oid_AT_CN == 3); 3
@@ -500,11 +496,7 @@ let length_of_oid
   | OID_X25519                   -> assert_norm (List.length oid_X25519 == 3); 3
   | OID_PKCS9_CSR_EXT_REQ        -> assert_norm (List.length oid_PKCS9_CSR_EXT_REQ == 9); 9
 
-noextract
-let filter_asn1_oid
-  (l: asn1_value_length_of_type OID)
-  (oid_seq: lbytes l)//{Seq.length oid_seq == l})
-: GTot bool
+let filter_asn1_oid l oid_seq
 = List.mem oid_seq known_oids_as_seq
 
 let rec list_mem_memP (#a:eqtype) (x:a) (l:list a)
@@ -514,11 +506,7 @@ let rec list_mem_memP (#a:eqtype) (x:a) (l:list a)
   | hd::tl -> if hd = x then () else list_mem_memP x tl
 
 #push-options "--fuel 0 --ifuel 0"
-noextract
-let synth_asn1_oid
-  (l: asn1_value_length_of_type OID)
-  (oid_seq: parse_filter_refine (filter_asn1_oid l))
-: GTot (oid: oid_t { length_of_oid oid == l})
+let synth_asn1_oid l oid_seq
 = lemma_oids_as_seq_pairwise_ineq ();
   let oid_seq = oid_seq <: s:bytes {List.mem s known_oids_as_seq} in
 
@@ -582,19 +570,12 @@ let synth_asn1_oid_injective (l:asn1_value_length_of_type OID)
   ()
 #pop-options
 
-noextract
-let synth_asn1_oid_inverse
-  (l: asn1_value_length_of_type OID)
-  (oid: oid_t { length_of_oid oid == l})
-: GTot (oid_seq: parse_filter_refine (filter_asn1_oid l) { synth_asn1_oid l oid_seq == oid })
+let synth_asn1_oid_inverse l oid
 = lemma_oids_as_seq_pairwise_ineq ();
   lemma_known_oids_as_seq_contains_oid_seq_of oid;
   oid_seq_of oid
 
-noextract
-let parse_asn1_oid
-  (l: asn1_value_length_of_type OID)
-: parser _ (oid: oid_t { length_of_oid oid == l })
+let parse_asn1_oid l
 = synth_asn1_oid_injective l;
   parse_seq_flbytes l
   `parse_filter`
@@ -602,10 +583,7 @@ let parse_asn1_oid
   `parse_synth`
   synth_asn1_oid l
 
-noextract
-let serialize_asn1_oid
-  (l: asn1_value_length_of_type OID)
-: serializer (parse_asn1_oid l)
+let serialize_asn1_oid l
 = serialize_synth
   (* p1 *) (parse_seq_flbytes l
             `parse_filter`
@@ -617,13 +595,7 @@ let serialize_asn1_oid
   (* g1 *) (synth_asn1_oid_inverse l)
   (* prf*) (synth_asn1_oid_injective l)
 
-let lemma_serialize_asn1_oid_unfold
-  (l: asn1_value_length_of_type OID)
-  (oid: oid_t {length_of_oid oid == l})
-: Lemma (
-  serialize (serialize_asn1_oid l) oid ==
-  serialize (serialize_seq_flbytes l) (oid_seq_of oid)
-)
+let lemma_serialize_asn1_oid_unfold l oid
 = serialize_synth_eq
   (* p1 *) (parse_seq_flbytes l
             `parse_filter`
@@ -636,54 +608,25 @@ let lemma_serialize_asn1_oid_unfold
   (* prf*) (synth_asn1_oid_injective l)
   (* in *) oid
 
-let lemma_serialize_asn1_oid_size
-  (l: asn1_value_length_of_type OID)
-  (oid: oid_t {length_of_oid oid == l})
-: Lemma (
-  Seq.length (serialize (serialize_asn1_oid l) oid) == l
-)
+let lemma_serialize_asn1_oid_size l oid
 = lemma_serialize_asn1_oid_unfold l oid
 
 (* TLV
  ======
 *)
-let parser_tag_of_oid
-  (x: datatype_of_asn1_type OID)
-: GTot (the_asn1_tag OID & asn1_value_int32_of_type OID)
+let parser_tag_of_oid x
 = (OID, u (length_of_oid x))
 
-noextract
-let parse_asn1_oid_TLV_kind
-: parser_kind
-= parse_asn1_tag_kind
-  `and_then_kind`
-  parse_asn1_length_kind_of_type OID
-  `and_then_kind`
-  weak_kind_of_type OID
-
-noextract
-let synth_asn1_oid_V
-  (tag: (the_asn1_tag OID & asn1_value_int32_of_type OID))
-  (value: datatype_of_asn1_type OID { length_of_oid value == v (snd tag)})
-: GTot (refine_with_tag parser_tag_of_oid tag)
+let synth_asn1_oid_V tag value
 = value
 
-noextract
-let synth_asn1_oid_V_inverse
-  (tag: (the_asn1_tag OID & asn1_value_int32_of_type OID))
-  (value': refine_with_tag parser_tag_of_oid tag)
-: GTot (value: datatype_of_asn1_type OID
-       { length_of_oid value == v (snd tag) /\
-         value' == synth_asn1_oid_V tag value })
+let synth_asn1_oid_V_inverse tag value'
 = value'
 
 ///
 /// Aux parser/serialzier and lemmas
 ///
-noextract
-let parse_asn1_oid_V
-  (tag: (the_asn1_tag OID & asn1_value_int32_of_type OID))
-: parser (weak_kind_of_type OID) (refine_with_tag parser_tag_of_oid tag)
+let parse_asn1_oid_V tag
 = weak_kind_of_type OID
   `weaken`
   parse_asn1_oid (v (snd tag))
@@ -693,10 +636,7 @@ let parse_asn1_oid_V
 ///
 /// Aux serializer
 ///
-noextract
-let serialize_asn1_oid_V
-  (tag: (the_asn1_tag OID & asn1_value_int32_of_type OID))
-: serializer (parse_asn1_oid_V tag)
+let serialize_asn1_oid_V tag
 = serialize_synth
   (* p1 *) (weak_kind_of_type OID
             `weaken`
@@ -713,15 +653,7 @@ let serialize_asn1_oid_V
 ///
 
 /// Reveal the computation of parse
-noextract
-let lemma_parse_asn1_oid_V_unfold
-  (tag: (the_asn1_tag OID & asn1_value_int32_of_type OID))
-  (input: bytes)
-: Lemma (
-  parse (parse_asn1_oid_V tag) input ==
- (match parse (parse_asn1_oid (v (snd tag))) input with
-  | None -> None
-  | Some (value, consumed) ->  Some (synth_asn1_oid_V tag value, consumed)))
+let lemma_parse_asn1_oid_V_unfold tag input
 = parse_synth_eq
   (* p1 *) (weak_kind_of_type OID
             `weaken`
@@ -759,9 +691,7 @@ let lemma_serialize_asn1_oid_V_unfold
 ///
 /// ASN1 `OID` TLV Parser
 ///
-noextract
 let parse_asn1_oid_TLV
-: parser parse_asn1_oid_TLV_kind (datatype_of_asn1_type OID)
 = parse_tagged_union
   (* pt *) (parse_asn1_tag_of_type OID
             `nondep_then`
@@ -769,29 +699,10 @@ let parse_asn1_oid_TLV
   (* tg *) (parser_tag_of_oid)
   (* p  *) (parse_asn1_oid_V)
 
-noextract
-let filter_asn1_oid_TLV_of
-  (oid: datatype_of_asn1_type OID)
-  (x: datatype_of_asn1_type OID)
-: Tot bool
-= x = oid
-
-let the_asn1_oid
-  (oid: datatype_of_asn1_type OID)
-= parse_filter_refine (filter_asn1_oid_TLV_of oid)
-
-noextract
-let synth_asn1_oid_TLV_of
-  (oid: datatype_of_asn1_type OID)
-  (x: parse_filter_refine (filter_asn1_oid_TLV_of oid))
-: GTot (x: datatype_of_asn1_type OID {x == oid})
+let synth_asn1_oid_TLV_of oid x
 = x
 
-noextract
-let parse_asn1_oid_TLV_of
-  (oid: datatype_of_asn1_type OID)
-// : parser _ (x: datatype_of_asn1_type OID {x == oid})
-: parser _ (the_asn1_oid oid)
+let parse_asn1_oid_TLV_of oid
 = parse_asn1_oid_TLV
   `parse_filter`
   filter_asn1_oid_TLV_of oid
@@ -801,9 +712,7 @@ let parse_asn1_oid_TLV_of
 ///
 /// Serializer
 ///
-noextract
 let serialize_asn1_oid_TLV
-: serializer parse_asn1_oid_TLV
 = serialize_tagged_union
   (* st *) (serialize_asn1_tag_of_type OID
             `serialize_nondep_then`
@@ -811,10 +720,7 @@ let serialize_asn1_oid_TLV
   (* tg *) (parser_tag_of_oid)
   (* s  *) (serialize_asn1_oid_V)
 
-noextract
-let serialize_asn1_oid_TLV_of
-  (oid: datatype_of_asn1_type OID)
-: serializer (parse_asn1_oid_TLV_of oid)
+let serialize_asn1_oid_TLV_of oid
 = // serialize_synth
   // (* p1 *) (parse_asn1_oid_TLV
   //           `parse_filter`
@@ -878,17 +784,7 @@ let serialize_asn1_oid_TLV_of
 
 /// Reveal the computation of serialize
 #push-options "--z3rlimit 32"
-noextract
-let lemma_serialize_asn1_oid_TLV_unfold
-  (value: datatype_of_asn1_type OID)
-: Lemma (
-  serialize serialize_asn1_oid_TLV value ==
-  serialize (serialize_asn1_tag_of_type OID) OID
-  `Seq.append`
-  serialize (serialize_asn1_length_of_type OID) (u (length_of_oid value))
-  `Seq.append`
-  serialize (serialize_asn1_oid (length_of_oid value)) value
-)
+let lemma_serialize_asn1_oid_TLV_unfold value
 = serialize_nondep_then_eq
   (* s1 *) (serialize_asn1_tag_of_type OID)
   (* s2 *) (serialize_asn1_length_of_type OID)
@@ -902,18 +798,7 @@ let lemma_serialize_asn1_oid_TLV_unfold
   (* s  *) (serialize_asn1_oid_V)
   (* in *) (value)
 
-noextract
-let lemma_serialize_asn1_oid_TLV_of_unfold
-  (oid: datatype_of_asn1_type OID)
-  (value: datatype_of_asn1_type OID{value == oid})
-: Lemma (
-  serialize (serialize_asn1_oid_TLV_of oid) value ==
-  serialize (serialize_asn1_tag_of_type OID) OID
-  `Seq.append`
-  serialize (serialize_asn1_length_of_type OID) (u (length_of_oid value))
-  `Seq.append`
-  serialize (serialize_asn1_oid (length_of_oid value)) value
-)
+let lemma_serialize_asn1_oid_TLV_of_unfold oid value
 = lemma_serialize_asn1_oid_TLV_unfold oid;
   serialize_synth_eq
   (* p1 *) (parse_asn1_oid_TLV
@@ -930,29 +815,14 @@ let lemma_serialize_asn1_oid_TLV_of_unfold
 
 /// Reveal the size of a serialzation
 #push-options "--z3rlimit 16"
-noextract
-let lemma_serialize_asn1_oid_TLV_size
-  (value: datatype_of_asn1_type OID)
-: Lemma (
-  Seq.length (serialize serialize_asn1_oid_TLV value) ==
-  1 + length_of_asn1_length (u (length_of_oid value)) + length_of_oid value
-)
+let lemma_serialize_asn1_oid_TLV_size value
 = lemma_serialize_asn1_oid_TLV_unfold value;
   lemma_serialize_asn1_tag_of_type_size OID OID;
   lemma_serialize_asn1_length_size (u (length_of_oid value));
   serialize_asn1_length_of_type_eq OID (u (length_of_oid value));
   lemma_serialize_asn1_oid_size (length_of_oid value) value
 
-noextract
-let lemma_serialize_asn1_oid_TLV_of_size
-  (oid: datatype_of_asn1_type OID)
-  (value: datatype_of_asn1_type OID{value == oid})
-: Lemma (
-  Seq.length (serialize (serialize_asn1_oid_TLV_of oid) value) ==
-  1 + length_of_asn1_length (u (length_of_oid value)) + length_of_oid value /\
-  Seq.length (serialize (serialize_asn1_oid_TLV_of oid) value) ==
-  Seq.length (serialize (serialize_asn1_oid_TLV) value)
-)
+let lemma_serialize_asn1_oid_TLV_of_size oid value
 = lemma_serialize_asn1_oid_TLV_of_unfold oid value;
   lemma_serialize_asn1_tag_of_type_size OID OID;
   lemma_serialize_asn1_length_size (u (length_of_oid value));
@@ -962,90 +832,22 @@ let lemma_serialize_asn1_oid_TLV_of_size
 #pop-options
 
 (* Useful combinators to construct simple OID-enveloped sequence *)
-let envelop_OID_with_t
-  (oid: datatype_of_asn1_type OID)
-  (t: Type0)
-= parse_filter_refine (filter_asn1_oid_TLV_of oid) `tuple2` t
 
-let parse_envelop_OID_with
-  (oid: datatype_of_asn1_type OID)
-  (#k: parser_kind)
-  (#t: Type0)
-  (#p: parser k t)
-  (s: serializer p)
-: parser _ (oid `envelop_OID_with_t` t)
+let parse_envelop_OID_with oid #k #t #p s
 = parse_asn1_oid_TLV_of oid
   `nondep_then`
   p
 
-let serialize_envelop_OID_with
-  (oid: datatype_of_asn1_type OID)
-  (#k: parser_kind)
-  (#t: Type0)
-  (#p: parser k t)
-  (s: serializer p)
-: serializer (parse_envelop_OID_with oid s)
+let serialize_envelop_OID_with oid #k #t #p s
 = serialize_asn1_oid_TLV_of oid
   `serialize_nondep_then`
   s
 
-let predicate_serialize_envelop_OID_with_unfold
-  (oid: datatype_of_asn1_type OID)
-  (#k: parser_kind)
-  (#t: Type0)
-  (#p: parser k t)
-  (s: serializer p)
-  (x: oid `envelop_OID_with_t` t)
-: Type0
-= serialize (serialize_envelop_OID_with oid s) x ==
-  serialize (serialize_asn1_oid_TLV_of oid) (fst x)
-  `Seq.append`
-  serialize s (snd x)
-
-let lemma_serialize_envelop_OID_with_unfold
-  (oid: datatype_of_asn1_type OID)
-  (#k: parser_kind)
-  (#t: Type0)
-  (#p: parser k t)
-  (s: serializer p)
-  (x: oid `envelop_OID_with_t` t)
-: Lemma (
-  predicate_serialize_envelop_OID_with_unfold oid s x
-)
+let lemma_serialize_envelop_OID_with_unfold oid #k #t #p s x
 = serialize_nondep_then_eq
   (* s1 *) (serialize_asn1_oid_TLV_of oid)
   (* s2 *) s
   (* in *) x
 
-let length_of_envelop_OID_with
-  (oid: datatype_of_asn1_type OID)
-  (#k: parser_kind)
-  (#t: Type0)
-  (#p: parser k t)
-  (s: serializer p)
-  (x: t)
-= length_of_opaque_serialization (serialize_asn1_oid_TLV_of oid) oid +
-  length_of_opaque_serialization s x
-
-let predicate_serialize_envelop_OID_with_size
-  (oid: datatype_of_asn1_type OID)
-  (#k: parser_kind)
-  (#t: Type0)
-  (#p: parser k t)
-  (s: serializer p)
-  (x: oid `envelop_OID_with_t` t)
-: Type0
-= length_of_opaque_serialization (serialize_envelop_OID_with oid s) x
-  == length_of_envelop_OID_with oid s (snd x)
-
-let lemma_serialize_envelop_OID_with_size
-  (oid: datatype_of_asn1_type OID)
-  (#k: parser_kind)
-  (#t: Type0)
-  (#p: parser k t)
-  (s: serializer p)
-  (x: oid `envelop_OID_with_t` t)
-: Lemma (
-  predicate_serialize_envelop_OID_with_size oid s x
-)
+let lemma_serialize_envelop_OID_with_size oid #k #t #p s x
 = lemma_serialize_envelop_OID_with_unfold oid s x

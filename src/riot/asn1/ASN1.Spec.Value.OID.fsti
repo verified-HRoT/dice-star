@@ -12,7 +12,7 @@ open FStar.Integers
 unfold noextract
 let ( @ ) = List.Tot.Base.append
 
-unfold type oid_t = list UInt8.t
+unfold let lu8 = l:list UInt8.t{List.Tot.length l <= UInt.max_int 32}
 
 (* Top level OID tuples
   =====================
@@ -21,10 +21,10 @@ unfold type oid_t = list UInt8.t
 #define MBEDTLS_OID_ISO_CCITT_DS                "\x55"          /* {joint-iso-ccitt(2) ds(5)} */
 #define MBEDTLS_OID_ISO_ITU_COUNTRY             "\x60"          /* {joint-iso-itu-t(2) country(16)} */
 *)
-noextract inline_for_extraction val oid_head_ISO_MEMBER_BODIES : oid_t
-noextract inline_for_extraction val oid_head_ISO_IDENTIFIED_ORG : oid_t
-noextract inline_for_extraction val oid_head_ISO_CCITT_DS : oid_t
-noextract inline_for_extraction val oid_head_ISO_ITU_COUNTRY : oid_t
+noextract inline_for_extraction val oid_head_ISO_MEMBER_BODIES : lu8
+noextract inline_for_extraction val oid_head_ISO_IDENTIFIED_ORG : lu8
+noextract inline_for_extraction val oid_head_ISO_CCITT_DS : lu8
+noextract inline_for_extraction val oid_head_ISO_ITU_COUNTRY : lu8
 
 (* ISO Member bodies OID parts
   ============================
@@ -36,12 +36,11 @@ noextract inline_for_extraction val oid_head_ISO_ITU_COUNTRY : oid_t
 #define MBEDTLS_OID_ANSI_X9_62                  MBEDTLS_OID_ISO_MEMBER_BODIES MBEDTLS_OID_COUNTRY_US \
                                         MBEDTLS_OID_ORG_ANSI_X9_62
 *)
-noextract inline_for_extraction let oid_node_COUNTRY_US     = normalize_term([0x86uy; 0x48uy])
-noextract inline_for_extraction let oid_node_ORG_RSA_DATA_SECURITY = normalize_term([0x86uy; 0xF7uy; 0x0Duy])
-noextract inline_for_extraction let oid_RSA_COMPANY         = normalize_term(oid_head_ISO_MEMBER_BODIES @ oid_node_COUNTRY_US @ oid_node_ORG_RSA_DATA_SECURITY)
-
-noextract inline_for_extraction let oid_node_ORG_ANSI_X9_62 = normalize_term([0xceuy; 0x3duy])
-noextract inline_for_extraction let oid_ANSI_X9_62          = normalize_term(oid_head_ISO_MEMBER_BODIES @ oid_node_ORG_ANSI_X9_62)
+noextract inline_for_extraction val oid_node_COUNTRY_US : lu8
+noextract inline_for_extraction val oid_node_ORG_RSA_DATA_SECURITY : lu8
+noextract inline_for_extraction val oid_RSA_COMPANY : lu8
+noextract inline_for_extraction val oid_node_ORG_ANSI_X9_62 : lu8
+noextract inline_for_extraction val oid_ANSI_X9_62 : lu8
 
 (* ISO ITU OID parts
   ==================
@@ -54,11 +53,10 @@ noextract inline_for_extraction let oid_ANSI_X9_62          = normalize_term(oid
 #define MBEDTLS_OID_ORG_NETSCAPE                "\x86\xF8\x42"  /* {netscape(113730)} */
 #define MBEDTLS_OID_NETSCAPE                    MBEDTLS_OID_ISO_ITU_US_ORG MBEDTLS_OID_ORG_NETSCAPE /* Netscape OID {joint-iso-itu-t(2) country(16) us(840) organization(1) netscape(113730)} */
 *)
-noextract inline_for_extraction let oid_node_ORGANIZATION = normalize_term([0x01uy])
-noextract inline_for_extraction let oid_ISO_ITU_US_ORG    = normalize_term(oid_head_ISO_ITU_COUNTRY @ oid_node_COUNTRY_US @ oid_node_ORGANIZATION)
-
-noextract inline_for_extraction let oid_node_ISO_ORG_GOV  = normalize_term([0x65uy])
-noextract inline_for_extraction let oid_GOV               = normalize_term(oid_ISO_ITU_US_ORG @ oid_node_ISO_ORG_GOV)
+noextract inline_for_extraction val oid_node_ORGANIZATION : lu8
+noextract inline_for_extraction val oid_ISO_ITU_US_ORG : lu8
+noextract inline_for_extraction val oid_node_ISO_ORG_GOV : lu8
+noextract inline_for_extraction val oid_GOV : lu8
 
 (* ISO arc for standard certificate and CRL extensions
   =====================================================
@@ -66,9 +64,9 @@ noextract inline_for_extraction let oid_GOV               = normalize_term(oid_I
 
 #define MBEDTLS_OID_NIST_ALG                    MBEDTLS_OID_GOV "\x03\x04" /** { joint-iso-itu-t(2) country(16) us(840) organization(1) gov(101) csor(3) nistAlgorithm(4) */
 *)
-noextract inline_for_extraction let oid_ID_CE    = normalize_term(oid_head_ISO_CCITT_DS @ [0x1Duy])
+noextract inline_for_extraction val oid_ID_CE : lu8
 
-noextract inline_for_extraction let oid_NIST_ALG = normalize_term(oid_GOV @ [0x03uy; 0x04uy])
+noextract inline_for_extraction val oid_NIST_ALG : lu8
 
 (* Private Internet Extensions
    { iso(1) identified-organization(3) dod(6) internet(1)
@@ -77,8 +75,8 @@ noextract inline_for_extraction let oid_NIST_ALG = normalize_term(oid_GOV @ [0x0
 #define MBEDTLS_OID_INTERNET                    MBEDTLS_OID_ISO_IDENTIFIED_ORG MBEDTLS_OID_ORG_DOD "\x01"
 #define MBEDTLS_OID_PKIX                        MBEDTLS_OID_INTERNET "\x05\x05\x07"
 *)
-noextract inline_for_extraction let oid_INTERNET = normalize_term(oid_head_ISO_IDENTIFIED_ORG @ [0x01uy])
-noextract inline_for_extraction let oid_PKIX     = normalize_term(oid_INTERNET @ [0x05uy; 0x05uy; 0x07uy])
+noextract inline_for_extraction val oid_INTERNET : lu8
+noextract inline_for_extraction val oid_PKIX : lu8
 
 (* Arc for standard naming attributes
   ===================================
@@ -103,14 +101,14 @@ noextract inline_for_extraction let oid_PKIX     = normalize_term(oid_INTERNET @
 
 #define MBEDTLS_OID_DOMAIN_COMPONENT            "\x09\x92\x26\x89\x93\xF2\x2C\x64\x01\x19" /** id-domainComponent AttributeType:= {itu-t(0) data(9) pss(2342) ucl(19200300) pilot(100) pilotAttributeType(1) domainComponent(25)} */
 *)
-noextract inline_for_extraction let oid_AT                      = normalize_term(oid_head_ISO_CCITT_DS @ [0x04uy] (* id-at OBJECT IDENTIFIER ::= {joint-iso-ccitt(2) ds(5) 4} *))
-noextract inline_for_extraction let oid_AT_CN                   = normalize_term(oid_AT @ [0x03uy]           (* id-at-commonName AttributeType:= {id-at 3} *))
+noextract inline_for_extraction val oid_AT : lu8 (* id-at OBJECT IDENTIFIER ::= {joint-iso-ccitt(2) ds(5) 4} *)
+noextract inline_for_extraction val oid_AT_CN : lu8           (* id-at-commonName AttributeType:= {id-at 3} *)
 // noextract let oid_AT_SUR_NAME             = normalize_term(oid_AT @ [0x04uy]           (* id-at-surName AttributeType:= {id-at 4} *))
 // noextract let oid_AT_SERIAL_NUMBER        = normalize_term(oid_AT @ [0x05uy]           (* id-at-serialNumber AttributeType:= {id-at 5} *))
-noextract inline_for_extraction let oid_AT_COUNTRY              = normalize_term(oid_AT @ [0x06uy]           (* id-at-countryName AttributeType:= {id-at 6} *))
+noextract inline_for_extraction val oid_AT_COUNTRY : lu8           (* id-at-countryName AttributeType:= {id-at 6} *)
 // noextract let oid_AT_LOCALITY             = normalize_term(oid_AT @ [0x07uy]           (* id-at-locality AttributeType:= {id-at 7} *))
 // noextract let oid_AT_STATE                = normalize_term(oid_AT @ [0x08uy]           (* id-at-state AttributeType:= {id-at 8} *))
-noextract inline_for_extraction let oid_AT_ORGANIZATION         = normalize_term(oid_AT @ [0x0Auy]           (* id-at-organizationName AttributeType:= {id-at 10} *))
+noextract inline_for_extraction val oid_AT_ORGANIZATION : lu8           (* id-at-organizationName AttributeType:= {id-at 10} *)
 // noextract let oid_AT_ORG_UNIT             = normalize_term(oid_AT @ [0x0Buy]           (* id-at-organizationalUnitName AttributeType:= {id-at 11} *))
 // noextract let oid_AT_TITLE                = normalize_term(oid_AT @ [0x0Cuy]           (* id-at-title AttributeType:= {id-at 12} *))
 // noextract let oid_AT_POSTAL_ADDRESS       = normalize_term(oid_AT @ [0x10uy]           (* id-at-postalAddress AttributeType:= {id-at 16} *))
@@ -122,7 +120,7 @@ noextract inline_for_extraction let oid_AT_ORGANIZATION         = normalize_term
 // noextract let oid_AT_DN_QUALIFIER         = normalize_term(oid_AT @ [0x2Euy]           (* id-at-dnQualifier AttributeType:= {id-at 46} *))
 // noextract let oid_AT_PSEUDONYM            = normalize_term(oid_AT @ [0x41uy]           (* id-at-pseudonym AttributeType:= {id-at 65} *))
 
-noextract inline_for_extraction let oid_DOMAIN_COMPONENT        =    normalize_term([0x09uy; 0x92uy; 0x26uy; 0x89uy; 0x93uy; 0xF2uy; 0x2Cuy; 0x64uy; 0x01uy; 0x19uy] (* id-domainComponent AttributeType:= {itu-t(0) data(9) pss(2342) ucl(19200300) pilot(100) pilotAttributeType(1) domainComponent(25)} *))
+noextract inline_for_extraction val oid_DOMAIN_COMPONENT : lu8 (* id-domainComponent AttributeType:= {itu-t(0) data(9) pss(2342) ucl(19200300) pilot(100) pilotAttributeType(1) domainComponent(25)} *)
 
 
 (* OIDs for standard certificate extensions
@@ -143,10 +141,10 @@ noextract inline_for_extraction let oid_DOMAIN_COMPONENT        =    normalize_t
 #define MBEDTLS_OID_INIHIBIT_ANYPOLICY          MBEDTLS_OID_ID_CE "\x36" /**< id-ce-inhibitAnyPolicy OBJECT IDENTIFIER ::=  { id-ce 54 } */
 #define MBEDTLS_OID_FRESHEST_CRL                MBEDTLS_OID_ID_CE "\x2E" /**< id-ce-freshestCRL OBJECT IDENTIFIER ::=  { id-ce 46 } */
 *)
-noextract inline_for_extraction let oid_AUTHORITY_KEY_IDENTIFIER = normalize_term(oid_ID_CE @ [0x23uy])
-noextract inline_for_extraction let oid_KEY_USAGE                = normalize_term(oid_ID_CE @ [0x0Fuy])
-noextract inline_for_extraction let oid_EXTENDED_KEY_USAGE       = normalize_term(oid_ID_CE @ [0x25uy])
-noextract inline_for_extraction let oid_BASIC_CONSTRAINTS        = normalize_term(oid_ID_CE @ [0x13uy])
+noextract inline_for_extraction val oid_AUTHORITY_KEY_IDENTIFIER : lu8
+noextract inline_for_extraction val oid_KEY_USAGE : lu8
+noextract inline_for_extraction val oid_EXTENDED_KEY_USAGE : lu8
+noextract inline_for_extraction val oid_BASIC_CONSTRAINTS : lu8
 
 (* X.509 v3 Extended key usage OIDs
   =================================
@@ -160,8 +158,8 @@ noextract inline_for_extraction let oid_BASIC_CONSTRAINTS        = normalize_ter
 #define MBEDTLS_OID_TIME_STAMPING               MBEDTLS_OID_KP "\x08" /**< id-kp-timeStamping OBJECT IDENTIFIER ::= { id-kp 8 } */
 #define MBEDTLS_OID_OCSP_SIGNING                MBEDTLS_OID_KP "\x09" /**< id-kp-OCSPSigning OBJECT IDENTIFIER ::= { id-kp 9 } */
 *)
-noextract inline_for_extraction let oid_KP          = normalize_term(oid_PKIX @ [0x03uy])
-noextract inline_for_extraction let oid_CLIENT_AUTH = normalize_term(oid_KP @ [0x02uy])
+noextract inline_for_extraction val oid_KP : lu8
+noextract inline_for_extraction val oid_CLIENT_AUTH : lu8
 
 (* Digest algorithms
   ==================
@@ -188,10 +186,10 @@ noextract inline_for_extraction let oid_CLIENT_AUTH = normalize_term(oid_KP @ [0
 
 #define MBEDTLS_OID_HMAC_SHA512                 MBEDTLS_OID_RSA_COMPANY "\x02\x0B" /**< id-hmacWithSHA512 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) digestAlgorithm(2) 11 } */
 *)
-noextract inline_for_extraction let oid_DIGEST_ALG_SHA224 = normalize_term(oid_NIST_ALG @ [0x02uy; 0x04uy])
-noextract inline_for_extraction let oid_DIGEST_ALG_SHA256 = normalize_term(oid_NIST_ALG @ [0x02uy; 0x01uy])
-noextract inline_for_extraction let oid_DIGEST_ALG_SHA384 = normalize_term(oid_NIST_ALG @ [0x02uy; 0x02uy])
-noextract inline_for_extraction let oid_DIGEST_ALG_SHA512 = normalize_term(oid_NIST_ALG @ [0x02uy; 0x03uy])
+noextract inline_for_extraction val oid_DIGEST_ALG_SHA224 : lu8
+noextract inline_for_extraction val oid_DIGEST_ALG_SHA256 : lu8
+noextract inline_for_extraction val oid_DIGEST_ALG_SHA384 : lu8
+noextract inline_for_extraction val oid_DIGEST_ALG_SHA512 : lu8
 
 (* EC key algorithms from RFC 5480
   ================================
@@ -205,7 +203,7 @@ noextract inline_for_extraction let oid_DIGEST_ALG_SHA512 = normalize_term(oid_N
 #define MBEDTLS_OID_EC_ALG_ECDH                 MBEDTLS_OID_CERTICOM "\x01\x0c"
 *)
 
-noextract inline_for_extraction let oid_EC_ALG_UNRESTRICTED = normalize_term(oid_ANSI_X9_62 @ [0x02uy; 0x01uy])
+noextract inline_for_extraction val oid_EC_ALG_UNRESTRICTED : lu8
 
 (* ECParameters namedCurve identifiers, from RFC 5480, RFC 5639, and SEC2
   =======================================================================
@@ -242,13 +240,13 @@ noextract inline_for_extraction let oid_EC_ALG_UNRESTRICTED = normalize_term(oid
 #define MBEDTLS_OID_EC_GRP_SECP256K1        MBEDTLS_OID_CERTICOM "\x00\x0a"
 *)
 
-noextract inline_for_extraction let oid_EC_GRP_SECP256R1 = normalize_term(oid_ANSI_X9_62 @ [0x03uy; 0x01uy; 0x07uy])
+noextract inline_for_extraction val oid_EC_GRP_SECP256R1 : lu8
 
-noextract inline_for_extraction let oid_EDWARDS_CURVE_ALGS = normalize_term(oid_head_ISO_IDENTIFIED_ORG @ [0x65uy])
+noextract inline_for_extraction val oid_EDWARDS_CURVE_ALGS : lu8
 
-noextract inline_for_extraction let oid_ED25519 = normalize_term(oid_EDWARDS_CURVE_ALGS @ [0x70uy])
+noextract inline_for_extraction val oid_ED25519 : lu8
 
-noextract inline_for_extraction let oid_X25519 = normalize_term(oid_EDWARDS_CURVE_ALGS @ [0x6Euy])
+noextract inline_for_extraction val oid_X25519 : lu8
 
 (*
 /*
@@ -262,8 +260,8 @@ noextract inline_for_extraction let oid_X25519 = normalize_term(oid_EDWARDS_CURV
 #define MBEDTLS_OID_PKCS12              MBEDTLS_OID_PKCS "\x0c" /**< pkcs-12 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) 12 } */
 *)
 
-noextract inline_for_extraction let oid_PKCS = normalize_term(oid_RSA_COMPANY @ [0x01uy])
-noextract inline_for_extraction let oid_PKCS9 = normalize_term(oid_PKCS @ [0x09uy])
+noextract inline_for_extraction val oid_PKCS : lu8
+noextract inline_for_extraction val oid_PKCS9 : lu8
 
 (*
 /*
@@ -272,14 +270,14 @@ noextract inline_for_extraction let oid_PKCS9 = normalize_term(oid_PKCS @ [0x09u
 #define MBEDTLS_OID_PKCS9_CSR_EXT_REQ           MBEDTLS_OID_PKCS9 "\x0e" /**< extensionRequest OBJECT IDENTIFIER ::= {pkcs-9 14} */
 *)
 
-noextract inline_for_extraction let oid_PKCS9_CSR_EXT_REQ = normalize_term(oid_PKCS9 @ [0x0Euy])
+noextract inline_for_extraction val oid_PKCS9_CSR_EXT_REQ : lu8
 
 (* RIoT OID
   =========
 1.3.6.1.4.1.311.89.3.1
 *)
 (* FIXME: Check RIoT's OID *)
-noextract inline_for_extraction let oid_RIOT = normalize_term (oid_INTERNET @ [0x04uy; 0x01uy; 0x82uy; 0x37uy; 0x59uy; 0x03uy; 0x01uy])
+noextract inline_for_extraction val oid_RIOT : lu8
 
 noextract
 val oid_seq_of

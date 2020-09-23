@@ -5,20 +5,16 @@ open ASN1.Spec.Value.StringCombinator
 open ASN1.Low.Base
 open LowParse.Low.Bytes
 
-open ASN1.Spec.Tag
-open ASN1.Spec.Length
 open ASN1.Low.Tag
 open ASN1.Low.Length
 
 open FStar.Integers
 
-module HS = FStar.HyperStack
-module HST = FStar.HyperStack.ST
-module MB = LowStar.Monotonic.Buffer
 module B = LowStar.Buffer
-module Cast = FStar.Int.Cast
 
 module B32 = FStar.Bytes
+
+friend ASN1.Spec.Value.StringCombinator
 
 noextract inline_for_extraction
 let serialize32_asn1_string_backwards
