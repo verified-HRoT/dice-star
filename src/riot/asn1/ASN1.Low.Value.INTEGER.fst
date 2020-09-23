@@ -16,15 +16,14 @@ module Cast = FStar.Int.Cast
 module E = LowParse.Endianness
 module LE = LowParse.Low.Endianness
 
+friend ASN1.Spec.Value.INTEGER
+
 (* NOTE: Read after `ASN1.Spec.Tag`, `ASN1.Spec.Length` *)
 
 #set-options "--z3rlimit 256 --fuel 0 --ifuel 0"
 
 /// Implementation of length computation of `INTEGER` value's serialization
-inline_for_extraction
-let len_of_asn1_integer
-  (value: datatype_of_asn1_type INTEGER)
-: Tot (len: asn1_value_int32_of_type INTEGER { v len == length_of_asn1_integer value } )
+let len_of_asn1_integer value
 = if      0l         <= value && value <= 0x7Fl      then
   ( 1ul )
   else if 0x7Fl       < value && value <= 0xFFl       then
@@ -427,10 +426,7 @@ let serialize32_asn1_integer_backwards_4byte_without_leading_zero
             (* mem'*) h1;
 (*return*) 4ul
 
-inline_for_extraction
-let serialize32_asn1_integer_backwards
-  (len: asn1_value_int32_of_type INTEGER)
-: Tot (serializer32_backwards (serialize_asn1_integer (v len)))
+let serialize32_asn1_integer_backwards len
 = fun value
     #rrel #rel
     b
@@ -470,22 +466,10 @@ let serialize32_asn1_integer_backwards
     LowStar.Failure.failwith "Error: Statically unreachable." )
 
 
-inline_for_extraction
-let parser_tag_of_asn1_integer_impl
-  (value: datatype_of_asn1_type INTEGER)
-: Tot (tg: (the_asn1_tag INTEGER & asn1_value_int32_of_type INTEGER) {
-           tg == parser_tag_of_asn1_integer value
-  })
+let parser_tag_of_asn1_integer_impl value
 = (INTEGER, len_of_asn1_integer value)
 
-inline_for_extraction
-let synth_asn1_integer_V_inverse_impl
-  (tag: (the_asn1_tag INTEGER & asn1_value_int32_of_type INTEGER))
-  (value': refine_with_tag parser_tag_of_asn1_integer tag)
-: Tot (value: datatype_of_asn1_type INTEGER {
-               v (snd tag) == length_of_asn1_integer value /\
-               value' == synth_asn1_integer_V tag value /\
-               value == synth_asn1_integer_V_inverse tag value' })
+let synth_asn1_integer_V_inverse_impl tag value'
 = value'
 
 open ASN1.Low.Tag
@@ -493,7 +477,6 @@ open ASN1.Low.Length
 
 // inline_for_extraction
 let serialize32_asn1_integer_TLV_backwards ()
-: Tot (serializer32_backwards (serialize_asn1_integer_TLV))
 = serialize32_tagged_union_backwards
   (* lst *) (serialize32_asn1_tag_of_type_backwards INTEGER
              `serialize32_nondep_then_backwards`

@@ -29,20 +29,16 @@ open ASN1.Base
 /////////////////////////////////////////
 open FStar.Integers
 /// filter valid input bytes
-noextract
-let filter_asn1_tag
-  (b: byte)
-: GTot bool
-= match b with
+
+let filter_asn1_tag b =
+  match b with
   | 0x01uy | 0x04uy | 0x05uy | 0x13uy | 0x16uy | 0x18uy | 0x30uy | 0x31uy | 0x03uy | 0x02uy | 0x06uy -> true
   | _ -> if (b / 0b01000000uy <> 00uy) then true else false
 
 /// decode input bytes
+
 #push-options "--z3rlimit 32"
-noextract
-let synth_asn1_tag
-  (b: parse_filter_refine filter_asn1_tag)
-: GTot asn1_tag_t
+let synth_asn1_tag b
 = match b with
   | 0x01uy -> BOOLEAN
   | 0x02uy -> INTEGER
@@ -66,10 +62,8 @@ let synth_asn1_tag
                 CUSTOM_TAG tag_class tag_form tag_value )
 
 /// encode input bytes
-noextract
-let synth_asn1_tag_inverse
-  (a: asn1_tag_t)
-: GTot (b: parse_filter_refine filter_asn1_tag{a == synth_asn1_tag b})
+
+let synth_asn1_tag_inverse a
 = match a with
   | BOOLEAN      -> 0x01uy
   | INTEGER      -> 0x02uy
@@ -91,15 +85,10 @@ let synth_asn1_tag_inverse
                                                                      | CONSTRUCTED -> 0b100000uy in
                                                    b_tag_class + b_tag_form + tag_value )
 
-inline_for_extraction noextract
-let parse_asn1_tag_kind = strong_parser_kind 1 1 None
-
 ///
 /// Parser
 ///
-noextract
 let parse_asn1_tag
-: parser parse_asn1_tag_kind asn1_tag_t
 = parse_u8
   `parse_filter`
   filter_asn1_tag
@@ -109,9 +98,8 @@ let parse_asn1_tag
 ///
 /// Serialier
 ///
-noextract
+
 let serialize_asn1_tag
-: serializer parse_asn1_tag
 = serialize_synth
   (* p1 *) (parse_u8
             `parse_filter`
@@ -128,21 +116,7 @@ let serialize_asn1_tag
 ///
 
 /// Reveal the computation of parse
-noextract
-let lemma_parse_asn1_tag_unfold
-  (input: bytes)
-: Lemma (
-  parse parse_asn1_tag input ==
- (match parse parse_u8 input with
-  | Some (x, consumed) -> if filter_asn1_tag x then
-                   ( Some (synth_asn1_tag x, consumed) )
-                   else
-                   ( None )
-  | None -> None) /\
- (Some? (parse parse_asn1_tag input) ==>
-   Seq.length input > 0 /\
-   Some? (parse parse_u8 input) /\
-   parse parse_u8 input == Some (input.[0], 1)))
+let lemma_parse_asn1_tag_unfold input
 = parser_kind_prop_equiv parse_u8_kind parse_u8;
   parser_kind_prop_equiv parse_asn1_tag_kind parse_asn1_tag;
  (match parse parse_u8 input with
@@ -162,16 +136,7 @@ let lemma_parse_asn1_tag_unfold
   (* in *) (input)
 
 /// Reveal the computation of serialization
-noextract
-let lemma_serialize_asn1_tag_unfold
-  (a: asn1_tag_t)
-: Lemma (
-  serialize serialize_u8 (synth_asn1_tag_inverse a)
-  `Seq.equal`
-  Seq.create 1 (synth_asn1_tag_inverse a) /\
-  serialize serialize_asn1_tag a
-  `Seq.equal`
-  serialize serialize_u8 (synth_asn1_tag_inverse a))
+let lemma_serialize_asn1_tag_unfold a
 = serialize_u8_spec  (synth_asn1_tag_inverse a);
   serialize_u8_spec' (synth_asn1_tag_inverse a);
   serialize_synth_eq
@@ -187,11 +152,7 @@ let lemma_serialize_asn1_tag_unfold
   (* in *) (a)
 
 /// Useful lemma about the length of serializations
-noextract
-let lemma_serialize_asn1_tag_size
-  (a: asn1_tag_t)
-: Lemma (
-  Seq.length (serialize serialize_asn1_tag a) == 1)
+let lemma_serialize_asn1_tag_size a
 = parser_kind_prop_equiv parse_asn1_tag_kind parse_asn1_tag;
   lemma_serialize_asn1_tag_unfold a
 
@@ -204,22 +165,8 @@ let lemma_serialize_asn1_tag_size
 ///
 
 /// filter valid input bytes
-noextract
-let filter_asn1_tag_of_type
-  (a: asn1_tag_t)
-  (b: byte)
-: GTot bool
+let filter_asn1_tag_of_type a b
 = b = (synth_asn1_tag_inverse a <: byte)
-// match a, b with
-//   | BOOLEAN     , 0x01uy
-//   | INTEGER     , 0x02uy
-//   | BIT_STRING  , 0x03uy
-//   | OCTET_STRING, 0x04uy
-//   | ASN1_NULL        , 0x05uy
-//   | OID         , 0x06uy
-//   | SEQUENCE    , 0x30uy
-//   | CUSTOM_TAG _ _ _, _ -> b = (synth_asn1_tag_inverse a <: byte)
-//   | _ -> false
 
 /// decode input bytes
 noextract
@@ -230,20 +177,13 @@ let synth_asn1_tag_of_type
 = a
 
 /// encode tags to bytes
-noextract
-let synth_asn1_tag_of_type_inverse
-  (a: asn1_tag_t)
-  (a': the_asn1_tag a)
-: GTot (b: parse_filter_refine (filter_asn1_tag_of_type a) {b == synth_asn1_tag_inverse a})
+let synth_asn1_tag_of_type_inverse a a'
 = synth_asn1_tag_inverse a'
 
 ///
 /// Parser
 ///
-noextract
-let parse_asn1_tag_of_type
-  (a: asn1_tag_t)
-: parser parse_asn1_tag_kind (the_asn1_tag a)
+let parse_asn1_tag_of_type a
 = parse_u8
   `parse_filter`
   filter_asn1_tag_of_type a
@@ -253,10 +193,7 @@ let parse_asn1_tag_of_type
 ///
 /// Serializer
 ///
-noextract
-let serialize_asn1_tag_of_type
-  (a: asn1_tag_t)
-: serializer (parse_asn1_tag_of_type a)
+let serialize_asn1_tag_of_type a
 = serialize_synth
   (* p1 *) (parse_u8
             `parse_filter`
@@ -308,17 +245,7 @@ let lemma_parse_asn1_tag_of_type_unfold
   (* in *) (input)
 
 /// Reveals the computation of serialize
-noextract
-let lemma_serialize_asn1_tag_of_type_unfold
-  (a: asn1_tag_t)
-  (a': the_asn1_tag a)
-: Lemma (
-  serialize serialize_u8 (synth_asn1_tag_of_type_inverse a a')
-  `Seq.equal`
-  Seq.create 1 (synth_asn1_tag_of_type_inverse a a') /\
-  serialize (serialize_asn1_tag_of_type a) a'
-  `Seq.equal`
-  serialize serialize_u8 (synth_asn1_tag_of_type_inverse a a'))
+let lemma_serialize_asn1_tag_of_type_unfold a a'
 = serialize_u8_spec  (synth_asn1_tag_of_type_inverse a a');
   serialize_u8_spec' (synth_asn1_tag_of_type_inverse a a');
   serialize_synth_eq
@@ -334,11 +261,6 @@ let lemma_serialize_asn1_tag_of_type_unfold
   (* in *) (a')
 
 /// Reveals the size of a serialization
-noextract
-let lemma_serialize_asn1_tag_of_type_size
-  (_a: asn1_tag_t)
-  (a : the_asn1_tag _a)
-: Lemma (
-  Seq.length (serialize (serialize_asn1_tag_of_type _a) a) == 1)
+let lemma_serialize_asn1_tag_of_type_size _a a
 = parser_kind_prop_equiv parse_asn1_tag_kind (parse_asn1_tag_of_type _a);
   lemma_serialize_asn1_tag_of_type_unfold _a a

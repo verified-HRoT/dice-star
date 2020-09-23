@@ -10,7 +10,7 @@ test-asn1: clean-test
 	$(MAKE) verify-all && $(MAKE) extract-all && $(MAKE) compile-all
 	@./test.exe
 
-test-riot: clean-test
+test-riot:
 	$(MAKE) verify-all && $(MAKE) extract-all && $(MAKE) compile-all
 	@./test.exe
 	@cat DeviceIDCSR.hex | xxd -r -p | openssl req -inform DER -out DeviceIDCSR.csr

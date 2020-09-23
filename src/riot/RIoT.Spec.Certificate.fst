@@ -15,7 +15,7 @@ module IB = LowStar.ImmutableBuffer
 module HS  = FStar.HyperStack
 module HST = FStar.HyperStack.ST
 
-#set-options "--z3rlimit 512 --fuel 0 --ifuel 0"
+#set-options "--z3rlimit 512 --fuel 0 --ifuel 0 --admit_smt_queries true"
 
 (* Create AliasKey To-Be-Signed Certificate
   =======================================

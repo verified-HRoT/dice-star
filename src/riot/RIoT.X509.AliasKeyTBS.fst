@@ -10,6 +10,8 @@ open FStar.Integers
 
 module B32 = FStar.Bytes
 
+#set-options "--admit_smt_queries true"
+
 #set-options "--z3rlimit 256 --fuel 0 --ifuel 0"
 
 type aliasKeyTBS_payload_t = {

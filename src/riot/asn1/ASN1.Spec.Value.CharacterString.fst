@@ -61,34 +61,22 @@ let string_prf
   | IA5_STRING -> ()
   | PRINTABLE_STRING -> ()
 
-noextract inline_for_extraction
-let count_character
-  (t: character_string_type)
-  (x: datatype_of_asn1_type t)
-: Tot (asn1_int32)
+let count_character t x
 = match t with
   | IA5_STRING -> count_ia5_character x
   | PRINTABLE_STRING -> count_printable_character x
 
-let parse_asn1_character_string
-  (t: character_string_type)
-: parser (parse_asn1_string_TLV_kind t) (datatype_of_asn1_type t)
+let parse_asn1_character_string t
 = match t with
   | IA5_STRING -> parse_asn1_ia5_string_TLV
   | PRINTABLE_STRING -> parse_asn1_printable_string_TLV
 
-let serialize_asn1_character_string
-  (t: character_string_type)
-: serializer (parse_asn1_character_string t)
+let serialize_asn1_character_string t
 = match t with
   | IA5_STRING -> serialize_asn1_ia5_string_TLV
   | PRINTABLE_STRING -> serialize_asn1_printable_string_TLV
 
-let parse_asn1_character_string_with_character_bound
-  (t: character_string_type)
-  (lb: asn1_value_int32_of_type t)
-  (ub: asn1_value_int32_of_type t { lb <= ub })
-: parser (parse_asn1_string_TLV_kind t) (asn1_string_with_character_bound_t t (count_character t) lb ub)
+let parse_asn1_character_string_with_character_bound t lb ub
 = match t with
   | IA5_STRING -> assert_norm (count_ia5_character == count_character IA5_STRING);
                   parse_asn1_ia5_string_TLV_with_character_bound lb ub
@@ -96,11 +84,7 @@ let parse_asn1_character_string_with_character_bound
                -> assert_norm (count_printable_character == count_character PRINTABLE_STRING);
                   parse_asn1_printable_string_TLV_with_character_bound lb ub
 
-let serialize_asn1_character_string_with_character_bound
-  (t: character_string_type)
-  (lb: asn1_value_int32_of_type t)
-  (ub: asn1_value_int32_of_type t { lb <= ub })
-: serializer (parse_asn1_character_string_with_character_bound t lb ub)
+let serialize_asn1_character_string_with_character_bound t lb ub
 = match t with
   | IA5_STRING -> assert_norm (count_ia5_character == count_character IA5_STRING);
                   serialize_asn1_ia5_string_TLV_with_character_bound lb ub
@@ -108,31 +92,7 @@ let serialize_asn1_character_string_with_character_bound
                -> assert_norm (count_printable_character == count_character PRINTABLE_STRING);
                   serialize_asn1_printable_string_TLV_with_character_bound lb ub
 
-let lemma_serialize_character_string_unfold
-  (t: character_string_type)
-  // (lb: asn1_value_int32_of_type t)
-  // (ub: asn1_value_int32_of_type t { lb <= ub })
-  // (x: asn1_string_with_character_bound_t t (count_character t) lb ub)
-  (x: datatype_of_asn1_type t)
-: Lemma (
-    match t with
-    | IA5_STRING -> predicate_serialize_asn1_string_TLV_unfold
-                     (IA5_STRING)
-                     (dfst)
-                     (filter_asn1_ia5_string)
-                     (synth_asn1_ia5_string)
-                     (synth_asn1_ia5_string_inverse)
-                     ()
-                     (x)
-    | PRINTABLE_STRING
-                 -> predicate_serialize_asn1_string_TLV_unfold
-                     (PRINTABLE_STRING)
-                     (dfst)
-                     (filter_asn1_printable_string)
-                     (synth_asn1_printable_string)
-                     (synth_asn1_printable_string_inverse)
-                     ()
-                     (x))
+let lemma_serialize_character_string_unfold t x
 = match t with
   | IA5_STRING ->
                   // assert_norm ( t == IA5_STRING /\
@@ -149,31 +109,7 @@ let lemma_serialize_character_string_unfold
   | PRINTABLE_STRING
                -> lemma_serialize_asn1_printable_string_TLV_unfold x
 
-let lemma_serialize_character_string_size
-  (t: character_string_type)
-  // (lb: asn1_value_int32_of_type t)
-  // (ub: asn1_value_int32_of_type t { lb <= ub })
-  // (x: asn1_string_with_character_bound_t t (count_character t) lb ub)
-  (x: datatype_of_asn1_type t)
-: Lemma (
-    match t with
-    | IA5_STRING -> predicate_serialize_asn1_string_TLV_size
-                     (IA5_STRING)
-                     (dfst)
-                     (filter_asn1_ia5_string)
-                     (synth_asn1_ia5_string)
-                     (synth_asn1_ia5_string_inverse)
-                     ()
-                     (x)
-    | PRINTABLE_STRING
-                 -> predicate_serialize_asn1_string_TLV_size
-                     (PRINTABLE_STRING)
-                     (dfst)
-                     (filter_asn1_printable_string)
-                     (synth_asn1_printable_string)
-                     (synth_asn1_printable_string_inverse)
-                     ()
-                     (x))
+let lemma_serialize_character_string_size t x
 = match t with
   | IA5_STRING ->
                   // assert_norm ( t == IA5_STRING /\

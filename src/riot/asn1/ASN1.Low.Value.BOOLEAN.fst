@@ -17,6 +17,8 @@ open FStar.Integers
 
 (* NOTE: Read after `ASN1.Spec.Tag`, `ASN1.Spec.Length` *)
 
+friend ASN1.Spec.Value.BOOLEAN
+
 ///
 /// Encoding a tag into bytes at low-level, implementation of `synth_..._inverse`
 
@@ -45,9 +47,7 @@ let len_of_asn1_boolean
 ///
 /// Backwards low-level serializer for ASN1 BOOLEAN values
 ///
-inline_for_extraction
 let serialize32_asn1_boolean_backwards ()
-: Tot (serializer32_backwards serialize_asn1_boolean)
 = fun (x: bool)
     (#rrel #rel: _)
     (b: B.mbuffer byte rrel rel)
@@ -85,7 +85,6 @@ let synth_asn1_boolean_TLV_inverse_impl
 ///
 // inline_for_extraction
 let serialize32_asn1_boolean_TLV_backwards ()
-: Tot (serializer32_backwards serialize_asn1_boolean_TLV)
 = serialize32_synth_backwards
   (* ls1*) (serialize32_asn1_tag_of_type_backwards BOOLEAN
            `serialize32_nondep_then_backwards`
@@ -98,13 +97,11 @@ let serialize32_asn1_boolean_TLV_backwards ()
   (* Prf*) ()
 
 let serialize32_asn1_boolean_TLV_true_backwards ()
-: Tot (serializer32_backwards serialize_asn1_boolean_TLV_true)
 = serialize32_asn1_boolean_TLV_backwards ()
   `serialize32_filter_backwards`
   filter_asn1_boolean_true
 
 let serialize32_asn1_boolean_TLV_false_backwards ()
-: Tot (serializer32_backwards serialize_asn1_boolean_TLV_false)
 = serialize32_asn1_boolean_TLV_backwards ()
   `serialize32_filter_backwards`
   filter_asn1_boolean_false

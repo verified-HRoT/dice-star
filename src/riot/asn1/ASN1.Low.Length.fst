@@ -16,12 +16,12 @@ module HST = FStar.HyperStack.ST
 module B = LowStar.Buffer
 open FStar.Integers
 
+friend ASN1.Spec.Length
+
 #reset-options "--max_fuel 0 --max_ifuel 0"
 
 #push-options "--z3rlimit 16"
-let len_of_asn1_length
-  (len: asn1_int32)
-: Tot (offset: size_t{v offset == Seq.length (serialize serialize_asn1_length len)})
+let len_of_asn1_length len
 = lemma_serialize_asn1_length_unfold len;
   let x = SDER.tag_of_der_length32_impl len in
   if x < 128uy then
@@ -37,14 +37,10 @@ let len_of_asn1_length
 #pop-options
 
 #push-options "--z3rlimit 32"
-inline_for_extraction
 let serialize32_asn1_length ()
-: Tot (serializer32 serialize_asn1_length)
 = LDER.serialize32_bounded_der_length32 asn1_length_min asn1_length_max
 
-inline_for_extraction
 let serialize32_asn1_length_backwards ()
-: Tot (serializer32_backwards serialize_asn1_length)
 = fun (len: asn1_int32)
     (#rrel #rel: _)
     (b: B.mbuffer byte rrel rel)
@@ -75,21 +71,14 @@ let serialize32_asn1_length_backwards ()
              (* mem'*) h1;
 (* return *) offset
 
-inline_for_extraction noextract
-let serialize32_asn1_length_of_type
-  (_a: asn1_tag_t)
-: Tot (serializer32 (serialize_asn1_length_of_type _a))
+let serialize32_asn1_length_of_type _a
 = [@inline_let]
   let min = asn1_value_length_min_of_type _a in
   [@inline_let]
   let max = asn1_value_length_max_of_type _a in
   LDER.serialize32_bounded_der_length32 min max
 
-inline_for_extraction noextract
-let serialize32_asn1_length_of_bound_backwards
-  (min: asn1_int32)
-  (max: asn1_int32 { min <= max })
-: Tot (serializer32_backwards (serialize_asn1_length_of_bound (v min) (v max)))
+let serialize32_asn1_length_of_bound_backwards min max
 = fun (len: _)
     (#rrel #rel: _)
     (b: B.mbuffer byte rrel rel)
@@ -123,10 +112,7 @@ let serialize32_asn1_length_of_bound_backwards
 (* return *) offset
 
 //marking it noextract, perhaps issue because _a isn't fixed yet??
-inline_for_extraction noextract
-let serialize32_asn1_length_of_type_backwards
-  (_a: asn1_tag_t)
-: Tot (serializer32_backwards (serialize_asn1_length_of_type _a))
+let serialize32_asn1_length_of_type_backwards _a
 = fun (len: asn1_value_int32_of_type _a)
     (#rrel #rel: _)
     (b: B.mbuffer byte rrel rel)
@@ -159,4 +145,3 @@ let serialize32_asn1_length_of_type_backwards
              (* mem'*) h1;
 (* return *) offset
 #pop-options
-

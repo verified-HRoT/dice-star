@@ -15,6 +15,8 @@ module HST = FStar.HyperStack.ST
 module B = LowStar.Buffer
 open FStar.Integers
 
+friend ASN1.Spec.Tag
+
 ///
 /// Encode ASN1 tag to a byte, implementation of `synth_asn1_tag_inverse`
 
@@ -64,8 +66,7 @@ let len_of_asn1_tag
 /// Backwards low-level serializer for asn1 tags
 ///
 inline_for_extraction
-let serialize32_asn1_tag_backwards ()
-: Tot (serializer32_backwards serialize_asn1_tag)
+let serialize32_asn1_tag_backwards () 
 = fun (a: asn1_tag_t)
     (#rrel #rel: _)
     (b: B.mbuffer byte rrel rel)
@@ -86,9 +87,7 @@ let serialize32_asn1_tag_backwards ()
 /// Backwards low-level serializer for a specific asn1 tag
 ///
 inline_for_extraction noextract
-let serialize32_asn1_tag_of_type_backwards
-  (_a: asn1_tag_t)
-: Tot (serializer32_backwards (serialize_asn1_tag_of_type _a))
+let serialize32_asn1_tag_of_type_backwards _a
 = fun a
     #rrel #rel
     b

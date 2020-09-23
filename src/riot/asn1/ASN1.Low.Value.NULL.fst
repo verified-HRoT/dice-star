@@ -6,17 +6,13 @@ open ASN1.Low.Base
 
 open FStar.Integers
 
-module HS = FStar.HyperStack
-module HST = FStar.HyperStack.ST
-module MB = LowStar.Monotonic.Buffer
 module B = LowStar.Buffer
-module Cast = FStar.Int.Cast
+
+friend ASN1.Spec.Value.NULL
 
 (* NOTE: Read after `ASN1.Spec.Tag`, `ASN1.Spec.Length` *)
 
-inline_for_extraction
 let serialize32_asn1_ASN1_NULL_backwards ()
-: Tot (serializer32_backwards serialize_asn1_ASN1_NULL)
 = fun (_: datatype_of_asn1_type ASN1_NULL)
     (#rrel #rel: _)
     (b: B.mbuffer byte rrel rel)
@@ -36,7 +32,6 @@ let synth_asn1_ASN1_NULL_TLV_inverse_impl
 
 // inline_for_extraction
 let serialize32_asn1_ASN1_NULL_TLV_backwards ()
-: Tot (serializer32_backwards serialize_asn1_ASN1_NULL_TLV)
 = serialize32_synth_backwards
    (* ls1*) (serialize32_asn1_tag_of_type_backwards ASN1_NULL
              `serialize32_nondep_then_backwards`

@@ -19,18 +19,12 @@ module HST = FStar.HyperStack.ST
 module B = LowStar.Buffer
 open FStar.Integers
 
+friend ASN1.Spec.Value.Envelop
+
 (* NOTE: Read after `ASN1.Spec.Tag`, `ASN1.Spec.Length`, `ASN1.Spec.Value.*` *)
 
 #push-options "--z3rlimit 64 --fuel 0 --ifuel 0"
-inline_for_extraction noextract
-let serialize32_asn1_envelop_tag_with_TLV_backwards
-  (#k: parser_kind)
-  (#t: Type0)
-  (#p: parser k t)
-  (#s: serializer p)
-  (a: asn1_tag_t)
-  (s32: serializer32_backwards s)
-: Tot (serializer32_backwards (serialize_asn1_envelop_tag_with_TLV a s))
+let serialize32_asn1_envelop_tag_with_TLV_backwards #k #t #p #s a s32
 = fun x #rrel #rel b pos ->
   (* Prf *) lemma_serialize_asn1_envelop_tag_with_unfold a s (parser_tag_of_asn1_envelop_tag_with a s x) x;
   (* Prf *) lemma_serialize_asn1_envelop_tag_with_TLV_unfold a s x;
