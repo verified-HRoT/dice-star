@@ -118,10 +118,11 @@ noextract inline_for_extraction let oid_AT_ORGANIZATION         = normalize_term
 // noextract let oid_AT_DN_QUALIFIER         = normalize_term(oid_AT @ [0x2Euy]           (* id-at-dnQualifier AttributeType:= {id-at 46} *))
 // noextract let oid_AT_PSEUDONYM            = normalize_term(oid_AT @ [0x41uy]           (* id-at-pseudonym AttributeType:= {id-at 65} *))
 
-//TODO: AR: FIXME: 09/23: prove the list length <= u32_max
-#push-options "--admit_smt_queries true"
-noextract inline_for_extraction let oid_DOMAIN_COMPONENT        =    normalize_term([0x09uy; 0x92uy; 0x26uy; 0x89uy; 0x93uy; 0xF2uy; 0x2Cuy; 0x64uy; 0x01uy; 0x19uy] (* id-domainComponent AttributeType:= {itu-t(0) data(9) pss(2342) ucl(19200300) pilot(100) pilotAttributeType(1) domainComponent(25)} *))
-#pop-options
+noextract inline_for_extraction let oid_DOMAIN_COMPONENT        =
+  [@inline_let]
+  let l = [0x09uy; 0x92uy; 0x26uy; 0x89uy; 0x93uy; 0xF2uy; 0x2Cuy; 0x64uy; 0x01uy; 0x19uy] (* id-domainComponent AttributeType:= {itu-t(0) data(9) pss(2342) ucl(19200300) pilot(100) pilotAttributeType(1) domainComponent(25)} *) in
+  assert_norm (List.Tot.length l == 10);
+  normalize_term l
 
 
 (* OIDs for standard certificate extensions
@@ -187,11 +188,30 @@ noextract inline_for_extraction let oid_CLIENT_AUTH = normalize_term(oid_KP @ [0
 
 #define MBEDTLS_OID_HMAC_SHA512                 MBEDTLS_OID_RSA_COMPANY "\x02\x0B" /**< id-hmacWithSHA512 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) digestAlgorithm(2) 11 } */
 *)
-#push-options "--admit_smt_queries true"
-noextract inline_for_extraction let oid_DIGEST_ALG_SHA224 = normalize_term(oid_NIST_ALG @ [0x02uy; 0x04uy])
-noextract inline_for_extraction let oid_DIGEST_ALG_SHA256 = normalize_term(oid_NIST_ALG @ [0x02uy; 0x01uy])
-noextract inline_for_extraction let oid_DIGEST_ALG_SHA384 = normalize_term(oid_NIST_ALG @ [0x02uy; 0x02uy])
-noextract inline_for_extraction let oid_DIGEST_ALG_SHA512 = normalize_term(oid_NIST_ALG @ [0x02uy; 0x03uy])
+noextract inline_for_extraction let oid_DIGEST_ALG_SHA224 =
+  [@inline_let]
+  let l = oid_NIST_ALG @ [0x02uy; 0x04uy] in
+  assert_norm (List.Tot.length l <= UInt.max_int 32);
+  normalize_term l
+
+noextract inline_for_extraction let oid_DIGEST_ALG_SHA256 =
+  [@inline_let]
+  let l = oid_NIST_ALG @ [0x02uy; 0x01uy] in
+  assert_norm (List.Tot.length l <= UInt.max_int 32);
+  normalize_term l
+
+noextract inline_for_extraction let oid_DIGEST_ALG_SHA384 =
+  [@inline_let]
+  let l = oid_NIST_ALG @ [0x02uy; 0x02uy] in
+  assert_norm (List.Tot.length l <= UInt.max_int 32);
+  normalize_term l
+
+noextract inline_for_extraction let oid_DIGEST_ALG_SHA512 =
+  [@inline_let]
+  let l = oid_NIST_ALG @ [0x02uy; 0x03uy] in
+  assert_norm (List.Tot.length l <= UInt.max_int 32);
+  normalize_term l
+
 
 (* EC key algorithms from RFC 5480
   ================================
