@@ -30,7 +30,6 @@ let serialize_asn1_string t len_of_string filter_string synth_string synth_strin
   (* g1 *) (synth_string_inverse len)
   (* Prf*) (prf)
 
-
 let lemma_serialize_asn1_string_unfold t len_of_string filter_string synth_string synth_string_inverse prf len x
 = serialize_synth_eq
   (* p1 *) (parse_flbytes (v len)
@@ -139,7 +138,6 @@ let lemma_serialize_asn1_string_TLV_unfold t len_of_string filter_string synth_s
   (* tg *) (parser_tag_of_asn1_string t len_of_string)
   (* s  *) (serialize_asn1_string_V t len_of_string filter_string synth_string synth_string_inverse prf)
   (* in *) (x)
-
 
 let lemma_serialize_asn1_string_TLV_size t len_of_string filter_string synth_string synth_string_inverse prf x
 = lemma_serialize_asn1_string_TLV_unfold t len_of_string filter_string synth_string synth_string_inverse prf x;

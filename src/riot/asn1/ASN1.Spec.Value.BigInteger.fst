@@ -11,43 +11,31 @@ open FStar.Integers
 
 module B32 = FStar.Bytes
 
-unfold
-let big_integer_as_octet_string_t
-= x: datatype_of_asn1_type OCTET_STRING
-  { let (.[]) = B32.index in
-    v (dfst x) > 0 /\                      // no nil
-    ( if (v (dfst x) > 1) then
-      ( (dsnd x).[0] =!= 0x00uy )  // no leading zero byte if length > 1
-      else ( True ) ) /\
-    ( if ((dsnd x).[0] >= 0x80uy) then   // leave one space for leading zero byte
-      ( v (dfst x) <= asn1_length_max - 7 )
-      else ( True ) ) }
+// let asn1_value_length_of_big_integer
+// = l: asn1_length_t { 1 <= l /\ l <= asn1_length_max - 6}
 
-let asn1_value_length_of_big_integer
-= l: asn1_length_t { 1 <= l /\ l <= asn1_length_max - 6}
+// let asn1_value_int32_of_big_integer
+// = LowParse.Spec.BoundedInt.bounded_int32 1 (asn1_length_max - 6)
 
-let asn1_value_int32_of_big_integer
-= LowParse.Spec.BoundedInt.bounded_int32 1 (asn1_length_max - 6)
+// let asn1_TLV_length_of_big_integer
+// = l: asn1_length_t { 3 <= l /\ l <= asn1_length_max }
 
-let asn1_TLV_length_of_big_integer
-= l: asn1_length_t { 3 <= l /\ l <= asn1_length_max }
+// let asn1_TLV_int32_of_big_integer
+// = LowParse.Spec.BoundedInt.bounded_int32 3 asn1_length_max
 
-let asn1_TLV_int32_of_big_integer
-= LowParse.Spec.BoundedInt.bounded_int32 3 asn1_length_max
-
-unfold
-let valid_big_integer_as_octet_string_prop
-  (l: asn1_value_length_of_big_integer)
-  (x: big_integer_as_octet_string_t)
-: Type0
-= v (dfst x) > 0 /\
-  ( let (.[]) = B32.index in
-    if l = 1 then
-    ( v (dfst x) == l /\ (dsnd x).[0] < 0x80uy )
-    else if ((dsnd x).[0] >= 0x80uy) then
-    ( v (dfst x) == l - 1 )
-    else
-    ( v (dfst x) == l /\ (dsnd x).[0] > 0x00uy ) )
+// unfold
+// let valid_big_integer_as_octet_string_prop
+//   (l: asn1_value_length_of_big_integer)
+//   (x: big_integer_as_octet_string_t)
+// : Type0
+// = v (dfst x) > 0 /\
+//   ( let (.[]) = B32.index in
+//     if l = 1 then
+//     ( v (dfst x) == l /\ (dsnd x).[0] < 0x80uy )
+//     else if ((dsnd x).[0] >= 0x80uy) then
+//     ( v (dfst x) == l - 1 )
+//     else
+//     ( v (dfst x) == l /\ (dsnd x).[0] > 0x00uy ) )
 
 ///
 let filter_big_integer_as_octet_string
@@ -62,8 +50,6 @@ let filter_big_integer_as_octet_string
     else
     ( s.[0] < 0x80uy ) )
 
-
-noextract
 let synth_big_integer_as_octet_string
   (l: asn1_value_length_of_big_integer)
   (s: parse_filter_refine (filter_big_integer_as_octet_string l))
@@ -101,7 +87,6 @@ let lemma_synth_big_integer_as_octet_string_injective
   (*prf*) (lemma_synth_big_integer_as_octet_string_injective' l)
 
 /// Encodes our representation of a OCTET_STRING into bytes
-noextract
 let synth_big_integer_as_octet_string_inverse
   (l: asn1_value_length_of_big_integer)
   (value: big_integer_as_octet_string_t {valid_big_integer_as_octet_string_prop l value})
@@ -118,12 +103,11 @@ let synth_big_integer_as_octet_string_inverse
   ( B32.reveal (dsnd value) )
 
 // inline_for_extraction noextract
-let parse_big_integer_as_octet_string_kind (l: asn1_value_length_of_big_integer) = constant_size_parser_kind l
+// let parse_big_integer_as_octet_string_kind (l: asn1_value_length_of_big_integer) = constant_size_parser_kind l
 
 ///
 /// Parser
 ///
-noextract
 let parse_big_integer_as_octet_string
   (l: asn1_value_length_of_big_integer)
 : parser (parse_big_integer_as_octet_string_kind l) (x: big_integer_as_octet_string_t {valid_big_integer_as_octet_string_prop l x})
@@ -137,7 +121,6 @@ let parse_big_integer_as_octet_string
 ///
 /// Serializer
 ///
-noextract
 let serialize_big_integer_as_octet_string
   (l: asn1_value_length_of_big_integer)
 : serializer (parse_big_integer_as_octet_string l)
@@ -157,7 +140,6 @@ let serialize_big_integer_as_octet_string
 ///
 
 /// Reveal the computation of serialize
-noextract
 let lemma_serialize_big_integer_as_octet_string_unfold
   (l: asn1_value_length_of_big_integer)
   (value: get_parser_type (parse_big_integer_as_octet_string l))
@@ -177,7 +159,6 @@ let lemma_serialize_big_integer_as_octet_string_unfold
   (* in *) (value)
 
 /// Reveal the length of a serialzation
-noextract
 let lemma_serialize_big_integer_as_octet_string_size
   (l: asn1_value_length_of_big_integer)
   (value: get_parser_type (parse_big_integer_as_octet_string l))
@@ -186,43 +167,38 @@ let lemma_serialize_big_integer_as_octet_string_size
 = lemma_serialize_big_integer_as_octet_string_unfold l value
 
 
-///////////////////////////////////////////////////////////
-//// ASN1 `OCTET_STRING` TLV Parser and Serializer
-///////////////////////////////////////////////////////////
-
 /// parser tag for the `tagged_union` combinators
-let parser_tag_of_big_integer_as_octet_string
-  (x: big_integer_as_octet_string_t)
-: Tot (the_asn1_tag INTEGER & asn1_value_int32_of_big_integer)
-= let (.[]) = B32.index in
-  if ((dsnd x).[0] >= 0x80uy) then
-  ( (INTEGER, dfst x + 1ul) )
-  else
-  ( (INTEGER, dfst x) )
+// let parser_tag_of_big_integer_as_octet_string
+//   (x: big_integer_as_octet_string_t)
+// : Tot (the_asn1_tag INTEGER & asn1_value_int32_of_big_integer)
+// = let (.[]) = B32.index in
+//   if ((dsnd x).[0] >= 0x80uy) then
+//   ( (INTEGER, dfst x + 1ul) )
+//   else
+//   ( (INTEGER, dfst x) )
 
-open LowParse.Spec.DER
-let parse_asn1_length_kind_of_big_integer
-= parse_bounded_der_length32_kind 1 (asn1_length_max - 6)
+// open LowParse.Spec.DER
+// let parse_asn1_length_kind_of_big_integer
+// = parse_bounded_der_length32_kind 1 (asn1_length_max - 6)
 
-let parse_asn1_length_of_big_integer
-: parser parse_asn1_length_kind_of_big_integer asn1_value_int32_of_big_integer
-= parse_bounded_der_length32 1 (asn1_length_max - 6)
+// let parse_asn1_length_of_big_integer
+// : parser parse_asn1_length_kind_of_big_integer asn1_value_int32_of_big_integer
+// = parse_asn1_length_of_bound 1 (asn1_length_max - 6)
 
-let serialize_asn1_length_of_big_integer
-: serializer (parse_asn1_length_of_big_integer)
-= serialize_bounded_der_length32 1 (asn1_length_max - 6)
+// let serialize_asn1_length_of_big_integer
+// : serializer (parse_asn1_length_of_big_integer)
+// = serialize_asn1_length_of_bound 1 (asn1_length_max - 6)
 
-let weak_kind_of_big_integer
-= strong_parser_kind 1 (asn1_length_max - 6) None
+// let weak_kind_of_big_integer
+// = strong_parser_kind 1 (asn1_length_max - 6) None
 
-inline_for_extraction noextract
-let parse_big_integer_as_octet_string_TLV_kind
-: parser_kind
-= parse_asn1_tag_kind
-  `and_then_kind`
-  parse_asn1_length_kind_of_big_integer
-  `and_then_kind`
-  weak_kind_of_big_integer
+// let parse_big_integer_as_octet_string_TLV_kind
+// : parser_kind
+// = parse_asn1_tag_kind
+//   `and_then_kind`
+//   parse_asn1_length_kind_of_big_integer
+//   `and_then_kind`
+//   weak_kind_of_big_integer
 
 noextract
 let synth_big_integer_as_octet_string_V
@@ -318,7 +294,6 @@ let lemma_serialize_big_integer_as_octet_string_V_unfold
 
 //////////////////////////////////////////////////////////
 
-noextract
 let parse_big_integer_as_octet_string_TLV
 : parser parse_big_integer_as_octet_string_TLV_kind big_integer_as_octet_string_t
 = parse_tagged_union
@@ -331,7 +306,6 @@ let parse_big_integer_as_octet_string_TLV
 ///
 /// Serializer
 ///
-noextract
 let serialize_big_integer_as_octet_string_TLV
 : serializer parse_big_integer_as_octet_string_TLV
 = serialize_tagged_union
@@ -347,7 +321,6 @@ let serialize_big_integer_as_octet_string_TLV
 
 /// Reveal the computation of serialize
 #push-options "--z3rlimit 32"
-noextract
 let lemma_serialize_big_integer_as_octet_string_TLV_unfold
   (value: big_integer_as_octet_string_t)
 : Lemma (
@@ -373,22 +346,22 @@ let lemma_serialize_big_integer_as_octet_string_TLV_unfold
   (* in *) (value)
 #pop-options
 
-let length_of_big_integer_as_octet_string
-  (x: big_integer_as_octet_string_t)
-: GTot (asn1_TLV_length_of_big_integer)
-= let tg = parser_tag_of_big_integer_as_octet_string x in
-  1 + length_of_asn1_length (snd tg) + v (snd tg)
+// let length_of_big_integer_as_octet_string
+//   (x: big_integer_as_octet_string_t)
+// : GTot (asn1_TLV_length_of_big_integer)
+// = let tg = parser_tag_of_big_integer_as_octet_string x in
+//   1 + length_of_asn1_length (snd tg) + v (snd tg)
 
-let len_of_big_integer_as_octet_string
-  (x: big_integer_as_octet_string_t)
-: Tot (len: asn1_TLV_int32_of_big_integer
-            { v len == length_of_big_integer_as_octet_string x })
-= let tg = parser_tag_of_big_integer_as_octet_string x in
-  1ul + ASN1.Low.Length.len_of_asn1_length (snd tg) + (snd tg)
+// let len_of_big_integer_as_octet_string
+//   (x: big_integer_as_octet_string_t)
+// : Tot (len: asn1_TLV_int32_of_big_integer
+//             { v len == length_of_big_integer_as_octet_string x })
+// = let tg = parser_tag_of_big_integer_as_octet_string x in
+//   1ul + ASN1.Low.Length.len_of_asn1_length (snd tg) + (snd tg)
 
 /// Reveal the size of a serialzation
+
 #push-options "--z3rlimit 32 --fuel 0 --ifuel 0"
-noextract
 let lemma_serialize_big_integer_as_octet_string_TLV_size
   (value: big_integer_as_octet_string_t)
 : Lemma (
@@ -396,11 +369,9 @@ let lemma_serialize_big_integer_as_octet_string_TLV_size
   length_of_big_integer_as_octet_string value
 )
 = let tg = parser_tag_of_big_integer_as_octet_string value in
-  lemma_serialize_big_integer_as_octet_string_TLV_unfold value;
   lemma_serialize_asn1_tag_of_type_size INTEGER INTEGER;
-  lemma_serialize_asn1_length_size (snd tg);
-  lemma_serialize_asn1_length_unfold (snd tg);
-  serialize_bounded_der_length32_unfold 1 (asn1_length_max - 6) (snd tg);
-  // serialize_asn1_length_of_type_eq INTEGER (dfst value);
-  lemma_serialize_big_integer_as_octet_string_size (v (snd tg)) value
+  serialize_asn1_length_of_bound_eq 1 (asn1_length_max - 6) (snd tg);
+  lemma_serialize_asn1_length_of_bound_size 1 (asn1_length_max - 6) (snd tg);
+  lemma_serialize_big_integer_as_octet_string_size (v (snd tg)) value;
+  lemma_serialize_big_integer_as_octet_string_TLV_unfold value
 #pop-options

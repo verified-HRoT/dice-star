@@ -151,8 +151,3 @@ let x509_get_version
   (x: x509_version_payload_t)
 : Tot (x509_version_t)
 = x
-
-let s =
-  serialize_x509_version
-  `serialize_nondep_then`
-  serialize_x509_version

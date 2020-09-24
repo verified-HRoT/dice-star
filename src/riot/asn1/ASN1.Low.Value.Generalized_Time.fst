@@ -12,6 +12,8 @@ open FStar.Integers
 
 module B32 = FStar.Bytes
 
+friend ASN1.Spec.Value.Generalized_Time
+
 #set-options "--fuel 0 --ifuel 2"
 
 let serialize32_asn1_generalized_time_backwards

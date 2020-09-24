@@ -20,21 +20,21 @@ friend ASN1.Spec.Length
 
 #reset-options "--max_fuel 0 --max_ifuel 0"
 
-#push-options "--z3rlimit 16"
-let len_of_asn1_length len
-= lemma_serialize_asn1_length_unfold len;
-  let x = SDER.tag_of_der_length32_impl len in
-  if x < 128uy then
-  ( 1ul )
-  else if x = 129uy then
-  ( 2ul )
-  else if x = 130uy then
-  ( 3ul )
-  else if x = 131uy then
-  ( 4ul )
-  else
-  ( 5ul )
-#pop-options
+// #push-options "--z3rlimit 16"
+// let len_of_asn1_length len
+// = lemma_serialize_asn1_length_unfold len;
+//   let x = SDER.tag_of_der_length32_impl len in
+//   if x < 128uy then
+//   ( 1ul )
+//   else if x = 129uy then
+//   ( 2ul )
+//   else if x = 130uy then
+//   ( 3ul )
+//   else if x = 131uy then
+//   ( 4ul )
+//   else
+//   ( 5ul )
+// #pop-options
 
 #push-options "--z3rlimit 32"
 let serialize32_asn1_length ()

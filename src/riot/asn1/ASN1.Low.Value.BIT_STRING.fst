@@ -22,7 +22,7 @@ friend ASN1.Spec.Value.BIT_STRING
 
 (* NOTE: Read after `ASN1.Spec.Tag`, `ASN1.Spec.Length`, `ASN1.Spec.Value.OCTET_STRING` *)
 
-#push-options "--z3rlimit 64 --fuel 0 --ifuel 0"
+#push-options "--z3rlimit 128 --fuel 0 --ifuel 0"
 let serialize32_asn1_bit_string_backwards len
 = fun (value: datatype_of_asn1_type BIT_STRING { v len == v (Mkbit_string_t?.bs_len value) })
     (#rrel #rel: _)
@@ -73,7 +73,6 @@ let serialize32_asn1_bit_string_backwards len
               (* mem *) h1
               (* mem'*) h2;
     (* Prf *) Seq.lemma_split (Seq.slice (B.as_seq h2 b) (v pos - v len) (v pos)) 1;
-    admit (); //AR: 09/23
 (*return*) (Mkbit_string_t?.bs_len value)
 #pop-options
 

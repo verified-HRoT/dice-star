@@ -7,13 +7,28 @@ open ASN1.Base
 open ASN1.Spec.Length
 open ASN1.Low.Base
 
+module LDER = LowParse.Low.DER
+module SDER = LowParse.Spec.DER
+
 open FStar.Integers
 
 #reset-options "--max_fuel 0 --max_ifuel 0"
 
-val len_of_asn1_length
+let len_of_asn1_length
   (len: asn1_int32)
 : (offset: size_t{v offset == Seq.length (serialize serialize_asn1_length len)})
+= lemma_serialize_asn1_length_unfold len;
+  let x = SDER.tag_of_der_length32_impl len in
+  if x < 128uy then
+  ( 1ul )
+  else if x = 129uy then
+  ( 2ul )
+  else if x = 130uy then
+  ( 3ul )
+  else if x = 131uy then
+  ( 4ul )
+  else
+  ( 5ul )
 
 #push-options "--z3rlimit 32"
 inline_for_extraction

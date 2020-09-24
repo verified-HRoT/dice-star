@@ -3,8 +3,6 @@ module ASN1.Spec.Value.PRINTABLE_STRING
 open ASN1.Spec.Base
 
 open ASN1.Base
-open ASN1.Spec.Tag
-open ASN1.Spec.Length
 open ASN1.Spec.Value.StringCombinator
 
 open FStar.Integers
@@ -35,14 +33,12 @@ val parse_asn1_printable_string (len:asn1_value_int32_of_type PRINTABLE_STRING)
 : parser (parse_filter_kind (total_constant_size_parser_kind (v len)))
     (x:datatype_of_asn1_type PRINTABLE_STRING{dfst x == len})
 
-let serialize_asn1_printable_string
-= serialize_asn1_string
-    (PRINTABLE_STRING)
+val serialize_asn1_printable_string (len:asn1_value_int32_of_type PRINTABLE_STRING)
+: serializer (parse_asn1_string PRINTABLE_STRING
     (dfst)
     (filter_asn1_printable_string)
     (synth_asn1_printable_string)
-    (synth_asn1_printable_string_inverse)
-    ()
+    () len)
 
 let lemma_serialize_asn1_printable_string_unfold
 = lemma_serialize_asn1_string_unfold

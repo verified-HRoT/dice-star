@@ -57,10 +57,24 @@ val filter_asn1_integer
 : GTot (bool)
 
 /// Length computation function/specification for a `INTEGER` value's serialization
-noextract
-val length_of_asn1_integer
+let length_of_asn1_integer
   (value: datatype_of_asn1_type INTEGER)
 : GTot (asn1_value_length_of_type INTEGER)
+= let vx = v #(Signed W32) value in
+  if      0         <= vx && vx <= 0x7F      then
+  ( 1 )
+  else if 0x7F       < vx && vx <= 0xFF       then
+  ( 2 )
+  else if 0xFF       < vx && vx <= 0x7FFF     then
+  ( 2 )
+  else if 0x7FFF     < vx && vx <= 0xFFFF     then
+  ( 3 )
+  else if 0xFFFF     < vx && vx <= 0x7FFFFF   then
+  ( 3 )
+  else if 0x7FFFFF   < vx && vx <= 0xFFFFFF   then
+  ( 4 )
+  else if 0xFFFFFF   < vx && vx <= 0x7FFFFFFF then
+  ( 4 )
 
 (* NOTE: Why this function signature will not pass type check when
          `datatype_of_asn1_type` is marked as `unfold`? *)
