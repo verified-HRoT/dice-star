@@ -2,18 +2,16 @@ module ASN1.Low.Value.OCTET_STRING
 
 open ASN1.Base
 open ASN1.Spec.Value.OCTET_STRING
+
 open ASN1.Low.Base
+open ASN1.Low.Tag
+open ASN1.Low.Length
+
 open LowParse.Low.Bytes
 
 open FStar.Integers
 
-module HS = FStar.HyperStack
-module HST = FStar.HyperStack.ST
-module MB = LowStar.Monotonic.Buffer
 module B = LowStar.Buffer
-module Cast = FStar.Int.Cast
-
-module B32 = FStar.Bytes
 
 friend ASN1.Spec.Value.OCTET_STRING
 
@@ -34,11 +32,6 @@ let serialize32_asn1_octet_string_backwards len
     (* pos *) (pos - len);
 
 (* retuen *) len
-
-open ASN1.Spec.Tag
-open ASN1.Spec.Length
-open ASN1.Low.Tag
-open ASN1.Low.Length
 
 inline_for_extraction
 let parser_tag_of_octet_string_impl
