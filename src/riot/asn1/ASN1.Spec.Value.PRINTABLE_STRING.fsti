@@ -22,6 +22,12 @@ let synth_asn1_printable_string
 : GTot (value: datatype_of_asn1_type PRINTABLE_STRING{(dfst value) == len})
 = (|len, s32|)
 
+val lemma_synth_asn1_printable_string_injective (_: unit)
+: Lemma (
+  forall (len: asn1_value_int32_of_type (PRINTABLE_STRING)).
+    synth_injective (synth_asn1_printable_string len)
+)
+
 noextract inline_for_extraction
 val synth_asn1_printable_string_inverse
   (len: asn1_value_int32_of_type PRINTABLE_STRING)

@@ -12,6 +12,8 @@ open FStar.Integers
 
 module B32 = FStar.Bytes
 
+let lemma_synth_asn1_ia5_string_injective () = ()
+
 let synth_asn1_ia5_string_inverse len value
 = dsnd value
 

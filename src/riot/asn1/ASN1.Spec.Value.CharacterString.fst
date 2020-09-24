@@ -124,7 +124,7 @@ let lemma_serialize_character_string_unfold
                      (filter_asn1_ia5_string)
                      (synth_asn1_ia5_string)
                      (synth_asn1_ia5_string_inverse)
-                     (lemma_synth_asn1_ia5_string_injective ())
+                     ()
                      (x)
     | PRINTABLE_STRING
                  -> predicate_serialize_asn1_string_TLV_unfold
@@ -133,7 +133,7 @@ let lemma_serialize_character_string_unfold
                      (filter_asn1_printable_string)
                      (synth_asn1_printable_string)
                      (synth_asn1_printable_string_inverse)
-                     (lemma_synth_asn1_printable_string_injective ())
+                     ()
                      (x))
 = match t with
   | IA5_STRING ->
@@ -165,7 +165,7 @@ let lemma_serialize_character_string_size
                      (filter_asn1_ia5_string)
                      (synth_asn1_ia5_string)
                      (synth_asn1_ia5_string_inverse)
-                     (lemma_synth_asn1_ia5_string_injective ())
+                     ()
                      (x)
     | PRINTABLE_STRING
                  -> predicate_serialize_asn1_string_TLV_size
@@ -174,7 +174,7 @@ let lemma_serialize_character_string_size
                      (filter_asn1_printable_string)
                      (synth_asn1_printable_string)
                      (synth_asn1_printable_string_inverse)
-                     (lemma_synth_asn1_printable_string_injective ())
+                     ()
                      (x))
 = match t with
   | IA5_STRING ->

@@ -22,6 +22,12 @@ let synth_asn1_ia5_string
 : GTot (value: datatype_of_asn1_type IA5_STRING{(dfst value) == len})
 = (|len, s32|)
 
+val lemma_synth_asn1_ia5_string_injective (_: unit)
+: Lemma (
+  forall (len: asn1_value_int32_of_type (IA5_STRING)).
+    synth_injective (synth_asn1_ia5_string len)
+)
+
 noextract inline_for_extraction
 val synth_asn1_ia5_string_inverse
   (len: asn1_value_int32_of_type IA5_STRING)
