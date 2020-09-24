@@ -22,12 +22,6 @@ let synth_asn1_printable_string
 : GTot (value: datatype_of_asn1_type PRINTABLE_STRING{(dfst value) == len})
 = (|len, s32|)
 
-val lemma_synth_asn1_printable_string_injective (_: unit)
-: Lemma (
-  forall (len: asn1_value_int32_of_type (PRINTABLE_STRING)).
-    synth_injective (synth_asn1_printable_string len)
-)
-
 noextract inline_for_extraction
 val synth_asn1_printable_string_inverse
   (len: asn1_value_int32_of_type PRINTABLE_STRING)
@@ -35,16 +29,16 @@ val synth_asn1_printable_string_inverse
 : Tot (s32: parse_filter_refine (filter_asn1_printable_string len)
              { value == synth_asn1_printable_string len s32 })
 
-val parse_asn1_printable_string (len:asn1_value_int32_of_type PRINTABLE_STRING)
-: parser (parse_filter_kind (total_constant_size_parser_kind (v len)))
-    (x:datatype_of_asn1_type PRINTABLE_STRING{dfst x == len})
-
-val serialize_asn1_printable_string (len:asn1_value_int32_of_type PRINTABLE_STRING)
-: serializer (parse_asn1_string PRINTABLE_STRING
+let parse_asn1_printable_string
+= parse_asn1_string
+    (PRINTABLE_STRING)
     (dfst)
     (filter_asn1_printable_string)
     (synth_asn1_printable_string)
-    () len)
+    ()
+
+val serialize_asn1_printable_string (len:asn1_value_int32_of_type PRINTABLE_STRING)
+: serializer (parse_asn1_printable_string len)
 
 let lemma_serialize_asn1_printable_string_unfold
 = lemma_serialize_asn1_string_unfold

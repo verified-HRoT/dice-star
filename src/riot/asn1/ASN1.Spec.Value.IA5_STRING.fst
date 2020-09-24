@@ -12,18 +12,16 @@ open FStar.Integers
 
 module B32 = FStar.Bytes
 
-let lemma_synth_asn1_ia5_string_injective () = ()
-
 let synth_asn1_ia5_string_inverse len value
 = dsnd value
 
-let parse_asn1_ia5_string
-= parse_asn1_string
-    (IA5_STRING)
-    (dfst)
-    (filter_asn1_ia5_string)
-    (synth_asn1_ia5_string)
-    ()
+// let parse_asn1_ia5_string
+// = parse_asn1_string
+//     (IA5_STRING)
+//     (dfst)
+//     (filter_asn1_ia5_string)
+//     (synth_asn1_ia5_string)
+//     ()
 
 let serialize_asn1_ia5_string
 = serialize_asn1_string

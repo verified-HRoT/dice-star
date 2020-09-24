@@ -12,18 +12,8 @@ open FStar.Integers
 
 module B32 = FStar.Bytes
 
-let lemma_synth_asn1_printable_string_injective () = ()
-
 let synth_asn1_printable_string_inverse len value
 = dsnd value
-
-let parse_asn1_printable_string
-= parse_asn1_string
-    (PRINTABLE_STRING)
-    (dfst)
-    (filter_asn1_printable_string)
-    (synth_asn1_printable_string)
-    ()
 
 let serialize_asn1_printable_string
 = serialize_asn1_string
