@@ -20,6 +20,8 @@ module CB = LowStar.ConstBuffer
 
 module G = FStar.Ghost
 
+friend ASN1.Spec.Value.OID
+
 (* FIXME: Notes about `IB` and Ghost seq:
    NOTE: `IB.cpred` vs `IB.seq_eq`, `IB.recall_contents` vs `IB.recall_value`
    We may want to use the following `oid_seq` to represent a
@@ -140,79 +142,6 @@ let seq_of_oid_buffer
 = lemma_known_oids_as_seq_contains_oid_seq_of oid;
   oid_seq_of oid
 
-
-// #push-options "--z3rlimit 32"
-// inline_for_extraction
-// let blit_from_ib
-//   (len: size_t)
-//   (src_seq: lbytes (v len))
-//   (src: IB.libuffer byte (v len) src_seq {B.frameOf src == HS.root /\ B.recallable src})
-//   (src_from src_to: size_t)
-//   (#rrel #rel: _)
-//   (dst: B.mbuffer byte rrel rel)
-//   (dst_pos: size_t)
-// : HST.Stack unit
-//   (requires (fun h ->
-//     B.live h dst /\
-//     v src_from <= v src_to /\ v src_to <= B.length src /\
-//     v dst_pos + (v src_to - v src_from) <= B.length dst /\
-//     writable dst (v dst_pos) (v dst_pos + (v src_to - v src_from)) h
-//   ))
-//   (ensures (fun h _ h' ->
-//     B.modifies (B.loc_buffer_from_to dst dst_pos (dst_pos + (src_to - src_from))) h h' /\
-//     Seq.slice (B.as_seq h' dst) (v dst_pos) (v dst_pos + (v src_to - v src_from)) == Seq.slice (B.as_seq h src) (v src_from) (v src_to)
-//   ))
-// = let h0 = HST.get () in
-//   HST.push_frame ();
-//   let h1 = HST.get () in
-//   let bi: B.pointer size_t = B.alloca 0ul 1ul in
-//   let h2 = HST.get () in
-//   let len = src_to - src_from in
-//   C.Loops.do_while
-//     (fun h stop ->
-//       B.modifies (B.loc_union (B.loc_region_only true (HS.get_tip h1)) (B.loc_buffer_from_to dst dst_pos (dst_pos + len))) h2 h /\
-//       B.live h bi /\ (
-//       let i = Seq.index (B.as_seq h bi) 0 in
-//       v i <= v len /\
-//       writable dst (v dst_pos) (v dst_pos + v len) h /\
-//       Seq.slice (B.as_seq h dst) (v dst_pos) (v dst_pos + v i) `Seq.equal` Seq.slice (B.as_seq h src) (v src_from) (v src_from + v i) /\
-//       (stop == true ==> i == len)
-//     ))
-//     (fun _ ->
-//       let i = B.index bi 0ul in
-//       if i = len
-//       then true
-//       else begin
-//         (**) let h = HST.get () in
-//         (**) assume (Seq.slice (B.as_seq h dst) (v dst_pos) (v dst_pos + v (B.as_seq h bi).[0])
-//                      `Seq.equal`
-//                      Seq.slice (B.as_seq h src) (v src_from) (v src_from + v (B.as_seq h bi).[0]));
-//         (**) B.recall src;
-//         (**) IB.recall_contents src src_seq;
-//         (**) let h = HST.get () in
-//         let x = B.index src (src_from + i) in
-//         mbuffer_upd dst (Ghost.hide (v dst_pos)) (Ghost.hide (v dst_pos + v len)) (dst_pos + i) x;
-
-//         let i': size_t = i + 1ul in
-//         B.upd bi 0ul i';
-
-//         (**) let h' = HST.get () in
-//         (**) IB.recall_contents src src_seq;
-//         (**) Seq.lemma_split (Seq.slice (B.as_seq h' dst) (v dst_pos) (v dst_pos + v i')) (v i);
-//         (**) assert ((B.as_seq h' dst).[v (dst_pos + i)] == (B.as_seq h' src).[v (src_from + i)]);
-//         (**) let h = HST.get () in
-//         (**) assert (Seq.slice (B.as_seq h dst) (v dst_pos) (v dst_pos + v (B.as_seq h bi).[0])
-//                      `Seq.equal`
-//                      Seq.slice (B.as_seq h src) (v src_from) (v src_from + v (B.as_seq h bi).[0]));
-//         admit ();
-//         i' = len
-//       end
-//     )
-//     ;
-//   HST.pop_frame ()
-// #pop-options
-
-
 #restart-solver
 #push-options "--z3rlimit 64 --fuel 0 --ifuel 0"
 inline_for_extraction
@@ -239,85 +168,6 @@ let serialize32_asn1_oid_backwards
 
 (* return *) offset
 #pop-options
-
-  (*WIP: modifies proof is the last piece.*)
-   // (* Prf *) let h0 = HST.get () in
-   // C.Loops.for
-   //   (* start*) 0ul
-   //   (* end  *) offset
-   //   (* inv  *) (fun (h: HS.mem) (i: nat) ->
-   //                 let s_src = B.as_seq h oid_buffer in
-   //                 let s_dst = B.as_seq h b in
-   //                 //0 < i /\ i < v offset /\ //within_bounds (Unsigned W32) i /\
-   //                 // B.live h b /\ B.modifies (B.loc_buffer_from_to b (pos - offset) (pos - offset + u i)) h0 h /\
-   //                 writable b (v pos - v offset) (v pos) h /\
-   //                 i <= Seq.length s_src /\s_src == seq_of_oid_buffer oid /\
-   //                 Seq.slice s_src 0 i `Seq.equal` Seq.slice s_dst (v pos - v offset) (v pos - v offset + i)
-   //                 )
-   //   (* body *) (fun i32 ->
-   //                 (* Prf *) let h1 = HST.get () in
-   //                 (* Prf *) IB.recall oid_buffer;
-   //                 (* Prf *) IB.recall_contents oid_buffer (seq_of_oid_buffer oid);
-   //                 let x = B.index oid_buffer i32 in
-   //                 mbuffer_upd
-   //                   (* buf *) b
-   //                   (*range*) (v pos - v offset) (v pos)
-   //                   (* pos *) (pos - offset + i32)
-   //                   (* val *) x;
-   //                 (* Prf *) IB.recall_contents oid_buffer (seq_of_oid_buffer oid);
-   //                 (* Prf *) let h2 = HST.get () in
-   //                 (* Prf *) assert (writable b (v pos - v offset) (v pos) h2 /\ B.live h2 b);
-   //                 (* Prf *) B.modifies_buffer_from_to_elim
-   //                           (* buf *) b
-   //                           (*frame*) (pos - offset) (pos - offset + i32)
-   //                           (* new *) (B.loc_buffer_from_to b (pos - offset + i32) (pos - offset + i32 + 1ul))
-   //                           (* mem *) h1 h2;
-   //                 (* Prf *) Seq.lemma_split
-   //                           (* s *) (Seq.slice (B.as_seq h2 b) (v pos - v offset) (v pos - v offset + v i32 + 1))
-   //                           (*pos*) (v i32);
-   //                 (* Prf *) Seq.lemma_split
-   //                           (* s *) (Seq.slice (B.as_seq h2 oid_buffer) 0 (v i32 + 1))
-   //                           (*pos*) (v i32);
-   //                           assert (let s_src = B.as_seq h2 oid_buffer in
-   //                                   let s_dst = B.as_seq h2 b in
-   //                                   Seq.slice s_src 0 (v i32) `Seq.equal` Seq.slice s_dst (v pos - v offset) (v pos - v offset + v i32));
-   //                 (* Prf *) assert (let s_src = B.as_seq h2 oid_buffer in
-   //                                   let s_dst = B.as_seq h2 b in
-   //                                   s_dst.[v pos - v offset + v i32] == s_src.[v i32] /\
-   //                                   Seq.slice s_src 0 (v i32) `Seq.equal` Seq.slice s_dst (v pos - v offset) (v pos - v offset + v i32) /\
-   //                                   Seq.slice s_src 0 (v i32 + 1) `Seq.equal` Seq.slice s_dst (v pos - v offset) (v pos - v offset + v i32 + 1) /\
-   //                                   // B.modifies (B.loc_buffer_from_to b (pos - offset) (pos - offset + i32 + 1)) h0 h2 /\
-   //                                   True );
-   //                           assume (B.modifies (B.loc_buffer_from_to b (pos - offset) (pos - offset + i32)) h0 h2);
-   //                           assume (B.modifies (B.loc_buffer_from_to b (pos - offset + 1) (pos - offset + i32)) h0 h2);
-   //                           // assert (B.modifies (B.loc_buffer_from_to b (pos - offset) (pos - offset + i32 + 1ul)) h0 h2);
-   //                           admit ()
-   //                           // B.modifies_loc_buffer_from_to_intro
-   //              );
-
-   // (* Prf *) assert (
-   //   let s = B.as_seq h b in
-   //   let sub1:Seq.lseq byte 9 = Seq.create 9 0uy in
-   //   let sub2:Seq.lseq byte 9 = Seq.create 9 1uy in
-   //   let s1 = Seq.replace_subseq s (v pos - 9) (v pos) sub1 in
-   //   let s2 = Seq.replace_subseq s (v pos - 9) (v pos) sub2 in
-   //   Seq.lemma_index_create 9 0uy 0;
-   //   Seq.lemma_index_create 9 1uy 0;
-   //   s1.[v pos - 9] == 0uy /\
-   //   s2.[v pos - 9] == 1uy /\
-
-   //   (* diseq for seqs *)
-   //   sub1 =!= sub2 /\
-   //   ~ (s1 `Seq.equal` s2) /\
-
-   //   (* rel *)
-   //   s1 `rel` s2 /\
-   //   ~ (s1 `IB.immutable_preorder byte` s2) /\
-   //   ~ ( (s1 `rel` s2) <==> (s1 `IB.immutable_preorder byte` s2) ) /\
-   //   rel =!= (IB.immutable_preorder byte)
-   //   );
-
-   //   assert ( MB.rrel_rel_always_compatible rrel rel);
 
 open ASN1.Spec.Tag
 open ASN1.Spec.Length
