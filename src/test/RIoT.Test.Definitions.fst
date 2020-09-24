@@ -98,5 +98,5 @@ let aliasKeyCrt_i_country_buf = IB.igcmalloc_of_list HS.root aliasKeyCrt_i_count
 // let notAfter: datatype_of_asn1_type Generalized_Time
 // = x509_validity_notAfter_default
 
-let aliasKeyCrt_keyID: datatype_of_asn1_type OCTET_STRING
-= normalize_term (|1ul, B32.create 1ul 1uy|)
+// let aliasKeyCrt_keyID: datatype_of_asn1_type OCTET_STRING
+// = normalize_term (|1ul, B32.create 1ul 1uy|)
