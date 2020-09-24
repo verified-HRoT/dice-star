@@ -11,20 +11,8 @@ open FStar.Integers
 
 module B32 = FStar.Bytes
 
-unfold
-let big_integer_as_octet_string_t
-= x: datatype_of_asn1_type OCTET_STRING
-  { let (.[]) = B32.index in
-    v (dfst x) > 0 /\                      // no nil
-    ( if (v (dfst x) > 1) then
-      ( (dsnd x).[0] =!= 0x00uy )  // no leading zero byte if length > 1
-      else ( True ) ) /\
-    ( if ((dsnd x).[0] >= 0x80uy) then   // leave one space for leading zero byte
-      ( v (dfst x) <= asn1_length_max - 7 )
-      else ( True ) ) }
-
-let asn1_value_length_of_big_integer
-= l: asn1_length_t { 1 <= l /\ l <= asn1_length_max - 6}
+// let asn1_value_length_of_big_integer
+// = l: asn1_length_t { 1 <= l /\ l <= asn1_length_max - 6}
 
 let asn1_value_int32_of_big_integer
 = LowParse.Spec.BoundedInt.bounded_int32 1 (asn1_length_max - 6)
@@ -35,19 +23,19 @@ let asn1_TLV_length_of_big_integer
 let asn1_TLV_int32_of_big_integer
 = LowParse.Spec.BoundedInt.bounded_int32 3 asn1_length_max
 
-unfold
-let valid_big_integer_as_octet_string_prop
-  (l: asn1_value_length_of_big_integer)
-  (x: big_integer_as_octet_string_t)
-: Type0
-= v (dfst x) > 0 /\
-  ( let (.[]) = B32.index in
-    if l = 1 then
-    ( v (dfst x) == l /\ (dsnd x).[0] < 0x80uy )
-    else if ((dsnd x).[0] >= 0x80uy) then
-    ( v (dfst x) == l - 1 )
-    else
-    ( v (dfst x) == l /\ (dsnd x).[0] > 0x00uy ) )
+// unfold
+// let valid_big_integer_as_octet_string_prop
+//   (l: asn1_value_length_of_big_integer)
+//   (x: big_integer_as_octet_string_t)
+// : Type0
+// = v (dfst x) > 0 /\
+//   ( let (.[]) = B32.index in
+//     if l = 1 then
+//     ( v (dfst x) == l /\ (dsnd x).[0] < 0x80uy )
+//     else if ((dsnd x).[0] >= 0x80uy) then
+//     ( v (dfst x) == l - 1 )
+//     else
+//     ( v (dfst x) == l /\ (dsnd x).[0] > 0x00uy ) )
 
 ///
 let filter_big_integer_as_octet_string
@@ -123,7 +111,6 @@ let parse_big_integer_as_octet_string_kind (l: asn1_value_length_of_big_integer)
 ///
 /// Parser
 ///
-noextract
 let parse_big_integer_as_octet_string
   (l: asn1_value_length_of_big_integer)
 : parser (parse_big_integer_as_octet_string_kind l) (x: big_integer_as_octet_string_t {valid_big_integer_as_octet_string_prop l x})
@@ -137,7 +124,6 @@ let parse_big_integer_as_octet_string
 ///
 /// Serializer
 ///
-noextract
 let serialize_big_integer_as_octet_string
   (l: asn1_value_length_of_big_integer)
 : serializer (parse_big_integer_as_octet_string l)
@@ -157,7 +143,6 @@ let serialize_big_integer_as_octet_string
 ///
 
 /// Reveal the computation of serialize
-noextract
 let lemma_serialize_big_integer_as_octet_string_unfold
   (l: asn1_value_length_of_big_integer)
   (value: get_parser_type (parse_big_integer_as_octet_string l))
