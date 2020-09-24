@@ -105,7 +105,6 @@ let len_of_oid_buffer oid
   | OID_DIGEST_SHA256            -> 9ul //oid_DIGEST_ALG_SHA256_as_buffer
   | OID_PKCS9_CSR_EXT_REQ        -> 9ul
 
-#push-options "--admit_smt_queries true"
 noextract
 let seq_of_oid_buffer
   (oid: oid_t)
@@ -113,8 +112,9 @@ let seq_of_oid_buffer
                  B.witnessed (oid_buffer_of_oid oid) (IB.cpred s) /\
                  Seq.length s == length_of_oid oid})
 = lemma_known_oids_as_seq_contains_oid_seq_of oid;
-  oid_seq_of oid
-#pop-options
+  let s = oid_seq_of oid in
+  assume (B.witnessed (oid_buffer_of_oid oid) (IB.cpred s));
+  s
 
 // #push-options "--z3rlimit 32"
 // inline_for_extraction

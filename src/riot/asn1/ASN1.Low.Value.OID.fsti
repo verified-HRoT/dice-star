@@ -32,21 +32,41 @@ module IB = LowStar.ImmutableBuffer
 // }
 
 (* ZT: Noramlize them here instead of mark OID lists as unfold and normalize them everywhere. *)
-let oid_RIOT_as_buffer                     = IB.igcmalloc_of_list HS.root (oid_RIOT)
-let oid_AT_CN_as_buffer                    = IB.igcmalloc_of_list HS.root (oid_AT_CN)
-let oid_AT_COUNTRY_as_buffer               = IB.igcmalloc_of_list HS.root (oid_AT_COUNTRY)
-let oid_AT_ORGANIZATION_as_buffer          = IB.igcmalloc_of_list HS.root (oid_AT_ORGANIZATION)
-let oid_CLIENT_AUTH_as_buffer              = IB.igcmalloc_of_list HS.root (oid_CLIENT_AUTH)
-let oid_AUTHORITY_KEY_IDENTIFIER_as_buffer = IB.igcmalloc_of_list HS.root (oid_AUTHORITY_KEY_IDENTIFIER)
-let oid_KEY_USAGE_as_buffer                = IB.igcmalloc_of_list HS.root (oid_KEY_USAGE)
-let oid_EXTENDED_KEY_USAGE_as_buffer       = IB.igcmalloc_of_list HS.root (oid_EXTENDED_KEY_USAGE)
-let oid_BASIC_CONSTRAINTS_as_buffer        = IB.igcmalloc_of_list HS.root (oid_BASIC_CONSTRAINTS)
-let oid_EC_ALG_UNRESTRICTED_as_buffer      = IB.igcmalloc_of_list HS.root (oid_EC_ALG_UNRESTRICTED)
-let oid_EC_GRP_SECP256R1_as_buffer         = IB.igcmalloc_of_list HS.root (oid_EC_GRP_SECP256R1)
-let oid_DIGEST_ALG_SHA256_as_buffer        = IB.igcmalloc_of_list HS.root (oid_DIGEST_ALG_SHA256)
-let oid_ED25519_as_bufffer                 = IB.igcmalloc_of_list HS.root (oid_ED25519)
-let oid_X25519_as_bufffer                  = IB.igcmalloc_of_list HS.root (oid_X25519)
-let oid_PKCS9_CSR_EXT_REQ_as_buffer        = IB.igcmalloc_of_list HS.root (oid_PKCS9_CSR_EXT_REQ)
+
+unfold let oid_buffer_t (l:list UInt8.t) = b:IB.ibuffer UInt8.t{
+  B.witnessed b (IB.cpred (Seq.createL l)) /\
+  B.length b == normalize_term (List.Tot.length l)
+}
+
+let oid_RIOT_as_buffer : oid_buffer_t oid_RIOT = IB.igcmalloc_of_list HS.root (oid_RIOT)
+
+let oid_AT_CN_as_buffer : oid_buffer_t oid_AT_CN = IB.igcmalloc_of_list HS.root (oid_AT_CN)
+
+let oid_AT_COUNTRY_as_buffer : oid_buffer_t oid_AT_COUNTRY = IB.igcmalloc_of_list HS.root (oid_AT_COUNTRY)
+
+let oid_AT_ORGANIZATION_as_buffer : oid_buffer_t oid_AT_ORGANIZATION = IB.igcmalloc_of_list HS.root (oid_AT_ORGANIZATION)
+
+let oid_CLIENT_AUTH_as_buffer : oid_buffer_t oid_CLIENT_AUTH = IB.igcmalloc_of_list HS.root (oid_CLIENT_AUTH)
+
+let oid_AUTHORITY_KEY_IDENTIFIER_as_buffer : oid_buffer_t oid_AUTHORITY_KEY_IDENTIFIER = IB.igcmalloc_of_list HS.root (oid_AUTHORITY_KEY_IDENTIFIER)
+
+let oid_KEY_USAGE_as_buffer : oid_buffer_t oid_KEY_USAGE = IB.igcmalloc_of_list HS.root (oid_KEY_USAGE)
+
+let oid_EXTENDED_KEY_USAGE_as_buffer : oid_buffer_t oid_EXTENDED_KEY_USAGE = IB.igcmalloc_of_list HS.root (oid_EXTENDED_KEY_USAGE)
+
+let oid_BASIC_CONSTRAINTS_as_buffer : oid_buffer_t oid_BASIC_CONSTRAINTS = IB.igcmalloc_of_list HS.root (oid_BASIC_CONSTRAINTS)
+
+let oid_EC_ALG_UNRESTRICTED_as_buffer : oid_buffer_t oid_EC_ALG_UNRESTRICTED = IB.igcmalloc_of_list HS.root (oid_EC_ALG_UNRESTRICTED)
+
+let oid_EC_GRP_SECP256R1_as_buffer : oid_buffer_t oid_EC_GRP_SECP256R1 = IB.igcmalloc_of_list HS.root (oid_EC_GRP_SECP256R1)
+
+let oid_DIGEST_ALG_SHA256_as_buffer : oid_buffer_t oid_DIGEST_ALG_SHA256 = IB.igcmalloc_of_list HS.root (oid_DIGEST_ALG_SHA256)
+
+let oid_ED25519_as_bufffer : oid_buffer_t oid_ED25519 = IB.igcmalloc_of_list HS.root (oid_ED25519)
+
+let oid_X25519_as_bufffer : oid_buffer_t oid_X25519 = IB.igcmalloc_of_list HS.root (oid_X25519)
+
+let oid_PKCS9_CSR_EXT_REQ_as_buffer : oid_buffer_t oid_PKCS9_CSR_EXT_REQ = IB.igcmalloc_of_list HS.root (oid_PKCS9_CSR_EXT_REQ)
 
 
 
