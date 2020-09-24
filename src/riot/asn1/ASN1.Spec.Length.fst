@@ -42,21 +42,6 @@ let lemma_serialize_asn1_length_of_bound_size
   (max: asn1_length_t { min <= max })
 = serialize_bounded_der_length32_size min max
 
-let length_of_asn1_length len
-= lemma_serialize_asn1_length_unfold len;
-  lemma_serialize_asn1_length_size len;
-  let x = tag_of_der_length32 len in
-  if x < 128uy then
-  ( 1 )
-  else if x = 129uy then
-  ( 2 )
-  else if x = 130uy then
-  ( 3 )
-  else if x = 131uy then
-  ( 4 )
-  else
-  ( 5 )
-
 /// Specialized for a specific ASN1 type
 ///
 

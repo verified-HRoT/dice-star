@@ -15,9 +15,12 @@ open FStar.Integers
 
 module B32 = FStar.Bytes
 
-friend ASN1.Spec.Value.CharacterString
-
-let serialize32_asn1_character_string_with_character_bound_backwards t lb ub
+noextract inline_for_extraction
+let serialize32_asn1_character_string_with_character_bound_backwards
+  (t: character_string_type)
+  (lb: asn1_value_int32_of_type t)
+  (ub: asn1_value_int32_of_type t { lb <= ub })
+: serializer32_backwards (serialize_asn1_character_string_with_character_bound t lb ub)
 = match t with
   | IA5_STRING -> assert_norm (count_ia5_character == count_character IA5_STRING);
                   serialize32_asn1_ia5_string_TLV_with_character_bound_backwards lb ub

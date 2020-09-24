@@ -29,22 +29,22 @@ let synth_asn1_ia5_string_inverse
              { value == synth_asn1_ia5_string len s32 })
 = dsnd value
 
-let parse_asn1_ia5_string
-= parse_asn1_string
-    (IA5_STRING)
-    (dfst)
-    (filter_asn1_ia5_string)
-    (synth_asn1_ia5_string)
-    (lemma_synth_asn1_ia5_string_injective ())
+// let parse_asn1_ia5_string
+// = parse_asn1_string
+//     (IA5_STRING)
+//     (dfst)
+//     (filter_asn1_ia5_string)
+//     (synth_asn1_ia5_string)
+//     (lemma_synth_asn1_ia5_string_injective ())
 
-let serialize_asn1_ia5_string
-= serialize_asn1_string
-    (IA5_STRING)
-    (dfst)
-    (filter_asn1_ia5_string)
-    (synth_asn1_ia5_string)
-    (synth_asn1_ia5_string_inverse)
-    (lemma_synth_asn1_ia5_string_injective ())
+// let serialize_asn1_ia5_string
+// = serialize_asn1_string
+//     (IA5_STRING)
+//     (dfst)
+//     (filter_asn1_ia5_string)
+//     (synth_asn1_ia5_string)
+//     (synth_asn1_ia5_string_inverse)
+//     (lemma_synth_asn1_ia5_string_injective ())
 
 let lemma_serialize_asn1_ia5_string_unfold
 = lemma_serialize_asn1_string_unfold
@@ -65,23 +65,22 @@ let lemma_serialize_asn1_ia5_string_size
     (lemma_synth_asn1_ia5_string_injective ())
 
 
+// let parse_asn1_ia5_string_TLV
+// = parse_asn1_string_TLV
+//     (IA5_STRING)
+//     (dfst)
+//     (filter_asn1_ia5_string)
+//     (synth_asn1_ia5_string)
+//     (lemma_synth_asn1_ia5_string_injective ())
 
-let parse_asn1_ia5_string_TLV
-= parse_asn1_string_TLV
-    (IA5_STRING)
-    (dfst)
-    (filter_asn1_ia5_string)
-    (synth_asn1_ia5_string)
-    (lemma_synth_asn1_ia5_string_injective ())
-
-let serialize_asn1_ia5_string_TLV
-= serialize_asn1_string_TLV
-    (IA5_STRING)
-    (dfst)
-    (filter_asn1_ia5_string)
-    (synth_asn1_ia5_string)
-    (synth_asn1_ia5_string_inverse)
-    (lemma_synth_asn1_ia5_string_injective ())
+// let serialize_asn1_ia5_string_TLV
+// = serialize_asn1_string_TLV
+//     (IA5_STRING)
+//     (dfst)
+//     (filter_asn1_ia5_string)
+//     (synth_asn1_ia5_string)
+//     (synth_asn1_ia5_string_inverse)
+//     (lemma_synth_asn1_ia5_string_injective ())
 
 let lemma_serialize_asn1_ia5_string_TLV_unfold x
 = lemma_serialize_asn1_string_TLV_unfold

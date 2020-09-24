@@ -21,31 +21,12 @@ module Cast = FStar.Int.Cast
 
 module B32 = FStar.Bytes
 
-friend ASN1.Spec.Value.PRINTABLE_STRING
-
 inline_for_extraction noextract
-let serialize32_asn1_printable_string_TLV_backwards
+val serialize32_asn1_printable_string_TLV_backwards
 : serializer32_backwards (serialize_asn1_printable_string_TLV)
-= serialize32_asn1_string_TLV_backwards
-    (PRINTABLE_STRING)
-    (dfst)
-    (filter_asn1_printable_string)
-    (synth_asn1_printable_string)
-    (synth_asn1_printable_string_inverse)
-    ()
 
 inline_for_extraction noextract
-let serialize32_asn1_printable_string_TLV_with_character_bound_backwards
+val serialize32_asn1_printable_string_TLV_with_character_bound_backwards
   (lb: asn1_value_int32_of_type PRINTABLE_STRING)
   (ub: asn1_value_int32_of_type PRINTABLE_STRING { lb <= ub })
 : serializer32_backwards (serialize_asn1_printable_string_TLV_with_character_bound lb ub)
-= serialize32_asn1_string_TLV_with_character_bound_backwards
-    (PRINTABLE_STRING)
-    (dfst)
-    (filter_asn1_printable_string)
-    (synth_asn1_printable_string)
-    (synth_asn1_printable_string_inverse)
-    ()
-    (count_printable_character)
-    (lb)
-    (ub)

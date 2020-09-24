@@ -40,14 +40,31 @@ val synth_asn1_ia5_string_inverse
 : (s32: parse_filter_refine (filter_asn1_ia5_string len)
              { value == synth_asn1_ia5_string len s32 })
 
-val parse_asn1_ia5_string
+(* ZT: Exposing those two since the type of lemmas below
+       depends on their implementation *)
+let parse_asn1_ia5_string
   (len: asn1_value_int32_of_type IA5_STRING)
 : parser (parse_asn1_string_kind IA5_STRING len)
          (x: datatype_of_asn1_type IA5_STRING {dfst x == len})
+= parse_asn1_string
+    (IA5_STRING)
+    (dfst)
+    (filter_asn1_ia5_string)
+    (synth_asn1_ia5_string)
+    (lemma_synth_asn1_ia5_string_injective ())
+    (len)
 
-val serialize_asn1_ia5_string
+let serialize_asn1_ia5_string
   (len: asn1_value_int32_of_type IA5_STRING)
 : serializer (parse_asn1_ia5_string len)
+= serialize_asn1_string
+    (IA5_STRING)
+    (dfst)
+    (filter_asn1_ia5_string)
+    (synth_asn1_ia5_string)
+    (synth_asn1_ia5_string_inverse)
+    (lemma_synth_asn1_ia5_string_injective ())
+    (len)
 
 val lemma_serialize_asn1_ia5_string_unfold
   (len: asn1_value_int32_of_type IA5_STRING)
@@ -81,11 +98,24 @@ val lemma_serialize_asn1_ia5_string_size
 
 let parse_asn1_ia5_string_TLV_kind = parse_asn1_string_TLV_kind IA5_STRING
 
-val parse_asn1_ia5_string_TLV
+let parse_asn1_ia5_string_TLV
 : parser parse_asn1_ia5_string_TLV_kind (datatype_of_asn1_type IA5_STRING)
+= parse_asn1_string_TLV
+    (IA5_STRING)
+    (dfst)
+    (filter_asn1_ia5_string)
+    (synth_asn1_ia5_string)
+    (lemma_synth_asn1_ia5_string_injective ())
 
-val serialize_asn1_ia5_string_TLV
+let serialize_asn1_ia5_string_TLV
 : serializer (parse_asn1_ia5_string_TLV)
+= serialize_asn1_string_TLV
+    (IA5_STRING)
+    (dfst)
+    (filter_asn1_ia5_string)
+    (synth_asn1_ia5_string)
+    (synth_asn1_ia5_string_inverse)
+    (lemma_synth_asn1_ia5_string_injective ())
 
 val lemma_serialize_asn1_ia5_string_TLV_unfold
   (x: datatype_of_asn1_type IA5_STRING)
@@ -113,6 +143,7 @@ val lemma_serialize_asn1_ia5_string_TLV_size
     (x)
 )
 
+(* ZT: Consider to expose this if anything in `X509.BasicFields.RelativeDistinguishedName` got blocked. *)
 val count_ia5_character
   (x: datatype_of_asn1_type IA5_STRING)
 : (asn1_int32)

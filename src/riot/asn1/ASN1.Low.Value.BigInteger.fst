@@ -16,11 +16,13 @@ open LowParse.Low.Bytes
 open FStar.Integers
 module B32 = FStar.Bytes
 
+friend ASN1.Spec.Value.BigInteger
+
 #set-options "--z3rlimit 32 --ifuel 0 --ifuel 0"
 
-let serialize32_asn1_length_of_big_integer_backwards
-: serializer32_backwards (serialize_asn1_length_of_big_integer)
-= serialize32_asn1_length_of_bound_backwards 1ul (asn1_int32_max - 6ul)
+// let serialize32_asn1_length_of_big_integer_backwards
+// : serializer32_backwards (serialize_asn1_length_of_big_integer)
+// = serialize32_asn1_length_of_bound_backwards 1ul (asn1_int32_max - 6ul)
 
 inline_for_extraction
 let serialize32_big_integer_as_octet_string_backwards
@@ -75,16 +77,16 @@ let serialize32_big_integer_as_octet_string_backwards
 
 (* retuen *) len
 
-noextract inline_for_extraction
-let parser_tag_of_big_integer_as_octet_string_impl
-  (x: big_integer_as_octet_string_t)
-: Tot (tg: (the_asn1_tag INTEGER & asn1_value_int32_of_big_integer)
-           { tg == parser_tag_of_big_integer_as_octet_string x })
-= let (.[]) = B32.index in
-  if ((dsnd x).[0] >= 0x80uy) then
-  ( (INTEGER, dfst x + 1ul) )
-  else
-  ( (INTEGER, dfst x) )
+// noextract inline_for_extraction
+// let parser_tag_of_big_integer_as_octet_string_impl
+//   (x: big_integer_as_octet_string_t)
+// : Tot (tg: (the_asn1_tag INTEGER & asn1_value_int32_of_big_integer)
+//            { tg == parser_tag_of_big_integer_as_octet_string x })
+// = let (.[]) = B32.index in
+//   if ((dsnd x).[0] >= 0x80uy) then
+//   ( (INTEGER, dfst x + 1ul) )
+//   else
+//   ( (INTEGER, dfst x) )
 
 let serialize32_big_integer_as_octet_string_TLV_backwards ()
 : Tot (serializer32_backwards (serialize_big_integer_as_octet_string_TLV))

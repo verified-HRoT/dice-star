@@ -77,7 +77,7 @@ let len_of_asn1_primitive_value
                       Mkbit_string_t?.bs_len value )
 
   | OID          -> ( let value = value <: datatype_of_asn1_type OID in
-                      len_of_oid_buffer value )
+                      len_of_oid value )
   | Generalized_Time
                  -> ( 15ul )
 #pop-options

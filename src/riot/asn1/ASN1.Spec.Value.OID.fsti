@@ -422,16 +422,12 @@ let the_asn1_oid
 = parse_filter_refine (filter_asn1_oid_TLV_of oid)
 
 noextract
-val synth_asn1_oid_TLV_of
+let parse_asn1_oid_TLV_of
   (oid: datatype_of_asn1_type OID)
-  (x: parse_filter_refine (filter_asn1_oid_TLV_of oid))
-: GTot (x: datatype_of_asn1_type OID {x == oid})
-
-noextract
-val parse_asn1_oid_TLV_of
-  (oid: datatype_of_asn1_type OID)
-// : parser _ (x: datatype_of_asn1_type OID {x == oid})
-: parser (parse_filter_kind parse_asn1_oid_TLV_kind) (the_asn1_oid oid)
+: parser _ (the_asn1_oid oid)
+= parse_asn1_oid_TLV
+  `parse_filter`
+  filter_asn1_oid_TLV_of oid
 
 ///
 /// Serializer
@@ -441,9 +437,13 @@ val serialize_asn1_oid_TLV
 : serializer parse_asn1_oid_TLV
 
 noextract
-val serialize_asn1_oid_TLV_of
+let serialize_asn1_oid_TLV_of
   (oid: datatype_of_asn1_type OID)
 : serializer (parse_asn1_oid_TLV_of oid)
+=
+  (* s1 *) (serialize_asn1_oid_TLV
+            `serialize_filter`
+            filter_asn1_oid_TLV_of oid)
 
 ///
 /// Lemmas

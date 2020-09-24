@@ -776,23 +776,16 @@ let parse_asn1_oid_TLV
 //   (oid: datatype_of_asn1_type OID)
 // = parse_filter_refine (filter_asn1_oid_TLV_of oid)
 
-noextract
-let synth_asn1_oid_TLV_of
-  (oid: datatype_of_asn1_type OID)
-  (x: parse_filter_refine (filter_asn1_oid_TLV_of oid))
-: GTot (x: datatype_of_asn1_type OID {x == oid})
-= x
-
-noextract
-let parse_asn1_oid_TLV_of
-  (oid: datatype_of_asn1_type OID)
-// : parser _ (x: datatype_of_asn1_type OID {x == oid})
-: parser _ (the_asn1_oid oid)
-= parse_asn1_oid_TLV
-  `parse_filter`
-  filter_asn1_oid_TLV_of oid
-  // `parse_synth`
-  // (fun x -> x <: x: datatype_of_asn1_type OID {x == oid})
+// noextract
+// let parse_asn1_oid_TLV_of
+//   (oid: datatype_of_asn1_type OID)
+// // : parser _ (x: datatype_of_asn1_type OID {x == oid})
+// : parser _ (the_asn1_oid oid)
+// = parse_asn1_oid_TLV
+//   `parse_filter`
+//   filter_asn1_oid_TLV_of oid
+//   // `parse_synth`
+//   // (fun x -> x <: x: datatype_of_asn1_type OID {x == oid})
 
 ///
 /// Serializer
@@ -806,21 +799,6 @@ let serialize_asn1_oid_TLV
             serialize_asn1_length_of_type OID)
   (* tg *) (parser_tag_of_oid)
   (* s  *) (serialize_asn1_oid_V)
-
-noextract
-let serialize_asn1_oid_TLV_of
-  (oid: datatype_of_asn1_type OID)
-: serializer (parse_asn1_oid_TLV_of oid)
-= // serialize_synth
-  // (* p1 *) (parse_asn1_oid_TLV
-  //           `parse_filter`
-  //           filter_asn1_oid_TLV_of oid)
-  // (* f2 *) (fun x -> x <: x: datatype_of_asn1_type OID {x == oid})
-  (* s1 *) (serialize_asn1_oid_TLV
-            `serialize_filter`
-            filter_asn1_oid_TLV_of oid)
-  // (* g1 *) (fun x -> x <: parse_filter_refine (filter_asn1_oid_TLV_of oid))
-  // (* prf*) ()
 
 ///
 /// Lemmas

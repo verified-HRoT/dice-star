@@ -22,24 +22,6 @@ friend ASN1.Spec.Value.INTEGER
 
 #set-options "--z3rlimit 256 --fuel 0 --ifuel 0"
 
-/// Implementation of length computation of `INTEGER` value's serialization
-let len_of_asn1_integer value
-= if      0l         <= value && value <= 0x7Fl      then
-  ( 1ul )
-  else if 0x7Fl       < value && value <= 0xFFl       then
-  ( 2ul )
-  else if 0xFFl       < value && value <= 0x7FFFl     then
-  ( 2ul )
-  else if 0x7FFFl     < value && value <= 0xFFFFl     then
-  ( 3ul )
-  else if 0xFFFFl     < value && value <= 0x7FFFFFl   then
-  ( 3ul )
-  else if 0x7FFFFFl   < value && value <= 0xFFFFFFl   then
-  ( 4ul )
-  else if 0xFFFFFFl   < value && value <= 0x7FFFFFFFl then
-  ( 4ul )
-  else 0ul  //AR: why do we need this if we change ASN1.Base:asn1_value_int32_of_type to have say min and max bound in different let, or inline them?
-
 (*
 NOTE: Since there are no low-level machine-integer to bytes implementations
       available, the (big-endian) serialization of integers are tricky. For

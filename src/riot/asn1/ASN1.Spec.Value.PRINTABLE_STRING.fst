@@ -12,18 +12,14 @@ open FStar.Integers
 
 module B32 = FStar.Bytes
 
-let filter_asn1_printable_string
-  (len: asn1_value_int32_of_type PRINTABLE_STRING)
-  (s32: B32.lbytes32 len)
-: GTot (bool)
-= let s = B32.reveal s32 in
-  Seq.for_all valid_PRINTABLE_byte s
-
 let synth_asn1_printable_string
   (len: asn1_value_int32_of_type PRINTABLE_STRING)
   (s32: parse_filter_refine (filter_asn1_printable_string len))
 : GTot (value: datatype_of_asn1_type PRINTABLE_STRING{(dfst value) == len})
 = (|len, s32|)
+
+let lemma_synth_asn1_printable_string_injective ()
+= ()
 
 noextract inline_for_extraction
 let synth_asn1_printable_string_inverse
@@ -33,23 +29,6 @@ let synth_asn1_printable_string_inverse
              { value == synth_asn1_printable_string len s32 })
 = dsnd value
 
-let parse_asn1_printable_string
-= parse_asn1_string
-    (PRINTABLE_STRING)
-    (dfst)
-    (filter_asn1_printable_string)
-    (synth_asn1_printable_string)
-    ()
-
-let serialize_asn1_printable_string
-= serialize_asn1_string
-    (PRINTABLE_STRING)
-    (dfst)
-    (filter_asn1_printable_string)
-    (synth_asn1_printable_string)
-    (synth_asn1_printable_string_inverse)
-    ()
-
 let lemma_serialize_asn1_printable_string_unfold
 = lemma_serialize_asn1_string_unfold
     (PRINTABLE_STRING)
@@ -57,7 +36,7 @@ let lemma_serialize_asn1_printable_string_unfold
     (filter_asn1_printable_string)
     (synth_asn1_printable_string)
     (synth_asn1_printable_string_inverse)
-    ()
+    (lemma_synth_asn1_printable_string_injective ())
 
 let lemma_serialize_asn1_printable_string_size
 = lemma_serialize_asn1_string_size
@@ -66,27 +45,7 @@ let lemma_serialize_asn1_printable_string_size
     (filter_asn1_printable_string)
     (synth_asn1_printable_string)
     (synth_asn1_printable_string_inverse)
-    ()
-
-let parse_asn1_printable_string_TLV_kind = parse_asn1_string_TLV_kind PRINTABLE_STRING
-let parse_asn1_printable_string_TLV
-: parser parse_asn1_printable_string_TLV_kind (datatype_of_asn1_type PRINTABLE_STRING)
-= parse_asn1_string_TLV
-    (PRINTABLE_STRING)
-    (dfst)
-    (filter_asn1_printable_string)
-    (synth_asn1_printable_string)
-    ()
-
-let serialize_asn1_printable_string_TLV
-: serializer (parse_asn1_printable_string_TLV)
-= serialize_asn1_string_TLV
-    (PRINTABLE_STRING)
-    (dfst)
-    (filter_asn1_printable_string)
-    (synth_asn1_printable_string)
-    (synth_asn1_printable_string_inverse)
-    ()
+    (lemma_synth_asn1_printable_string_injective ())
 
 let lemma_serialize_asn1_printable_string_TLV_unfold
   (x: datatype_of_asn1_type PRINTABLE_STRING)
@@ -97,7 +56,7 @@ let lemma_serialize_asn1_printable_string_TLV_unfold
     (filter_asn1_printable_string)
     (synth_asn1_printable_string)
     (synth_asn1_printable_string_inverse)
-    ()
+    (lemma_synth_asn1_printable_string_injective ())
     (x)
 )
 = lemma_serialize_asn1_string_TLV_unfold
@@ -106,7 +65,7 @@ let lemma_serialize_asn1_printable_string_TLV_unfold
     (filter_asn1_printable_string)
     (synth_asn1_printable_string)
     (synth_asn1_printable_string_inverse)
-    ()
+    (lemma_synth_asn1_printable_string_injective ())
     (x)
 
 let lemma_serialize_asn1_printable_string_TLV_size
@@ -118,7 +77,7 @@ let lemma_serialize_asn1_printable_string_TLV_size
     (filter_asn1_printable_string)
     (synth_asn1_printable_string)
     (synth_asn1_printable_string_inverse)
-    ()
+    (lemma_synth_asn1_printable_string_injective ())
     (x)
 )
 = lemma_serialize_asn1_string_TLV_size
@@ -127,7 +86,7 @@ let lemma_serialize_asn1_printable_string_TLV_size
     (filter_asn1_printable_string)
     (synth_asn1_printable_string)
     (synth_asn1_printable_string_inverse)
-    ()
+    (lemma_synth_asn1_printable_string_injective ())
     (x)
 
 let count_printable_character
@@ -144,7 +103,7 @@ let parse_asn1_printable_string_TLV_with_character_bound
     (dfst)
     (filter_asn1_printable_string)
     (synth_asn1_printable_string)
-    ()
+    (lemma_synth_asn1_printable_string_injective ())
     (count_printable_character)
     (lb)
     (ub)
@@ -159,7 +118,7 @@ let serialize_asn1_printable_string_TLV_with_character_bound
     (filter_asn1_printable_string)
     (synth_asn1_printable_string)
     (synth_asn1_printable_string_inverse)
-    ()
+    (lemma_synth_asn1_printable_string_injective ())
     (count_printable_character)
     (lb)
     (ub)

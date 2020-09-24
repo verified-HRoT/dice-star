@@ -84,26 +84,26 @@ let lemma_serialize_asn1_length_unfold
 let lemma_serialize_asn1_length_size
 = lemma_serialize_asn1_length_of_bound_size asn1_length_min asn1_length_max
 
-(* Considering to expose this definition. *)
-val length_of_asn1_length
+(* ZT: Exposing this definition. *)
+let length_of_asn1_length
   (len: asn1_int32)
 : GTot (length: asn1_length_t
        { length == Seq.length (serialize serialize_asn1_length len) /\
          length <= 5 })
-// = lemma_serialize_asn1_length_unfold len;
-//   lemma_serialize_asn1_length_size len;
-//   let x = tag_of_der_length32 len in
-//   let open FStar.Integers in
-//   if x < 128uy then
-//   ( 1 )
-//   else if x = 129uy then
-//   ( 2 )
-//   else if x = 130uy then
-//   ( 3 )
-//   else if x = 131uy then
-//   ( 4 )
-//   else
-//   ( 5 )
+= lemma_serialize_asn1_length_unfold len;
+  lemma_serialize_asn1_length_size len;
+  let x = tag_of_der_length32 len in
+  let open FStar.Integers in
+  if x < 128uy then
+  ( 1 )
+  else if x = 129uy then
+  ( 2 )
+  else if x = 130uy then
+  ( 3 )
+  else if x = 131uy then
+  ( 4 )
+  else
+  ( 5 )
 
 /// Specialized for a specific ASN1 type
 ///
