@@ -292,15 +292,22 @@ noextract inline_for_extraction let oid_PKCS9 = normalize_term(oid_PKCS @ [0x09u
 #define MBEDTLS_OID_PKCS9_CSR_EXT_REQ           MBEDTLS_OID_PKCS9 "\x0e" /**< extensionRequest OBJECT IDENTIFIER ::= {pkcs-9 14} */
 *)
 
-noextract inline_for_extraction let oid_PKCS9_CSR_EXT_REQ = normalize_term(oid_PKCS9 @ [0x0Euy])
+noextract inline_for_extraction let oid_PKCS9_CSR_EXT_REQ =
+  [@inline_let]
+  let l = oid_PKCS9 @ [0x0Euy] in
+  assert_norm (List.Tot.length l <= UInt.max_int 32);
+  normalize_term l
 
 (* RIoT OID
   =========
 1.3.6.1.4.1.311.89.3.1
 *)
 (* FIXME: Check RIoT's OID *)
-noextract inline_for_extraction let oid_RIOT = normalize_term (oid_INTERNET @ [0x04uy; 0x01uy; 0x82uy; 0x37uy; 0x59uy; 0x03uy; 0x01uy])
-#pop-options
+noextract inline_for_extraction let oid_RIOT =
+  [@inline_let]
+  let l = oid_INTERNET @ [0x04uy; 0x01uy; 0x82uy; 0x37uy; 0x59uy; 0x03uy; 0x01uy] in
+  assert_norm (List.Tot.length l <= UInt.max_int 32);
+  normalize_term l
 
 (* Known OIDs *)
 noextract
