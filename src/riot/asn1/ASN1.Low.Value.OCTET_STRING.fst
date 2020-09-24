@@ -15,12 +15,11 @@ module Cast = FStar.Int.Cast
 
 module B32 = FStar.Bytes
 
+friend ASN1.Spec.Value.OCTET_STRING
+
 (* NOTE: Read after `ASN1.Spec.Tag`, `ASN1.Spec.Length` *)
 
-inline_for_extraction
-let serialize32_asn1_octet_string_backwards
-  (len: asn1_value_int32_of_type OCTET_STRING)
-: Tot (serializer32_backwards (serialize_asn1_octet_string (v len)))
+let serialize32_asn1_octet_string_backwards len
 = fun (value: datatype_of_asn1_type OCTET_STRING { v (dfst value) == v len })
     (#rrel #rel: _)
     (b: B.mbuffer byte rrel rel)
@@ -56,7 +55,6 @@ let synth_asn1_octet_string_V_inverse_impl
 
 // inline_for_extraction
 let serialize32_asn1_octet_string_TLV_backwards ()
-: Tot (serializer32_backwards serialize_asn1_octet_string_TLV)
 = serialize32_tagged_union_backwards
   (* lst *) (serialize32_asn1_tag_of_type_backwards OCTET_STRING
              `serialize32_nondep_then_backwards`
