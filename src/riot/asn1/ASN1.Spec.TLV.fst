@@ -20,6 +20,8 @@ open LowParse.Bytes
 
 open FStar.Integers
 
+friend ASN1.Spec.Value.IA5_STRING
+
 (* NOTE: Read after `ASN1.Spec.Tag`, `ASN1.Spec.Length`, `ASN1.Spec.Value.*` *)
 
 /// Interfaces to make this library easier to use
