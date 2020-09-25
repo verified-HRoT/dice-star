@@ -12,7 +12,18 @@ open FStar.Integers
 unfold noextract
 let ( @ ) = List.Tot.Base.append
 
-unfold let lu8 = l:list UInt8.t{List.Tot.length l <= UInt.max_int 32}
+unfold let lu8
+= l: list UInt8.t
+  { asn1_length_inbound
+      (List.length l)
+      (asn1_value_length_min_of_type OID)
+      (asn1_value_length_max_of_type OID) }
+
+unfold let llu8
+  (l: asn1_value_length_of_type OID )
+= List.llist UInt8.t l
+
+(* Actually we need to expose all if we want to prove the actual content of serialization. *)
 
 (* Top level OID tuples
   =====================
@@ -21,10 +32,10 @@ unfold let lu8 = l:list UInt8.t{List.Tot.length l <= UInt.max_int 32}
 #define MBEDTLS_OID_ISO_CCITT_DS                "\x55"          /* {joint-iso-ccitt(2) ds(5)} */
 #define MBEDTLS_OID_ISO_ITU_COUNTRY             "\x60"          /* {joint-iso-itu-t(2) country(16)} */
 *)
-noextract inline_for_extraction val oid_head_ISO_MEMBER_BODIES : lu8
-noextract inline_for_extraction val oid_head_ISO_IDENTIFIED_ORG : lu8
-noextract inline_for_extraction val oid_head_ISO_CCITT_DS : lu8
-noextract inline_for_extraction val oid_head_ISO_ITU_COUNTRY : lu8
+// noextract inline_for_extraction val oid_head_ISO_MEMBER_BODIES : lu8
+// noextract inline_for_extraction val oid_head_ISO_IDENTIFIED_ORG : lu8
+// noextract inline_for_extraction val oid_head_ISO_CCITT_DS : lu8
+// noextract inline_for_extraction val oid_head_ISO_ITU_COUNTRY : lu8
 
 (* ISO Member bodies OID parts
   ============================
@@ -36,11 +47,11 @@ noextract inline_for_extraction val oid_head_ISO_ITU_COUNTRY : lu8
 #define MBEDTLS_OID_ANSI_X9_62                  MBEDTLS_OID_ISO_MEMBER_BODIES MBEDTLS_OID_COUNTRY_US \
                                         MBEDTLS_OID_ORG_ANSI_X9_62
 *)
-noextract inline_for_extraction val oid_node_COUNTRY_US : lu8
-noextract inline_for_extraction val oid_node_ORG_RSA_DATA_SECURITY : lu8
-noextract inline_for_extraction val oid_RSA_COMPANY : lu8
-noextract inline_for_extraction val oid_node_ORG_ANSI_X9_62 : lu8
-noextract inline_for_extraction val oid_ANSI_X9_62 : lu8
+// noextract inline_for_extraction val oid_node_COUNTRY_US : lu8
+// noextract inline_for_extraction val oid_node_ORG_RSA_DATA_SECURITY : lu8
+// noextract inline_for_extraction val oid_RSA_COMPANY : lu8
+// noextract inline_for_extraction val oid_node_ORG_ANSI_X9_62 : lu8
+// noextract inline_for_extraction val oid_ANSI_X9_62 : lu8
 
 (* ISO ITU OID parts
   ==================
@@ -53,10 +64,10 @@ noextract inline_for_extraction val oid_ANSI_X9_62 : lu8
 #define MBEDTLS_OID_ORG_NETSCAPE                "\x86\xF8\x42"  /* {netscape(113730)} */
 #define MBEDTLS_OID_NETSCAPE                    MBEDTLS_OID_ISO_ITU_US_ORG MBEDTLS_OID_ORG_NETSCAPE /* Netscape OID {joint-iso-itu-t(2) country(16) us(840) organization(1) netscape(113730)} */
 *)
-noextract inline_for_extraction val oid_node_ORGANIZATION : lu8
-noextract inline_for_extraction val oid_ISO_ITU_US_ORG : lu8
-noextract inline_for_extraction val oid_node_ISO_ORG_GOV : lu8
-noextract inline_for_extraction val oid_GOV : lu8
+// noextract inline_for_extraction val oid_node_ORGANIZATION : lu8
+// noextract inline_for_extraction val oid_ISO_ITU_US_ORG : lu8
+// noextract inline_for_extraction val oid_node_ISO_ORG_GOV : lu8
+// noextract inline_for_extraction val oid_GOV : lu8
 
 (* ISO arc for standard certificate and CRL extensions
   =====================================================
@@ -64,9 +75,9 @@ noextract inline_for_extraction val oid_GOV : lu8
 
 #define MBEDTLS_OID_NIST_ALG                    MBEDTLS_OID_GOV "\x03\x04" /** { joint-iso-itu-t(2) country(16) us(840) organization(1) gov(101) csor(3) nistAlgorithm(4) */
 *)
-noextract inline_for_extraction val oid_ID_CE : lu8
+// noextract inline_for_extraction val oid_ID_CE : lu8
 
-noextract inline_for_extraction val oid_NIST_ALG : lu8
+// noextract inline_for_extraction val oid_NIST_ALG : lu8
 
 (* Private Internet Extensions
    { iso(1) identified-organization(3) dod(6) internet(1)
@@ -75,8 +86,8 @@ noextract inline_for_extraction val oid_NIST_ALG : lu8
 #define MBEDTLS_OID_INTERNET                    MBEDTLS_OID_ISO_IDENTIFIED_ORG MBEDTLS_OID_ORG_DOD "\x01"
 #define MBEDTLS_OID_PKIX                        MBEDTLS_OID_INTERNET "\x05\x05\x07"
 *)
-noextract inline_for_extraction val oid_INTERNET : lu8
-noextract inline_for_extraction val oid_PKIX : lu8
+// noextract inline_for_extraction val oid_INTERNET : lu8
+// noextract inline_for_extraction val oid_PKIX : lu8
 
 (* Arc for standard naming attributes
   ===================================
@@ -101,14 +112,14 @@ noextract inline_for_extraction val oid_PKIX : lu8
 
 #define MBEDTLS_OID_DOMAIN_COMPONENT            "\x09\x92\x26\x89\x93\xF2\x2C\x64\x01\x19" /** id-domainComponent AttributeType:= {itu-t(0) data(9) pss(2342) ucl(19200300) pilot(100) pilotAttributeType(1) domainComponent(25)} */
 *)
-noextract inline_for_extraction val oid_AT : lu8 (* id-at OBJECT IDENTIFIER ::= {joint-iso-ccitt(2) ds(5) 4} *)
-noextract inline_for_extraction val oid_AT_CN : lu8           (* id-at-commonName AttributeType:= {id-at 3} *)
+// noextract inline_for_extraction val oid_AT : lu8 (* id-at OBJECT IDENTIFIER ::= {joint-iso-ccitt(2) ds(5) 4} *)
+noextract inline_for_extraction val oid_AT_CN : llu8 3           (* id-at-commonName AttributeType:= {id-at 3} *)
 // noextract let oid_AT_SUR_NAME             = normalize_term(oid_AT @ [0x04uy]           (* id-at-surName AttributeType:= {id-at 4} *))
 // noextract let oid_AT_SERIAL_NUMBER        = normalize_term(oid_AT @ [0x05uy]           (* id-at-serialNumber AttributeType:= {id-at 5} *))
-noextract inline_for_extraction val oid_AT_COUNTRY : lu8           (* id-at-countryName AttributeType:= {id-at 6} *)
+noextract inline_for_extraction val oid_AT_COUNTRY : llu8 3           (* id-at-countryName AttributeType:= {id-at 6} *)
 // noextract let oid_AT_LOCALITY             = normalize_term(oid_AT @ [0x07uy]           (* id-at-locality AttributeType:= {id-at 7} *))
 // noextract let oid_AT_STATE                = normalize_term(oid_AT @ [0x08uy]           (* id-at-state AttributeType:= {id-at 8} *))
-noextract inline_for_extraction val oid_AT_ORGANIZATION : lu8           (* id-at-organizationName AttributeType:= {id-at 10} *)
+noextract inline_for_extraction val oid_AT_ORGANIZATION : llu8 3          (* id-at-organizationName AttributeType:= {id-at 10} *)
 // noextract let oid_AT_ORG_UNIT             = normalize_term(oid_AT @ [0x0Buy]           (* id-at-organizationalUnitName AttributeType:= {id-at 11} *))
 // noextract let oid_AT_TITLE                = normalize_term(oid_AT @ [0x0Cuy]           (* id-at-title AttributeType:= {id-at 12} *))
 // noextract let oid_AT_POSTAL_ADDRESS       = normalize_term(oid_AT @ [0x10uy]           (* id-at-postalAddress AttributeType:= {id-at 16} *))
@@ -120,7 +131,7 @@ noextract inline_for_extraction val oid_AT_ORGANIZATION : lu8           (* id-at
 // noextract let oid_AT_DN_QUALIFIER         = normalize_term(oid_AT @ [0x2Euy]           (* id-at-dnQualifier AttributeType:= {id-at 46} *))
 // noextract let oid_AT_PSEUDONYM            = normalize_term(oid_AT @ [0x41uy]           (* id-at-pseudonym AttributeType:= {id-at 65} *))
 
-noextract inline_for_extraction val oid_DOMAIN_COMPONENT : lu8 (* id-domainComponent AttributeType:= {itu-t(0) data(9) pss(2342) ucl(19200300) pilot(100) pilotAttributeType(1) domainComponent(25)} *)
+// noextract inline_for_extraction val oid_DOMAIN_COMPONENT : lu8 (* id-domainComponent AttributeType:= {itu-t(0) data(9) pss(2342) ucl(19200300) pilot(100) pilotAttributeType(1) domainComponent(25)} *)
 
 
 (* OIDs for standard certificate extensions
@@ -141,10 +152,10 @@ noextract inline_for_extraction val oid_DOMAIN_COMPONENT : lu8 (* id-domainCompo
 #define MBEDTLS_OID_INIHIBIT_ANYPOLICY          MBEDTLS_OID_ID_CE "\x36" /**< id-ce-inhibitAnyPolicy OBJECT IDENTIFIER ::=  { id-ce 54 } */
 #define MBEDTLS_OID_FRESHEST_CRL                MBEDTLS_OID_ID_CE "\x2E" /**< id-ce-freshestCRL OBJECT IDENTIFIER ::=  { id-ce 46 } */
 *)
-noextract inline_for_extraction val oid_AUTHORITY_KEY_IDENTIFIER : lu8
-noextract inline_for_extraction val oid_KEY_USAGE : lu8
-noextract inline_for_extraction val oid_EXTENDED_KEY_USAGE : lu8
-noextract inline_for_extraction val oid_BASIC_CONSTRAINTS : lu8
+noextract inline_for_extraction val oid_AUTHORITY_KEY_IDENTIFIER : llu8 3
+noextract inline_for_extraction val oid_KEY_USAGE : llu8 3
+noextract inline_for_extraction val oid_EXTENDED_KEY_USAGE : llu8 3
+noextract inline_for_extraction val oid_BASIC_CONSTRAINTS : llu8 3
 
 (* X.509 v3 Extended key usage OIDs
   =================================
@@ -158,8 +169,8 @@ noextract inline_for_extraction val oid_BASIC_CONSTRAINTS : lu8
 #define MBEDTLS_OID_TIME_STAMPING               MBEDTLS_OID_KP "\x08" /**< id-kp-timeStamping OBJECT IDENTIFIER ::= { id-kp 8 } */
 #define MBEDTLS_OID_OCSP_SIGNING                MBEDTLS_OID_KP "\x09" /**< id-kp-OCSPSigning OBJECT IDENTIFIER ::= { id-kp 9 } */
 *)
-noextract inline_for_extraction val oid_KP : lu8
-noextract inline_for_extraction val oid_CLIENT_AUTH : lu8
+// noextract inline_for_extraction val oid_KP : lu8
+noextract inline_for_extraction val oid_CLIENT_AUTH : llu8 7
 
 (* Digest algorithms
   ==================
@@ -186,10 +197,10 @@ noextract inline_for_extraction val oid_CLIENT_AUTH : lu8
 
 #define MBEDTLS_OID_HMAC_SHA512                 MBEDTLS_OID_RSA_COMPANY "\x02\x0B" /**< id-hmacWithSHA512 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) digestAlgorithm(2) 11 } */
 *)
-noextract inline_for_extraction val oid_DIGEST_ALG_SHA224 : lu8
-noextract inline_for_extraction val oid_DIGEST_ALG_SHA256 : lu8
-noextract inline_for_extraction val oid_DIGEST_ALG_SHA384 : lu8
-noextract inline_for_extraction val oid_DIGEST_ALG_SHA512 : lu8
+// noextract inline_for_extraction val oid_DIGEST_ALG_SHA224 : lu8
+noextract inline_for_extraction val oid_DIGEST_ALG_SHA256 : llu8 9
+// noextract inline_for_extraction val oid_DIGEST_ALG_SHA384 : lu8
+// noextract inline_for_extraction val oid_DIGEST_ALG_SHA512 : lu8
 
 (* EC key algorithms from RFC 5480
   ================================
@@ -203,7 +214,7 @@ noextract inline_for_extraction val oid_DIGEST_ALG_SHA512 : lu8
 #define MBEDTLS_OID_EC_ALG_ECDH                 MBEDTLS_OID_CERTICOM "\x01\x0c"
 *)
 
-noextract inline_for_extraction val oid_EC_ALG_UNRESTRICTED : lu8
+noextract inline_for_extraction val oid_EC_ALG_UNRESTRICTED : llu8 5
 
 (* ECParameters namedCurve identifiers, from RFC 5480, RFC 5639, and SEC2
   =======================================================================
@@ -240,13 +251,13 @@ noextract inline_for_extraction val oid_EC_ALG_UNRESTRICTED : lu8
 #define MBEDTLS_OID_EC_GRP_SECP256K1        MBEDTLS_OID_CERTICOM "\x00\x0a"
 *)
 
-noextract inline_for_extraction val oid_EC_GRP_SECP256R1 : lu8
+noextract inline_for_extraction val oid_EC_GRP_SECP256R1 : llu8 6
 
-noextract inline_for_extraction val oid_EDWARDS_CURVE_ALGS : lu8
+// noextract inline_for_extraction val oid_EDWARDS_CURVE_ALGS : lu8
 
-noextract inline_for_extraction val oid_ED25519 : lu8
+noextract inline_for_extraction val oid_ED25519 : llu8 3
 
-noextract inline_for_extraction val oid_X25519 : lu8
+noextract inline_for_extraction val oid_X25519 : llu8 3
 
 (*
 /*
@@ -260,8 +271,8 @@ noextract inline_for_extraction val oid_X25519 : lu8
 #define MBEDTLS_OID_PKCS12              MBEDTLS_OID_PKCS "\x0c" /**< pkcs-12 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) 12 } */
 *)
 
-noextract inline_for_extraction val oid_PKCS : lu8
-noextract inline_for_extraction val oid_PKCS9 : lu8
+// noextract inline_for_extraction val oid_PKCS : lu8
+// noextract inline_for_extraction val oid_PKCS9 : lu8
 
 (*
 /*
@@ -270,52 +281,102 @@ noextract inline_for_extraction val oid_PKCS9 : lu8
 #define MBEDTLS_OID_PKCS9_CSR_EXT_REQ           MBEDTLS_OID_PKCS9 "\x0e" /**< extensionRequest OBJECT IDENTIFIER ::= {pkcs-9 14} */
 *)
 
-noextract inline_for_extraction val oid_PKCS9_CSR_EXT_REQ : lu8
+noextract inline_for_extraction val oid_PKCS9_CSR_EXT_REQ : llu8 9
 
 (* RIoT OID
   =========
 1.3.6.1.4.1.311.89.3.1
 *)
 (* FIXME: Check RIoT's OID *)
-noextract inline_for_extraction val oid_RIOT : lu8
+noextract inline_for_extraction val oid_RIOT : llu8 9
 
 noextract
-val oid_seq_of
+let oid_seq_of
   (oid: oid_t)
 : Tot (s: bytes { asn1_length_inbound (Seq.length s) (asn1_value_length_min_of_type OID) (asn1_value_length_max_of_type OID) })
-
-
-
-(*
- * AR: TODO: Adapt proofs below
- *)
+= match oid with
+  | OID_RIOT                     -> Seq.createL oid_RIOT
+  | OID_AT_CN                    -> Seq.createL oid_AT_CN
+  | OID_AT_COUNTRY               -> Seq.createL oid_AT_COUNTRY
+  | OID_AT_ORGANIZATION          -> Seq.createL oid_AT_ORGANIZATION
+  | OID_CLIENT_AUTH              -> Seq.createL oid_CLIENT_AUTH
+  | OID_AUTHORITY_KEY_IDENTIFIER -> Seq.createL oid_AUTHORITY_KEY_IDENTIFIER
+  | OID_KEY_USAGE                -> Seq.createL oid_KEY_USAGE
+  | OID_EXTENDED_KEY_USAGE       -> Seq.createL oid_EXTENDED_KEY_USAGE
+  | OID_BASIC_CONSTRAINTS        -> Seq.createL oid_BASIC_CONSTRAINTS
+  // | OID_DIGEST_SHA224            -> Seq.createL oid_DIGEST_ALG_SHA224
+  | OID_DIGEST_SHA256            -> Seq.createL oid_DIGEST_ALG_SHA256
+  // | OID_DIGEST_SHA384            -> Seq.createL oid_DIGEST_ALG_SHA384
+  // | OID_DIGEST_SHA512            -> Seq.createL oid_DIGEST_ALG_SHA512
+  | OID_EC_ALG_UNRESTRICTED      -> Seq.createL oid_EC_ALG_UNRESTRICTED
+  | OID_EC_GRP_SECP256R1         -> Seq.createL oid_EC_GRP_SECP256R1
+  | OID_ED25519                  -> Seq.createL oid_ED25519
+  | OID_X25519                   -> Seq.createL oid_X25519
+  | OID_PKCS9_CSR_EXT_REQ        -> Seq.createL oid_PKCS9_CSR_EXT_REQ
 
 noextract
-val length_of_oid
+let length_of_oid
   (oid: oid_t)
 : GTot (l: asn1_value_length_of_type OID
       { l == Seq.length (oid_seq_of oid) })
+= match oid with
+  | OID_RIOT                     -> assert_norm (List.length oid_RIOT == 9); 9
+  | OID_AT_CN                    -> assert_norm (List.length oid_AT_CN == 3); 3
+  | OID_AT_COUNTRY               -> assert_norm (List.length oid_AT_COUNTRY == 3); 3
+  | OID_AT_ORGANIZATION          -> assert_norm (List.length oid_AT_ORGANIZATION == 3); 3
+  | OID_CLIENT_AUTH              -> assert_norm (List.length oid_CLIENT_AUTH == 7); 7
+  | OID_AUTHORITY_KEY_IDENTIFIER -> assert_norm (List.length oid_AUTHORITY_KEY_IDENTIFIER == 3); 3
+  | OID_KEY_USAGE                -> assert_norm (List.length oid_KEY_USAGE == 3); 3
+  | OID_EXTENDED_KEY_USAGE       -> assert_norm (List.length oid_EXTENDED_KEY_USAGE == 3); 3
+  | OID_BASIC_CONSTRAINTS        -> assert_norm (List.length oid_BASIC_CONSTRAINTS == 3); 3
+  | OID_DIGEST_SHA256            -> assert_norm (List.length oid_DIGEST_ALG_SHA256 == 9); 9
+  | OID_EC_ALG_UNRESTRICTED      -> assert_norm (List.length oid_EC_ALG_UNRESTRICTED == 5); 5
+  | OID_EC_GRP_SECP256R1         -> assert_norm (List.length oid_EC_GRP_SECP256R1 == 6); 6
+  | OID_ED25519                  -> assert_norm (List.length oid_ED25519 == 3); 3
+  | OID_X25519                   -> assert_norm (List.length oid_X25519 == 3); 3
+  | OID_PKCS9_CSR_EXT_REQ        -> assert_norm (List.length oid_PKCS9_CSR_EXT_REQ == 9); 9
 
-noextract
-val filter_asn1_oid
-  (l: asn1_value_length_of_type OID)
-  (oid_seq: lbytes l)//{Seq.length oid_seq == l})
-: GTot bool
+// noextract
+// let length_of_oid
+//   (oid: oid_t)
+// : GTot (l: asn1_value_length_of_type OID)
+// = match oid with
+//   | OID_RIOT                     -> 9
+//   | OID_AT_CN                    -> 3
+//   | OID_AT_COUNTRY               -> 3
+//   | OID_AT_ORGANIZATION          -> 3
+//   | OID_CLIENT_AUTH              -> 7
+//   | OID_AUTHORITY_KEY_IDENTIFIER -> 3
+//   | OID_KEY_USAGE                -> 3
+//   | OID_EXTENDED_KEY_USAGE       -> 3
+//   | OID_BASIC_CONSTRAINTS        -> 3
+//   | OID_DIGEST_SHA256            -> 9
+//   | OID_EC_ALG_UNRESTRICTED      -> 5
+//   | OID_EC_GRP_SECP256R1         -> 6
+//   | OID_ED25519                  -> 3
+//   | OID_X25519                   -> 3
+//   | OID_PKCS9_CSR_EXT_REQ        -> 9
 
-noextract
-val synth_asn1_oid
-  (l: asn1_value_length_of_type OID)
-  (oid_seq: parse_filter_refine (filter_asn1_oid l))
-: GTot (oid: oid_t { length_of_oid oid == l})
+// noextract
+// val filter_asn1_oid
+//   (l: asn1_value_length_of_type OID)
+//   (oid_seq: lbytes l)//{Seq.length oid_seq == l})
+// : GTot bool
 
-val synth_asn1_oid_injective (l:asn1_value_length_of_type OID)
-: Lemma (synth_injective (synth_asn1_oid l))
+// noextract
+// val synth_asn1_oid
+//   (l: asn1_value_length_of_type OID)
+//   (oid_seq: parse_filter_refine (filter_asn1_oid l))
+// : GTot (oid: oid_t { length_of_oid oid == l})
 
-noextract
-val synth_asn1_oid_inverse
-  (l: asn1_value_length_of_type OID)
-  (oid: oid_t { length_of_oid oid == l})
-: GTot (oid_seq: parse_filter_refine (filter_asn1_oid l) { synth_asn1_oid l oid_seq == oid })
+// val synth_asn1_oid_injective (l:asn1_value_length_of_type OID)
+// : Lemma (synth_injective (synth_asn1_oid l))
+
+// noextract
+// val synth_asn1_oid_inverse
+//   (l: asn1_value_length_of_type OID)
+//   (oid: oid_t { length_of_oid oid == l})
+// : GTot (oid_seq: parse_filter_refine (filter_asn1_oid l) { synth_asn1_oid l oid_seq == oid })
 
 noextract
 val parse_asn1_oid
@@ -345,9 +406,6 @@ val lemma_serialize_asn1_oid_size
 (* TLV
  ======
 *)
-val parser_tag_of_oid
-  (x: datatype_of_asn1_type OID)
-: GTot (the_asn1_tag OID & asn1_value_int32_of_type OID)
 
 noextract
 let parse_asn1_oid_TLV_kind
@@ -357,55 +415,6 @@ let parse_asn1_oid_TLV_kind
   parse_asn1_length_kind_of_type OID
   `and_then_kind`
   weak_kind_of_type OID
-
-noextract
-val synth_asn1_oid_V
-  (tag: (the_asn1_tag OID & asn1_value_int32_of_type OID))
-  (value: datatype_of_asn1_type OID { length_of_oid value == v (snd tag)})
-: GTot (refine_with_tag parser_tag_of_oid tag)
-
-noextract
-val synth_asn1_oid_V_inverse
-  (tag: (the_asn1_tag OID & asn1_value_int32_of_type OID))
-  (value': refine_with_tag parser_tag_of_oid tag)
-: GTot (value: datatype_of_asn1_type OID
-       { length_of_oid value == v (snd tag) /\
-         value' == synth_asn1_oid_V tag value })
-
-///
-/// Aux parser/serialzier and lemmas
-///
-noextract
-val parse_asn1_oid_V
-  (tag: (the_asn1_tag OID & asn1_value_int32_of_type OID))
-: parser (weak_kind_of_type OID) (refine_with_tag parser_tag_of_oid tag)
-
-///
-/// Aux serializer
-///
-noextract
-val serialize_asn1_oid_V
-  (tag: (the_asn1_tag OID & asn1_value_int32_of_type OID))
-: serializer (parse_asn1_oid_V tag)
-
-///
-/// Lemmas
-///
-
-/// Reveal the computation of parse
-val lemma_parse_asn1_oid_V_unfold
-  (tag: (the_asn1_tag OID & asn1_value_int32_of_type OID))
-  (input: bytes)
-: Lemma (
-  parse (parse_asn1_oid_V tag) input ==
- (match parse (parse_asn1_oid (v (snd tag))) input with
-  | None -> None
-  | Some (value, consumed) ->  Some (synth_asn1_oid_V tag value, consumed)))
-
-
-///
-/// TLV
-///
 
 ///
 /// ASN1 `OID` TLV Parser
@@ -426,16 +435,12 @@ let the_asn1_oid
 = parse_filter_refine (filter_asn1_oid_TLV_of oid)
 
 noextract
-val synth_asn1_oid_TLV_of
+let parse_asn1_oid_TLV_of
   (oid: datatype_of_asn1_type OID)
-  (x: parse_filter_refine (filter_asn1_oid_TLV_of oid))
-: GTot (x: datatype_of_asn1_type OID {x == oid})
-
-noextract
-val parse_asn1_oid_TLV_of
-  (oid: datatype_of_asn1_type OID)
-// : parser _ (x: datatype_of_asn1_type OID {x == oid})
 : parser (parse_filter_kind parse_asn1_oid_TLV_kind) (the_asn1_oid oid)
+= parse_asn1_oid_TLV
+  `parse_filter`
+  filter_asn1_oid_TLV_of oid
 
 ///
 /// Serializer
@@ -445,61 +450,12 @@ val serialize_asn1_oid_TLV
 : serializer parse_asn1_oid_TLV
 
 noextract
-val serialize_asn1_oid_TLV_of
+let serialize_asn1_oid_TLV_of
   (oid: datatype_of_asn1_type OID)
 : serializer (parse_asn1_oid_TLV_of oid)
-
-///
-/// Lemmas
-///
-
-(* FIXME: Sometimes will fail *)
-// /// Reveal the computation of parse
-// #restart-solver
-// #push-options "--z3rlimit 64 --initial_ifuel 8"
-// noextract
-// let lemma_parse_asn1_oid_TLV_unfold
-//   (input: bytes)
-// : Lemma (
-//   parse parse_asn1_oid_TLV input ==
-//  (match parse (parse_asn1_tag_of_type OID) input with
-//   | None -> None
-//   | Some (tag, consumed_tag) ->
-//     (let input_LV = Seq.slice input consumed_tag (Seq.length input) in
-//      match parse (parse_asn1_length_of_type OID) input_LV with
-//      | None -> None
-//      | Some (len, consumed_len) ->
-//        (let input_V = Seq.slice input_LV consumed_len (Seq.length input_LV) in
-//         match parse (parse_asn1_oid_V (tag, len)) input_V with
-//         | None -> None
-//         | Some (value, consumed_value) ->
-//                Some ((synth_asn1_oid_V (tag,len) value),
-//                      (consumed_tag + consumed_len + consumed_value <: consumed_length input)))
-//      ))
-// )
-// = nondep_then_eq
-//   (* p1 *) (parse_asn1_tag_of_type OID)
-//   (* p2 *) (parse_asn1_length_of_type OID)
-//   (* in *) (input)
-
-//   let parsed_tag
-//   = parse (parse_asn1_tag_of_type OID
-//            `nondep_then`
-//            parse_asn1_length_of_type OID) input in
-//   if (Some? parsed_tag) then
-//   ( let Some (tag, consumed) = parsed_tag in
-//     lemma_parse_asn1_oid_V_unfold tag (Seq.slice input consumed (Seq.length input)) )
-
-//   parse_tagged_union_eq
-//   (* pt *) (parse_asn1_tag_of_type OID
-//             `nondep_then`
-//             parse_asn1_length_of_type OID)
-//   (* tg *) (parser_tag_of_oid)
-//   (* p  *) (parse_asn1_oid_V)
-//   (* in *) (input)
-// #pop-options
-
-/// Reveal the computation of serialize
+= serialize_asn1_oid_TLV
+  `serialize_filter`
+  filter_asn1_oid_TLV_of oid
 
 val lemma_serialize_asn1_oid_TLV_unfold
   (value: datatype_of_asn1_type OID)

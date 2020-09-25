@@ -191,25 +191,25 @@ noextract inline_for_extraction let oid_CLIENT_AUTH = normalize_term(oid_KP @ [0
 noextract inline_for_extraction let oid_DIGEST_ALG_SHA224 =
   [@inline_let]
   let l = oid_NIST_ALG @ [0x02uy; 0x04uy] in
-  assert_norm (List.Tot.length l <= UInt.max_int 32);
+  assert_norm (List.Tot.length l == 9);
   normalize_term l
 
 noextract inline_for_extraction let oid_DIGEST_ALG_SHA256 =
   [@inline_let]
   let l = oid_NIST_ALG @ [0x02uy; 0x01uy] in
-  assert_norm (List.Tot.length l <= UInt.max_int 32);
+  assert_norm (List.Tot.length l == 9);
   normalize_term l
 
 noextract inline_for_extraction let oid_DIGEST_ALG_SHA384 =
   [@inline_let]
   let l = oid_NIST_ALG @ [0x02uy; 0x02uy] in
-  assert_norm (List.Tot.length l <= UInt.max_int 32);
+  assert_norm (List.Tot.length l == 9);
   normalize_term l
 
 noextract inline_for_extraction let oid_DIGEST_ALG_SHA512 =
   [@inline_let]
   let l = oid_NIST_ALG @ [0x02uy; 0x03uy] in
-  assert_norm (List.Tot.length l <= UInt.max_int 32);
+  assert_norm (List.Tot.length l == 9);
   normalize_term l
 
 
@@ -295,7 +295,7 @@ noextract inline_for_extraction let oid_PKCS9 = normalize_term(oid_PKCS @ [0x09u
 noextract inline_for_extraction let oid_PKCS9_CSR_EXT_REQ =
   [@inline_let]
   let l = oid_PKCS9 @ [0x0Euy] in
-  assert_norm (List.Tot.length l <= UInt.max_int 32);
+  assert_norm (List.Tot.length l == 9);
   normalize_term l
 
 (* RIoT OID
@@ -306,7 +306,7 @@ noextract inline_for_extraction let oid_PKCS9_CSR_EXT_REQ =
 noextract inline_for_extraction let oid_RIOT =
   [@inline_let]
   let l = oid_INTERNET @ [0x04uy; 0x01uy; 0x82uy; 0x37uy; 0x59uy; 0x03uy; 0x01uy] in
-  assert_norm (List.Tot.length l <= UInt.max_int 32);
+  assert_norm (List.Tot.length l == 9);
   normalize_term l
 
 (* Known OIDs *)
@@ -461,28 +461,28 @@ by (T.norm ([iota; zeta; delta_only [  //before sending the VC to the solver, un
 
 #pop-options //fuel 0 ifuel 0
 
-#push-options "--fuel 0 --ifuel 1"  //need ifuel 1 to prove pattern exhaustiveness
-let oid_seq_of oid
-= match oid with
-  | OID_RIOT                     -> Seq.createL oid_RIOT
-  | OID_AT_CN                    -> Seq.createL oid_AT_CN
-  | OID_AT_COUNTRY               -> Seq.createL oid_AT_COUNTRY
-  | OID_AT_ORGANIZATION          -> Seq.createL oid_AT_ORGANIZATION
-  | OID_CLIENT_AUTH              -> Seq.createL oid_CLIENT_AUTH
-  | OID_AUTHORITY_KEY_IDENTIFIER -> Seq.createL oid_AUTHORITY_KEY_IDENTIFIER
-  | OID_KEY_USAGE                -> Seq.createL oid_KEY_USAGE
-  | OID_EXTENDED_KEY_USAGE       -> Seq.createL oid_EXTENDED_KEY_USAGE
-  | OID_BASIC_CONSTRAINTS        -> Seq.createL oid_BASIC_CONSTRAINTS
-  // | OID_DIGEST_SHA224            -> Seq.createL oid_DIGEST_ALG_SHA224
-  | OID_DIGEST_SHA256            -> Seq.createL oid_DIGEST_ALG_SHA256
-  // | OID_DIGEST_SHA384            -> Seq.createL oid_DIGEST_ALG_SHA384
-  // | OID_DIGEST_SHA512            -> Seq.createL oid_DIGEST_ALG_SHA512
-  | OID_EC_ALG_UNRESTRICTED      -> Seq.createL oid_EC_ALG_UNRESTRICTED
-  | OID_EC_GRP_SECP256R1         -> Seq.createL oid_EC_GRP_SECP256R1
-  | OID_ED25519                  -> Seq.createL oid_ED25519
-  | OID_X25519                   -> Seq.createL oid_X25519
-  | OID_PKCS9_CSR_EXT_REQ        -> Seq.createL oid_PKCS9_CSR_EXT_REQ
-#pop-options
+// #push-options "--fuel 0 --ifuel 1"  //need ifuel 1 to prove pattern exhaustiveness
+// let oid_seq_of oid
+// = match oid with
+//   | OID_RIOT                     -> Seq.createL oid_RIOT
+//   | OID_AT_CN                    -> Seq.createL oid_AT_CN
+//   | OID_AT_COUNTRY               -> Seq.createL oid_AT_COUNTRY
+//   | OID_AT_ORGANIZATION          -> Seq.createL oid_AT_ORGANIZATION
+//   | OID_CLIENT_AUTH              -> Seq.createL oid_CLIENT_AUTH
+//   | OID_AUTHORITY_KEY_IDENTIFIER -> Seq.createL oid_AUTHORITY_KEY_IDENTIFIER
+//   | OID_KEY_USAGE                -> Seq.createL oid_KEY_USAGE
+//   | OID_EXTENDED_KEY_USAGE       -> Seq.createL oid_EXTENDED_KEY_USAGE
+//   | OID_BASIC_CONSTRAINTS        -> Seq.createL oid_BASIC_CONSTRAINTS
+//   // | OID_DIGEST_SHA224            -> Seq.createL oid_DIGEST_ALG_SHA224
+//   | OID_DIGEST_SHA256            -> Seq.createL oid_DIGEST_ALG_SHA256
+//   // | OID_DIGEST_SHA384            -> Seq.createL oid_DIGEST_ALG_SHA384
+//   // | OID_DIGEST_SHA512            -> Seq.createL oid_DIGEST_ALG_SHA512
+//   | OID_EC_ALG_UNRESTRICTED      -> Seq.createL oid_EC_ALG_UNRESTRICTED
+//   | OID_EC_GRP_SECP256R1         -> Seq.createL oid_EC_GRP_SECP256R1
+//   | OID_ED25519                  -> Seq.createL oid_ED25519
+//   | OID_X25519                   -> Seq.createL oid_X25519
+//   | OID_PKCS9_CSR_EXT_REQ        -> Seq.createL oid_PKCS9_CSR_EXT_REQ
+// #pop-options
 
 
 
@@ -501,29 +501,29 @@ let lemma_known_oids_as_seq_contains_oid_seq_of (oid:oid_t)
        `%known_oids_as_seq ] ])
 #pop-options
 
-(*
- * AR: TODO: Adapt proofs below
- *)
+// let length_of_oid oid
+// = match oid with
+//   | OID_RIOT                     -> assert_norm (List.length oid_RIOT == 9); 9
+//   | OID_AT_CN                    -> assert_norm (List.length oid_AT_CN == 3); 3
+//   | OID_AT_COUNTRY               -> assert_norm (List.length oid_AT_COUNTRY == 3); 3
+//   | OID_AT_ORGANIZATION          -> assert_norm (List.length oid_AT_ORGANIZATION == 3); 3
+//   | OID_CLIENT_AUTH              -> assert_norm (List.length oid_CLIENT_AUTH == 7); 7
+//   | OID_AUTHORITY_KEY_IDENTIFIER -> assert_norm (List.length oid_AUTHORITY_KEY_IDENTIFIER == 3); 3
+//   | OID_KEY_USAGE                -> assert_norm (List.length oid_KEY_USAGE == 3); 3
+//   | OID_EXTENDED_KEY_USAGE       -> assert_norm (List.length oid_EXTENDED_KEY_USAGE == 3); 3
+//   | OID_BASIC_CONSTRAINTS        -> assert_norm (List.length oid_BASIC_CONSTRAINTS == 3); 3
+//   | OID_DIGEST_SHA256            -> assert_norm (List.length oid_DIGEST_ALG_SHA256 == 9); 9
+//   | OID_EC_ALG_UNRESTRICTED      -> assert_norm (List.length oid_EC_ALG_UNRESTRICTED == 5); 5
+//   | OID_EC_GRP_SECP256R1         -> assert_norm (List.length oid_EC_GRP_SECP256R1 == 6); 6
+//   | OID_ED25519                  -> assert_norm (List.length oid_ED25519 == 3); 3
+//   | OID_X25519                   -> assert_norm (List.length oid_X25519 == 3); 3
+//   | OID_PKCS9_CSR_EXT_REQ        -> assert_norm (List.length oid_PKCS9_CSR_EXT_REQ == 9); 9
 
-let length_of_oid oid
-= match oid with
-  | OID_RIOT                     -> assert_norm (List.length oid_RIOT == 9); 9
-  | OID_AT_CN                    -> assert_norm (List.length oid_AT_CN == 3); 3
-  | OID_AT_COUNTRY               -> assert_norm (List.length oid_AT_COUNTRY == 3); 3
-  | OID_AT_ORGANIZATION          -> assert_norm (List.length oid_AT_ORGANIZATION == 3); 3
-  | OID_CLIENT_AUTH              -> assert_norm (List.length oid_CLIENT_AUTH == 7); 7
-  | OID_AUTHORITY_KEY_IDENTIFIER -> assert_norm (List.length oid_AUTHORITY_KEY_IDENTIFIER == 3); 3
-  | OID_KEY_USAGE                -> assert_norm (List.length oid_KEY_USAGE == 3); 3
-  | OID_EXTENDED_KEY_USAGE       -> assert_norm (List.length oid_EXTENDED_KEY_USAGE == 3); 3
-  | OID_BASIC_CONSTRAINTS        -> assert_norm (List.length oid_BASIC_CONSTRAINTS == 3); 3
-  | OID_DIGEST_SHA256            -> assert_norm (List.length oid_DIGEST_ALG_SHA256 == 9); 9
-  | OID_EC_ALG_UNRESTRICTED      -> assert_norm (List.length oid_EC_ALG_UNRESTRICTED == 5); 5
-  | OID_EC_GRP_SECP256R1         -> assert_norm (List.length oid_EC_GRP_SECP256R1 == 6); 6
-  | OID_ED25519                  -> assert_norm (List.length oid_ED25519 == 3); 3
-  | OID_X25519                   -> assert_norm (List.length oid_X25519 == 3); 3
-  | OID_PKCS9_CSR_EXT_REQ        -> assert_norm (List.length oid_PKCS9_CSR_EXT_REQ == 9); 9
-
-let filter_asn1_oid l oid_seq
+noextract
+let filter_asn1_oid
+  (l: asn1_value_length_of_type OID)
+  (oid_seq: lbytes l)//{Seq.length oid_seq == l})
+: GTot bool
 = List.mem oid_seq known_oids_as_seq
 
 let rec list_mem_memP (#a:eqtype) (x:a) (l:list a)
@@ -533,7 +533,10 @@ let rec list_mem_memP (#a:eqtype) (x:a) (l:list a)
   | hd::tl -> if hd = x then () else list_mem_memP x tl
 
 #push-options "--fuel 0 --ifuel 0"
-let synth_asn1_oid l oid_seq
+let synth_asn1_oid
+  (l: asn1_value_length_of_type OID)
+  (oid_seq: parse_filter_refine (filter_asn1_oid l))
+: GTot (oid: oid_t { length_of_oid oid == l})
 = lemma_oids_as_seq_pairwise_ineq ();
   let oid_seq = oid_seq <: s:bytes {List.mem s known_oids_as_seq} in
 
@@ -597,7 +600,10 @@ let synth_asn1_oid_injective (l:asn1_value_length_of_type OID)
   ()
 #pop-options
 
-let synth_asn1_oid_inverse l oid
+let synth_asn1_oid_inverse
+  (l: asn1_value_length_of_type OID)
+  (oid: oid_t { length_of_oid oid == l})
+: GTot (oid_seq: parse_filter_refine (filter_asn1_oid l) { synth_asn1_oid l oid_seq == oid })
 = lemma_oids_as_seq_pairwise_ineq ();
   lemma_known_oids_as_seq_contains_oid_seq_of oid;
   oid_seq_of oid
@@ -641,19 +647,31 @@ let lemma_serialize_asn1_oid_size l oid
 (* TLV
  ======
 *)
-let parser_tag_of_oid x
+let parser_tag_of_oid
+  (x: datatype_of_asn1_type OID)
+: GTot (the_asn1_tag OID & asn1_value_int32_of_type OID)
 = (OID, u (length_of_oid x))
 
-let synth_asn1_oid_V tag value
+let synth_asn1_oid_V
+  (tag: (the_asn1_tag OID & asn1_value_int32_of_type OID))
+  (value: datatype_of_asn1_type OID { length_of_oid value == v (snd tag)})
+: GTot (refine_with_tag parser_tag_of_oid tag)
 = value
 
-let synth_asn1_oid_V_inverse tag value'
+let synth_asn1_oid_V_inverse
+  (tag: (the_asn1_tag OID & asn1_value_int32_of_type OID))
+  (value': refine_with_tag parser_tag_of_oid tag)
+: GTot (value: datatype_of_asn1_type OID
+       { length_of_oid value == v (snd tag) /\
+         value' == synth_asn1_oid_V tag value })
 = value'
 
 ///
 /// Aux parser/serialzier and lemmas
 ///
-let parse_asn1_oid_V tag
+let parse_asn1_oid_V
+  (tag: (the_asn1_tag OID & asn1_value_int32_of_type OID))
+: parser (weak_kind_of_type OID) (refine_with_tag parser_tag_of_oid tag)
 = weak_kind_of_type OID
   `weaken`
   parse_asn1_oid (v (snd tag))
@@ -663,7 +681,9 @@ let parse_asn1_oid_V tag
 ///
 /// Aux serializer
 ///
-let serialize_asn1_oid_V tag
+let serialize_asn1_oid_V
+  (tag: (the_asn1_tag OID & asn1_value_int32_of_type OID))
+: serializer (parse_asn1_oid_V tag)
 = serialize_synth
   (* p1 *) (weak_kind_of_type OID
             `weaken`
@@ -680,7 +700,14 @@ let serialize_asn1_oid_V tag
 ///
 
 /// Reveal the computation of parse
-let lemma_parse_asn1_oid_V_unfold tag input
+let lemma_parse_asn1_oid_V_unfold
+  (tag: (the_asn1_tag OID & asn1_value_int32_of_type OID))
+  (input: bytes)
+: Lemma (
+  parse (parse_asn1_oid_V tag) input ==
+ (match parse (parse_asn1_oid (v (snd tag))) input with
+  | None -> None
+  | Some (value, consumed) ->  Some (synth_asn1_oid_V tag value, consumed)))
 = parse_synth_eq
   (* p1 *) (weak_kind_of_type OID
             `weaken`
@@ -726,16 +753,6 @@ let parse_asn1_oid_TLV
   (* tg *) (parser_tag_of_oid)
   (* p  *) (parse_asn1_oid_V)
 
-let synth_asn1_oid_TLV_of oid x
-= x
-
-let parse_asn1_oid_TLV_of oid
-= parse_asn1_oid_TLV
-  `parse_filter`
-  filter_asn1_oid_TLV_of oid
-  // `parse_synth`
-  // (fun x -> x <: x: datatype_of_asn1_type OID {x == oid})
-
 ///
 /// Serializer
 ///
@@ -746,18 +763,6 @@ let serialize_asn1_oid_TLV
             serialize_asn1_length_of_type OID)
   (* tg *) (parser_tag_of_oid)
   (* s  *) (serialize_asn1_oid_V)
-
-let serialize_asn1_oid_TLV_of oid
-= // serialize_synth
-  // (* p1 *) (parse_asn1_oid_TLV
-  //           `parse_filter`
-  //           filter_asn1_oid_TLV_of oid)
-  // (* f2 *) (fun x -> x <: x: datatype_of_asn1_type OID {x == oid})
-  (* s1 *) (serialize_asn1_oid_TLV
-            `serialize_filter`
-            filter_asn1_oid_TLV_of oid)
-  // (* g1 *) (fun x -> x <: parse_filter_refine (filter_asn1_oid_TLV_of oid))
-  // (* prf*) ()
 
 ///
 /// Lemmas
