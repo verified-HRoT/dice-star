@@ -138,9 +138,9 @@ let length_of_asn1_envelop_tag_with_TLV #k #t #p a s value
   1 + length_of_asn1_length len + length
 #pop-options
 
-let coerce_envelop #k #t #p a1 a2 s x1
-= x1
+// let coerce_envelop #k #t #p a1 a2 s x1
+// = x1
 
-let coerce_envelop_back #k #t #p a1 a2 s x1
-= x1
+// let coerce_envelop_back #k #t #p a1 a2 s x1
+// = x1
 

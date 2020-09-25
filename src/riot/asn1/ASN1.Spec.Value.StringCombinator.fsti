@@ -318,13 +318,15 @@ val  lemma_serialize_asn1_string_TLV_size
 )
 #pop-options
 
-val filter_asn1_string_with_character_bound
+(* Refined Version *)
+let filter_asn1_string_with_character_bound
   (t: asn1_type { t == IA5_STRING \/ t == PRINTABLE_STRING \/ t == OCTET_STRING })
   (count_character: (x: datatype_of_asn1_type t) -> Tot (asn1_int32))
   (lb: asn1_value_int32_of_type t)
   (ub: asn1_value_int32_of_type t { lb <= ub })
   (x: datatype_of_asn1_type t)
 : Tot (bool)
+= lb <= count_character x && count_character x <= ub
 
 noextract inline_for_extraction unfold
 let asn1_string_with_character_bound_t
@@ -334,7 +336,7 @@ let asn1_string_with_character_bound_t
   (ub: asn1_value_int32_of_type t { lb <= ub })
 = parse_filter_refine (filter_asn1_string_with_character_bound t count_character lb ub)
 
-val parse_asn1_string_TLV_with_character_bound
+let parse_asn1_string_TLV_with_character_bound
   (t: asn1_type { t == IA5_STRING \/ t == PRINTABLE_STRING \/ t == OCTET_STRING })
   (len_of_string: datatype_of_asn1_type t -> asn1_value_int32_of_type t)
   (filter_string: (len: asn1_value_int32_of_type t)
@@ -349,8 +351,11 @@ val parse_asn1_string_TLV_with_character_bound
   (lb: asn1_value_int32_of_type t)
   (ub: asn1_value_int32_of_type t { lb <= ub })
 : parser (parse_asn1_string_TLV_kind t) (asn1_string_with_character_bound_t t count_character lb ub)
+= parse_asn1_string_TLV t len_of_string filter_string synth_string prf
+  `parse_filter`
+  filter_asn1_string_with_character_bound t count_character lb ub
 
-val serialize_asn1_string_TLV_with_character_bound
+let serialize_asn1_string_TLV_with_character_bound
   (t: asn1_type { t == IA5_STRING \/ t == PRINTABLE_STRING \/ t == OCTET_STRING })
   (len_of_string: datatype_of_asn1_type t -> asn1_value_int32_of_type t)
   (filter_string: (len: asn1_value_int32_of_type t)
@@ -369,3 +374,6 @@ val serialize_asn1_string_TLV_with_character_bound
   (lb: asn1_value_int32_of_type t)
   (ub: asn1_value_int32_of_type t { lb <= ub })
 : serializer (parse_asn1_string_TLV_with_character_bound t len_of_string filter_string synth_string prf count_character lb ub)
+= serialize_asn1_string_TLV t len_of_string filter_string synth_string synth_string_inverse prf
+  `serialize_filter`
+  filter_asn1_string_with_character_bound t count_character lb ub

@@ -332,6 +332,10 @@ let lemma_serialize_RDN_size_exact
 )
 = lemma_serialize_RDN_unfold oid t lb ub x;
   lemma_serialize_RDN_size   oid t lb ub x;
+  lemma_serialize_envelop_OID_with_size
+    (oid)
+    (serialize_asn1_character_string_with_character_bound t lb ub)
+    (x);
   // lemma_serialize_asn1_oid_TLV_of_size oid oid
 ()
 

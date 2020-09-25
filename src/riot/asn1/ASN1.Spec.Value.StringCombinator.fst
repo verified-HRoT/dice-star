@@ -146,16 +146,3 @@ let lemma_serialize_asn1_string_TLV_size t len_of_string filter_string synth_str
   serialize_asn1_length_of_type_eq t (len_of_string x);
   lemma_serialize_asn1_string_size t len_of_string filter_string synth_string synth_string_inverse prf (len_of_string x) x
 #pop-options
-
-let filter_asn1_string_with_character_bound t count_character lb ub x
-= lb <= count_character x && count_character x <= ub
-
-let parse_asn1_string_TLV_with_character_bound t len_of_string filter_string synth_string prf count_character lb ub
-= parse_asn1_string_TLV t len_of_string filter_string synth_string prf
-  `parse_filter`
-  filter_asn1_string_with_character_bound t count_character lb ub
-
-let serialize_asn1_string_TLV_with_character_bound t len_of_string filter_string synth_string synth_string_inverse prf count_character lb ub
-= serialize_asn1_string_TLV t len_of_string filter_string synth_string synth_string_inverse prf
-  `serialize_filter`
-  filter_asn1_string_with_character_bound t count_character lb ub

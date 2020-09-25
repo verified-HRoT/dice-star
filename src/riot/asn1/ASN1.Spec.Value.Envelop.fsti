@@ -242,7 +242,7 @@ val length_of_asn1_envelop_tag_with_TLV
 : GTot (l: asn1_TLV_length_of_type a { l == Seq.length (serialize (serialize_asn1_envelop_tag_with_TLV a s) value) })
 
 inline_for_extraction
-val coerce_envelop
+let coerce_envelop
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
@@ -251,9 +251,10 @@ val coerce_envelop
   (s: serializer p)
   (x1: inbound_envelop_tag_with_value_of a1 (serialize_asn1_envelop_tag_with_TLV a2 s))
 : inbound_envelop_tag_with_value_of a2 s
+= x1
 
 inline_for_extraction
-val coerce_envelop_back
+let coerce_envelop_back
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
@@ -263,3 +264,5 @@ val coerce_envelop_back
   (x1: inbound_envelop_tag_with_value_of a2 s
        { asn1_value_length_inbound_of_type a1 (length_of_opaque_serialization (serialize_asn1_envelop_tag_with_TLV a2 s) x1) })
 : inbound_envelop_tag_with_value_of a1 (serialize_asn1_envelop_tag_with_TLV a2 s)
+= x1
+
