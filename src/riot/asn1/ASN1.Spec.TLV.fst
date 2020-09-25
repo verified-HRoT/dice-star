@@ -74,7 +74,7 @@ let serialize_asn1_TLV_of_type
 
 /// Length Spec of ASN.1 [VALUE] of primitive types
 ///
-#push-options "--z3rlimit 8"
+#push-options "--z3rlimit 8 --fuel 0 --ifuel 1"
 noextract
 let length_of_asn1_primitive_value
   (#_a: asn1_primitive_type)
@@ -145,7 +145,7 @@ let length_of_asn1_primitive_value
 
 /// Length Spec of ASN.1 Primitive [TAG, LEN, VALUE] of primitive types
 ///
-#restart-solver
+
 #push-options "--z3rlimit 32 --fuel 2 --ifuel 1"
 noextract
 let length_of_asn1_primitive_TLV
