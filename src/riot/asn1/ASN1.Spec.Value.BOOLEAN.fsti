@@ -153,34 +153,52 @@ val lemma_serialize_asn1_boolean_TLV_size
 : Lemma (
   Seq.length (serialize serialize_asn1_boolean_TLV value) == 3)
 
-val filter_asn1_boolean_true
+(* Refined Versions *)
+
+(* BOOLEAN true *)
+let filter_asn1_boolean_true
   (x: datatype_of_asn1_type BOOLEAN)
 : GTot (bool)
+= x = true
 
 let asn1_boolean_true_t
 : Type
 = parse_filter_refine filter_asn1_boolean_true
 
-val asn1_boolean_true: asn1_boolean_true_t
+let asn1_boolean_true: asn1_boolean_true_t = true
 
-val parse_asn1_boolean_TLV_true
+let parse_asn1_boolean_TLV_true
 : parser parse_asn1_boolean_TLV_kind asn1_boolean_true_t
+= parse_asn1_boolean_TLV
+  `parse_filter`
+  filter_asn1_boolean_true
 
-val serialize_asn1_boolean_TLV_true
+let serialize_asn1_boolean_TLV_true
 : serializer parse_asn1_boolean_TLV_true
+= serialize_asn1_boolean_TLV
+  `serialize_filter`
+  filter_asn1_boolean_true
 
-val filter_asn1_boolean_false
+(* BOOLEAN false *)
+let filter_asn1_boolean_false
   (x: datatype_of_asn1_type BOOLEAN)
 : GTot (bool)
+= x = false
 
 let asn1_boolean_false_t
 : Type
 = parse_filter_refine filter_asn1_boolean_false
 
-val asn1_boolean_false: asn1_boolean_false_t
+let asn1_boolean_false: asn1_boolean_false_t = false
 
-val parse_asn1_boolean_TLV_false
+let parse_asn1_boolean_TLV_false
 : parser parse_asn1_boolean_TLV_kind asn1_boolean_false_t
+= parse_asn1_boolean_TLV
+  `parse_filter`
+  filter_asn1_boolean_false
 
-val serialize_asn1_boolean_TLV_false
+let serialize_asn1_boolean_TLV_false
 : serializer parse_asn1_boolean_TLV_false
+= serialize_asn1_boolean_TLV
+  `serialize_filter`
+  filter_asn1_boolean_false

@@ -192,33 +192,3 @@ let lemma_serialize_asn1_boolean_TLV_unfold value
 let lemma_serialize_asn1_boolean_TLV_size value
 = parser_kind_prop_equiv parse_asn1_boolean_TLV_kind parse_asn1_boolean_TLV;
   lemma_serialize_asn1_boolean_TLV_unfold value
-
-let filter_asn1_boolean_true x
-= x = true
-
-let asn1_boolean_true = true
-
-let parse_asn1_boolean_TLV_true
-= parse_asn1_boolean_TLV
-  `parse_filter`
-  filter_asn1_boolean_true
-
-let serialize_asn1_boolean_TLV_true
-= serialize_asn1_boolean_TLV
-  `serialize_filter`
-  filter_asn1_boolean_true
-
-let filter_asn1_boolean_false x
-= x = false
-
-let asn1_boolean_false = false
-
-let parse_asn1_boolean_TLV_false
-= parse_asn1_boolean_TLV
-  `parse_filter`
-  filter_asn1_boolean_false
-
-let serialize_asn1_boolean_TLV_false
-= serialize_asn1_boolean_TLV
-  `serialize_filter`
-  filter_asn1_boolean_false
