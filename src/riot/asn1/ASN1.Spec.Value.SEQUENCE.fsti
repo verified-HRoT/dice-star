@@ -13,19 +13,21 @@ let inbound_sequence_value_of
   (s: serializer p)
 = inbound_envelop_tag_with_value_of SEQUENCE s
 
-val parse_asn1_sequence_TLV
+let parse_asn1_sequence_TLV
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
   (s: serializer p)
 : parser (parse_asn1_envelop_tag_with_TLV_kind SEQUENCE) (inbound_sequence_value_of s)
+= parse_asn1_envelop_tag_with_TLV SEQUENCE s
 
-val serialize_asn1_sequence_TLV
+let serialize_asn1_sequence_TLV
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
   (s: serializer p)
 : serializer (parse_asn1_sequence_TLV s)
+= serialize_asn1_envelop_tag_with_TLV SEQUENCE s
 
 unfold
 let predicate_serialize_asn1_sequence_TLV_unfold
