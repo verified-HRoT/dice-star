@@ -10,12 +10,8 @@ open RIoT.X509
 open Lib.IntTypes
 
 module B32 = FStar.Bytes
-module B = LowStar.Buffer
-module IB = LowStar.ImmutableBuffer
-module HS  = FStar.HyperStack
-module HST = FStar.HyperStack.ST
 
-#set-options "--z3rlimit 512 --fuel 0 --ifuel 0 --admit_smt_queries true"
+#set-options "--z3rlimit 512 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
 (* Create AliasKey To-Be-Signed Certificate
   =======================================
