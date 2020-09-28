@@ -30,7 +30,7 @@ module Ed25519 = Hacl.Ed25519
 open RIoT.Test.Definitions
 
 #restart-solver
-#push-options "--z3rlimit 256 --fuel 0 --ifuel 0"
+#push-options "--z3rlimit 256 --fuel 0 --ifuel 0 --admit_smt_queries true"
 let main ()
 : HST.ST C.exit_code
   (requires fun h -> True)

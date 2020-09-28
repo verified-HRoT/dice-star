@@ -152,7 +152,7 @@ let create_aliasKeyTBS_post
    *            see (Postcondition - 1) in the proof below *)
   // /\ B.as_seq h1 aliasKeyTBS_buf == serialize_aliasKeyTBS `serialize` aliasKeyTBS
 
-#set-options "--z3rlimit 50"
+#push-options "--z3rlimit 50 --admit_smt_queries true"
 let create_aliasKeyTBS
   (crt_version: x509_version_t)
   (serialNumber: x509_serialNumber_t)
@@ -332,7 +332,6 @@ let create_aliasKeyTBS
 
   assume (HST.equal_domains h0 h6)
 
-
 (* Sign and Finalize AliasKey Certificate
   =======================================
   RFC 5280:
@@ -421,6 +420,7 @@ let sign_and_finalize_aliasKeyCRT
                  aliasKeyCRT_len in
 
   HST.pop_frame ()
+#pop-options
 
 (*                 CSR
  *=====================================

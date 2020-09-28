@@ -27,7 +27,7 @@ open RIoT.Impl
 
 module Ed25519 = Hacl.Ed25519
 
-#set-options "--z3rlimit 50 --fuel 0 --ifuel 0"
+#set-options "--z3rlimit 50 --fuel 0 --ifuel 0 --admit_smt_queries true"
 
 #restart-solver
 let riot_pre
