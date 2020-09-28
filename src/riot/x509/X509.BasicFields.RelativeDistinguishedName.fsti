@@ -72,6 +72,7 @@ let directory_string_type : Type
 //   | RDN_ORGANIZATION t _ -> t
 // #pop-options
 
+[@@ "opaque_to_smt"]
 unfold noextract
 let x509_RDN_payload_t
   (oid: x509_RDN_attribute_oid)
@@ -107,6 +108,7 @@ val serialize32_RDN_payload_backwards
   (ub: asn1_value_int32_of_type t { lb <= ub })
 : serializer32_backwards (serialize_RDN_payload oid t lb ub)
 
+[@@ "opaque_to_smt"]
 unfold noextract
 let x509_RDN_t
   (oid: x509_RDN_attribute_oid)
@@ -164,6 +166,7 @@ let length_of_RDN
        (**) (length_of_asn1_primitive_TLV #OID oid +
              length_of_asn1_primitive_TLV #t s)))
 
+[@@ "opaque_to_smt"]
 unfold noextract
 let len_of_RDN
   (oid: x509_RDN_attribute_oid)
@@ -310,6 +313,7 @@ type x520_attribute_t =
 // | SERIAL_NUMBER
 
 #push-options "--ifuel 1"
+[@@ "opaque_to_smt"]
 unfold noextract
 let x520_attribute_lb
   (t: x520_attribute_t)
@@ -319,6 +323,7 @@ let x520_attribute_lb
   | ORGANIZATION -> 1ul
   | COMMON_NAME  -> 1ul
 
+[@@ "opaque_to_smt"]
 unfold noextract
 let x520_attribute_ub
   (t: x520_attribute_t)
@@ -328,6 +333,7 @@ let x520_attribute_ub
   | ORGANIZATION -> 64ul
   | COMMON_NAME  -> 32768ul
 
+[@@ "opaque_to_smt"]
 unfold noextract
 let x520_attribute_oid
   (t: x520_attribute_t)
@@ -337,6 +343,7 @@ let x520_attribute_oid
   | ORGANIZATION -> OID_AT_ORGANIZATION
   | COMMON_NAME  -> OID_AT_CN
 
+[@@ "opaque_to_smt"]
 unfold noextract
 let x509_RDN_x520_attribute_t
   (t: x520_attribute_t)
@@ -347,6 +354,7 @@ let x509_RDN_x520_attribute_t
     (x520_attribute_lb t)
     (x520_attribute_ub t)
 
+[@@ "opaque_to_smt"]
 unfold noextract
 let x509_RDN_x520_attribute_string_t
   (t: x520_attribute_t)
@@ -400,6 +408,7 @@ let length_of_RDN_x520_attribute
     (string_t)
     (s)
 
+[@@ "opaque_to_smt"]
 unfold noextract
 let len_of_RDN_x520_attribute
   (#t: x520_attribute_t)
@@ -412,6 +421,7 @@ let len_of_RDN_x520_attribute
     (string_t)
     (s)
 
+[@@ "opaque_to_smt"]
 unfold noextract
 let get_RDN_x520_attribute_string
   (#t: x520_attribute_t)
@@ -460,6 +470,7 @@ val serialize32_RDN_x520_attribute_backwards
 //   (|3ul, B32.hide (Seq.createL [0x10uy; 0x11uy; 0x12uy])|) <: datatype_of_asn1_type IA5_STRING
 
 // #push-options "--max_fuel 4 --max_ifuel 4"
+[@@ "opaque_to_smt"]
 unfold noextract
 let asn1_get_character_string
   (#string_t: character_string_type)
@@ -468,6 +479,7 @@ let asn1_get_character_string
 : Tot (datatype_of_asn1_type string_t)
 = (|len, s32|) <: character_string_t string_t
 
+[@@ "opaque_to_smt"]
 unfold noextract
 let x509_get_RDN_x520_attribute_string
   (#t: x520_attribute_t)
@@ -480,6 +492,7 @@ let x509_get_RDN_x520_attribute_string
 = x
 
 #push-options "--z3rlimit 96"
+[@@ "opaque_to_smt"]
 unfold noextract
 let x509_get_RDN_x520_attribute
   (#t: x520_attribute_t)
