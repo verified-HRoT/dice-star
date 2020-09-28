@@ -6,7 +6,7 @@ open ASN1.Low.Base
 
 open FStar.Integers
 
-noextract
+inline_for_extraction noextract
 val len_of_oid
   (oid: oid_t)
 : Tot (len: asn1_value_int32_of_type OID

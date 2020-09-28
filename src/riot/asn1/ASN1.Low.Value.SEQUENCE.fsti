@@ -7,6 +7,7 @@ open ASN1.Base
 open ASN1.Spec.Value.SEQUENCE
 open ASN1.Low.Base
 
+inline_for_extraction
 val serialize32_asn1_sequence_TLV_backwards
   (#k: parser_kind)
   (#t: Type0)
