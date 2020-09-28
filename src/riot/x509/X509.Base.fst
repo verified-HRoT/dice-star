@@ -1,14 +1,6 @@
 module X509.Base
 
-open LowParse.Spec.Base
-open LowParse.Spec.Combinators
-
 open ASN1.Base
-open ASN1.Spec
-
-open FStar.Integers
-
-module B32 = FStar.Bytes
 
 (* Disabling them for now *)
 // type supported_crypto_alg_t =
