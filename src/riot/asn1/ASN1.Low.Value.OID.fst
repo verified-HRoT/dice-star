@@ -8,8 +8,6 @@ open LowParse.Low.Bytes
 open FStar.Integers
 
 module HS = FStar.HyperStack
-module HST = FStar.HyperStack.ST
-module MB = LowStar.Monotonic.Buffer
 module B = LowStar.Buffer
 
 module B32 = FStar.Bytes
@@ -59,11 +57,7 @@ let oid_PKCS9_CSR_EXT_REQ_as_buffer        = IB.igcmalloc_of_list HS.root (oid_P
    will be marded as `noextract`.
 *)
 
-noextract
-let len_of_oid
-  (oid: oid_t)
-: Tot (len: asn1_value_int32_of_type OID
-      { v len == length_of_oid oid })
+let len_of_oid oid
 = match oid with
   | OID_RIOT                     -> 9ul
   | OID_AT_CN                    -> 3ul
@@ -179,7 +173,6 @@ let synth_asn1_oid_V_inverse_impl
 = value'
 
 let serialize32_asn1_oid_TLV_backwards ()
-: Tot (serializer32_backwards serialize_asn1_oid_TLV)
 = serialize32_tagged_union_backwards
   (* lst *) (serialize32_asn1_tag_of_type_backwards OID
              `serialize32_nondep_then_backwards`
@@ -194,10 +187,7 @@ let serialize32_asn1_oid_TLV_backwards ()
                      (* g1' *) (synth_asn1_oid_V_inverse_impl x)
                      (* Prf *) ()))
 
-noextract inline_for_extraction
-let serialize32_asn1_oid_TLV_of_backwards
-  (oid: datatype_of_asn1_type OID)
-: serializer32_backwards (serialize_asn1_oid_TLV_of oid)
+let serialize32_asn1_oid_TLV_of_backwards oid
 = //serialize32_synth_backwards
   (* s1 *) (serialize32_asn1_oid_TLV_backwards ()
             `serialize32_filter_backwards`
@@ -207,15 +197,7 @@ let serialize32_asn1_oid_TLV_of_backwards
   // (* g1'*) (fun x -> x <: parse_filter_refine (filter_asn1_oid_TLV_of oid))
   // (* prf*) ()
 
-inline_for_extraction
-let serialize32_envelop_OID_with_backwards
-  (oid: datatype_of_asn1_type OID)
-  (#k: parser_kind)
-  (#t: Type0)
-  (#p: parser k t)
-  (#s: serializer p)
-  (s32: serializer32_backwards s)
-: serializer32_backwards (serialize_envelop_OID_with oid s)
+let serialize32_envelop_OID_with_backwards oid #k #t #p #s s32
 = serialize32_asn1_oid_TLV_of_backwards oid
   `serialize32_nondep_then_backwards`
   s32
