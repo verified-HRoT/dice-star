@@ -407,7 +407,7 @@ val lemma_serialize_asn1_oid_size
  ======
 *)
 
-noextract
+inline_for_extraction noextract
 let parse_asn1_oid_TLV_kind
 : parser_kind
 = parse_asn1_tag_kind

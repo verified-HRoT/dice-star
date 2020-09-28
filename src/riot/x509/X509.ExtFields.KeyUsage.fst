@@ -320,6 +320,7 @@ let _serialize32_x509_key_usage_payload_backwards
   (* g1'*) (_synth_x509_key_usage_payload_inverse_impl)
   (* prf*) (lemma_synth_x509_key_usage_injective ())
 
+#set-options "--print_implicits"
 let serialize32_x509_key_usage_backwards
 : serializer32_backwards (serialize_x509_key_usage)
 = lemma_synth_x509_key_usage_injective ();
