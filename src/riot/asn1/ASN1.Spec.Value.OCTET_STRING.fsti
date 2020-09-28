@@ -57,6 +57,7 @@ let parse_asn1_octet_string_kind (l: asn1_value_length_of_type OCTET_STRING) = t
 ///
 /// Parser
 ///
+noextract
 val parse_asn1_octet_string
   (l: asn1_value_length_of_type OCTET_STRING)
 : parser (parse_asn1_octet_string_kind l) (x: datatype_of_asn1_type OCTET_STRING{v (dfst x) == l})
@@ -64,6 +65,7 @@ val parse_asn1_octet_string
 ///
 /// Serializer
 ///
+noextract
 val serialize_asn1_octet_string
   (l: asn1_value_length_of_type OCTET_STRING)
 : serializer (parse_asn1_octet_string l)

@@ -76,10 +76,12 @@ val synth_big_integer_as_octet_string_inverse
 
 let parse_big_integer_as_octet_string_kind (l: asn1_value_length_of_big_integer) = constant_size_parser_kind l
 
+noextract
 val parse_big_integer_as_octet_string
   (l: asn1_value_length_of_big_integer)
 : parser (parse_big_integer_as_octet_string_kind l) (x: big_integer_as_octet_string_t {valid_big_integer_as_octet_string_prop l x})
 
+noextract
 val serialize_big_integer_as_octet_string
   (l: asn1_value_length_of_big_integer)
 : serializer (parse_big_integer_as_octet_string l)
@@ -122,6 +124,7 @@ let serialize_asn1_length_of_big_integer
 let weak_kind_of_big_integer
 = strong_parser_kind 1 (asn1_length_max - 6) None
 
+inline_for_extraction noextract
 let parse_big_integer_as_octet_string_TLV_kind
 : parser_kind
 = parse_asn1_tag_kind
@@ -130,9 +133,11 @@ let parse_big_integer_as_octet_string_TLV_kind
   `and_then_kind`
   weak_kind_of_big_integer
 
+noextract
 val parse_big_integer_as_octet_string_TLV
 : parser parse_big_integer_as_octet_string_TLV_kind big_integer_as_octet_string_t
 
+noextract
 val serialize_big_integer_as_octet_string_TLV
 : serializer parse_big_integer_as_octet_string_TLV
 

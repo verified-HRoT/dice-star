@@ -669,6 +669,7 @@ let synth_asn1_oid_V_inverse
 ///
 /// Aux parser/serialzier and lemmas
 ///
+noextract
 let parse_asn1_oid_V
   (tag: (the_asn1_tag OID & asn1_value_int32_of_type OID))
 : parser (weak_kind_of_type OID) (refine_with_tag parser_tag_of_oid tag)
@@ -681,6 +682,7 @@ let parse_asn1_oid_V
 ///
 /// Aux serializer
 ///
+noextract
 let serialize_asn1_oid_V
   (tag: (the_asn1_tag OID & asn1_value_int32_of_type OID))
 : serializer (parse_asn1_oid_V tag)

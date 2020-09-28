@@ -70,10 +70,12 @@ val lemma_serialize_asn1_length_of_bound_size
 inline_for_extraction noextract
 let parse_asn1_length_kind = parse_asn1_length_of_bound_kind asn1_length_min asn1_length_max
 
+noextract
 let parse_asn1_length
 : parser parse_asn1_length_kind asn1_int32
 = parse_asn1_length_of_bound asn1_length_min asn1_length_max
 
+noextract
 let serialize_asn1_length
 : serializer parse_asn1_length
 = serialize_asn1_length_of_bound asn1_length_min asn1_length_max
@@ -85,6 +87,7 @@ let lemma_serialize_asn1_length_size
 = lemma_serialize_asn1_length_of_bound_size asn1_length_min asn1_length_max
 
 (* ZT: Exposing this definition. *)
+noextract
 let length_of_asn1_length
   (len: asn1_int32)
 : GTot (length: asn1_length_t
@@ -114,11 +117,13 @@ let parse_asn1_length_kind_of_type
 : parser_kind
 = parse_bounded_der_length32_kind (asn1_value_length_min_of_type _a) (asn1_value_length_max_of_type _a)
 
+inline_for_extraction noextract
 let parse_asn1_length_of_type
   (_a: asn1_tag_t)
 : parser (parse_asn1_length_kind_of_type _a) (asn1_value_int32_of_type _a)
 = parse_asn1_length_of_bound (asn1_value_length_min_of_type _a) (asn1_value_length_max_of_type _a)
 
+inline_for_extraction noextract
 let serialize_asn1_length_of_type
   (_a: asn1_tag_t)
 : serializer (parse_asn1_length_of_type _a)

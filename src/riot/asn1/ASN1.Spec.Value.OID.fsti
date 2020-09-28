@@ -546,7 +546,6 @@ val lemma_serialize_envelop_OID_with_unfold
   predicate_serialize_envelop_OID_with_unfold oid s x
 )
 
-unfold
 let length_of_envelop_OID_with
   (oid: datatype_of_asn1_type OID)
   (#k: parser_kind)
