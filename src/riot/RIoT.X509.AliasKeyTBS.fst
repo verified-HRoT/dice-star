@@ -323,7 +323,7 @@ let valid_aliasKeyTBS_ingredients
   len_of_x509_validity () +
   length_of_aliasKeyTBS_subject s_common s_org s_country +
   length_of_subjectPublicKeyInfo +
-  length_of_x509_extensions (length_of_aliasKeyTBS_extensions ku version)
+  (v (len_of_x509_extensions (length_of_aliasKeyTBS_extensions ku version)))
   <= asn1_value_length_max_of_type SEQUENCE
 
 #push-options "--z3rlimit 1024"
@@ -371,7 +371,7 @@ let length_of_aliasKeyTBS_payload
   len_of_x509_validity () +
   length_of_aliasKeyTBS_subject s_common s_org s_country +
   length_of_subjectPublicKeyInfo +
-  length_of_x509_extensions (length_of_aliasKeyTBS_extensions ku version)
+  (v (len_of_x509_extensions (length_of_aliasKeyTBS_extensions ku version)))
 
 let len_of_aliasKeyTBS_payload
   (serialNumber: x509_serialNumber_t)
