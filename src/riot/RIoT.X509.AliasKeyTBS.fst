@@ -322,7 +322,7 @@ let valid_aliasKeyTBS_ingredients
   length_of_aliasKeyTBS_issuer i_common i_org i_country +
   len_of_x509_validity () +
   length_of_aliasKeyTBS_subject s_common s_org s_country +
-  length_of_subjectPublicKeyInfo +
+  v len_of_subjectPublicKeyInfo +
   (v (len_of_x509_extensions (length_of_aliasKeyTBS_extensions ku version)))
   <= asn1_value_length_max_of_type SEQUENCE
 
@@ -370,7 +370,7 @@ let length_of_aliasKeyTBS_payload
   length_of_aliasKeyTBS_issuer i_common i_org i_country +
   len_of_x509_validity () +
   length_of_aliasKeyTBS_subject s_common s_org s_country +
-  length_of_subjectPublicKeyInfo +
+  v len_of_subjectPublicKeyInfo +
   (v (len_of_x509_extensions (length_of_aliasKeyTBS_extensions ku version)))
 
 let len_of_aliasKeyTBS_payload

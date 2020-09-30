@@ -154,7 +154,7 @@ let length_of_deviceIDCRI_payload
 : GTot (nat)
 = length_of_asn1_primitive_TLV #INTEGER version +
   length_of_deviceIDCRI_subject s_common s_org s_country +
-  length_of_subjectPublicKeyInfo +
+  v len_of_subjectPublicKeyInfo +
   length_of_deviceIDCRI_attributes ku
 
 let len_of_deviceIDCRI_payload

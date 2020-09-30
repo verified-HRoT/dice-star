@@ -27,13 +27,7 @@ let lemma_serialize_x509_extensions_TLV_unfold #k #t #p s x
 let lemma_serialize_x509_extensions_TLV_size #k #t #p s x
 = lemma_serialize_asn1_envelop_tag_with_TLV_size x509_extensions_outmost_explicit_tag s x
 
-let serialize32_x509_extensions_TLV_backwards #k #t #p #s s32
-  (#k: parser_kind)
-  (#t: Type0)
-  (#p: parser k t)
-  (#s: serializer p)
-  (s32: serializer32_backwards s)
-: serializer32_backwards (serialize_x509_extensions_TLV s)
+let serialize32_x509_extensions_TLV_backwards #_ #_ #_ #s s32
 = coerce_serializer32_backwards
   (* s2  *) (serialize_x509_extensions_TLV s)
   (* s32 *) (serialize32_asn1_envelop_tag_with_TLV_backwards
