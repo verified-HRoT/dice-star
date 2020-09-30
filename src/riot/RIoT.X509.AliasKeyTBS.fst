@@ -317,7 +317,7 @@ let valid_aliasKeyTBS_ingredients
   length_of_aliasKeyTBS_extensions ku version
   <= asn1_value_length_max_of_type x509_extensions_outmost_explicit_tag /\
   length_of_x509_version () +
-  length_of_x509_serialNumber serialNumber +
+  len_of_x509_serialNumber serialNumber +
   length_of_algorithmIdentifier () +
   length_of_aliasKeyTBS_issuer i_common i_org i_country +
   length_of_x509_validity () +
@@ -365,7 +365,7 @@ let length_of_aliasKeyTBS_payload
                 s_common s_org s_country
                 ku version;
   length_of_x509_version () +
-  length_of_x509_serialNumber serialNumber +
+  len_of_x509_serialNumber serialNumber +
   length_of_algorithmIdentifier () +
   length_of_aliasKeyTBS_issuer i_common i_org i_country +
   length_of_x509_validity () +

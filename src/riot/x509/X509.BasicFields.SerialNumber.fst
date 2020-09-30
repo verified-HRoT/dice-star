@@ -1,7 +1,5 @@
 module X509.BasicFields.SerialNumber
 
-open LowParse.Low.Base
-
 open ASN1.Spec
 open ASN1.Low
 
@@ -31,76 +29,28 @@ module B32 = FStar.Bytes
    gracefully handle such certificates.
 *)
 
-(* NOTE: 1. `big_integer_as_octet_string_t` is the UN-ENCODED PLAIN integer represented as octets;
-         2. the 20 octets restriction is on this plain serialNumber value. *)
-let filter_x509_serialNumber
-  (x: big_integer_as_octet_string_t)
-: GTot bool
-= let (|len, s32|) = x in
-(* Conforming RFC 5280 -- serialNumber __value__ should not longer then 20 octets *)
-  len <= 20ul &&
-(* Non-Negative -- the first bit is zero *)
-  B32.index s32 0 < 0x80uy &&
-(* Non-Zero -- when length is 1, the only octet is not 0 *)
- (len > 1ul || B32.index s32 0 > 0x00uy)
-
-let x509_serialNumber_t
-= parse_filter_refine filter_x509_serialNumber
-
 // let x509_serialNumber_dummy: x509_serialNumber_t
 // = [@inline_let] let x: big_integer_as_octet_string_t = (|1ul, B32.create 1ul 1uy|) in
 //   assert_norm (filter_x509_serialNumber x);
 //   x
 
 let parse_x509_serialNumber
-: parser _ x509_serialNumber_t
 = parse_big_integer_as_octet_string_TLV
   `parse_filter`
   filter_x509_serialNumber
 
 let serialize_x509_serialNumber
-: serializer parse_x509_serialNumber
 = serialize_big_integer_as_octet_string_TLV
   `serialize_filter`
   filter_x509_serialNumber
 
-let lemma_serialize_x509_serialNumber_unfold
-  (x: x509_serialNumber_t)
-: Lemma (
-  let tg = parser_tag_of_big_integer_as_octet_string x in
-  serialize_x509_serialNumber `serialize` x ==
- (serialize_asn1_tag_of_type INTEGER `serialize` INTEGER)
-  `Seq.append`
- (serialize_asn1_length_of_big_integer `serialize` (snd tg))
-  `Seq.append`
- (serialize_big_integer_as_octet_string (v (snd tg)) `serialize` x)
-)
+let lemma_serialize_x509_serialNumber_unfold x
 = lemma_serialize_big_integer_as_octet_string_TLV_unfold x
 
-let lemma_serialize_x509_serialNumber_size
-  (x: x509_serialNumber_t)
-: Lemma (
-  length_of_opaque_serialization serialize_x509_serialNumber x ==
-  length_of_big_integer_as_octet_string x
-)
+let lemma_serialize_x509_serialNumber_size x
 = lemma_serialize_big_integer_as_octet_string_TLV_size x
 
-let length_of_x509_serialNumber
-  (x: x509_serialNumber_t)
-: GTot (l: asn1_value_length_of_big_integer
-           { l == length_of_opaque_serialization serialize_x509_serialNumber x })
-= lemma_serialize_x509_serialNumber_size x;
-  length_of_big_integer_as_octet_string x
-
-let len_of_x509_serialNumber
-  (x: x509_serialNumber_t)
-: Tot (len: asn1_value_int32_of_big_integer
-            { v len == length_of_opaque_serialization serialize_x509_serialNumber x })
-= lemma_serialize_x509_serialNumber_size x;
-  len_of_big_integer_as_octet_string x
-
 let serialize32_x509_serialNumber_backwards
-: serializer32_backwards serialize_x509_serialNumber
 = serialize32_big_integer_as_octet_string_TLV_backwards ()
   `serialize32_filter_backwards`
   filter_x509_serialNumber
