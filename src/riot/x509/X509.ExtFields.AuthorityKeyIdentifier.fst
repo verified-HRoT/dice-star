@@ -49,9 +49,6 @@ open X509.BasicFields.SerialNumber
 
  *)
 
-let x509_authKeyID_keyIdentifier_tag: asn1_tag_t
-= (CUSTOM_TAG CONTEXT_SPECIFIC CONSTRUCTED 0uy)
-
 (* Not supporting them for now *)
 // let x509_authKeyID_CertIssuer_tag: asn1_tag_t
 // = (CUSTOM_TAG CONTEXT_SPECIFIC CONSTRUCTED 1uy)
@@ -61,87 +58,32 @@ let x509_authKeyID_keyIdentifier_tag: asn1_tag_t
 
 (* keyIdentifier *)
 
-let x509_authKeyID_keyIdentifier_t
-= x509_authKeyID_keyIdentifier_tag `inbound_envelop_tag_with_value_of`
-  (**) (serialize_asn1_TLV_of_type OCTET_STRING)
-
 let parse_x509_authKeyID_keyIdentifier
-: parser _ x509_authKeyID_keyIdentifier_t
 = x509_authKeyID_keyIdentifier_tag `parse_asn1_envelop_tag_with_TLV`
   (**) (serialize_asn1_TLV_of_type OCTET_STRING)
 
 let serialize_x509_authKeyID_keyIdentifier
-: serializer parse_x509_authKeyID_keyIdentifier
 = x509_authKeyID_keyIdentifier_tag `serialize_asn1_envelop_tag_with_TLV`
   (**) (serialize_asn1_TLV_of_type OCTET_STRING)
 
 let serialize32_x509_authKeyID_keyIdentifier_backwards
-: serializer32_backwards serialize_x509_authKeyID_keyIdentifier
 = x509_authKeyID_keyIdentifier_tag `serialize32_asn1_envelop_tag_with_TLV_backwards`
   (**) (serialize32_asn1_TLV_backwards_of_type OCTET_STRING)
 
-let lemma_serialize_x509_authKeyID_keyIdentifier_unfold
-  (x: x509_authKeyID_keyIdentifier_t)
-: Lemma (
-  predicate_serialize_asn1_envelop_tag_with_TLV_unfold
-    (x509_authKeyID_keyIdentifier_tag)
-    (serialize_asn1_TLV_of_type OCTET_STRING)
-    (x)
-)
+let lemma_serialize_x509_authKeyID_keyIdentifier_unfold x
 = lemma_serialize_asn1_envelop_tag_with_TLV_unfold
     (x509_authKeyID_keyIdentifier_tag)
     (serialize_asn1_TLV_of_type OCTET_STRING)
     (x)
 
-let lemma_serialize_x509_authKeyID_keyIdentifier_size
-  (x: x509_authKeyID_keyIdentifier_t)
-: Lemma (
-  predicate_serialize_asn1_envelop_tag_with_TLV_size
-    (x509_authKeyID_keyIdentifier_tag)
-    (serialize_asn1_TLV_of_type OCTET_STRING)
-    (x)
-)
+let lemma_serialize_x509_authKeyID_keyIdentifier_size x
 = lemma_serialize_asn1_envelop_tag_with_TLV_size
     (x509_authKeyID_keyIdentifier_tag)
     (serialize_asn1_TLV_of_type OCTET_STRING)
     (x)
 
-let valid_authKeyID_keyIdentifier_ingredients
-  (keyID: datatype_of_asn1_type OCTET_STRING)
-: Type0
-= length_of_asn1_primitive_TLV keyID
-  <= asn1_value_length_max_of_type x509_authKeyID_keyIdentifier_tag
-
-let length_of_x509_authKeyID_keyIdentifier
-  (keyID: datatype_of_asn1_type OCTET_STRING
-          { valid_authKeyID_keyIdentifier_ingredients keyID })
-: GTot (asn1_TLV_length_of_type x509_authKeyID_keyIdentifier_tag)
-= length_of_TLV
-    (x509_authKeyID_keyIdentifier_tag)
-    (length_of_asn1_primitive_TLV keyID)
-
-let len_of_x509_authKeyID_keyIdentifier
-  (keyID: datatype_of_asn1_type OCTET_STRING
-          { valid_authKeyID_keyIdentifier_ingredients keyID })
-: Tot (len: asn1_TLV_int32_of_type x509_authKeyID_keyIdentifier_tag
-            { v len == length_of_x509_authKeyID_keyIdentifier keyID })
-= len_of_TLV
-    (x509_authKeyID_keyIdentifier_tag)
-    (len_of_asn1_primitive_TLV keyID)
-
-let lemma_serialize_x509_authKeyID_keyIdentifier_size_exact
-  (x: x509_authKeyID_keyIdentifier_t)
-: Lemma (
-  length_of_opaque_serialization serialize_x509_authKeyID_keyIdentifier x ==
-  length_of_x509_authKeyID_keyIdentifier x
-)
+let lemma_serialize_x509_authKeyID_keyIdentifier_size_exact x
 = lemma_serialize_x509_authKeyID_keyIdentifier_size x
-
-let x509_get_authKeyID_keyIdentifier
-  (keyID: datatype_of_asn1_type OCTET_STRING
-          { valid_authKeyID_keyIdentifier_ingredients keyID })
-: Tot (x509_authKeyID_keyIdentifier_t)
-= keyID
 
 // let has_x509_keyIdentifier_t b
 // = if b then Some x509_keyIdentifier_t else None
