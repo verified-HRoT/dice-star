@@ -29,8 +29,7 @@ module B32 = FStar.Bytes
 
 (* NOTE: 1. `big_integer_as_octet_string_t` is the UN-ENCODED PLAIN integer represented as octets;
          2. the 20 octets restriction is on this plain serialNumber value. *)
-[@@ "opaque_to_smt"]
-unfold
+// [@@ "opaque_to_smt"]
 let filter_x509_serialNumber
   (x: big_integer_as_octet_string_t)
 : GTot bool
@@ -42,8 +41,8 @@ let filter_x509_serialNumber
 (* Non-Zero -- when length is 1, the only octet is not 0 *)
  (len > 1ul || B32.index s32 0 > 0x00uy)
 
-[@@ "opaque_to_smt"]
-unfold noextract
+// [@@ "opaque_to_smt"]
+// noextract inline_for_extraction
 let x509_serialNumber_t
 = parse_filter_refine filter_x509_serialNumber
 
@@ -52,16 +51,17 @@ let x509_serialNumber_t
 //   assert_norm (filter_x509_serialNumber x);
 //   x
 
-noextract
 let parse_x509_serialNumber
 : parser _ x509_serialNumber_t
 = parse_big_integer_as_octet_string_TLV
   `parse_filter`
   filter_x509_serialNumber
 
-noextract
-val serialize_x509_serialNumber
+let serialize_x509_serialNumber
 : serializer parse_x509_serialNumber
+= serialize_big_integer_as_octet_string_TLV
+  `serialize_filter`
+  filter_x509_serialNumber
 
 val lemma_serialize_x509_serialNumber_unfold
   (x: x509_serialNumber_t)
@@ -82,8 +82,7 @@ val lemma_serialize_x509_serialNumber_size
   length_of_big_integer_as_octet_string x
 )
 
-[@@"opaque_to_smt"]
-unfold
+// [@@"opaque_to_smt"]
 let length_of_x509_serialNumber
   (x: x509_serialNumber_t)
 : GTot (l: asn1_value_length_of_big_integer
@@ -91,8 +90,8 @@ let length_of_x509_serialNumber
 = lemma_serialize_x509_serialNumber_size x;
   length_of_big_integer_as_octet_string x
 
-[@@"opaque_to_smt"]
-unfold noextract
+// [@@"opaque_to_smt"]
+noextract inline_for_extraction
 let len_of_x509_serialNumber
   (x: x509_serialNumber_t)
 : Tot (len: asn1_value_int32_of_big_integer

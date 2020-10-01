@@ -49,15 +49,7 @@ module IB = LowStar.ImmutableBuffer
 module B32 = FStar.Bytes
 
 let x509_validity_notAfter_default_buffer
-: b: IB.libuffer byte 15 asn1_generalized_time_for_x509_validity_notAfter_default_seq
-  { IB.frameOf b == HS.root /\
-    IB.recallable b }
 = IB.igcmalloc_of_list HS.root (asn1_generalized_time_for_x509_validity_notAfter_default_list)
-
-type x509_validity_payload_t: Type = {
-  notBefore: generalized_time_t;
-  notAfter: generalized_time_t
-}
 
 let x509_validity_payload_t' = (
   generalized_time_t `tuple2`
@@ -78,7 +70,6 @@ let synth_x509_validity_payload'
     x.notAfter )
 
 let parse_x509_validity_payload
-: parser _ x509_validity_payload_t
 = parse_asn1_TLV_of_type Generalized_Time
   `nondep_then`
   parse_asn1_TLV_of_type Generalized_Time
@@ -86,7 +77,6 @@ let parse_x509_validity_payload
   synth_x509_validity_payload
 
 let serialize_x509_validity_payload
-: serializer parse_x509_validity_payload
 = serialize_synth
   (* p1 *) (parse_asn1_TLV_of_type Generalized_Time
             `nondep_then`
@@ -98,14 +88,7 @@ let serialize_x509_validity_payload
   (* g1 *) (synth_x509_validity_payload')
   (* prf*) ()
 
-let lemma_x509_validity_payload_unfold
-  (x: x509_validity_payload_t)
-: Lemma (
-  serialize_x509_validity_payload `serialize` x ==
- (serialize_asn1_TLV_of_type Generalized_Time `serialize` x.notBefore)
-  `Seq.append`
- (serialize_asn1_TLV_of_type Generalized_Time `serialize` x.notAfter)
-)
+let lemma_x509_validity_payload_unfold x
 = serialize_nondep_then_eq
   (* s1 *) (serialize_asn1_TLV_of_type Generalized_Time)
   (* s2 *) (serialize_asn1_TLV_of_type Generalized_Time)
@@ -122,76 +105,19 @@ let lemma_x509_validity_payload_unfold
   (* prf*) ()
   (* in *) (x)
 
-let length_of_x509_validity_payload ()
-: GTot (asn1_value_length_of_type SEQUENCE)
-= 34
-
-noextract inline_for_extraction
-let len_of_x509_validity_payload ()
-: Tot (len: asn1_value_int32_of_type SEQUENCE
-            { v len == length_of_x509_validity_payload () })
-= 34ul
-
-let lemma_x509_validity_payload_size
-  (x: x509_validity_payload_t)
-: Lemma (
-  length_of_opaque_serialization serialize_x509_validity_payload x ==
-  length_of_opaque_serialization (serialize_asn1_TLV_of_type Generalized_Time) x.notBefore +
-  length_of_opaque_serialization (serialize_asn1_TLV_of_type Generalized_Time) x.notAfter /\
-  length_of_opaque_serialization serialize_x509_validity_payload x ==
-  length_of_x509_validity_payload ()
-)
+let lemma_x509_validity_payload_size x
 = lemma_x509_validity_payload_unfold x
 
-
-let x509_validity_t: Type
-= inbound_sequence_value_of serialize_x509_validity_payload
-
-let parse_x509_validity
-: parser (parse_asn1_envelop_tag_with_TLV_kind SEQUENCE) (x509_validity_t)
-= x509_validity_t
-  `coerce_parser`
-  parse_asn1_sequence_TLV
-  (**) (serialize_x509_validity_payload)
-
-let serialize_x509_validity
-: serializer (parse_x509_validity)
-= coerce_parser_serializer
-    (parse_x509_validity)
-    (serialize_asn1_sequence_TLV
-    (**) (serialize_x509_validity_payload))
-    ()
-
-let lemma_serialize_x509_validity_unfold
-  (x: x509_validity_t)
-: Lemma ( predicate_serialize_asn1_sequence_TLV_unfold serialize_x509_validity_payload x )
+let lemma_serialize_x509_validity_unfold x
 = lemma_serialize_asn1_sequence_TLV_unfold serialize_x509_validity_payload x
 
-let lemma_serialize_x509_validity_size
-  (x: x509_validity_t)
-: Lemma ( predicate_serialize_asn1_sequence_TLV_size serialize_x509_validity_payload x )
+let lemma_serialize_x509_validity_size x
 = lemma_serialize_asn1_sequence_TLV_size serialize_x509_validity_payload x
 
-let length_of_x509_validity ()
-: GTot (asn1_TLV_length_of_type SEQUENCE)
-= 36
-
-let len_of_x509_validity ()
-: Tot (len: asn1_TLV_int32_of_type SEQUENCE
-            { v len == length_of_x509_validity () })
-= 36ul
-
-let lemma_serialize_x509_validity_size_exact
-  (x: x509_validity_t)
-: Lemma (
-  length_of_opaque_serialization serialize_x509_validity x ==
-  length_of_x509_validity ()
-)
+let lemma_serialize_x509_validity_size_exact x
 = lemma_serialize_x509_validity_size x
 
-noextract inline_for_extraction
 let serialize32_x509_validity_payload_backwards
-: serializer32_backwards (serialize_x509_validity_payload)
 = serialize32_synth_backwards
   (* s32 *) (serialize32_asn1_TLV_backwards_of_type Generalized_Time
              `serialize32_nondep_then_backwards`
@@ -201,23 +127,9 @@ let serialize32_x509_validity_payload_backwards
   (* g1'*) (synth_x509_validity_payload')
   (* prf*) ()
 
-noextract inline_for_extraction
 let serialize32_x509_validity_backwards
-: serializer32_backwards (serialize_x509_validity)
 = coerce_serializer32_backwards
     (serialize_x509_validity)
     (serialize32_asn1_sequence_TLV_backwards
     (**) (serialize32_x509_validity_payload_backwards))
     ()
-
-let x509_get_validity
-  (notBefore: datatype_of_asn1_type Generalized_Time)
-  (notAfter : datatype_of_asn1_type Generalized_Time)
-: Tot (x509_validity_t)
-=
-  let validity: x509_validity_payload_t = {
-      notBefore = notBefore;
-      notAfter  = notAfter
-  } in
-
-(* return *) validity

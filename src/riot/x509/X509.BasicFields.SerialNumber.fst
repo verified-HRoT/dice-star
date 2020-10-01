@@ -36,11 +36,6 @@ module B32 = FStar.Bytes
 //   assert_norm (filter_x509_serialNumber x);
 //   x
 
-let serialize_x509_serialNumber
-= serialize_big_integer_as_octet_string_TLV
-  `serialize_filter`
-  filter_x509_serialNumber
-
 let lemma_serialize_x509_serialNumber_unfold x
 = lemma_serialize_big_integer_as_octet_string_TLV_unfold x
 

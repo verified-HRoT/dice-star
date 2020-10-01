@@ -13,6 +13,8 @@ module B32 = FStar.Bytes
 
 open FStar.Integers
 
+#set-options "--z3rlimit 64 --fuel 0 --fuel 0"
+
 (*
  * /*
  *  * X.509 v3 Key Usage Extension flags
@@ -187,10 +189,6 @@ let lemma_serialize_x509_key_usage_size x
              _serialize_x509_key_usage_payload))
     x
 
-(* Stuck here *)
-let () = ()
-
-#push-options "--z3rlimit 64 --fuel 0 --fuel 0"
 let lemma_serialize_x509_key_usage_size_exact x
 = lemma_serialize_x509_key_usage_size x;
   (**) lemma_serialize_envelop_OID_with_size
@@ -206,7 +204,6 @@ let lemma_serialize_x509_key_usage_size_exact x
               (snd x);
             (**) lemma_serialize_x509_key_usage_payload_size (snd x);
             (**) lemma_serialize_x509_key_usage_payload_size_aux (snd x)
-#pop-options
 
 open ASN1.Low
 
@@ -225,21 +222,7 @@ let _synth_x509_key_usage_payload_inverse_impl
     bs_s           = s32 }
 #pop-options
 
-#push-options "--z3rlimit 32 --fuel 0 --fuel 0"
-let len_of_x509_key_usage
-  (ku: key_usage_payload_t)
-: Tot (len: asn1_TLV_int32_of_type SEQUENCE
-            { v len == length_of_x509_key_usage ku })
-= len_of_TLV
-    SEQUENCE
-    ( len_of_asn1_primitive_TLV #BIT_STRING (_synth_x509_key_usage_payload_inverse_impl ku) +
-      ( len_of_TLV
-          OCTET_STRING
-          ( len_of_asn1_primitive_TLV #OID OID_KEY_USAGE ) ) )
-#pop-options
-
 let _serialize32_x509_key_usage_payload_backwards
-: serializer32_backwards (_serialize_x509_key_usage_payload)
 = serialize32_synth_backwards
   (* s1 *) (serialize32_asn1_TLV_backwards_of_type BIT_STRING
             `serialize32_filter_backwards`
@@ -251,7 +234,6 @@ let _serialize32_x509_key_usage_payload_backwards
 
 #set-options "--print_implicits"
 let serialize32_x509_key_usage_backwards
-: serializer32_backwards (serialize_x509_key_usage)
 = lemma_synth_x509_key_usage_injective ();
   coerce_serializer32_backwards
   (* s2  *) (serialize_x509_key_usage)
@@ -263,34 +245,3 @@ let serialize32_x509_key_usage_backwards
                _serialize32_x509_key_usage_payload_backwards)))
   (* prf *) ()
 
-///
-///
-/// Helper constructor
-#push-options "--z3rlimit 32 --fuel 0 --fuel 0"
-let x509_get_key_usage
-  (ku: key_usage_payload_t)
-: Tot (key_usage_t)
-=
-  (* Prf *) lemma_serialize_x509_key_usage_payload_size ku;
-  let x: OID_KEY_USAGE
-         `envelop_OID_with_t`
-        (OCTET_STRING
-         `inbound_envelop_tag_with_value_of`
-         _serialize_x509_key_usage_payload)
-    = ( OID_KEY_USAGE, ku ) in
-
-  (* Prf *) lemma_serialize_envelop_OID_with_size
-              (fst x)
-              (OCTET_STRING
-               `serialize_asn1_envelop_tag_with_TLV`
-               _serialize_x509_key_usage_payload)
-              (x);
-  (* Prf *) (**) lemma_serialize_asn1_oid_TLV_of_size (fst x) (fst x);
-  (* Prf *) (**) lemma_serialize_asn1_envelop_tag_with_TLV_size
-                   (OCTET_STRING)
-                   (_serialize_x509_key_usage_payload)
-                   (snd x);
-  (* Prf *)      (**) lemma_serialize_x509_key_usage_payload_size (snd x);
-
-(*return*) x <: key_usage_t
-#pop-options

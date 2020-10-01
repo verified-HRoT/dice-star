@@ -192,8 +192,6 @@ val _serialize32_x509_key_usage_payload_backwards
 val serialize32_x509_key_usage_backwards
 : serializer32_backwards (serialize_x509_key_usage)
 
-///
-///
 /// Helper constructor
 let x509_get_key_usage
   (ku: key_usage_payload_t)
