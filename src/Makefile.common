@@ -237,7 +237,7 @@ endif
 #     requires the use of alloca(3) for MSVC)
 # @15: function is not Low*; need compatibility headers
 KRML_WARN_ERRORS = \
-  -warn-error @4-6@15-17
+  -warn-error @4-6-17
 
 KREMLIN_FLAGS = \
   -dast \
