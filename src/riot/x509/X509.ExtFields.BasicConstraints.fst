@@ -1,16 +1,10 @@
 module X509.ExtFields.BasicConstraints
 
-open LowParse.Spec.Base
-open LowParse.Spec.Combinators
-
-open ASN1.Base
 open ASN1.Spec
 open ASN1.Low
 
 open X509.Base
 open X509.BasicFields.Extension2
-
-module B32 = FStar.Bytes
 
 open FStar.Integers
 
@@ -156,7 +150,7 @@ let lemma_serialize_x509_basicConstraints_size_exact isCA ext
       (OID_BASIC_CONSTRAINTS)
       (serialize_x509_basicConstraints_extValue isCA)
       (ext)
-      (length_of_x509_basicConstraints_extValue true (snd (snd ext <: x509_basicConstraints_extValue_payload_t true))) )
+      (v (len_of_x509_basicConstraints_extValue true (snd (snd ext <: x509_basicConstraints_extValue_payload_t true))) ))
   else
   ( lemma_serialize_x509_basicConstraints_extValue_size_exact isCA (snd ext);
     lemma_serialize_x509_basicConstraints_extValue_payload_size isCA (snd ext);
@@ -164,4 +158,20 @@ let lemma_serialize_x509_basicConstraints_size_exact isCA ext
       (OID_BASIC_CONSTRAINTS)
       (serialize_x509_basicConstraints_extValue isCA)
       (ext)
-      (length_of_x509_basicConstraints_extValue false) )
+      (v (len_of_x509_basicConstraints_extValue false) ))
+
+(* FIXME: Does not type check for some reason *)
+(*
+let x509_get_basicConstraints
+  (isCA: bool)
+  (criticality: datatype_of_asn1_type BOOLEAN)
+: Tot (
+  if isCA then
+  ( datatype_of_asn1_type INTEGER -> Tot (x509_basicConstraints_t isCA) )
+  else
+  ( x509_basicConstraints_t isCA )
+)
+= if isCA then
+  ( x509_get_basicConstraints_isCA isCA criticality )
+  else
+  ( x509_get_basicConstraints_isNotCA criticality )

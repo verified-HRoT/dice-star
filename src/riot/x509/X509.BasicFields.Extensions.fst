@@ -1,9 +1,5 @@
 module X509.BasicFields.Extensions
 
-open LowParse.Spec.Base
-open LowParse.Spec.Combinators
-
-open ASN1.Base
 open ASN1.Spec
 open ASN1.Low
 

@@ -14,6 +14,10 @@ module B32 = FStar.Bytes
 module T = FStar.Tactics
 module P = FStar.Pervasives
 
+(*
+ * AR: TODO: this module has some scope for improvements
+             it's hard to write an interface to hide defns, since a tactic requires those defns, I think *)
+
 #set-options "--z3rlimit 32 --fuel 2 --ifuel 0"
 
 (*

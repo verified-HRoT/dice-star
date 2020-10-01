@@ -29,12 +29,20 @@ module B32 = FStar.Bytes
    gracefully handle such certificates.
 *)
 
-(* NOTE: 1. `big_integer_as_octet_string_t` is the UN-ENCODED PLAIN integer represented as octets;
-         2. the 20 octets restriction is on this plain serialNumber value. *)
 // let x509_serialNumber_dummy: x509_serialNumber_t
 // = [@inline_let] let x: big_integer_as_octet_string_t = (|1ul, B32.create 1ul 1uy|) in
 //   assert_norm (filter_x509_serialNumber x);
 //   x
+
+let parse_x509_serialNumber
+= parse_big_integer_as_octet_string_TLV
+  `parse_filter`
+  filter_x509_serialNumber
+
+let serialize_x509_serialNumber
+= serialize_big_integer_as_octet_string_TLV
+  `serialize_filter`
+  filter_x509_serialNumber
 
 let lemma_serialize_x509_serialNumber_unfold x
 = lemma_serialize_big_integer_as_octet_string_TLV_unfold x

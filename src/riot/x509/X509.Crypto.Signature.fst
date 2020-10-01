@@ -1,11 +1,9 @@
 module X509.Crypto.Signature
 
-open ASN1.Base
 open ASN1.Spec
 open ASN1.Low
 open X509.Base
 open FStar.Integers
-module B32 = FStar.Bytes
 
 #set-options "--fuel 0 --ifuel 0"
 
