@@ -16,6 +16,7 @@ type deviceIDCSR_payload_t (cri_len: asn1_int32) = {
   deviceIDCSR_sig: x509_signature_t
 }
 
+noextract
 let parse_deviceIDCSR_payload_kind
   (cri_len: asn1_int32)
 : parser_kind
@@ -25,12 +26,14 @@ let parse_deviceIDCSR_payload_kind
   `and_then_kind`
   parse_x509_signature_kind
 
+noextract
 val parse_deviceIDCSR_payload
   (cri_len: asn1_int32)
 : parser
   (parse_deviceIDCSR_payload_kind cri_len)
   (deviceIDCSR_payload_t cri_len)
 
+noextract
 val serialize_deviceIDCSR_payload
   (cri_len: asn1_int32)
 : serializer (parse_deviceIDCSR_payload cri_len)
@@ -79,6 +82,7 @@ let deviceIDCSR_t
   (cri_len: asn1_int32)
 = inbound_sequence_value_of (serialize_deviceIDCSR_payload cri_len)
 
+noextract
 let parse_deviceIDCSR
   (cri_len: asn1_int32)
 : parser (parse_asn1_envelop_tag_with_TLV_kind SEQUENCE) (deviceIDCSR_t cri_len)
@@ -86,6 +90,7 @@ let parse_deviceIDCSR
   `coerce_parser`
   parse_asn1_sequence_TLV (serialize_deviceIDCSR_payload cri_len)
 
+noextract
 let serialize_deviceIDCSR
   (cri_len: asn1_int32)
 : serializer (parse_deviceIDCSR cri_len)

@@ -22,15 +22,18 @@ type fwid_payload_t = {
   fwid_value  : x:datatype_of_asn1_type OCTET_STRING {v (dfst x) == 32}
 }
 
+noextract
 let parse_fwid_payload_kind
 : parser_kind
 = parse_filter_kind parse_asn1_oid_TLV_kind
   `and_then_kind`
   parse_filter_kind (parse_asn1_TLV_kind_of_type OCTET_STRING)
 
+noextract
 val parse_fwid_payload
 : parser parse_fwid_payload_kind fwid_payload_t
 
+noextract
 val serialize_fwid_payload
 : serializer parse_fwid_payload
 
@@ -57,12 +60,14 @@ let fwid_t
 = inbound_sequence_value_of serialize_fwid_payload
 
 (* TLV serializer *)
+noextract
 let parse_fwid
 : parser (parse_asn1_envelop_tag_with_TLV_kind SEQUENCE) fwid_t
 = fwid_t
   `coerce_parser`
   parse_asn1_sequence_TLV serialize_fwid_payload
 
+noextract
 let serialize_fwid
 : serializer parse_fwid
 = coerce_parser_serializer

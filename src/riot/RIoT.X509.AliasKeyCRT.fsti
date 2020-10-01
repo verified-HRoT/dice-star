@@ -19,6 +19,7 @@ type aliasKeyCRT_payload_t (tbs_len: asn1_int32) = {
   aliasKeyCRT_sig: x509_signature_t
 }
 
+noextract
 let parse_aliasKeyCRT_payload_kind
   (tbs_len: asn1_int32)
 : parser_kind
@@ -28,12 +29,14 @@ let parse_aliasKeyCRT_payload_kind
   `and_then_kind`
   parse_x509_signature_kind
 
+noextract
 val parse_aliasKeyCRT_payload
   (tbs_len: asn1_int32)
 : parser
     (parse_aliasKeyCRT_payload_kind tbs_len)
     (aliasKeyCRT_payload_t tbs_len)
 
+noextract
 val serialize_aliasKeyCRT_payload
   (tbs_len: asn1_int32)
 : serializer (parse_aliasKeyCRT_payload tbs_len)
@@ -82,6 +85,7 @@ let aliasKeyCRT_t
   (tbs_len: asn1_int32)
 = inbound_sequence_value_of (serialize_aliasKeyCRT_payload tbs_len)
 
+noextract
 let parse_aliasKeyCRT
   (tbs_len: asn1_int32)
 : parser (parse_asn1_envelop_tag_with_TLV_kind SEQUENCE) (aliasKeyCRT_t tbs_len)
@@ -89,6 +93,7 @@ let parse_aliasKeyCRT
   `coerce_parser`
   parse_asn1_sequence_TLV (serialize_aliasKeyCRT_payload tbs_len)
 
+noextract
 let serialize_aliasKeyCRT
   (tbs_len: asn1_int32)
 : serializer (parse_aliasKeyCRT tbs_len)

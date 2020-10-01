@@ -15,6 +15,7 @@ type deviceIDCRI_subject_payload_t = {
   deviceIDCRI_subject_Country     : x509_RDN_x520_attribute_t COUNTRY      PRINTABLE_STRING
 }
 
+noextract
 let parse_deviceIDCRI_subject_payload_kind
 : parser_kind
 = parse_asn1_envelop_tag_with_TLV_kind SET
@@ -23,11 +24,13 @@ let parse_deviceIDCRI_subject_payload_kind
   `and_then_kind`
   parse_asn1_envelop_tag_with_TLV_kind SET
 
+noextract
 val parse_deviceIDCRI_subject_payload
 : parser
     (parse_deviceIDCRI_subject_payload_kind)
     (deviceIDCRI_subject_payload_t)
 
+noextract
 val serialize_deviceIDCRI_subject_payload
 : serializer (parse_deviceIDCRI_subject_payload)
 
@@ -84,6 +87,7 @@ val lemma_serialize_deviceIDCRI_subject_payload_size
 let deviceIDCRI_subject_t
 = inbound_sequence_value_of (serialize_deviceIDCRI_subject_payload)
 
+noextract
 let parse_deviceIDCRI_subject
 : parser (parse_asn1_envelop_tag_with_TLV_kind SEQUENCE) (deviceIDCRI_subject_t)
 = (deviceIDCRI_subject_t)
@@ -91,6 +95,7 @@ let parse_deviceIDCRI_subject
   (parse_asn1_sequence_TLV
    (**) (serialize_deviceIDCRI_subject_payload))
 
+noextract
 let serialize_deviceIDCRI_subject
 : serializer (parse_deviceIDCRI_subject)
 = coerce_parser_serializer

@@ -15,6 +15,7 @@ type aliasKeyTBS_issuer_payload_t = {
   aliasKeyTBS_issuer_Country     : x509_RDN_x520_attribute_t COUNTRY      PRINTABLE_STRING
 }
 
+noextract
 let parse_aliasKeyTBS_issuer_payload_kind
 : parser_kind
 = parse_asn1_envelop_tag_with_TLV_kind SET
@@ -23,11 +24,13 @@ let parse_aliasKeyTBS_issuer_payload_kind
   `and_then_kind`
   parse_asn1_envelop_tag_with_TLV_kind SET
 
+noextract
 val parse_aliasKeyTBS_issuer_payload
 : parser
     (parse_aliasKeyTBS_issuer_payload_kind)
     (aliasKeyTBS_issuer_payload_t)
 
+noextract
 val serialize_aliasKeyTBS_issuer_payload
 : serializer (parse_aliasKeyTBS_issuer_payload)
 
@@ -84,6 +87,7 @@ val lemma_serialize_aliasKeyTBS_issuer_payload_size
 let aliasKeyTBS_issuer_t
 = inbound_sequence_value_of (serialize_aliasKeyTBS_issuer_payload)
 
+noextract
 let parse_aliasKeyTBS_issuer
 : parser (parse_asn1_envelop_tag_with_TLV_kind SEQUENCE) (aliasKeyTBS_issuer_t)
 = (aliasKeyTBS_issuer_t)
@@ -91,6 +95,7 @@ let parse_aliasKeyTBS_issuer
   (parse_asn1_sequence_TLV
    (**) (serialize_aliasKeyTBS_issuer_payload))
 
+noextract
 let serialize_aliasKeyTBS_issuer
 : serializer (parse_aliasKeyTBS_issuer)
 = coerce_parser_serializer

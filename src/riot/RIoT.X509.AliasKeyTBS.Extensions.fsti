@@ -14,9 +14,6 @@ open FStar.Integers
 
 module B32 = FStar.Bytes
 
-module T = FStar.Tactics
-module P = FStar.Pervasives
-
 #set-options "--z3rlimit 128 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
 (* Extensions of the AliasKey Certificate
@@ -50,6 +47,7 @@ type aliasKeyTBS_extensions_payload_t = {
   aliasKeyTBS_extensions_riot: riot_extension_t
 }
 
+noextract
 let parse_aliasKeyTBS_extensions_payload_kind
 : parser_kind
 = parse_asn1_envelop_tag_with_TLV_kind SEQUENCE
@@ -63,10 +61,12 @@ let parse_aliasKeyTBS_extensions_payload_kind
   parse_x509_extension_sequence_TLV_kind
 
 (* Parser Specification for VALUE *)
+noextract
 val parse_aliasKeyTBS_extensions_payload
 : parser parse_aliasKeyTBS_extensions_payload_kind (aliasKeyTBS_extensions_payload_t)
 
 (* Serializer Specification for VALUE *)
+noextract
 val serialize_aliasKeyTBS_extensions_payload
 : serializer (parse_aliasKeyTBS_extensions_payload)
 
@@ -168,6 +168,7 @@ let aliasKeyTBS_extensions_t
 = inbound_sequence_value_of (serialize_aliasKeyTBS_extensions_payload)
 
 (* aliasKeyTBS_extensions: parser for TLV *)
+noextract
 let parse_aliasKeyTBS_extensions
 : parser (parse_asn1_envelop_tag_with_TLV_kind SEQUENCE) (aliasKeyTBS_extensions_t)
 = aliasKeyTBS_extensions_t
@@ -175,6 +176,7 @@ let parse_aliasKeyTBS_extensions
   parse_asn1_sequence_TLV (serialize_aliasKeyTBS_extensions_payload)
 
 (* aliasKeyTBS_extensions: serializer for TLV *)
+noextract
 let serialize_aliasKeyTBS_extensions
 : serializer (parse_aliasKeyTBS_extensions)
 = coerce_parser_serializer

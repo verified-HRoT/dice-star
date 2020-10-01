@@ -20,6 +20,7 @@ type compositeDeviceID_payload_t
     riot_deviceID: subjectPublicKeyInfo_t;
     riot_fwid    : fwid_t }
 
+noextract
 let parse_compositeDeviceID_payload_kind
 : parser_kind
 = parse_asn1_TLV_kind_of_type INTEGER
@@ -28,9 +29,11 @@ let parse_compositeDeviceID_payload_kind
   `and_then_kind`
   parse_asn1_envelop_tag_with_TLV_kind SEQUENCE
 
+noextract
 val parse_compositeDeviceID_payload
 : parser parse_compositeDeviceID_payload_kind (compositeDeviceID_payload_t)
 
+noextract
 val serialize_compositeDeviceID_payload
 : serializer (parse_compositeDeviceID_payload)
 
@@ -61,13 +64,16 @@ val lemma_serialize_compositeDeviceID_payload_size
 let compositeDeviceID_t
 = inbound_sequence_value_of (serialize_compositeDeviceID_payload)
 
+
 (* TLV serializer *)
+noextract
 let parse_compositeDeviceID
 : parser (parse_asn1_envelop_tag_with_TLV_kind SEQUENCE) (compositeDeviceID_t)
 = compositeDeviceID_t
   `coerce_parser`
   parse_asn1_sequence_TLV (serialize_compositeDeviceID_payload)
 
+noextract
 let serialize_compositeDeviceID
 : serializer (parse_compositeDeviceID)
 = coerce_parser_serializer

@@ -49,6 +49,7 @@ type aliasKeyTBS_payload_t = {
                               serialize_aliasKeyTBS_extensions
 }
 
+noextract
 let parse_aliasKeyTBS_payload_kind
 : parser_kind
 = parse_x509_version_kind
@@ -67,9 +68,11 @@ let parse_aliasKeyTBS_payload_kind
   `and_then_kind`
   parse_asn1_envelop_tag_with_TLV_kind x509_extensions_outmost_explicit_tag
 
+noextract
 val parse_aliasKeyTBS_payload
 : parser parse_aliasKeyTBS_payload_kind aliasKeyTBS_payload_t
 
+noextract
 val serialize_aliasKeyTBS_payload
 : serializer (parse_aliasKeyTBS_payload)
 
@@ -250,6 +253,7 @@ val lemma_serialize_aliasKeyTBS_payload_size
 let aliasKeyTBS_t
 = inbound_sequence_value_of (serialize_aliasKeyTBS_payload)
 
+noextract
 let parse_aliasKeyTBS
 : parser (parse_asn1_envelop_tag_with_TLV_kind SEQUENCE) (aliasKeyTBS_t)
 =
@@ -257,6 +261,7 @@ let parse_aliasKeyTBS
   `coerce_parser`
   parse_asn1_sequence_TLV (serialize_aliasKeyTBS_payload)
 
+noextract
 let serialize_aliasKeyTBS
 : serializer (parse_aliasKeyTBS)
 = coerce_parser_serializer

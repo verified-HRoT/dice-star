@@ -54,9 +54,11 @@ type deviceIDCRI_attributes_extensionRequest_payload_t = {
 }
 
 (* Spec *)
+noextract
 val parse_deviceIDCRI_attributes_extensionRequest_payload
 : parser (parse_asn1_envelop_tag_with_TLV_kind SEQUENCE) deviceIDCRI_attributes_extensionRequest_payload_t
 
+noextract
 val serialize_deviceIDCRI_attributes_extensionRequest_payload
 : serializer (parse_deviceIDCRI_attributes_extensionRequest_payload)
 
