@@ -12,6 +12,7 @@ module B32 = FStar.Bytes
 
 #set-options "--z3rlimit 256 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
+noeq
 type aliasKeyTBS_payload_t = {
 (*
  *       version         [0]  EXPLICIT Version DEFAULT v1,
@@ -108,8 +109,8 @@ let valid_aliasKeyTBS_ingredients
   length_of_aliasKeyTBS_extensions ku version
   <= asn1_value_length_max_of_type x509_extensions_outmost_explicit_tag /\
   length_of_x509_version () +
-  length_of_x509_serialNumber serialNumber +
-  length_of_algorithmIdentifier () +
+  v (len_of_x509_serialNumber serialNumber) +
+  v (len_of_algorithmIdentifier ()) +
   length_of_aliasKeyTBS_issuer i_common i_org i_country +
   length_of_x509_validity () +
   length_of_aliasKeyTBS_subject s_common s_org s_country +
@@ -153,8 +154,8 @@ let length_of_aliasKeyTBS_payload
                 s_common s_org s_country
                 ku version;
   length_of_x509_version () +
-  length_of_x509_serialNumber serialNumber +
-  length_of_algorithmIdentifier () +
+  v (len_of_x509_serialNumber serialNumber) +
+  v (len_of_algorithmIdentifier ()) +
   length_of_aliasKeyTBS_issuer i_common i_org i_country +
   length_of_x509_validity () +
   length_of_aliasKeyTBS_subject s_common s_org s_country +

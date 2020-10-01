@@ -38,7 +38,7 @@ let serialize32_aliasKeyTBS_extensions_basicConstraints_backwards
 
 let length_of_aliasKeyTBS_extensions_basicConstraints ()
 : GTot (asn1_TLV_length_of_type SEQUENCE)
-= v (len_of_x509_basicConstraints aliasKeyTBS_extensions_basicConstraints_isCA)
+= length_of_x509_basicConstraints aliasKeyTBS_extensions_basicConstraints_isCA
 
 let len_of_aliasKeyTBS_extensions_basicConstraints ()
 : Tot (len: asn1_TLV_int32_of_type SEQUENCE
