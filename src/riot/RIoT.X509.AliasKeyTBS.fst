@@ -10,11 +10,7 @@ open FStar.Integers
 
 module B32 = FStar.Bytes
 
-#set-options "--fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection -LowParse -FStar.Seq -FStar.Calc -FStar.BitVector -Hacl'"
-
-// #set-options "--log_queries"
-// #restart-solver
-// let foo () = assert (hasEq nat)
+#set-options "--z3rlimit 256 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
 let aliasKeyTBS_payload_t' = (
 (*
@@ -254,7 +250,7 @@ let lemma_aliasKeyTBS_ingredients_valid
     i_common i_org i_country
     s_common s_org s_country
     ku version
-= lemma_aliasKeyTBS_extensions_ingredients_valid ku version  //AR: TODO: 10/02 - this fails if I add -Spec to using_facts_from, see why
+= lemma_aliasKeyTBS_extensions_ingredients_valid ku version
 
 let lemma_serialize_aliasKeyTBS_payload_size x
 = Classical.forall_intro_2 (lemma_aliasKeyTBS_ingredients_valid

@@ -24,7 +24,6 @@ open RIoT.Spec.Certificate
 
 #set-options "--fuel 0 --ifuel 0"
 
-
 (* Create AliasKey To-Be-Signed Certificate
   =======================================
   RFC 5280:
