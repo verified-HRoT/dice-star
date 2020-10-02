@@ -71,7 +71,7 @@ let asn1_implicit_tagging
 /////      bounded mathematical integers for ASN1 value lengths
 ///// Defines the valid length/size of a ASN1 DER values
 ///////////////////////////////////////////////////////////////////////////
-let asn1_length_t = n: nat //{within_bounds (Unsigned W32) n} //TODO : AR: 02/10: Zhe should confirm if this is OK
+let asn1_length_t = n: nat{within_bounds (Unsigned W32) n}
 
 inline_for_extraction noextract
 let asn1_length_min: n: asn1_length_t {forall (n':asn1_length_t). n <= n'} = 0
