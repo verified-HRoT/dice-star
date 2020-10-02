@@ -7,7 +7,7 @@ open FStar.Integers
 
 module B32 = FStar.Bytes
 
-#set-options "--z3rlimit 128 --fuel 0 --ifuel 0"
+#set-options "--z3rlimit 128 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
 type aliasKeyTBS_subject_payload_t = {
   aliasKeyTBS_subject_Common      : x509_RDN_x520_attribute_t COMMON_NAME  IA5_STRING;
@@ -46,9 +46,7 @@ let length_of_aliasKeyTBS_subject_payload
 let len_of_aliasKeyTBS_subject_payload
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
-  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING
-              { length_of_aliasKeyTBS_subject_payload s_common s_org s_country
-                <= asn1_value_length_max_of_type SEQUENCE })
+  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
 : Tot (len: asn1_value_int32_of_type SEQUENCE
             { v len == length_of_aliasKeyTBS_subject_payload s_common s_org s_country })
 = len_of_RDN_x520_attribute s_common +
@@ -107,22 +105,20 @@ let serialize_aliasKeyTBS_subject
 let length_of_aliasKeyTBS_subject
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
-  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING
-              { length_of_aliasKeyTBS_subject_payload s_common s_org s_country
-                <= asn1_value_length_max_of_type SEQUENCE })
+  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
 : GTot (asn1_TLV_length_of_type SEQUENCE)
-= SEQUENCE `length_of_TLV`
+= RIoT.X509.LengthUtils.lemma_length_of_aliasKeyTBS_issuer_payload s_common s_org s_country;
+  SEQUENCE `length_of_TLV`
   (**) (length_of_aliasKeyTBS_subject_payload s_common s_org s_country)
 
 let len_of_aliasKeyTBS_subject
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
-  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING
-              { length_of_aliasKeyTBS_subject_payload s_common s_org s_country
-                <= asn1_value_length_max_of_type SEQUENCE })
+  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
 : Tot (len: asn1_TLV_int32_of_type SEQUENCE
             { v len == length_of_aliasKeyTBS_subject s_common s_org s_country })
-= SEQUENCE `len_of_TLV`
+= RIoT.X509.LengthUtils.lemma_length_of_aliasKeyTBS_issuer_payload s_common s_org s_country;
+  SEQUENCE `len_of_TLV`
   (**) (len_of_aliasKeyTBS_subject_payload s_common s_org s_country)
 
 val lemma_serialize_aliasKeyTBS_subject_unfold

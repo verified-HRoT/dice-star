@@ -8,9 +8,11 @@ open RIoT.X509.AliasKeyTBS.Subject
 open RIoT.X509.AliasKeyTBS.Extensions
 open FStar.Integers
 
+open RIoT.X509.LengthUtils
+
 module B32 = FStar.Bytes
 
-#set-options "--z3rlimit 256 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
+#set-options "--fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection -LowParse'"
 
 noeq
 type aliasKeyTBS_payload_t = {
@@ -118,7 +120,7 @@ let valid_aliasKeyTBS_ingredients
   length_of_x509_validity () +
   length_of_aliasKeyTBS_subject s_common s_org s_country +
   length_of_subjectPublicKeyInfo +
-  length_of_x509_extensions (length_of_aliasKeyTBS_extensions ku version)
+  length_of_x509_extensions (coerce_seq_to_x509_outermost_tag (length_of_aliasKeyTBS_extensions ku version))
   <= asn1_value_length_max_of_type SEQUENCE
 
 val lemma_aliasKeyTBS_ingredients_valid
