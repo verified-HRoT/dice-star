@@ -32,6 +32,7 @@ module B32 = FStar.Bytes
  * }
  *)
 
+noeq
 type aliasKeyTBS_extensions_payload_t = {
   (* More extensions could be added here.
    * For example:

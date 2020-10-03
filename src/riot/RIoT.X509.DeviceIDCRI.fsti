@@ -9,7 +9,7 @@ open FStar.Integers
 
 module B32 = FStar.Bytes
 
-#set-options "--z3rlimit 128 --fuel 0 --ifuel 0"
+#set-options "--z3rlimit 128 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
 (*     (To-Be-Signed) DeviceID Certification Request Info
  *================================================================
@@ -22,6 +22,7 @@ module B32 = FStar.Bytes
  *
  *)
 
+noeq
 type deviceIDCRI_payload_t = {
   deviceIDCRI_version: datatype_of_asn1_type INTEGER;
   deviceIDCRI_subject: deviceIDCRI_subject_t;

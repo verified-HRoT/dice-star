@@ -8,8 +8,9 @@ open FStar.Integers
 
 module B32 = FStar.Bytes
 
-#set-options "--z3rlimit 128 --fuel 0 --ifuel 0"
+#set-options "--z3rlimit 128 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
+noeq
 type deviceIDCSR_payload_t (cri_len: asn1_int32) = {
   deviceIDCSR_cri: B32.lbytes32 cri_len;
   deviceIDCSR_sig_alg: algorithmIdentifier_t;

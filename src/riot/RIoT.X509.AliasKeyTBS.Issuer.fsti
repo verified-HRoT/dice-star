@@ -9,8 +9,9 @@ open RIoT.X509.LengthUtils
 
 module B32 = FStar.Bytes
 
-#set-options "--z3rlimit 128 --fuel 0 --ifuel 0"
+#set-options "--z3rlimit 128 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
+noeq
 type aliasKeyTBS_issuer_payload_t = {
   aliasKeyTBS_issuer_Common      : x509_RDN_x520_attribute_t COMMON_NAME  IA5_STRING;
   aliasKeyTBS_issuer_Organization: x509_RDN_x520_attribute_t ORGANIZATION IA5_STRING;

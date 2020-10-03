@@ -11,8 +11,9 @@ open FStar.Integers
 
 module B32 = FStar.Bytes
 
-#set-options "--z3rlimit 64 --fuel 0 --ifuel 0"
+#set-options "--z3rlimit 64 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
+noeq
 type aliasKeyCRT_payload_t (tbs_len: asn1_int32) = {
   aliasKeyCRT_tbs: B32.lbytes32 tbs_len;
   aliasKeyCRT_sig_alg: algorithmIdentifier_t;
