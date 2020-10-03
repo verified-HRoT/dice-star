@@ -29,6 +29,8 @@ open FStar.Integers
  * #define MBEDTLS_X509_KU_DECIPHER_ONLY              (0x8000)  /* bit 8 */
  *)
 
+#set-options "--fuel 0 --ifuel 0"
+
 let valid_key_usage
   (i: int_32)
 : Type0

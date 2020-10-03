@@ -479,8 +479,9 @@ let asn1_get_character_string
 : Tot (datatype_of_asn1_type string_t)
 = (|len, s32|) <: character_string_t string_t
 
-[@@ "opaque_to_smt"]
-unfold noextract
+// [@@ "opaque_to_smt"]
+// unfold
+noextract
 let x509_get_RDN_x520_attribute_string
   (#t: x520_attribute_t)
   (#string_t: directory_string_type { ((t == COUNTRY) ==> (string_t == PRINTABLE_STRING)) })
