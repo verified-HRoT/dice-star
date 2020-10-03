@@ -32,14 +32,10 @@ let parse_asn1_length_of_bound min max
 let serialize_asn1_length_of_bound min max
 = serialize_bounded_der_length32 min max
 
-let lemma_serialize_asn1_length_of_bound_unfold
-  (min: asn1_length_t)
-  (max: asn1_length_t { min <= max })
+let lemma_serialize_asn1_length_of_bound_unfold min max
 = serialize_bounded_der_length32_unfold min max
 
-let lemma_serialize_asn1_length_of_bound_size
-  (min: asn1_length_t)
-  (max: asn1_length_t { min <= max })
+let lemma_serialize_asn1_length_of_bound_size min max
 = serialize_bounded_der_length32_size min max
 
 /// Specialized for a specific ASN1 type
