@@ -99,6 +99,7 @@ val lemma_serialize_aliasKeyTBS_payload_unfold
  (serialize_x509_extensions_TLV serialize_aliasKeyTBS_extensions `serialize` x.aliasKeyTBS_extensions)
 )
 
+#push-options "--z3rlimit 40"
 let valid_aliasKeyTBS_ingredients
   (serialNumber: x509_serialNumber_t)
   (i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
@@ -120,8 +121,9 @@ let valid_aliasKeyTBS_ingredients
   length_of_x509_validity () +
   length_of_aliasKeyTBS_subject s_common s_org s_country +
   length_of_subjectPublicKeyInfo +
-  length_of_x509_extensions (coerce_seq_to_x509_outermost_tag (length_of_aliasKeyTBS_extensions ku version))
+  length_of_x509_extensions (length_of_aliasKeyTBS_extensions ku version)
   <= asn1_value_length_max_of_type SEQUENCE
+#pop-options
 
 val lemma_aliasKeyTBS_ingredients_valid
   (serialNumber: x509_serialNumber_t)
@@ -141,6 +143,11 @@ val lemma_aliasKeyTBS_ingredients_valid
     ku version
 )
 
+//AR: TODO: 10/03: can we prove lemmas about max lengths of various
+//                 lengths used here, and call those lemmas to help Z3
+//                 prove that their sum is in the range of the return type?
+//                 ditto for the next function
+#push-options "--admit_smt_queries true"
 let length_of_aliasKeyTBS_payload
   (serialNumber: x509_serialNumber_t)
   (i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
@@ -197,6 +204,7 @@ let len_of_aliasKeyTBS_payload
   len_of_aliasKeyTBS_subject s_common s_org s_country +
   len_of_subjectPublicKeyInfo +
   len_of_x509_extensions (len_of_aliasKeyTBS_extensions ku version)
+#pop-options
 
 unfold
 let predicate_serialize_aliasKeyTBS_payload_size_unfold
@@ -324,6 +332,18 @@ let len_of_aliasKeyTBS
     i_common i_org i_country
     s_common s_org s_country
     ku version;
+
+  (*
+   * AR: TODO: 10/03: This seems to be a bug?
+   *     len_of_aliasKeyTBS_payload returns a (asn1_TLV_int32_of_type SEQUENCE)
+   *     while len_of_TLV expects a (asn1_value_int32_of_type SEQUENCE)
+   *
+   *     the former has range (2, max)
+   *     while the latter has range (0, max - 6)
+   *
+   *     and so, the former does not seem coercible to the latter?
+   *)
+  admit ();
   len_of_TLV
     (SEQUENCE)
     (len_of_aliasKeyTBS_payload
@@ -368,6 +388,9 @@ val serialize32_aliasKeyTBS_backwards
 : serializer32_backwards (serialize_aliasKeyTBS)
 
 (* helpers *)
+
+#push-options "--z3rlimit 64"
+open RIoT.X509.LengthUtils
 let x509_get_AliasKeyTBS
   (crt_version: x509_version_t)
   (serialNumber: x509_serialNumber_t)
@@ -394,13 +417,21 @@ let x509_get_AliasKeyTBS
   let signatureAlg: algorithmIdentifier_t = x509_get_algorithmIdentifier () in
   (* Prf *) lemma_serialize_algorithmIdentifier_size_exact signatureAlg;
 
+  [@inline_let]
+  let i_common = coerce_x509_rdn_attribute_t_string_to_asn1_string_cn i_common in
+  [@inline_let]
+  let i_org = coerce_x509_rdn_attribute_t_string_to_asn1_string_org i_org in
+  [@inline_let]
+  let i_country = coerce_x509_rdn_attribute_t_string_to_asn1_string_country i_country in
+
   let issuer: aliasKeyTBS_issuer_t = x509_get_aliasKeyTBS_issuer
-    #(dfst (i_common <: datatype_of_asn1_type IA5_STRING))
-    (dsnd (i_common <: datatype_of_asn1_type IA5_STRING))
-    #(dfst (i_org <: datatype_of_asn1_type IA5_STRING))
-    (dsnd (i_org <: datatype_of_asn1_type IA5_STRING))
-    #(dfst (i_country <: datatype_of_asn1_type PRINTABLE_STRING))
-    (dsnd (i_country <: datatype_of_asn1_type PRINTABLE_STRING)) in
+    #(dfst i_common)
+    (dsnd i_common)
+    #(dfst i_org)
+    (dsnd i_org)
+    #(dfst i_country)
+    (dsnd i_country) in
+   
   (* Prf *) lemma_serialize_aliasKeyTBS_issuer_size_exact issuer;
 
   let validity: x509_validity_t = x509_get_validity
@@ -408,13 +439,20 @@ let x509_get_AliasKeyTBS
                                     notAfter in
   (* Prf *) lemma_serialize_x509_validity_size_exact validity;
 
+  [@inline_let]
+  let s_common = coerce_x509_rdn_attribute_t_string_to_asn1_string_cn s_common in
+  [@inline_let]
+  let s_org = coerce_x509_rdn_attribute_t_string_to_asn1_string_org s_org in
+  [@inline_let]
+  let s_country = coerce_x509_rdn_attribute_t_string_to_asn1_string_country s_country in
+
   let subject: aliasKeyTBS_subject_t = x509_get_aliasKeyTBS_subject
-    #(dfst (s_common <: datatype_of_asn1_type IA5_STRING))
-    (dsnd (s_common <: datatype_of_asn1_type IA5_STRING))
-    #(dfst (s_org <: datatype_of_asn1_type IA5_STRING))
-    (dsnd (s_org <: datatype_of_asn1_type IA5_STRING))
-    #(dfst (s_country <: datatype_of_asn1_type PRINTABLE_STRING))
-    (dsnd (s_country <: datatype_of_asn1_type PRINTABLE_STRING)) in
+    #(dfst s_common)
+    (dsnd s_common)
+    #(dfst s_org)
+    (dsnd s_org)
+    #(dfst s_country)
+    (dsnd s_country) in
   (* Prf *) lemma_serialize_aliasKeyTBS_subject_size_exact subject;
 
   let aliasKeyPubInfo = x509_get_subjectPublicKeyInfo
@@ -445,3 +483,4 @@ let x509_get_AliasKeyTBS
   (* Prf *) (**) lemma_serialize_x509_serialNumber_size serialNumber;
 
 (*return*) aliasKeyTBS
+#pop-options
