@@ -146,13 +146,10 @@ let create_aliasKeyTBS_post
                                      (B.as_seq h0 deviceID_pub)
                                      (B.as_seq h0 aliasKey_pub) in
   (* Prf *) lemma_serialize_aliasKeyTBS_size_exact aliasKeyTBS;
-  B.(modifies (loc_buffer aliasKeyTBS_buf) h0 h1)
+  B.(modifies (loc_buffer aliasKeyTBS_buf) h0 h1) /\
+  B.as_seq h1 aliasKeyTBS_buf == serialize_aliasKeyTBS `serialize` aliasKeyTBS
 
-  (* AR: 09/18: this doesn't seem the right postcondition
-   *            see (Postcondition - 1) in the proof below *)
-  // /\ B.as_seq h1 aliasKeyTBS_buf == serialize_aliasKeyTBS `serialize` aliasKeyTBS
-
-#push-options "--z3rlimit 50"
+#push-options "--z3rlimit 64"
 inline_for_extraction noextract
 let create_aliasKeyTBS_buffers_to_bytes
   (fwid: B.lbuffer byte_sec 32)
@@ -189,9 +186,7 @@ let create_aliasKeyTBS_buffers_to_bytes
     let keyID_pub32 = B32.of_buffer 20ul keyID in
     HST.pop_frame ();
     fwid_pub32, keyID_pub32, deviceID_pub32, aliasKey_pub32
-#pop-options
 
-#push-options "--z3rlimit 64"
 let create_aliasKeyTBS
   (crt_version: x509_version_t)
   (serialNumber: x509_serialNumber_t)
@@ -279,19 +274,10 @@ let create_aliasKeyTBS
                                      (B.as_seq h0 aliasKey_pub)));
 
   printf "Serializing AliasKey Certificate TBS\n" done;
-  let offset = serialize32_aliasKeyTBS_backwards
+  let _offset = serialize32_aliasKeyTBS_backwards
                  aliasKeyTBS
                  aliasKeyTBS_buf
-                 aliasKeyTBS_len in
-
-  let h6 = HST.get () in
-
-  (*
-   * Postcondition 1
-   *)
-  assert (Seq.slice (B.as_seq h6 aliasKeyTBS_buf)
-                    (UInt32.v (UInt32.sub aliasKeyTBS_len offset))
-                    (UInt32.v aliasKeyTBS_len) == serialize_aliasKeyTBS `serialize` aliasKeyTBS)
+                 aliasKeyTBS_len in ()
 #pop-options
 
 (* Sign and Finalize AliasKey Certificate
@@ -307,6 +293,11 @@ let create_aliasKeyTBS
    1) the length of TBS is valid as Hacl's HKDF message length
    2) the length of created CRT is valid as our ASN.1 TLV SEQUENCE value length
 *)
+
+//AR: TODO: 10/03: checkpoint here
+
+#set-options "--admit_smt_queries true"
+
 
 let sign_and_finalize_aliasKeyCRT
   (deviceID_priv: B.lbuffer byte_sec 32)
@@ -382,7 +373,6 @@ let sign_and_finalize_aliasKeyCRT
                  aliasKeyCRT_len in
 
   HST.pop_frame ()
-#pop-options
 
 (*                 CSR
  *=====================================
