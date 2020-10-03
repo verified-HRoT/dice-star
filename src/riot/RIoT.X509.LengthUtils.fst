@@ -16,7 +16,7 @@ let lemma_length_of_aliasKeyTBS_issuer_payload
         length_of_RDN_x520_attribute s_country) <= asn1_value_length_max_of_type SEQUENCE)
   = ()
 
-unfold
+unfold noextract
 let coerce_seq_to_x509_outermost_tag (x:asn1_TLV_length_of_type SEQUENCE)
   : (asn1_TLV_length_of_type x509_extensions_outmost_explicit_tag)
   = x

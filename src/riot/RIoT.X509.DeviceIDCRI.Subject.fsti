@@ -173,12 +173,11 @@ let x509_get_deviceIDCRI_subject
                   len_country <= x520_attribute_ub COUNTRY })
   (s32_country: character_string_lbytes32 PRINTABLE_STRING len_country)
 : Tot (deviceIDCRI_subject_t)
-: unit
 = let rdn_common: x509_RDN_x520_attribute_t COMMON_NAME IA5_STRING
     = x509_get_RDN_x520_attribute
           (asn1_get_character_string
             (len_common)
-            (s32_common)) in;
+            (s32_common)) in
   let rdn_org: x509_RDN_x520_attribute_t ORGANIZATION IA5_STRING
     = x509_get_RDN_x520_attribute
           (asn1_get_character_string
