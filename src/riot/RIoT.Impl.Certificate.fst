@@ -152,7 +152,46 @@ let create_aliasKeyTBS_post
    *            see (Postcondition - 1) in the proof below *)
   // /\ B.as_seq h1 aliasKeyTBS_buf == serialize_aliasKeyTBS `serialize` aliasKeyTBS
 
-#push-options "--z3rlimit 256" //--admit_smt_queries true"
+#push-options "--z3rlimit 50"
+inline_for_extraction noextract
+let create_aliasKeyTBS_buffers_to_bytes
+  (fwid: B.lbuffer byte_sec 32)
+  (keyID: B.lbuffer byte_pub 20)
+  (deviceID_pub: B.lbuffer byte_pub 32)
+  (aliasKey_pub: B.lbuffer byte_pub 32)
+  : HST.Stack
+      (B32.lbytes32 32ul &  //fwid
+       B32.lbytes32 20ul &  //key id
+       B32.lbytes32 32ul &  //device id
+       B32.lbytes32 32ul)  //alias key
+      (requires fun h ->
+        B.(all_live h [buf fwid;
+                       buf deviceID_pub;
+                       buf aliasKey_pub;
+                       buf keyID]) /\
+        B.(all_disjoint [loc_buffer fwid;
+                         loc_buffer deviceID_pub;
+                         loc_buffer aliasKey_pub;
+                         loc_buffer keyID]))
+      (ensures fun h0 r h1 ->
+        B.(modifies loc_none h0 h1) /\
+        (let (fwid_pub32, keyID_pub32, deviceID_pub32, aliasKey_pub32) = r in
+         B32.hide (declassify_secret_bytes (B.as_seq h0 fwid)) == fwid_pub32 /\
+         B32.hide (B.as_seq h0 deviceID_pub) == deviceID_pub32 /\
+         B32.hide (B.as_seq h0 aliasKey_pub) == aliasKey_pub32 /\
+         B32.hide (B.as_seq h0 keyID) == keyID_pub32))
+  = HST.push_frame ();
+    let fwid_pub      : B.lbuffer byte_pub 32 = B.alloca 0x00uy 32ul in
+    declassify_secret_buffer 32ul fwid fwid_pub;
+    let fwid_pub32    : B32.lbytes32 32ul = B32.of_buffer 32ul fwid_pub in
+    let deviceID_pub32: B32.lbytes32 32ul = B32.of_buffer 32ul deviceID_pub in
+    let aliasKey_pub32: B32.lbytes32 32ul = B32.of_buffer 32ul aliasKey_pub in
+    let keyID_pub32 = B32.of_buffer 20ul keyID in
+    HST.pop_frame ();
+    fwid_pub32, keyID_pub32, deviceID_pub32, aliasKey_pub32
+#pop-options
+
+#push-options "--z3rlimit 64"
 let create_aliasKeyTBS
   (crt_version: x509_version_t)
   (serialNumber: x509_serialNumber_t)
@@ -202,54 +241,11 @@ let create_aliasKeyTBS
                          (aliasKey_pub)
                          (aliasKeyTBS_len) (aliasKeyTBS_buf))
 = let h0 = FStar.HyperStack.ST.get () in
-  HST.push_frame ();
 
-  let h00 = HST.get () in
+  let fwid_pub32, keyID_pub32, deviceID_pub32, aliasKey_pub32 =
+    create_aliasKeyTBS_buffers_to_bytes fwid keyID deviceID_pub aliasKey_pub in
 
-(* Create AliasKeyTBS *)
-  let fwid_pub      : B.lbuffer byte_pub 32 = B.alloca 0x00uy 32ul in
-
-  let h1 = FStar.HyperStack.ST.get () in
-
-  // B.modifies_buffer_elim fwid B.loc_none h0 h1;
-  // B.modifies_buffer_elim deviceID_pub B.loc_none h0 h1;
-  // B.modifies_buffer_elim aliasKey_pub B.loc_none h0 h1;
-
-  // B.modifies_buffer_elim fwid B.loc_none h0 h1;
-  //assert (B.as_seq h1 fwid == B.as_seq h0 fwid);
-  declassify_secret_buffer 32ul fwid fwid_pub;
-
-  let h2 = HST.get () in
-
-  // assert (B.as_seq h2 fwid_pub == declassify_secret_bytes (B.as_seq h0 fwid));
-  
-  let fwid_pub32    : B32.lbytes32 32ul = B32.of_buffer 32ul fwid_pub in
-
-  let h3 = HST.get () in
-
-  // B.modifies_trans (B.loc_buffer fwid_pub) h1 h2 B.loc_none h3;
-  
-  // B.modifies_buffer_elim deviceID_pub (B.loc_buffer fwid_pub) h1 h3;
-
-  // assert (B.as_seq h3 deviceID_pub == B.as_seq h0 deviceID_pub);
-  let deviceID_pub32: B32.lbytes32 32ul = B32.of_buffer 32ul deviceID_pub in
-
-  let h4 = HST.get () in
-
-  // assert (B.modifies (B.loc_buffer fwid_pub) h1 h3);
-  // B.modifies_trans B.loc_none h0 h1 (B.loc_buffer fwid_pub) h3;
-  // B.modifies_trans (B.loc_buffer fwid_pub) h0 h3 B.loc_none h4;
-  // B.modifies_buffer_elim deviceID_pub (B.loc_buffer fwid_pub) h0 h4;
-  // assert (B.as_seq h4 aliasKey_pub == B.as_seq h0 aliasKey_pub);
-  let aliasKey_pub32: B32.lbytes32 32ul = B32.of_buffer 32ul aliasKey_pub in
-
-  let keyID_pub32 = B32.of_buffer 20ul keyID in
   let keyID_string: datatype_of_asn1_type OCTET_STRING = (|20ul, keyID_pub32|) in
-  let h40 = HST.get () in
-
-  // assert (B32.hide (declassify_secret_bytes (B.as_seq h0 fwid)) == fwid_pub32);
-  // assert (B32.hide (B.as_seq h0 deviceID_pub) == deviceID_pub32);
-  // assert (B32.hide (B.as_seq h0 aliasKey_pub) == aliasKey_pub32);
 
   printf "Creating AliasKey Certificate TBS Message\n" done;
   let aliasKeyTBS = x509_get_AliasKeyTBS
@@ -265,12 +261,6 @@ let create_aliasKeyTBS
                                      deviceID_pub32
                                      aliasKey_pub32 in
   (* Prf *) lemma_serialize_aliasKeyTBS_size_exact aliasKeyTBS;
-
-  // assert (B32.hide (declassify_secret_bytes (B.as_seq h0 fwid)) == fwid_pub32);
-  // assert (B32.hide (B.as_seq h0 deviceID_pub) == deviceID_pub32);
-  // assert (B32.hide (B.as_seq h0 aliasKey_pub) == aliasKey_pub32);
-  // assume (B32.hide (B.as_seq h0 keyID) == keyID_pub32);
-
 
   (*
    * Postcondition 2
@@ -288,25 +278,7 @@ let create_aliasKeyTBS
                                      (B.as_seq h0 deviceID_pub)
                                      (B.as_seq h0 aliasKey_pub)));
 
-  HST.pop_frame ();
   printf "Serializing AliasKey Certificate TBS\n" done;
-  let h5 = HST.get () in
-
-  assert (B.modifies (B.loc_buffer fwid_pub) h1 h3);
-  B.modifies_trans B.loc_none h00 h1 (B.loc_buffer fwid_pub) h3;
-  assert (B.modifies (B.loc_buffer fwid_pub) h00 h3);
-  B.modifies_trans (B.loc_buffer fwid_pub) h00 h3 B.loc_none h4;
-  assert (B.modifies (B.loc_buffer fwid_pub) h00 h4);
-  B.modifies_trans (B.loc_buffer fwid_pub) h00 h4 B.loc_none h40;
-  assert (B.modifies (B.loc_buffer fwid_pub) h00 h40);
-
-  assert (B.modifies (B.loc_union (B.loc_all_regions_from false (HS.get_tip h00)) B.loc_none) h00 h40);
-  B.modifies_fresh_frame_popped h0 h00 B.loc_none h40 h5;
-
-  assert (B.modifies B.loc_none h0 h5);
-
-  // assert (let o = Seq.length (serialize_aliasKeyTBS `serialize` aliasKeyTBS) in
-  //         o <= UInt32.v aliasKeyTBS_len);
   let offset = serialize32_aliasKeyTBS_backwards
                  aliasKeyTBS
                  aliasKeyTBS_buf
@@ -314,30 +286,13 @@ let create_aliasKeyTBS
 
   let h6 = HST.get () in
 
-  //assert (UInt.size (UInt32.v aliasKeyTBS_len - UInt32.v offset) 32);
-
-
   (*
    * Postcondition 1
    *)
   assert (Seq.slice (B.as_seq h6 aliasKeyTBS_buf)
                     (UInt32.v (UInt32.sub aliasKeyTBS_len offset))
                     (UInt32.v aliasKeyTBS_len) == serialize_aliasKeyTBS `serialize` aliasKeyTBS)
-
-  // B.loc_includes_loc_buffer_loc_buffer_from_to
-  //   aliasKeyTBS_buf
-  //   (UInt32.sub aliasKeyTBS_len offset) aliasKeyTBS_len;
-  // B.modifies_loc_includes
-  //   (B.loc_buffer aliasKeyTBS_buf) h5 h6
-  //   (B.loc_buffer_from_to aliasKeyTBS_buf (UInt32.sub aliasKeyTBS_len offset) aliasKeyTBS_len);
-  // B.modifies_trans B.loc_none h0 h5 (B.loc_buffer aliasKeyTBS_buf) h6
-
-  // (*
-  //  * Postcondition 3
-  //  *)
-  // assert (B.modifies (B.loc_buffer aliasKeyTBS_buf) h0 h6)
-
-  // assume (HST.equal_domains h0 h6)
+#pop-options
 
 (* Sign and Finalize AliasKey Certificate
   =======================================
