@@ -294,11 +294,7 @@ let create_aliasKeyTBS
    2) the length of created CRT is valid as our ASN.1 TLV SEQUENCE value length
 *)
 
-//AR: TODO: 10/03: checkpoint here
-
-#set-options "--admit_smt_queries true"
-
-
+#push-options "--z3rlimit 256"
 let sign_and_finalize_aliasKeyCRT
   (deviceID_priv: B.lbuffer byte_sec 32)
   (aliasKeyTBS_len: size_t)
@@ -328,8 +324,7 @@ let sign_and_finalize_aliasKeyCRT
     B.(modifies (loc_buffer aliasKeyCRT_buf) h0 h1) /\
     B.as_seq h1 aliasKeyCRT_buf == serialize_aliasKeyCRT aliasKeyTBS_len `serialize` aliasKeyCRT
   )
-=
-  HST.push_frame ();
+= HST.push_frame ();
 
 (* Classify AliasKeyTBS *)
   let aliasKeyTBS_buf_sec: B.lbuffer byte_sec (v aliasKeyTBS_len) = B.alloca (u8 0x00) aliasKeyTBS_len in
@@ -363,23 +358,22 @@ let sign_and_finalize_aliasKeyCRT
                                                              aliasKeyTBS_buf32
                                                              aliasKeyTBS_sig32 in
   (* Prf *) lemma_serialize_aliasKeyCRT_size_exact aliasKeyTBS_len aliasKeyCRT;
+  HST.pop_frame ();
 
   printf "Serializing AliasKey Certificate CRT\n" done;
 (* Serialize AliasKeyCRT *)
-  let offset = serialize32_aliasKeyCRT_backwards
+  let _offset = serialize32_aliasKeyCRT_backwards
                  aliasKeyTBS_len
                  aliasKeyCRT
                  aliasKeyCRT_buf
-                 aliasKeyCRT_len in
-
-  HST.pop_frame ()
+                 aliasKeyCRT_len in ()
+#pop-options
 
 (*                 CSR
  *=====================================
  *)
 
-#restart-solver
-#push-options "--z3rlimit 10240"
+#push-options "--z3rlimit 512"
 let create_deviceIDCRI
   (csr_version: datatype_of_asn1_type INTEGER)
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
@@ -435,7 +429,9 @@ let create_deviceIDCRI
                  deviceIDCRI_len in
 
   HST.pop_frame ()
+#pop-options
 
+#push-options "--z3rlimit 256"
 let sign_and_finalize_deviceIDCSR
   (deviceID_priv: B.lbuffer byte_sec 32)
   (deviceIDCRI_len: size_t)
@@ -510,3 +506,4 @@ let sign_and_finalize_deviceIDCSR
                  deviceIDCSR_len in
 
   HST.pop_frame ()
+#pop-options
