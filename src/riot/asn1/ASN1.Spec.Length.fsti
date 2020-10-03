@@ -18,23 +18,23 @@ module Cast = FStar.Int.Cast
 inline_for_extraction noextract
 let parse_asn1_length_of_bound_kind
   (min: asn1_length_t)
-  (max: asn1_length_t { min <= max })
+  (max: asn1_length_t { min <= max /\ max <= asn1_length_max })
 : parser_kind
 = parse_bounded_der_length32_kind min max
 
 val parse_asn1_length_of_bound
   (min: asn1_length_t)
-  (max: asn1_length_t { min <= max })
+  (max: asn1_length_t { min <= max /\ max <= asn1_length_max })
 : parser (parse_asn1_length_of_bound_kind min max) (bounded_int32 min max)
 
 val serialize_asn1_length_of_bound
   (min: asn1_length_t)
-  (max: asn1_length_t { min <= max })
+  (max: asn1_length_t { min <= max /\ max <= asn1_length_max })
 : serializer (parse_asn1_length_of_bound min max)
 
 val lemma_serialize_asn1_length_of_bound_unfold
   (min: asn1_length_t)
-  (max: asn1_length_t { min <= max })
+  (max: asn1_length_t { min <= max /\ max <= asn1_length_max })
   (y': bounded_int32 min max)
 : Lemma (
     let res = serialize_asn1_length_of_bound min max `serialize` y' in
@@ -51,7 +51,7 @@ val lemma_serialize_asn1_length_of_bound_unfold
 
 val lemma_serialize_asn1_length_of_bound_size
   (min: asn1_length_t)
-  (max: asn1_length_t { min <= max })
+  (max: asn1_length_t { min <= max /\ max <= asn1_length_max })
   (y': bounded_int32 min max)
 : Lemma
   (
@@ -139,7 +139,7 @@ let lemma_serialize_asn1_length_of_type_size
 
 val serialize_asn1_length_of_bound_eq
   (min: asn1_length_t)
-  (max: asn1_length_t { min <= max })
+  (max: asn1_length_t { min <= max /\ max <= asn1_length_max })
   (len: bounded_int32 min max)
 : Lemma (
   serialize serialize_asn1_length len ==

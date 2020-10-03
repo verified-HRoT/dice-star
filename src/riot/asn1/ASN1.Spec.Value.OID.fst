@@ -848,7 +848,7 @@ let lemma_serialize_asn1_oid_TLV_of_unfold oid value
 #pop-options
 
 /// Reveal the size of a serialzation
-#push-options "--z3rlimit 16"
+#push-options "--z3rlimit 16 --fuel 0 --ifuel 0"
 let lemma_serialize_asn1_oid_TLV_size value
 = lemma_serialize_asn1_oid_TLV_unfold value;
   lemma_serialize_asn1_tag_of_type_size OID OID;
