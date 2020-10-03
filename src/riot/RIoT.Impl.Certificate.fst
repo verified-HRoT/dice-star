@@ -22,7 +22,7 @@ open LowStar.Printf
 
 open RIoT.Spec.Certificate
 
-#set-options "--fuel 0 --ifuel 0"
+#set-options "--fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
 (* Create AliasKey To-Be-Signed Certificate
   =======================================
@@ -89,11 +89,11 @@ let create_aliasKeyTBS_pre
                    loc_buffer aliasKey_pub;
                    loc_buffer keyID;
                    loc_buffer aliasKeyTBS_buf]) /\
-  UInt32.v aliasKeyTBS_len == length_of_aliasKeyTBS
+  eq2 #nat (UInt32.v aliasKeyTBS_len) (length_of_aliasKeyTBS
                          serialNumber
                          i_common i_org i_country
                          s_common s_org s_country
-                         ku riot_version
+                         ku riot_version)
 
 unfold
 let create_aliasKeyTBS_post
@@ -152,7 +152,7 @@ let create_aliasKeyTBS_post
    *            see (Postcondition - 1) in the proof below *)
   // /\ B.as_seq h1 aliasKeyTBS_buf == serialize_aliasKeyTBS `serialize` aliasKeyTBS
 
-#push-options "--z3rlimit 50 --admit_smt_queries true"
+#push-options "--z3rlimit 256" //--admit_smt_queries true"
 let create_aliasKeyTBS
   (crt_version: x509_version_t)
   (serialNumber: x509_serialNumber_t)
@@ -242,7 +242,9 @@ let create_aliasKeyTBS
   B.modifies_buffer_elim deviceID_pub (B.loc_buffer fwid_pub) h0 h4;
   assert (B.as_seq h4 aliasKey_pub == B.as_seq h0 aliasKey_pub);
   let aliasKey_pub32: B32.lbytes32 32ul = B32.of_buffer 32ul aliasKey_pub in
-  let keyID_string: datatype_of_asn1_type OCTET_STRING = (|20ul, B32.of_buffer 20ul keyID|) in
+
+  let keyID_pub32 = B32.of_buffer 20ul keyID in
+  let keyID_string: datatype_of_asn1_type OCTET_STRING = (|20ul, keyID_pub32|) in
   let h40 = HST.get () in
 
   // assert (B32.hide (declassify_secret_bytes (B.as_seq h0 fwid)) == fwid_pub32);
@@ -264,6 +266,11 @@ let create_aliasKeyTBS
                                      aliasKey_pub32 in
   (* Prf *) lemma_serialize_aliasKeyTBS_size_exact aliasKeyTBS;
 
+  assert (B32.hide (declassify_secret_bytes (B.as_seq h0 fwid)) == fwid_pub32);
+  assert (B32.hide (B.as_seq h0 deviceID_pub) == deviceID_pub32);
+  assert (B32.hide (B.as_seq h0 aliasKey_pub) == aliasKey_pub32);
+  assume (B32.hide (B.as_seq h0 keyID) == keyID_pub32);
+
 
   (*
    * Postcondition 2
@@ -275,7 +282,7 @@ let create_aliasKeyTBS
                                      (notBefore) (notAfter)
                                      (s_common) (s_org) (s_country)
                                      (ku)
-                                     (keyID_string)
+                                     (B.as_seq h0 keyID)
                                      (riot_version)
                                      (B.as_seq h0 fwid)
                                      (B.as_seq h0 deviceID_pub)
@@ -323,14 +330,14 @@ let create_aliasKeyTBS
   B.modifies_loc_includes
     (B.loc_buffer aliasKeyTBS_buf) h5 h6
     (B.loc_buffer_from_to aliasKeyTBS_buf (UInt32.sub aliasKeyTBS_len offset) aliasKeyTBS_len);
-  B.modifies_trans B.loc_none h0 h5 (B.loc_buffer aliasKeyTBS_buf) h6;
+  B.modifies_trans B.loc_none h0 h5 (B.loc_buffer aliasKeyTBS_buf) h6
 
-  (*
-   * Postcondition 3
-   *)
-  assert (B.modifies (B.loc_buffer aliasKeyTBS_buf) h0 h6);
+  // (*
+  //  * Postcondition 3
+  //  *)
+  // assert (B.modifies (B.loc_buffer aliasKeyTBS_buf) h0 h6)
 
-  assume (HST.equal_domains h0 h6)
+  // assume (HST.equal_domains h0 h6)
 
 (* Sign and Finalize AliasKey Certificate
   =======================================
