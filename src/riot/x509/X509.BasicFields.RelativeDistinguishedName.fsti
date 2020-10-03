@@ -354,7 +354,6 @@ let x509_RDN_x520_attribute_t
     (x520_attribute_lb t)
     (x520_attribute_ub t)
 
-[@@ "opaque_to_smt"]
 unfold noextract
 let x509_RDN_x520_attribute_string_t
   (t: x520_attribute_t)

@@ -12,12 +12,12 @@ module SDER = LowParse.Spec.DER
 
 open FStar.Integers
 
-#reset-options "--max_fuel 0 --max_ifuel 0"
+#reset-options "--fuel 0 --ifuel 0"
 
 let len_of_asn1_length
   (len: asn1_int32)
 : (offset: size_t{v offset == Seq.length (serialize serialize_asn1_length len)})
-= lemma_serialize_asn1_length_unfold len;
+= lemma_serialize_asn1_length_size len;
   let x = SDER.tag_of_der_length32_impl len in
   if x < 128uy then
   ( 1ul )
