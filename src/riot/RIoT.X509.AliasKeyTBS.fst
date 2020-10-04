@@ -245,12 +245,14 @@ let lemma_serialize_aliasKeyTBS_payload_unfold x
   (* prf*) ()
   (* in *) (x)
 
+#push-options "--admit_smt_queries true"
 let lemma_aliasKeyTBS_ingredients_valid
     serialNumber
     i_common i_org i_country
     s_common s_org s_country
     ku version
 = lemma_aliasKeyTBS_extensions_ingredients_valid ku version
+#pop-options
 
 let lemma_serialize_aliasKeyTBS_payload_size x
 = Classical.forall_intro_2 (lemma_aliasKeyTBS_ingredients_valid
