@@ -157,35 +157,24 @@ val lemma_serialize_x509_key_usage_size
              _serialize_x509_key_usage_payload))
             x )
 
-let length_of_x509_key_usage
-  (ku: key_usage_payload_t)
-: GTot (asn1_TLV_length_of_type SEQUENCE)
-= length_of_TLV
-    SEQUENCE
-    ( length_of_x509_key_usage_payload () +
-      ( length_of_TLV
-          OCTET_STRING
-          ( length_of_asn1_primitive_TLV #OID OID_KEY_USAGE ) ) )
+let len_of_x509_key_usage ()
+: Tot (asn1_TLV_int32_of_type SEQUENCE)
+// = len_of_TLV
+//     SEQUENCE
+//     ( len_of_x509_key_usage_payload () +
+//       ( len_of_TLV
+//           OCTET_STRING
+//           ( len_of_asn1_primitive_TLV #OID OID_KEY_USAGE ) ) )
+= 14ul
 
 val lemma_serialize_x509_key_usage_size_exact
   (x: key_usage_t)
 : Lemma (
   length_of_opaque_serialization serialize_x509_key_usage x
-  == length_of_x509_key_usage (snd x)
+  == v (len_of_x509_key_usage ())
 )
 
 open ASN1.Low
-
-let len_of_x509_key_usage
-  (ku: key_usage_payload_t)
-: Tot (len: asn1_TLV_int32_of_type SEQUENCE
-            { v len == length_of_x509_key_usage ku })
-= len_of_TLV
-    SEQUENCE
-    ( len_of_x509_key_usage_payload () +
-      ( len_of_TLV
-          OCTET_STRING
-          ( len_of_asn1_primitive_TLV #OID OID_KEY_USAGE ) ) )
 
 val _serialize32_x509_key_usage_payload_backwards
 : serializer32_backwards (_serialize_x509_key_usage_payload)

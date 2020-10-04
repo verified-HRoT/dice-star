@@ -390,27 +390,30 @@ val serialize_RDN_x520_attribute
 : serializer (parse_RDN_x520_attribute t string_t)
 
 unfold
-let length_of_RDN_x520_attribute
-  (#t: x520_attribute_t)
-  (#string_t: directory_string_type { ((t == COUNTRY) ==> (string_t == PRINTABLE_STRING)) })
-  (s: x509_RDN_x520_attribute_string_t t string_t)
-: GTot (asn1_TLV_length_of_type SET)
-= length_of_RDN
-    (x520_attribute_oid t)
-    (string_t)
-    (s)
+[@@ "opaque_to_smt"]
+let len_of_RDN_x520_attribute_max
+  (t: x520_attribute_t)
+  (string_t: directory_string_type { ((t == COUNTRY) ==> (string_t == PRINTABLE_STRING)) })
+: Tot (asn1_value_int32_of_type SET)
+= (SET `len_of_TLV`
+  (**) (SEQUENCE `len_of_TLV`
+       (**) (len_of_asn1_primitive_TLV #OID (x520_attribute_oid t) +
+            (**) (string_t `len_of_TLV` x520_attribute_ub t))))
 
-inline_for_extraction noextract
+#push-options "--z3rlimit 64"
+inline_for_extraction noextract unfold
+[@@ "opaque_to_smt"]
 let len_of_RDN_x520_attribute
   (#t: x520_attribute_t)
   (#string_t: directory_string_type { ((t == COUNTRY) ==> (string_t == PRINTABLE_STRING)) })
   (s: x509_RDN_x520_attribute_string_t t string_t)
 : Tot (len: asn1_TLV_int32_of_type SET
-            { v len == length_of_RDN_x520_attribute s })
+            { v len <= v (len_of_RDN_x520_attribute_max t string_t) })
 = len_of_RDN
     (x520_attribute_oid t)
     (string_t)
     (s)
+#pop-options
 
 inline_for_extraction noextract
 let get_RDN_x520_attribute_string
@@ -443,7 +446,9 @@ val lemma_serialize_RDN_x520_attribute_size_exact
   (x: x509_RDN_x520_attribute_t t string_t)
 : Lemma (
   length_of_opaque_serialization (serialize_RDN_x520_attribute _ _) x
-  == length_of_RDN_x520_attribute (get_RDN_x520_attribute_string x)
+  == v (len_of_RDN_x520_attribute (get_RDN_x520_attribute_string x)) /\
+  length_of_opaque_serialization (serialize_RDN_x520_attribute _ _) x
+  <= v (len_of_RDN_x520_attribute_max t string_t)
 )
 
 noextract inline_for_extraction

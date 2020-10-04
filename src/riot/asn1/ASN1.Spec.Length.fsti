@@ -95,18 +95,15 @@ let length_of_asn1_length
          length <= 5 })
 = lemma_serialize_asn1_length_unfold len;
   lemma_serialize_asn1_length_size len;
-  let x = tag_of_der_length32 len in
-  let open FStar.Integers in
-  if x < 128uy then
-  ( 1 )
-  else if x = 129uy then
-  ( 2 )
-  else if x = 130uy then
-  ( 3 )
-  else if x = 131uy then
-  ( 4 )
-  else
-  ( 5 )
+  if len `U32.lt` 128ul
+  then 1
+  else if len `U32.lt` 256ul
+  then 2
+  else if len `U32.lt` 65536ul
+  then 3
+  else if len `U32.lt` 16777216ul
+  then 4
+  else 5
 
 /// Specialized for a specific ASN1 type
 ///

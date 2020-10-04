@@ -146,6 +146,10 @@ let length_of_riot_extension
 = RIoT.X509.LengthUtils.lemma_length_of_riot_extension version;
   length_of_TLV SEQUENCE (length_of_riot_extension_payload version)
 
+let len_of_riot_extension_max ()
+: Tot (asn1_TLV_int32_of_type SEQUENCE)
+= 117ul
+
 let len_of_riot_extension
     (version: datatype_of_asn1_type INTEGER)
 : Tot (len: asn1_TLV_int32_of_type SEQUENCE
@@ -158,7 +162,8 @@ let lemma_serialize_riot_extension_size_exact
 : Lemma (
   length_of_opaque_serialization serialize_riot_extension x ==
   length_of_riot_extension x.x509_extValue_riot.riot_version /\
-  length_of_opaque_serialization serialize_riot_extension x <= 117
+  length_of_opaque_serialization serialize_riot_extension x
+  <= v (len_of_riot_extension_max ())
 )
 = lemma_serialize_riot_extension_size x;
   lemma_serialize_riot_extension_payload_size_exact x;

@@ -91,10 +91,9 @@ val lemma_serialize_aliasKeyTBS_extensions_payload_unfold
 )
 
 let valid_aliasKeyTBS_extensions_payload_ingredients
-  (ku: key_usage_payload_t)
   (version: datatype_of_asn1_type INTEGER)
 : Type0
-= length_of_x509_key_usage ku +
+= v (len_of_x509_key_usage ()) +
   length_of_aliasKeyTBS_extensions_extendedKeyUsage () +
   length_of_aliasKeyTBS_extensions_basicConstraints () +
   length_of_aliasKeyTBS_extensions_authKeyID () +
@@ -102,30 +101,24 @@ let valid_aliasKeyTBS_extensions_payload_ingredients
   <= asn1_value_length_max_of_type SEQUENCE
 
 val lemma_aliasKeyTBS_extensions_payload_ingredients_valid
-  (ku: key_usage_payload_t)
   (version: datatype_of_asn1_type INTEGER)
 : Lemma (
-  valid_aliasKeyTBS_extensions_payload_ingredients ku version
+  valid_aliasKeyTBS_extensions_payload_ingredients version
 )
 
-let length_of_aliasKeyTBS_extensions_payload
-  (ku: key_usage_payload_t)
-  (version: datatype_of_asn1_type INTEGER)
-: GTot (asn1_value_length_of_type SEQUENCE)
-= lemma_aliasKeyTBS_extensions_payload_ingredients_valid ku version;
-  length_of_x509_key_usage ku +
-  length_of_aliasKeyTBS_extensions_extendedKeyUsage () +
-  length_of_aliasKeyTBS_extensions_basicConstraints () +
-  length_of_aliasKeyTBS_extensions_authKeyID () +
-  length_of_riot_extension version
+let len_of_aliasKeyTBS_extensions_payload_max ()
+: Tot (asn1_value_int32_of_type SEQUENCE)
+= len_of_x509_key_usage () +
+  len_of_aliasKeyTBS_extensions_extendedKeyUsage () +
+  len_of_aliasKeyTBS_extensions_basicConstraints () +
+  len_of_aliasKeyTBS_extensions_authKeyID () +
+  len_of_riot_extension_max ()
 
 let len_of_aliasKeyTBS_extensions_payload
-  (ku: key_usage_payload_t)
   (version: datatype_of_asn1_type INTEGER)
-: Tot (len: asn1_value_int32_of_type SEQUENCE
-            { v len == length_of_aliasKeyTBS_extensions_payload ku version })
-= lemma_aliasKeyTBS_extensions_payload_ingredients_valid ku version;
-  len_of_x509_key_usage ku +
+: Tot (asn1_value_int32_of_type SEQUENCE)
+= lemma_aliasKeyTBS_extensions_payload_ingredients_valid version;
+  len_of_x509_key_usage () +
   len_of_aliasKeyTBS_extensions_extendedKeyUsage () +
   len_of_aliasKeyTBS_extensions_basicConstraints () +
   len_of_aliasKeyTBS_extensions_authKeyID () +
@@ -156,9 +149,10 @@ val lemma_serialize_aliasKeyTBS_extensions_payload_size
   length_of_opaque_serialization (serialize_riot_extension)              x.aliasKeyTBS_extensions_riot /\
   (* exact size *)
   length_of_opaque_serialization (serialize_aliasKeyTBS_extensions_payload)      x
-  == length_of_aliasKeyTBS_extensions_payload
-       (snd x.aliasKeyTBS_extensions_key_usage)
-       (x.aliasKeyTBS_extensions_riot.x509_extValue_riot.riot_version)
+  == v (len_of_aliasKeyTBS_extensions_payload
+         (x.aliasKeyTBS_extensions_riot.x509_extValue_riot.riot_version)) /\
+  length_of_opaque_serialization (serialize_aliasKeyTBS_extensions_payload)      x
+  <= v (len_of_aliasKeyTBS_extensions_payload_max ())
 )
 
 (*
@@ -195,25 +189,22 @@ val lemma_serialize_aliasKeyTBS_extensions_size
 : Lemma ( predicate_serialize_asn1_sequence_TLV_size serialize_aliasKeyTBS_extensions_payload x )
 
 let valid_aliasKeyTBS_extensions_ingredients
-  (ku: key_usage_payload_t)
   (version: datatype_of_asn1_type INTEGER)
 : Type0
-= valid_aliasKeyTBS_extensions_payload_ingredients ku version /\
-  length_of_aliasKeyTBS_extensions_payload ku version
+= valid_aliasKeyTBS_extensions_payload_ingredients version /\
+  v (len_of_aliasKeyTBS_extensions_payload version)
   <= asn1_value_length_max_of_type SEQUENCE
 
 val lemma_aliasKeyTBS_extensions_ingredients_valid
-  (ku: key_usage_payload_t)
   (version: datatype_of_asn1_type INTEGER)
 : Lemma (
-  valid_aliasKeyTBS_extensions_ingredients ku version
+  valid_aliasKeyTBS_extensions_ingredients version
 )
 
 let valid_aliasKeyTBS_extensions
   (x: aliasKeyTBS_extensions_t)
 : Type0
 = valid_aliasKeyTBS_extensions_ingredients
-          (snd x.aliasKeyTBS_extensions_key_usage)
           (x.aliasKeyTBS_extensions_riot.x509_extValue_riot.riot_version)
 
 val lemma_aliasKeyTBS_extensions_valid
@@ -222,32 +213,28 @@ val lemma_aliasKeyTBS_extensions_valid
   valid_aliasKeyTBS_extensions x
 )
 
-let length_of_aliasKeyTBS_extensions
-  (ku: key_usage_payload_t)
-  (version: datatype_of_asn1_type INTEGER)
-: GTot (asn1_TLV_length_of_type SEQUENCE)
-= lemma_aliasKeyTBS_extensions_ingredients_valid ku version;
-  length_of_TLV SEQUENCE
-    (length_of_aliasKeyTBS_extensions_payload ku version)
+let len_of_aliasKeyTBS_extensions_max ()
+: Tot (asn1_TLV_int32_of_type SEQUENCE)
+= SEQUENCE `len_of_TLV`
+  (**) (len_of_aliasKeyTBS_extensions_payload_max ())
 
 let len_of_aliasKeyTBS_extensions
-  (ku: key_usage_payload_t)
   (version: datatype_of_asn1_type INTEGER)
-: Tot (len: asn1_TLV_int32_of_type SEQUENCE
-            { v len == length_of_aliasKeyTBS_extensions ku version })
-= lemma_aliasKeyTBS_extensions_ingredients_valid ku version;
+: Tot (asn1_TLV_int32_of_type SEQUENCE)
+= lemma_aliasKeyTBS_extensions_ingredients_valid version;
   len_of_TLV SEQUENCE
-    (len_of_aliasKeyTBS_extensions_payload ku version)
+    (len_of_aliasKeyTBS_extensions_payload version)
 
 val lemma_serialize_aliasKeyTBS_extensions_size_exact
   (x: aliasKeyTBS_extensions_t)
 : Lemma (
-  Classical.forall_intro_2 lemma_aliasKeyTBS_extensions_ingredients_valid;
+  Classical.forall_intro lemma_aliasKeyTBS_extensions_ingredients_valid;
   (* exact size *)
   length_of_opaque_serialization (serialize_aliasKeyTBS_extensions) x
-  == length_of_aliasKeyTBS_extensions
-       (snd x.aliasKeyTBS_extensions_key_usage)
-       (x.aliasKeyTBS_extensions_riot.x509_extValue_riot.riot_version)
+  == v (len_of_aliasKeyTBS_extensions
+         (x.aliasKeyTBS_extensions_riot.x509_extValue_riot.riot_version)) /\
+  length_of_opaque_serialization (serialize_aliasKeyTBS_extensions) x
+  <= v (len_of_aliasKeyTBS_extensions_max ())
 )
 
 
@@ -270,7 +257,7 @@ let x509_get_aliasKeyTBS_extensions
   (deviceIDPub: B32.lbytes32 32ul)
 : Tot (aliasKeyTBS_extensions_t)
 =
-  (* Prf*) Classical.forall_intro_2 lemma_aliasKeyTBS_extensions_ingredients_valid;
+  (* Prf*) Classical.forall_intro lemma_aliasKeyTBS_extensions_ingredients_valid;
 
   let key_usage = x509_get_key_usage ku in
   (* Prf *) lemma_serialize_x509_key_usage_size_exact key_usage;

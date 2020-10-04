@@ -153,16 +153,9 @@ val lemma_serialize_big_integer_as_octet_string_TLV_unfold
   serialize (serialize_big_integer_as_octet_string (v (snd tg))) value
 )
 
-let length_of_big_integer_as_octet_string
+let len_of_big_integer_as_octet_string_TLV
   (x: big_integer_as_octet_string_t)
-: GTot (asn1_TLV_length_of_big_integer)
-= let tg = parser_tag_of_big_integer_as_octet_string x in
-  1 + length_of_asn1_length (snd tg) + v (snd tg)
-
-let len_of_big_integer_as_octet_string
-  (x: big_integer_as_octet_string_t)
-: Tot (len: asn1_TLV_int32_of_big_integer
-            { v len == length_of_big_integer_as_octet_string x })
+: Tot (asn1_TLV_int32_of_big_integer)
 = let tg = parser_tag_of_big_integer_as_octet_string x in
   1ul + ASN1.Low.Length.len_of_asn1_length (snd tg) + (snd tg)
 
@@ -170,5 +163,5 @@ val lemma_serialize_big_integer_as_octet_string_TLV_size
   (value: big_integer_as_octet_string_t)
 : Lemma (
   Seq.length (serialize serialize_big_integer_as_octet_string_TLV value) ==
-  length_of_big_integer_as_octet_string value
+  v (len_of_big_integer_as_octet_string_TLV value)
 )

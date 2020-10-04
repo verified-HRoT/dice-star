@@ -37,23 +37,22 @@ noextract
 val serialize_aliasKeyTBS_issuer_payload
 : serializer (parse_aliasKeyTBS_issuer_payload)
 
-let length_of_aliasKeyTBS_issuer_payload
-  (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
-  (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
-  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-: GTot (nat)
-= length_of_RDN_x520_attribute s_common +
-  length_of_RDN_x520_attribute s_org +
-  length_of_RDN_x520_attribute s_country
+// unfold
+// [@@ "opaque_to_smt"]
+let len_of_aliasKeyTBS_issuer_payload_max ()
+: Tot (asn1_value_int32_of_type SEQUENCE)
+= len_of_RDN_x520_attribute_max COMMON_NAME  IA5_STRING +
+  len_of_RDN_x520_attribute_max ORGANIZATION IA5_STRING +
+  len_of_RDN_x520_attribute_max COUNTRY      PRINTABLE_STRING
 
+// unfold
+// [@@ "opaque_to_smt"]
 let len_of_aliasKeyTBS_issuer_payload
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
-  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING
-              { length_of_aliasKeyTBS_issuer_payload s_common s_org s_country
-                <= asn1_value_length_max_of_type SEQUENCE })
+  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
 : Tot (len: asn1_value_int32_of_type SEQUENCE
-            { v len == length_of_aliasKeyTBS_issuer_payload s_common s_org s_country })
+            { v len <= v (len_of_aliasKeyTBS_issuer_payload_max ()) })
 = len_of_RDN_x520_attribute s_common +
   len_of_RDN_x520_attribute s_org +
   len_of_RDN_x520_attribute s_country
@@ -77,11 +76,14 @@ val lemma_serialize_aliasKeyTBS_issuer_payload_size
      length_of_opaque_serialization (serialize_RDN_x520_attribute _ _) x.aliasKeyTBS_issuer_Organization +
      length_of_opaque_serialization (serialize_RDN_x520_attribute _ _) x.aliasKeyTBS_issuer_Country /\
   length_of_opaque_serialization (serialize_aliasKeyTBS_issuer_payload) x
-  == length_of_aliasKeyTBS_issuer_payload
-       (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer_Common)
-       (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer_Organization)
-       (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer_Country)
+  == v (len_of_aliasKeyTBS_issuer_payload
+         (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer_Common)
+         (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer_Organization)
+         (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer_Country)) /\
+  length_of_opaque_serialization (serialize_aliasKeyTBS_issuer_payload) x
+  <= v (len_of_aliasKeyTBS_issuer_payload_max ())
 )
+
 
 (*
  *
@@ -107,23 +109,22 @@ let serialize_aliasKeyTBS_issuer
           (**) (serialize_aliasKeyTBS_issuer_payload))
   (*prf*) ()
 
-let length_of_aliasKeyTBS_issuer
-  (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
-  (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
-  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-: GTot (asn1_TLV_length_of_type SEQUENCE)
-= lemma_length_of_aliasKeyTBS_issuer_payload s_common s_org s_country;
-  SEQUENCE `length_of_TLV`
-  (**) (length_of_aliasKeyTBS_issuer_payload s_common s_org s_country)
+// unfold
+// [@@ "opaque_to_smt"]
+let len_of_aliasKeyTBS_issuer_max ()
+: Tot (asn1_TLV_int32_of_type SEQUENCE)
+= SEQUENCE `len_of_TLV`
+  (**) (len_of_aliasKeyTBS_issuer_payload_max ())
 
+// unfold
+// [@@ "opaque_to_smt"]
 let len_of_aliasKeyTBS_issuer
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
 : Tot (len: asn1_TLV_int32_of_type SEQUENCE
-            { v len == length_of_aliasKeyTBS_issuer s_common s_org s_country })
-= lemma_length_of_aliasKeyTBS_issuer_payload s_common s_org s_country;
-  SEQUENCE `len_of_TLV`
+            { v len <= v (len_of_aliasKeyTBS_issuer_max ()) })
+= SEQUENCE `len_of_TLV`
   (**) (len_of_aliasKeyTBS_issuer_payload s_common s_org s_country)
 
 val lemma_serialize_aliasKeyTBS_issuer_unfold
@@ -139,10 +140,12 @@ val lemma_serialize_aliasKeyTBS_issuer_size_exact
 : Lemma (
   let _ = lemma_serialize_aliasKeyTBS_issuer_payload_size x in
   length_of_opaque_serialization (serialize_aliasKeyTBS_issuer) x
-  == length_of_aliasKeyTBS_issuer
-       (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer_Common)
-       (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer_Organization)
-       (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer_Country)
+  == v (len_of_aliasKeyTBS_issuer
+         (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer_Common)
+         (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer_Organization)
+         (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer_Country)) /\
+  length_of_opaque_serialization (serialize_aliasKeyTBS_issuer) x
+  <= v (len_of_aliasKeyTBS_issuer_max ())
 )
 
 (* Low *)
