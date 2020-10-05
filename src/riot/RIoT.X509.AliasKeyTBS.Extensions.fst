@@ -180,7 +180,7 @@ let lemma_serialize_aliasKeyTBS_extensions_payload_unfold x
   (* prf*) ()
   (* in *) (x)
 
-let lemma_aliasKeyTBS_extensions_payload_ingredients_valid ku version
+let lemma_aliasKeyTBS_extensions_payload_ingredients_valid version
 = ()
 
 let lemma_serialize_aliasKeyTBS_extensions_payload_size x
@@ -207,12 +207,11 @@ let lemma_serialize_aliasKeyTBS_extensions_unfold x
 let lemma_serialize_aliasKeyTBS_extensions_size x
 = lemma_serialize_asn1_sequence_TLV_size serialize_aliasKeyTBS_extensions_payload x
 
-let lemma_aliasKeyTBS_extensions_ingredients_valid ku version
-= lemma_aliasKeyTBS_extensions_payload_ingredients_valid ku version
+let lemma_aliasKeyTBS_extensions_ingredients_valid version
+= lemma_aliasKeyTBS_extensions_payload_ingredients_valid version
 
 let lemma_aliasKeyTBS_extensions_valid x
 = lemma_aliasKeyTBS_extensions_ingredients_valid
-          (snd x.aliasKeyTBS_extensions_key_usage)
           (x.aliasKeyTBS_extensions_riot.x509_extValue_riot.riot_version)
 
 // #push-options "--z3rlimit 256 --fuel 0"
@@ -233,7 +232,7 @@ let lemma_aliasKeyTBS_extensions_valid x
 // #pop-options
 
 let lemma_serialize_aliasKeyTBS_extensions_size_exact x
-= Classical.forall_intro_2 lemma_aliasKeyTBS_extensions_ingredients_valid;
+= Classical.forall_intro lemma_aliasKeyTBS_extensions_ingredients_valid;
   lemma_serialize_aliasKeyTBS_extensions_size x;
   lemma_serialize_aliasKeyTBS_extensions_payload_size x;
 ()

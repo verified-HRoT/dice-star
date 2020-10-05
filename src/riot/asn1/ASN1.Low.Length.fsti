@@ -19,7 +19,7 @@ noextract inline_for_extraction unfold
 [@@ "opaque_to_smt"]
 let len_of_asn1_length
   (len: asn1_int32)
-: (offset: size_t{v offset == Seq.length (serialize serialize_asn1_length len)})
+: (offset: U32.t {v offset == Seq.length (serialize serialize_asn1_length len)})
 = lemma_serialize_asn1_length_size len;
   if len `U32.lt` 128ul
   then 1ul

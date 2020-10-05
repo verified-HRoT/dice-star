@@ -89,11 +89,11 @@ let create_aliasKeyTBS_pre
                    loc_buffer aliasKey_pub;
                    loc_buffer keyID;
                    loc_buffer aliasKeyTBS_buf]) /\
-  eq2 #nat (UInt32.v aliasKeyTBS_len) (length_of_aliasKeyTBS
+  eq2 #nat (UInt32.v aliasKeyTBS_len) (v (len_of_aliasKeyTBS
                          serialNumber
                          i_common i_org i_country
                          s_common s_org s_country
-                         ku riot_version)
+                         riot_version))
 
 unfold
 let create_aliasKeyTBS_post
@@ -389,8 +389,7 @@ let create_deviceIDCRI
                    buf deviceIDCRI_buf]) /\
     B.(all_disjoint [loc_buffer deviceID_pub;
                      loc_buffer deviceIDCRI_buf]) /\
-    valid_deviceIDCRI_ingredients csr_version s_common s_org s_country ku /\
-    v deviceIDCRI_len == length_of_deviceIDCRI csr_version s_common s_org s_country ku
+    v deviceIDCRI_len == v (len_of_deviceIDCRI csr_version s_common s_org s_country)
    )
   (ensures fun h0 _ h1 ->
     let deviceIDCRI: deviceIDCRI_t = create_deviceIDCRI_spec

@@ -69,16 +69,11 @@ val lemma_serialize_deviceIDCRI_attributes_extensionRequest_payload_unfold
   (serialize_x509_key_usage `serialize` x.deviceID_attr_ext_key_usage)
 )
 
-let length_of_deviceIDCRI_attributes_extensionRequest_payload
-  (ku: key_usage_payload_t)
-: GTot (nat)
-= length_of_x509_key_usage ku
-
-let len_of_deviceIDCRI_attributes_extensionRequest_payload
-  (ku: key_usage_payload_t)
-: Tot (len: asn1_value_int32_of_type SEQUENCE
-            { v len == length_of_deviceIDCRI_attributes_extensionRequest_payload ku })
-= len_of_x509_key_usage ku
+noextract inline_for_extraction unfold
+[@@ "opaque_to_smt"]
+let len_of_deviceIDCRI_attributes_extensionRequest_payload ()
+: Tot (asn1_value_int32_of_type SEQUENCE)
+= len_of_x509_key_usage ()
 
 val lemma_serialize_deviceIDCRI_attributes_extensionRequest_payload_size
   (x: deviceIDCRI_attributes_extensionRequest_payload_t)
@@ -87,7 +82,7 @@ val lemma_serialize_deviceIDCRI_attributes_extensionRequest_payload_size
   length_of_opaque_serialization serialize_x509_key_usage x.deviceID_attr_ext_key_usage /\
   (* exact size *)
   length_of_opaque_serialization serialize_deviceIDCRI_attributes_extensionRequest_payload x
-  == length_of_deviceIDCRI_attributes_extensionRequest_payload (snd x.deviceID_attr_ext_key_usage)
+  == v (len_of_deviceIDCRI_attributes_extensionRequest_payload ())
 )
 
 (*
@@ -163,25 +158,26 @@ val lemma_serialize_deviceIDCRI_attributes_size
             (x) )
 
 (* length helpers *)
-let length_of_deviceIDCRI_attributes
-  (ku: key_usage_payload_t)
-: GTot (asn1_TLV_length_of_type SEQUENCE)
-= (CUSTOM_TAG CONTEXT_SPECIFIC CONSTRUCTED 0uy `asn1_implicit_tagging` SET) `length_of_TLV`
-  (**) (SEQUENCE `length_of_TLV`
-       (**) (length_of_asn1_primitive_TLV #OID OID_PKCS9_CSR_EXT_REQ +
-       (**)  SET `length_of_TLV`
-            (**) (SEQUENCE `length_of_TLV`
-                 (**) (length_of_deviceIDCRI_attributes_extensionRequest_payload ku))))
+// let length_of_deviceIDCRI_attributes
+//   (ku: key_usage_payload_t)
+// : GTot (asn1_TLV_length_of_type SEQUENCE)
+// = (CUSTOM_TAG CONTEXT_SPECIFIC CONSTRUCTED 0uy `asn1_implicit_tagging` SET) `length_of_TLV`
+//   (**) (SEQUENCE `length_of_TLV`
+//        (**) (length_of_asn1_primitive_TLV #OID OID_PKCS9_CSR_EXT_REQ +
+//        (**)  SET `length_of_TLV`
+//             (**) (SEQUENCE `length_of_TLV`
+//                  (**) (v (len_of_deviceIDCRI_attributes_extensionRequest_payload ())))))
 
-let len_of_deviceIDCRI_attributes
-  (ku: key_usage_payload_t)
+noextract inline_for_extraction unfold
+[@@ "opaque_to_smt"]
+let len_of_deviceIDCRI_attributes ()
 : Tot (asn1_TLV_int32_of_type SEQUENCE)
 = (CUSTOM_TAG CONTEXT_SPECIFIC CONSTRUCTED 0uy `asn1_implicit_tagging` SET) `len_of_TLV`
   (**) (SEQUENCE `len_of_TLV`
        (**) (len_of_asn1_primitive_TLV #OID OID_PKCS9_CSR_EXT_REQ +
        (**)  SET `len_of_TLV`
             (**) (SEQUENCE `len_of_TLV`
-                 (**) (len_of_deviceIDCRI_attributes_extensionRequest_payload ku))))
+                 (**) (len_of_deviceIDCRI_attributes_extensionRequest_payload ()))))
 
 // let deviceIDCRI_attributes_extensionRequest_coerce_remove_outermost_tag
 //   (x: deviceIDCRI_attributes_t)
@@ -207,7 +203,7 @@ val lemma_serialize_deviceIDCRI_attributes_size_exact
                        (**) serialize_deviceIDCRI_attributes_extensionRequest_payload)))
              (x) in
   length_of_opaque_serialization serialize_deviceIDCRI_attributes x
-  == length_of_deviceIDCRI_attributes (snd (snd x').deviceID_attr_ext_key_usage)
+  == v (len_of_deviceIDCRI_attributes ())
 )
 
 (*

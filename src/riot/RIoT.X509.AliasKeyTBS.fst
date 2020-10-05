@@ -249,11 +249,11 @@ let lemma_aliasKeyTBS_ingredients_valid
     serialNumber
     i_common i_org i_country
     s_common s_org s_country
-    ku version
-= lemma_aliasKeyTBS_extensions_ingredients_valid ku version
+    version
+= lemma_aliasKeyTBS_extensions_ingredients_valid version
 
 let lemma_serialize_aliasKeyTBS_payload_size x
-= Classical.forall_intro_2 (lemma_aliasKeyTBS_ingredients_valid
+= Classical.forall_intro (lemma_aliasKeyTBS_ingredients_valid
             (x.aliasKeyTBS_serialNumber)
             (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer.aliasKeyTBS_issuer_Common)
             (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer.aliasKeyTBS_issuer_Organization)
@@ -288,7 +288,6 @@ let lemma_serialize_aliasKeyTBS_size_exact x
           (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Common)
           (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Organization)
           (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Country)
-          (snd x.aliasKeyTBS_extensions.aliasKeyTBS_extensions_key_usage)
           RIoT.X509.Extension.(x.aliasKeyTBS_extensions.aliasKeyTBS_extensions_riot.x509_extValue_riot.riot_version);
   lemma_serialize_aliasKeyTBS_size x;
     lemma_serialize_aliasKeyTBS_payload_size x

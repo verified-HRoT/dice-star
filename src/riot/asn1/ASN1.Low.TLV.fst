@@ -148,9 +148,17 @@ let len_of_TLV
 = 1ul + len_of_asn1_length len + len
 
 /// FIXME: Zhe 10/04
-unfold
-let len_of_TLV2
-  (a: asn1_tag_t)
-  (len: asn1_value_int32_of_type a)
-: Tot (asn1_TLV_int32_of_type a)
-= 1ul + len_of_asn1_length len + len
+// unfold
+// let len_of_TLV2
+//   (a: asn1_tag_t)
+//   (len: asn1_value_int32_of_type a)
+// // : Tot (asn1_TLV_int32_of_type a)
+// =
+//   let y = 1ul + len_of_asn1_length len + len in
+//   let min, max = asn1_TLV_int32_min_of_type a, asn1_TLV_int32_max_of_type a in
+//   assert ( min <= y /\ y <= max );
+//   assert ( not (U32.v y < v min || v max < U32.v y) );
+//   (* Can not prove this one *)
+//   assert ( asn1_int32_inbounds y (v min) (v max) )
+
+// 1ul + len_of_asn1_length len + len

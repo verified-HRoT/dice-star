@@ -63,32 +63,24 @@ val lemma_serialize_deviceIDCRI_payload_unfold
  (serialize_deviceIDCRI_attributes `serialize` x.deviceIDCRI_attributes)
 )
 
-let length_of_deviceIDCRI_payload
-  (version: datatype_of_asn1_type INTEGER)
-  (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
-  (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
-  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-  (ku: key_usage_payload_t)
-: GTot (nat)
-= length_of_asn1_primitive_TLV #INTEGER version +
-  length_of_deviceIDCRI_subject s_common s_org s_country +
-  length_of_subjectPublicKeyInfo +
-  length_of_deviceIDCRI_attributes ku
+let len_of_deviceIDCRI_payload_max ()
+: Tot (asn1_value_int32_of_type SEQUENCE)
+// = len_of_asn1_primitive_TLV #INTEGER version +
+= 6ul +
+  len_of_deviceIDCRI_subject_max () +
+  len_of_subjectPublicKeyInfo +
+  len_of_deviceIDCRI_attributes
 
 let len_of_deviceIDCRI_payload
   (version: datatype_of_asn1_type INTEGER)
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-  (ku: key_usage_payload_t
-       { length_of_deviceIDCRI_payload version s_common s_org s_country ku
-         <= asn1_value_length_max_of_type SEQUENCE })
-: Tot (len: asn1_value_int32_of_type SEQUENCE
-             { v len == length_of_deviceIDCRI_payload version s_common s_org s_country ku })
+: Tot (asn1_value_int32_of_type SEQUENCE)
 = len_of_asn1_primitive_TLV #INTEGER version +
   len_of_deviceIDCRI_subject s_common s_org s_country +
   len_of_subjectPublicKeyInfo +
-  len_of_deviceIDCRI_attributes ku
+  len_of_deviceIDCRI_attributes
 
 val lemma_serialize_deviceIDCRI_payload_size
   (x: deviceIDCRI_payload_t)
@@ -107,12 +99,11 @@ val lemma_serialize_deviceIDCRI_payload_size
   length_of_opaque_serialization (serialize_subjectPublicKeyInfo)     x.deviceIDCRI_subjectPKInfo +
   length_of_opaque_serialization (serialize_deviceIDCRI_attributes)   x.deviceIDCRI_attributes /\
   length_of_opaque_serialization (serialize_deviceIDCRI_payload)      x
-  == length_of_deviceIDCRI_payload
+  == v (len_of_deviceIDCRI_payload
        (x.deviceIDCRI_version)
        (get_RDN_x520_attribute_string x.deviceIDCRI_subject.deviceIDCRI_subject_Common)
        (get_RDN_x520_attribute_string x.deviceIDCRI_subject.deviceIDCRI_subject_Organization)
-       (get_RDN_x520_attribute_string x.deviceIDCRI_subject.deviceIDCRI_subject_Country)
-       (snd (snd attrs').deviceID_attr_ext_key_usage)
+       (get_RDN_x520_attribute_string x.deviceIDCRI_subject.deviceIDCRI_subject_Country))
 )
 
 (*
@@ -143,72 +134,61 @@ val lemma_serialize_deviceIDCRI_size
   (x: deviceIDCRI_t)
 : Lemma ( predicate_serialize_asn1_sequence_TLV_size (serialize_deviceIDCRI_payload) x )
 
-let valid_deviceIDCRI_ingredients
-  (version: datatype_of_asn1_type INTEGER)
-  (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
-  (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
-  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-  (ku: key_usage_payload_t)
-: Type0
-= length_of_deviceIDCRI_payload version s_common s_org s_country ku
-  <= asn1_value_length_max_of_type SEQUENCE
+// let valid_deviceIDCRI_ingredients
+//   (version: datatype_of_asn1_type INTEGER)
+//   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
+//   (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
+//   (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
+//   (ku: key_usage_payload_t)
+// : Type0
+// = v (len_of_deviceIDCRI_payload version s_common s_org s_country)
+//   <= asn1_value_length_max_of_type SEQUENCE
 
-let length_of_deviceIDCRI
-  (version: datatype_of_asn1_type INTEGER)
-  (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
-  (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
-  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-  (ku: key_usage_payload_t
-       { valid_deviceIDCRI_ingredients version s_common s_org s_country ku })
-: GTot (asn1_TLV_length_of_type SEQUENCE)
-= length_of_TLV SEQUENCE (length_of_deviceIDCRI_payload version s_common s_org s_country ku)
+let len_of_deviceIDCRI_max ()
+: Tot (asn1_TLV_int32_of_type SEQUENCE)
+= len_of_TLV SEQUENCE (len_of_deviceIDCRI_payload_max ())
 
 let len_of_deviceIDCRI
   (version: datatype_of_asn1_type INTEGER)
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-  (ku: key_usage_payload_t
-       { valid_deviceIDCRI_ingredients version s_common s_org s_country ku })
 : Tot (len: asn1_TLV_int32_of_type SEQUENCE
-             { v len == length_of_deviceIDCRI version s_common s_org s_country ku })
-= len_of_TLV SEQUENCE (len_of_deviceIDCRI_payload version s_common s_org s_country ku)
+            { v len <= v (len_of_deviceIDCRI_max ()) })
+= len_of_TLV SEQUENCE (len_of_deviceIDCRI_payload version s_common s_org s_country)
 
 val lemma_serialize_deviceIDCRI_size_exact
-  (x: deviceIDCRI_t
-      { let attrs' = coerce_envelop
-                (CUSTOM_TAG CONTEXT_SPECIFIC CONSTRUCTED 0uy `asn1_implicit_tagging` SET)
-                (SEQUENCE)
-                (OID_PKCS9_CSR_EXT_REQ `serialize_envelop_OID_with`
-                (**) (SET `serialize_asn1_envelop_tag_with_TLV`
-                     (**) (SEQUENCE `serialize_asn1_envelop_tag_with_TLV`
-                          (**) serialize_deviceIDCRI_attributes_extensionRequest_payload)))
-                (x.deviceIDCRI_attributes) in
-        let ku: key_usage_payload_t = snd (snd attrs').deviceID_attr_ext_key_usage in
-        valid_deviceIDCRI_ingredients
-         (x.deviceIDCRI_version)
-         (get_RDN_x520_attribute_string x.deviceIDCRI_subject.deviceIDCRI_subject_Common)
-         (get_RDN_x520_attribute_string x.deviceIDCRI_subject.deviceIDCRI_subject_Organization)
-         (get_RDN_x520_attribute_string x.deviceIDCRI_subject.deviceIDCRI_subject_Country)
-         (ku) })
+  (x: deviceIDCRI_t)
+      // { let attrs' = coerce_envelop
+      //           (CUSTOM_TAG CONTEXT_SPECIFIC CONSTRUCTED 0uy `asn1_implicit_tagging` SET)
+      //           (SEQUENCE)
+      //           (OID_PKCS9_CSR_EXT_REQ `serialize_envelop_OID_with`
+      //           (**) (SET `serialize_asn1_envelop_tag_with_TLV`
+      //                (**) (SEQUENCE `serialize_asn1_envelop_tag_with_TLV`
+      //                     (**) serialize_deviceIDCRI_attributes_extensionRequest_payload)))
+      //           (x.deviceIDCRI_attributes) in
+      //   valid_deviceIDCRI_ingredients
+      //    (x.deviceIDCRI_version)
+      //    (get_RDN_x520_attribute_string x.deviceIDCRI_subject.deviceIDCRI_subject_Common)
+      //    (get_RDN_x520_attribute_string x.deviceIDCRI_subject.deviceIDCRI_subject_Organization)
+      //    (get_RDN_x520_attribute_string x.deviceIDCRI_subject.deviceIDCRI_subject_Country)
+      //    (ku) })
 : Lemma (
   let _ = lemma_serialize_deviceIDCRI_size x in
-  let attrs' = coerce_envelop
-                (CUSTOM_TAG CONTEXT_SPECIFIC CONSTRUCTED 0uy `asn1_implicit_tagging` SET)
-                (SEQUENCE)
-                (OID_PKCS9_CSR_EXT_REQ `serialize_envelop_OID_with`
-                (**) (SET `serialize_asn1_envelop_tag_with_TLV`
-                     (**) (SEQUENCE `serialize_asn1_envelop_tag_with_TLV`
-                          (**) serialize_deviceIDCRI_attributes_extensionRequest_payload)))
-                (x.deviceIDCRI_attributes) in
-  let ku: key_usage_payload_t = snd (snd attrs').deviceID_attr_ext_key_usage in
+  // let attrs' = coerce_envelop
+  //               (CUSTOM_TAG CONTEXT_SPECIFIC CONSTRUCTED 0uy `asn1_implicit_tagging` SET)
+  //               (SEQUENCE)
+  //               (OID_PKCS9_CSR_EXT_REQ `serialize_envelop_OID_with`
+  //               (**) (SET `serialize_asn1_envelop_tag_with_TLV`
+  //                    (**) (SEQUENCE `serialize_asn1_envelop_tag_with_TLV`
+  //                         (**) serialize_deviceIDCRI_attributes_extensionRequest_payload)))
+  //               (x.deviceIDCRI_attributes) in
   length_of_opaque_serialization (serialize_deviceIDCRI) x
-  == length_of_deviceIDCRI
+  == v (len_of_deviceIDCRI
          (x.deviceIDCRI_version)
          (get_RDN_x520_attribute_string x.deviceIDCRI_subject.deviceIDCRI_subject_Common)
          (get_RDN_x520_attribute_string x.deviceIDCRI_subject.deviceIDCRI_subject_Organization)
-         (get_RDN_x520_attribute_string x.deviceIDCRI_subject.deviceIDCRI_subject_Country)
-         (ku) )
+         (get_RDN_x520_attribute_string x.deviceIDCRI_subject.deviceIDCRI_subject_Country)) )
 
 (* low *)
 
@@ -225,8 +205,7 @@ let x509_get_deviceIDCRI
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-  (ku: key_usage_payload_t
-       { valid_deviceIDCRI_ingredients version s_common s_org s_country ku })
+  (ku: key_usage_payload_t)
   (deviceIDPub: B32.lbytes32 32ul)
 : Tot (deviceIDCRI_t)
 =
