@@ -178,7 +178,7 @@ let deviceIDCSR_post
     B.as_seq h1 deviceIDCSR_buf == serialize_deviceIDCSR deviceIDCRI_len `serialize` deviceIDCSR
 #pop-options
 
-//AR: TODO: FIXIT
+//AR: TODO: FIXIT, see its use below
 let coerce_sha1_digest_octet_string_to_lbytes_pub
   (x:datatype_of_asn1_type OCTET_STRING{
     dfst x = UInt32.uint_to_t 20})
