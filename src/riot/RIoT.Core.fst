@@ -147,12 +147,10 @@ let deviceIDCSR_post
   (cdi:B.lbuffer byte_sec 32)
   (deviceID_label_len:UInt32.t{valid_hkdf_lbl_len deviceID_label_len})
   (deviceID_label:B.lbuffer byte_sec (v deviceID_label_len))
-  (deviceIDCSR_ingredients:deviceIDCSR_ingredients_t{
-    valid_deviceIDCRI_ingredients
-      deviceIDCSR_ingredients.deviceIDCSR_version deviceIDCSR_ingredients.deviceIDCSR_s_common
-      deviceIDCSR_ingredients.deviceIDCSR_s_org deviceIDCSR_ingredients.deviceIDCSR_s_country
-      deviceIDCSR_ingredients.deviceIDCSR_ku})
-  (deviceIDCSR_len:UInt32.t)
+  (deviceIDCSR_ingredients:deviceIDCSR_ingredients_t)
+  (deviceIDCSR_len:UInt32.t{
+    deviceIDCRI_pre deviceIDCSR_ingredients /\
+    deviceIDCSR_pre deviceIDCSR_ingredients deviceIDCSR_len})
   (deviceIDCSR_buf:B.lbuffer byte_pub (v deviceIDCSR_len))
   (h0 h1:HS.mem)
   = let deviceID_pub_seq, deviceID_priv_seq = derive_DeviceID_spec
@@ -173,7 +171,6 @@ let deviceIDCSR_post
         deviceIDCSR_ingredients.deviceIDCSR_ku) in
       
     let (* Prf *) _ = lemma_serialize_deviceIDCRI_size_exact deviceIDCRI in  //AR: TODO: This takes long time
-    assume (valid_deviceIDCSR_ingredients deviceIDCRI_len);  //AR: TODO: should come from pre, add to refinement
     let deviceIDCSR: deviceIDCSR_t deviceIDCRI_len = sign_and_finalize_deviceIDCSR_spec
                                                                 (deviceID_priv_seq)
                                                                 (deviceIDCRI_len)
@@ -181,13 +178,74 @@ let deviceIDCSR_post
     B.as_seq h1 deviceIDCSR_buf == serialize_deviceIDCSR deviceIDCRI_len `serialize` deviceIDCSR
 #pop-options
 
-#set-options "--admit_smt_queries true"  //AR: TODO: until here
+//AR: TODO: FIXIT
+let coerce_sha1_digest_octet_string_to_lbytes_pub
+  (x:datatype_of_asn1_type OCTET_STRING{
+    dfst x = UInt32.uint_to_t 20})
+  : lbytes_pub 20 = admit ()
+
+unfold noextract
+let coerce_asn1_int32_to_size_t (x:asn1_int32) : size_t = x
+
+#push-options "--z3rlimit 100"
+let aliasKeyCRT_post
+  (cdi:B.lbuffer byte_sec 32)
+  (fwid: B.lbuffer byte_sec 32)
+  (deviceID_label_len:UInt32.t{valid_hkdf_lbl_len deviceID_label_len})
+  (deviceID_label:B.lbuffer byte_sec (v deviceID_label_len))
+  (aliasKeyCRT_ingredients:aliasKeyCRT_ingredients_t)
+  (aliasKeyCRT_len:UInt32.t{
+    aliasKeyCRT_pre aliasKeyCRT_ingredients aliasKeyCRT_len})
+  (aliasKeyCRT_buf: B.lbuffer byte_pub (v aliasKeyCRT_len))
+  (aliasKey_pub: B.lbuffer byte_pub 32)
+  (h0 h1:HS.mem)
+  = let deviceID_pub_seq, deviceID_priv_seq = derive_DeviceID_spec
+                                                 (B.as_seq h0 cdi)
+                                                 (deviceID_label_len)
+                                                 (B.as_seq h0 deviceID_label) in
+    let aliasKeyCrt_keyID_seq: lbytes_pub 20 =
+     derive_authKeyID_from_cdi_spec (B.as_seq h0 cdi) (deviceID_label_len) (B.as_seq h0 deviceID_label) in
+    let aliasKeyCrt_keyID = sha1_digest_to_octet_string_spec aliasKeyCrt_keyID_seq in
+    let aliasKeyTBS = create_aliasKeyTBS_spec
+      aliasKeyCRT_ingredients.aliasKeyCrt_version
+      aliasKeyCRT_ingredients.aliasKeyCrt_serialNumber
+      aliasKeyCRT_ingredients.aliasKeyCrt_i_common
+      aliasKeyCRT_ingredients.aliasKeyCrt_i_org
+      aliasKeyCRT_ingredients.aliasKeyCrt_i_country
+      aliasKeyCRT_ingredients.aliasKeyCrt_notBefore
+      aliasKeyCRT_ingredients.aliasKeyCrt_notAfter
+      aliasKeyCRT_ingredients.aliasKeyCrt_s_common
+      aliasKeyCRT_ingredients.aliasKeyCrt_s_org
+      aliasKeyCRT_ingredients.aliasKeyCrt_s_country
+      aliasKeyCRT_ingredients.aliasKeyCrt_ku
+      (coerce_sha1_digest_octet_string_to_lbytes_pub aliasKeyCrt_keyID)  //TODO: this seems a bug, aliasKeyCrt_keyID has type datatype_of_asn1_type OCTET_STRING, we require a lbytes_pub
+      aliasKeyCRT_ingredients.aliasKeyCrt_riot_version
+      (B.as_seq h0 fwid)
+      deviceID_pub_seq
+      (B.as_seq h1 aliasKey_pub) in
+     let aliasKeyTBS_seq = serialize_aliasKeyTBS `serialize` aliasKeyTBS in
+     let aliasKeyTBS_len = coerce_asn1_tlv_int32_of_type_to_asn1_int32
+       (len_of_aliasKeyTBS
+         aliasKeyCRT_ingredients.aliasKeyCrt_serialNumber
+         aliasKeyCRT_ingredients.aliasKeyCrt_i_common
+         aliasKeyCRT_ingredients.aliasKeyCrt_i_org
+         aliasKeyCRT_ingredients.aliasKeyCrt_i_country
+         aliasKeyCRT_ingredients.aliasKeyCrt_s_common
+         aliasKeyCRT_ingredients.aliasKeyCrt_s_org
+         aliasKeyCRT_ingredients.aliasKeyCrt_s_country
+         aliasKeyCRT_ingredients.aliasKeyCrt_ku
+         aliasKeyCRT_ingredients.aliasKeyCrt_riot_version) in
+     let (* Prf *) _ = lemma_serialize_aliasKeyTBS_size_exact aliasKeyTBS in
+     assume (Seq.length aliasKeyTBS_seq == v aliasKeyTBS_len); //TODO: help Z3 prove it
+     let aliasKeyCRT: aliasKeyCRT_t aliasKeyTBS_len = sign_and_finalize_aliasKeyCRT_spec
+                                                                (deviceID_priv_seq)
+                                                                (aliasKeyTBS_len)
+                                                                (aliasKeyTBS_seq) in
+     B.as_seq h1 aliasKeyCRT_buf == serialize_aliasKeyCRT aliasKeyTBS_len `serialize` aliasKeyCRT
+
 
 #restart-solver
 let riot_post
-  (h0: HS.mem)
-  (r: unit)
-  (h1: HS.mem)
 (* Common Inputs *)
   (cdi : B.lbuffer byte_sec 32)
   (fwid: B.lbuffer byte_sec 32)
@@ -196,114 +254,38 @@ let riot_post
   (aliasKey_label_len: size_t)
   (aliasKey_label: B.lbuffer byte_sec (v aliasKey_label_len))
 (* DeviceID CSR Inputs*)
-  (deviceIDCSR_ku: key_usage_payload_t)
-  (deviceIDCSR_version: datatype_of_asn1_type INTEGER)
-  (deviceIDCSR_s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
-  (deviceIDCSR_s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
-  (deviceIDCSR_s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
+  (deviceIDCSR_ingredients:deviceIDCSR_ingredients_t)
 (* AliasKey Crt Inputs*)
-  (aliasKeyCrt_version: x509_version_t)
-  (aliasKeyCrt_serialNumber: x509_serialNumber_t)
-  (aliasKeyCrt_i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
-  (aliasKeyCrt_i_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
-  (aliasKeyCrt_i_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-  (aliasKeyCrt_notBefore: datatype_of_asn1_type Generalized_Time)
-  (aliasKeyCrt_notAfter : datatype_of_asn1_type Generalized_Time)
-  (aliasKeyCrt_s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
-  (aliasKeyCrt_s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
-  (aliasKeyCrt_s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-  (aliasKeyCrt_ku: key_usage_payload_t)
-  (riot_version: datatype_of_asn1_type INTEGER)
+  (aliasKeyCRT_ingredients:aliasKeyCRT_ingredients_t)
 (* Common Outputs *)
   (aliasKey_pub: B.lbuffer byte_pub 32)
   (aliasKey_priv: B.lbuffer uint8 32)
 (* DeviceID CSR Outputs *)
-  (deviceIDCSR_len: size_t)
+  (deviceIDCSR_len: UInt32.t)
   (deviceIDCSR_buf: B.lbuffer byte_pub (v deviceIDCSR_len))
 (* AliasKey Crt Outputs *)
-  (aliasKeyCRT_len: size_t)
-  (aliasKeyCRT_buf: B.lbuffer byte_pub (v aliasKeyCRT_len)
-                    { riot_pre
-                        (h0)
-                        (cdi)
-                        (fwid)
-                        (deviceID_label_len) (deviceID_label)
-                        (aliasKey_label_len) (aliasKey_label)
-                        (deviceIDCSR_ku)
-                        (deviceIDCSR_version)
-                        (deviceIDCSR_s_common) (deviceIDCSR_s_org) (deviceIDCSR_s_country)
-                        (aliasKeyCrt_version)
-                        (aliasKeyCrt_serialNumber)
-                        (aliasKeyCrt_i_common) (aliasKeyCrt_i_org) (aliasKeyCrt_i_country)
-                        (aliasKeyCrt_notBefore) (aliasKeyCrt_notAfter)
-                        (aliasKeyCrt_s_common) (aliasKeyCrt_s_org) (aliasKeyCrt_s_country)
-                        (aliasKeyCrt_ku)
-                        (riot_version)
-                        (aliasKey_pub)
-                        (aliasKey_priv)
-                        (deviceIDCSR_len) (deviceIDCSR_buf)
-                        (aliasKeyCRT_len) (aliasKeyCRT_buf) })
-: Type0
-=   (* Post: Modifies *)
-     B.(modifies (loc_buffer deviceIDCSR_buf `loc_union`
-                  loc_buffer aliasKeyCRT_buf `loc_union`
-                  loc_buffer aliasKey_pub    `loc_union`
-                  loc_buffer aliasKey_priv ) h0 h1) /\
-    (* Post: AliasKey *)
+  (aliasKeyCRT_len: UInt32.t)
+  (aliasKeyCRT_buf: B.lbuffer byte_pub (v aliasKeyCRT_len))
+  (h0:HS.mem{
+    riot_pre h0 cdi fwid deviceID_label_len deviceID_label
+    aliasKey_label_len aliasKey_label deviceIDCSR_ingredients
+    aliasKeyCRT_ingredients aliasKey_pub aliasKey_priv
+    deviceIDCSR_len deviceIDCSR_buf
+    aliasKeyCRT_len aliasKeyCRT_buf})
+  (h1:HS.mem) 
+  : Type0
+  = B.(modifies (loc_buffer deviceIDCSR_buf `loc_union`
+                 loc_buffer aliasKeyCRT_buf `loc_union`
+                 loc_buffer aliasKey_pub    `loc_union`
+                 loc_buffer aliasKey_priv ) h0 h1) /\
+
     aliasKey_post cdi fwid aliasKey_label_len aliasKey_label aliasKey_pub aliasKey_priv h0 h1 /\
-    (* Post: AliasKeyCRT *)
-    (let deviceID_pub_seq, deviceID_priv_seq = derive_DeviceID_spec
-                                                 (B.as_seq h0 cdi)
-                                                 (deviceID_label_len)
-                                                 (B.as_seq h0 deviceID_label) in
-     let aliasKeyCrt_keyID_seq: lbytes_pub 20 =
-       derive_authKeyID_from_cdi_spec (B.as_seq h0 cdi) (deviceID_label_len) (B.as_seq h0 deviceID_label) in
-     let aliasKeyCrt_keyID = sha1_digest_to_octet_string_spec aliasKeyCrt_keyID_seq in
-     let deviceIDCRI: deviceIDCRI_t = create_deviceIDCRI_spec
-                                                                         (deviceIDCSR_version)
-                                                                         (deviceIDCSR_s_common)
-                                                                         (deviceIDCSR_s_org)
-                                                                         (deviceIDCSR_s_country)
-                                                                         (deviceIDCSR_ku)
-                                                                         (deviceID_pub_seq)
-                                                                         in
-     let deviceIDCRI_seq = serialize_deviceIDCRI `serialize` deviceIDCRI in
-     let deviceIDCRI_len = len_of_deviceIDCRI
-                             deviceIDCSR_version
-                             deviceIDCSR_s_common deviceIDCSR_s_org deviceIDCSR_s_country
-                             deviceIDCSR_ku in
-     let (* Prf *) _ = lemma_serialize_deviceIDCRI_size_exact deviceIDCRI in
-     let deviceIDCSR: deviceIDCSR_t deviceIDCRI_len = sign_and_finalize_deviceIDCSR_spec
-                                                                (deviceID_priv_seq)
-                                                                (deviceIDCRI_len)
-                                                                (deviceIDCRI_seq) in
-     let aliasKeyTBS = create_aliasKeyTBS_spec
-                                        (aliasKeyCrt_version)
-                                        (aliasKeyCrt_serialNumber)
-                                        (aliasKeyCrt_i_common) (aliasKeyCrt_i_org) (aliasKeyCrt_i_country)
-                                        (aliasKeyCrt_notBefore) (aliasKeyCrt_notAfter)
-                                        (aliasKeyCrt_s_common) (aliasKeyCrt_s_org) (aliasKeyCrt_s_country)
-                                        (aliasKeyCrt_ku)
-                                        (aliasKeyCrt_keyID)
-                                        (riot_version)
-                                        (B.as_seq h0 fwid)
-                                        (deviceID_pub_seq)
-                                        (B.as_seq h1 aliasKey_pub)
-                                        in
-     let aliasKeyTBS_seq = serialize_aliasKeyTBS `serialize` aliasKeyTBS in
-     let aliasKeyTBS_len = len_of_aliasKeyTBS
-                            aliasKeyCrt_serialNumber
-                            aliasKeyCrt_i_common aliasKeyCrt_i_org aliasKeyCrt_i_country
-                            aliasKeyCrt_s_common aliasKeyCrt_s_org aliasKeyCrt_s_country
-                            aliasKeyCrt_ku
-                            riot_version in
-     let (* Prf *) _ = lemma_serialize_aliasKeyTBS_size_exact aliasKeyTBS in
-     let aliasKeyCRT: aliasKeyCRT_t aliasKeyTBS_len = sign_and_finalize_aliasKeyCRT_spec
-                                                                (deviceID_priv_seq)
-                                                                (aliasKeyTBS_len)
-                                                                (aliasKeyTBS_seq) in
-     B.as_seq h1 deviceIDCSR_buf == serialize_deviceIDCSR deviceIDCRI_len `serialize` deviceIDCSR /\
-     B.as_seq h1 aliasKeyCRT_buf == serialize_aliasKeyCRT aliasKeyTBS_len `serialize` aliasKeyCRT)
+    
+    deviceIDCSR_post cdi deviceID_label_len deviceID_label
+      deviceIDCSR_ingredients deviceIDCSR_len deviceIDCSR_buf h0 h1 /\
+    
+    aliasKeyCRT_post cdi fwid deviceID_label_len deviceID_label
+      aliasKeyCRT_ingredients aliasKeyCRT_len aliasKeyCRT_buf aliasKey_pub h0 h1
 
 #restart-solver
 let riot
