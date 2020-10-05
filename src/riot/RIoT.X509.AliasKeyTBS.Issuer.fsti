@@ -109,8 +109,8 @@ let serialize_aliasKeyTBS_issuer
           (**) (serialize_aliasKeyTBS_issuer_payload))
   (*prf*) ()
 
-// unfold
-// [@@ "opaque_to_smt"]
+noextract unfold
+[@@ "opaque_to_smt"]
 let len_of_aliasKeyTBS_issuer_max ()
 : Tot (asn1_TLV_int32_of_type SEQUENCE)
 = SEQUENCE `len_of_TLV`

@@ -10,6 +10,7 @@ open LowParse.Spec.DER
 
 open FStar.Integers
 
+module U32 = FStar.UInt32
 module B32 = FStar.Bytes
 
 unfold
@@ -24,17 +25,25 @@ let big_integer_as_octet_string_t
       ( v (dfst x) <= asn1_length_max - 7 )
       else ( True ) ) }
 
+unfold
+[@@ "opaque_to_smt"]
 let asn1_value_length_of_big_integer
 = l: asn1_length_t { 1 <= l /\ l <= asn1_length_max - 6}
 
+unfold
+[@@ "opaque_to_smt"]
 let asn1_value_int32_of_big_integer
-= LowParse.Spec.BoundedInt.bounded_int32 1 (asn1_length_max - 6)
+= n: U32.t {asn1_int32_inbounds 1 (asn1_length_max - 6) n}
 
+unfold
+[@@ "opaque_to_smt"]
 let asn1_TLV_length_of_big_integer
 = l: asn1_length_t { 3 <= l /\ l <= asn1_length_max }
 
+unfold
+[@@ "opaque_to_smt"]
 let asn1_TLV_int32_of_big_integer
-= LowParse.Spec.BoundedInt.bounded_int32 3 asn1_length_max
+= n: U32.t {asn1_int32_inbounds 3 asn1_length_max n}
 
 unfold
 let valid_big_integer_as_octet_string_prop
@@ -115,11 +124,16 @@ let parse_asn1_length_kind_of_big_integer
 
 let parse_asn1_length_of_big_integer
 : parser parse_asn1_length_kind_of_big_integer asn1_value_int32_of_big_integer
-= parse_asn1_length_of_bound 1 (asn1_length_max - 6)
+= assert_norm (bounded_int32 1 (asn1_length_max - 6) == asn1_value_int32_of_big_integer);
+  _
+  `coerce_parser`
+  parse_asn1_length_of_bound 1 (asn1_length_max - 6)
 
 let serialize_asn1_length_of_big_integer
 : serializer (parse_asn1_length_of_big_integer)
 = serialize_asn1_length_of_bound 1 (asn1_length_max - 6)
+  `coerce_parser_serializer _`
+  (assert_norm (bounded_int32 1 (asn1_length_max - 6) == asn1_value_int32_of_big_integer))
 
 let weak_kind_of_big_integer
 = strong_parser_kind 1 (asn1_length_max - 6) None

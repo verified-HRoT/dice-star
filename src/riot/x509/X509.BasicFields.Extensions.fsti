@@ -66,11 +66,15 @@ val lemma_serialize_x509_extensions_TLV_size
   (x: x509_extensions_t_inbound s)
 : Lemma ( predicate_serialize_asn1_envelop_tag_with_TLV_size x509_extensions_outmost_explicit_tag s x )
 
+unfold
+[@@ "opaque_to_smt"]
 let length_of_x509_extensions
   (l: asn1_value_length_of_type x509_extensions_outmost_explicit_tag)
 : GTot (asn1_TLV_length_of_type x509_extensions_outmost_explicit_tag)
 = length_of_TLV x509_extensions_outmost_explicit_tag l
 
+noextract inline_for_extraction unfold
+[@@ "opaque_to_smt"]
 let len_of_x509_extensions
   (len_payload: asn1_value_int32_of_type x509_extensions_outmost_explicit_tag)
 : Tot (len: asn1_TLV_int32_of_type x509_extensions_outmost_explicit_tag

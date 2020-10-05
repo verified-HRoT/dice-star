@@ -8,7 +8,7 @@ module U8  = FStar.UInt8
 module U32 = FStar.UInt32
 module Cast = FStar.Int.Cast
 
-#set-options "--z3rlimit 32 --fuel 0 --ifuel 0"
+#set-options "--z3rlimit 32 --fuel 0 --ifuel 1"
 
 /// ASN1 length parser, based on `LowParse.Spec.DER`
 
@@ -87,7 +87,8 @@ let lemma_serialize_asn1_length_size
 = lemma_serialize_asn1_length_of_bound_size asn1_length_min asn1_length_max
 
 (* ZT: Exposing this definition. *)
-noextract
+noextract unfold
+[@@ "opaque_to_smt"]
 let length_of_asn1_length
   (len: asn1_int32)
 : GTot (length: asn1_length_t

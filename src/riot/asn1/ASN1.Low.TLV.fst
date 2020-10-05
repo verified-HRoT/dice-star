@@ -146,3 +146,11 @@ let len_of_TLV
 : Tot (out: asn1_TLV_int32_of_type a
             { v out == length_of_TLV a (v len) })
 = 1ul + len_of_asn1_length len + len
+
+/// FIXME: Zhe 10/04
+unfold
+let len_of_TLV2
+  (a: asn1_tag_t)
+  (len: asn1_value_int32_of_type a)
+: Tot (asn1_TLV_int32_of_type a)
+= 1ul + len_of_asn1_length len + len

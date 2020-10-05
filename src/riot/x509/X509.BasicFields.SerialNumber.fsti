@@ -69,7 +69,7 @@ val lemma_serialize_x509_serialNumber_unfold
 noextract unfold [@@ "opaque_to_smt"]
 let len_of_x509_serialNumber_max = 23ul
 
-let lemma_serialize_x509_serialNumber_size
+val lemma_serialize_x509_serialNumber_size
   (x: x509_serialNumber_t)
 : Lemma (
   length_of_opaque_serialization serialize_x509_serialNumber x ==
@@ -77,10 +77,6 @@ let lemma_serialize_x509_serialNumber_size
   length_of_opaque_serialization serialize_x509_serialNumber x
   <= v (len_of_x509_serialNumber_max)
 )
-= lemma_serialize_x509_serialNumber_unfold x;
-  lemma_serialize_big_integer_as_octet_string_TLV_unfold x;
-  lemma_serialize_big_integer_as_octet_string_TLV_size x
-
 let len_of_x509_serialNumber
   (x: x509_serialNumber_t)
 : Tot (len: asn1_value_int32_of_big_integer

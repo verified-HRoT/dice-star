@@ -40,6 +40,8 @@ let length_of_aliasKeyTBS_extensions_basicConstraints ()
 : GTot (asn1_TLV_length_of_type SEQUENCE)
 = length_of_x509_basicConstraints aliasKeyTBS_extensions_basicConstraints_isCA
 
+noextract inline_for_extraction unfold
+[@@ "opaque_to_smt"]
 let len_of_aliasKeyTBS_extensions_basicConstraints ()
 : Tot (len: asn1_TLV_int32_of_type SEQUENCE
             { v len == length_of_aliasKeyTBS_extensions_basicConstraints () })

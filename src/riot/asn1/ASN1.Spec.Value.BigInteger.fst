@@ -366,7 +366,7 @@ let lemma_serialize_big_integer_as_octet_string_TLV_size
   (value: big_integer_as_octet_string_t)
 : Lemma (
   Seq.length (serialize serialize_big_integer_as_octet_string_TLV value) ==
-  length_of_big_integer_as_octet_string value
+  v (len_of_big_integer_as_octet_string_TLV value)
 )
 = let tg = parser_tag_of_big_integer_as_octet_string value in
   lemma_serialize_asn1_tag_of_type_size INTEGER INTEGER;

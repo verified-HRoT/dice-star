@@ -1,6 +1,7 @@
 module ASN1.Base
 open FStar.Integers
 
+module U32 = FStar.UInt32
 module B32 = FStar.Bytes
 
 let (.[]) = FStar.Seq.index
@@ -71,15 +72,18 @@ let asn1_implicit_tagging
 /////      bounded mathematical integers for ASN1 value lengths
 ///// Defines the valid length/size of a ASN1 DER values
 ///////////////////////////////////////////////////////////////////////////
-let asn1_length_t = n: nat //{within_bounds (Unsigned W32) n}
+unfold
+let asn1_length_t = nat //{within_bounds (Unsigned W32) n}
 
-inline_for_extraction noextract
+inline_for_extraction noextract unfold
 let asn1_length_min (*: n: asn1_length_t {forall (n':asn1_length_t). n <= n'}*) = 0
-inline_for_extraction noextract
+inline_for_extraction noextract unfold
 let asn1_length_max (*: n: asn1_length_t {forall (n':asn1_length_t). n >= n'}*) = 4294967295
-inline_for_extraction noextract
+inline_for_extraction noextract unfold
 let asn1_length_inbound (x: nat) (min max: asn1_length_t): bool
 = min <= x && x <= max
+// unfold
+// let asn1_length_inbound_t = n: asn1_length_t { asn1_length_inbound n asn1_length_min asn1_length_max }
 
 (* Defining the min and max length of the serialization of ASN1 _value_, not Tag-Len-Value tuples. Note
    that a ASN1 tag always take 1 byte to serialize, a ASN1 length (of value) at most take 5 bytes to
@@ -93,7 +97,8 @@ let asn1_length_inbound (x: nat) (min max: asn1_length_t): bool
    6. BIT_STRING value could take arbitrary greater-than-zero valid ASN1 value length/size of bytes, since
       it always take one byte to store the `unused_bits`, see `ASN1.Spec.Value.BIT_STRING` for details;
    7. SEQUENCE value could take arbitrary valid ASN1 value length/size of bytes. *)
-inline_for_extraction noextract
+inline_for_extraction noextract unfold
+[@@ "opaque_to_smt"]
 let asn1_value_length_min_of_type
   (a: asn1_tag_t)
 : asn1_length_t
@@ -111,7 +116,8 @@ let asn1_value_length_min_of_type
   | SET          -> asn1_length_min   (* An empty `SET` has length 0. *)
   | CUSTOM_TAG _ _ _ -> asn1_length_min
 
-inline_for_extraction noextract
+inline_for_extraction noextract unfold
+[@@ "opaque_to_smt"]
 let asn1_value_length_max_of_type
   (a: asn1_tag_t)
 : asn1_length_t
@@ -130,7 +136,8 @@ let asn1_value_length_max_of_type
   | CUSTOM_TAG _ _ _ -> asn1_length_max - 6
 
 /// Helper to assert a length `l` is a valid ASN1 value length of the given type `a`
-noextract
+noextract unfold
+[@@ "opaque_to_smt"]
 let asn1_value_length_inbound_of_type
   (a: asn1_tag_t) (l: nat)
 : bool
@@ -138,7 +145,8 @@ let asn1_value_length_inbound_of_type
   asn1_length_inbound l min max
 
 /// Valid ASN1 Value length subtype for a given type`a`
-noextract
+noextract unfold
+[@@ "opaque_to_smt"]
 let asn1_value_length_of_type
   (a: asn1_tag_t)
 = l: asn1_length_t {asn1_value_length_inbound_of_type a l}
@@ -151,7 +159,8 @@ let asn1_value_length_of_type
 (* NOTE: The valid TLV length range of a ASN1 type is its valid value length
          range plus the corresponding Tag-Length length.
 *)
-noextract
+noextract unfold
+[@@ "opaque_to_smt"]
 let asn1_TLV_length_min_of_type
   (a: asn1_tag_t)
 : asn1_length_t
@@ -169,7 +178,8 @@ let asn1_TLV_length_min_of_type
   | SET          -> 2 (*  1 + 1 + 0  *)
   | CUSTOM_TAG _ _ _ -> 2
 
-noextract
+noextract unfold
+[@@ "opaque_to_smt"]
 let asn1_TLV_length_max_of_type
   (a: asn1_tag_t)
 : asn1_length_t
@@ -188,7 +198,8 @@ let asn1_TLV_length_max_of_type
   | CUSTOM_TAG _ _ _ -> asn1_length_max
 
 /// Helper to assert a length `l` is a valid ASN1 TLV length of the given type `a`
-noextract
+noextract unfold
+[@@ "opaque_to_smt"]
 let asn1_TLV_length_inbound_of_type
   (a: asn1_tag_t) (x: nat)
 : bool
@@ -196,7 +207,8 @@ let asn1_TLV_length_inbound_of_type
   asn1_length_inbound x min max
 
 /// Valid ASN1 TLV length subtype for a given type`a`
-noextract
+noextract unfold
+[@@ "opaque_to_smt"]
 let asn1_TLV_length_of_type
   (a: asn1_tag_t)
 = l: asn1_length_t {asn1_TLV_length_inbound_of_type a l}
@@ -208,15 +220,29 @@ let asn1_TLV_length_of_type
 ///// Defines the valid length/size of a ASN1 DER Tag-Length-Value tuple
 ////  Same as above, specified using the above definitions
 ///////////////////////////////////////////////////////////////////////////
-inline_for_extraction
-let asn1_int32 = LowParse.Spec.BoundedInt.bounded_int32 asn1_length_min asn1_length_max
-inline_for_extraction
+unfold
+[@@ "opaque_to_smt"]
+let asn1_int32_inbounds
+  (min: nat)
+  (max: nat)
+  (x: U32.t)
+: GTot bool
+= not (U32.v x < min || max < U32.v x)
+
+inline_for_extraction unfold
+[@@ "opaque_to_smt"]
+// let asn1_int32 = LowParse.Spec.BoundedInt.bounded_int32 asn1_length_min asn1_length_max
+let asn1_int32 = n: U32.t { asn1_int32_inbounds asn1_length_min asn1_length_max n }
+inline_for_extraction unfold
+[@@ "opaque_to_smt"]
 let asn1_int32_min: i: asn1_int32 {forall (i': asn1_int32). i <= i'} = 0ul
-inline_for_extraction
+inline_for_extraction unfold
+[@@ "opaque_to_smt"]
 let asn1_int32_max: i: asn1_int32 {forall (i': asn1_int32). i >= i'} = 4294967295ul
 
 (* Defining the min and max machine len of the serialization of _value_s *)
-inline_for_extraction
+inline_for_extraction unfold
+[@@ "opaque_to_smt"]
 let asn1_value_int32_min_of_type
   (a: asn1_tag_t)
 : Tot (n: asn1_int32 {v n == asn1_value_length_min_of_type a})
@@ -234,9 +260,10 @@ let asn1_value_int32_min_of_type
   | SET          -> asn1_int32_min
   | CUSTOM_TAG _ _ _ -> asn1_int32_min
 
-inline_for_extraction
+inline_for_extraction unfold
+[@@ "opaque_to_smt"]
 let asn1_value_int32_max_of_type
-  (a: asn1_type)
+  (a: asn1_tag_t)
 : Tot (n: asn1_int32 {v n == asn1_value_length_max_of_type a})
 = match a with
   | BOOLEAN      -> 1ul
@@ -253,14 +280,16 @@ let asn1_value_int32_max_of_type
   | CUSTOM_TAG _ _ _ -> asn1_int32_max - 6ul
 
 /// Valid ASN1 Value len subtype for a given type`a`
-inline_for_extraction
+inline_for_extraction unfold
+[@@ "opaque_to_smt"]
 let asn1_value_int32_of_type
   (_a: asn1_tag_t)
 = [@inline_let]
   let min = asn1_value_length_min_of_type _a in
   [@inline_let]
   let max = asn1_value_length_max_of_type _a in
-  LowParse.Spec.BoundedInt.bounded_int32 min max
+  // LowParse.Spec.BoundedInt.bounded_int32 min max
+  n: U32.t { asn1_int32_inbounds min max n }
 
 
 ///////////////////////////////////////////////////////////////////////////
@@ -268,6 +297,8 @@ let asn1_value_int32_of_type
 ///// Defines the valid length/size of a ASN1 DER Tag-Length-Value tuple
 ////  Same as the mathematical version above, specified using the above definitions
 ///////////////////////////////////////////////////////////////////////////
+unfold
+[@@ "opaque_to_smt"]
 let asn1_TLV_int32_min_of_type
   (a: asn1_tag_t)
 : Tot (n: asn1_int32 {v n == asn1_TLV_length_min_of_type a})
@@ -285,6 +316,8 @@ let asn1_TLV_int32_min_of_type
   | SET          -> 2ul
   | CUSTOM_TAG _ _ _ -> 2ul
 
+unfold
+[@@ "opaque_to_smt"]
 let asn1_TLV_int32_max_of_type
   (a: asn1_tag_t)
 : Tot (n: asn1_int32 {v n == asn1_TLV_length_max_of_type a})
@@ -303,10 +336,13 @@ let asn1_TLV_int32_max_of_type
   | CUSTOM_TAG _ _ _ -> asn1_int32_max
 
 /// Valid ASN1 TLV len subtype for a given type`a`
+unfold
+[@@ "opaque_to_smt"]
 let asn1_TLV_int32_of_type
   (_a: asn1_tag_t)
 = let min, max = asn1_TLV_length_min_of_type _a, asn1_TLV_length_max_of_type _a in
-  LowParse.Spec.BoundedInt.bounded_int32 min max
+  // LowParse.Spec.BoundedInt.bounded_int32 min max
+  n: U32.t { asn1_int32_inbounds min max n }
 
 //////////////////////////////////////////////////////////////////////
 /// A weak parser kind (for ASN1 variable-length values) generator. They

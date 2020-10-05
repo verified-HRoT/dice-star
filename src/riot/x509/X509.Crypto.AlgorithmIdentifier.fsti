@@ -105,6 +105,8 @@ val lemma_serialize_algorithmIdentifier_size
   (x: algorithmIdentifier_t)
 : Lemma ( predicate_serialize_asn1_sequence_TLV_size (serialize_algorithmIdentifier_payload) x )
 
+noextract unfold
+[@@ "opaque_to_smt"]
 let len_of_algorithmIdentifier ()
 : Tot (asn1_TLV_int32_of_type SEQUENCE)
 = len_of_TLV SEQUENCE (len_of_algorithmIdentifier_payload ())

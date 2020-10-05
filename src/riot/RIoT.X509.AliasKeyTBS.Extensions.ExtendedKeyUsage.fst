@@ -66,7 +66,8 @@ let length_of_aliasKeyTBS_extensions_extendedKeyUsage ()
 = length_of_x509_ext_key_usage aliasKeyCrt_extendedKeyUsage_oids
 #pop-options
 
-[@@T.postprocess_with (postprocess_x509_keyPurposeIDs (`%aliasKeyCrt_extendedKeyUsage_oids))]
+noextract inline_for_extraction unfold
+[@@ "opaque_to_smt"; T.postprocess_with (postprocess_x509_keyPurposeIDs (`%aliasKeyCrt_extendedKeyUsage_oids))]
 let len_of_aliasKeyTBS_extensions_extendedKeyUsage ()
 : Tot (len: asn1_TLV_int32_of_type SEQUENCE
             { v len == length_of_aliasKeyTBS_extensions_extendedKeyUsage () })

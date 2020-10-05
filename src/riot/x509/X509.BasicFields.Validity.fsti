@@ -123,11 +123,14 @@ val lemma_serialize_x509_validity_size
   (x: x509_validity_t)
 : Lemma ( predicate_serialize_asn1_sequence_TLV_size serialize_x509_validity_payload x )
 
+noextract unfold
+[@@ "opaque_to_smt"]
 let length_of_x509_validity ()
 : GTot (asn1_TLV_length_of_type SEQUENCE)
 = 36
 
-noextract inline_for_extraction
+noextract inline_for_extraction unfold
+[@@ "opaque_to_smt"]
 let len_of_x509_validity ()
 : Tot (len: asn1_TLV_int32_of_type SEQUENCE
             { v len == length_of_x509_validity () })

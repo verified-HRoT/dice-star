@@ -18,7 +18,7 @@ open FStar.Integers
 
 friend ASN1.Spec.Length
 
-#reset-options "--max_fuel 0 --max_ifuel 0"
+#reset-options "--fuel 0 --ifuel 1"
 
 // #push-options "--z3rlimit 16"
 // let len_of_asn1_length len

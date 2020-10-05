@@ -157,6 +157,8 @@ val lemma_serialize_x509_key_usage_size
              _serialize_x509_key_usage_payload))
             x )
 
+noextract inline_for_extraction unfold
+[@@ "opaque_to_smt"]
 let len_of_x509_key_usage ()
 : Tot (asn1_TLV_int32_of_type SEQUENCE)
 // = len_of_TLV

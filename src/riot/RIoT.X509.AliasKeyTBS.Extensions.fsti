@@ -106,6 +106,8 @@ val lemma_aliasKeyTBS_extensions_payload_ingredients_valid
   valid_aliasKeyTBS_extensions_payload_ingredients version
 )
 
+noextract inline_for_extraction unfold
+[@@ "opaque_to_smt"]
 let len_of_aliasKeyTBS_extensions_payload_max ()
 : Tot (asn1_value_int32_of_type SEQUENCE)
 = len_of_x509_key_usage () +
@@ -213,6 +215,8 @@ val lemma_aliasKeyTBS_extensions_valid
   valid_aliasKeyTBS_extensions x
 )
 
+noextract inline_for_extraction unfold
+[@@ "opaque_to_smt"]
 let len_of_aliasKeyTBS_extensions_max ()
 : Tot (asn1_TLV_int32_of_type SEQUENCE)
 = SEQUENCE `len_of_TLV`

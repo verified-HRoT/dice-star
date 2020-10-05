@@ -146,6 +146,8 @@ let length_of_riot_extension
 = RIoT.X509.LengthUtils.lemma_length_of_riot_extension version;
   length_of_TLV SEQUENCE (length_of_riot_extension_payload version)
 
+noextract inline_for_extraction unfold
+[@@ "opaque_to_smt"]
 let len_of_riot_extension_max ()
 : Tot (asn1_TLV_int32_of_type SEQUENCE)
 = 117ul

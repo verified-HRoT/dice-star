@@ -219,6 +219,8 @@ let length_of_aliasKeyTBS_extensions_authKeyID ()
   //   (x509_get_aliasKeyTBS_extensions_authKeyID_extValue keyID)
   //   (length_of_aliasKeyTBS_extensions_authKeyID_extValue ())
 
+noextract inline_for_extraction unfold
+[@@ "opaque_to_smt"]
 let len_of_aliasKeyTBS_extensions_authKeyID ()
 : Tot (len: asn1_TLV_int32_of_type SEQUENCE
             { v len == length_of_aliasKeyTBS_extensions_authKeyID () })
