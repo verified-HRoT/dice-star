@@ -145,7 +145,6 @@ val lemma_serialize_aliasKeyTBS_payload_unfold
 //                 lengths used here, and call those lemmas to help Z3
 //                 prove that their sum is in the range of the return type?
 //                 ditto for the next function
-// #push-options "--admit_smt_queries true"
 #push-options "--z3rlimit 32"
 let len_of_aliasKeyTBS_payload_max ()
 : Tot (asn1_value_int32_of_type SEQUENCE)
@@ -202,7 +201,8 @@ let predicate_serialize_aliasKeyTBS_payload_size_unfold
   length_of_opaque_serialization (serialize_x509_extensions_TLV
                                   serialize_aliasKeyTBS_extensions)   x.aliasKeyTBS_extensions
 
-val lemma_serialize_aliasKeyTBS_payload_size
+#push-options "--z3rlimit 128"
+let lemma_serialize_aliasKeyTBS_payload_size
   (x: aliasKeyTBS_payload_t)
 : Lemma (
   predicate_serialize_aliasKeyTBS_payload_size_unfold x /\
@@ -218,6 +218,80 @@ val lemma_serialize_aliasKeyTBS_payload_size
           (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Country)
           RIoT.X509.Extension.(x.aliasKeyTBS_extensions.aliasKeyTBS_extensions_riot.x509_extValue_riot.riot_version))
 )
+= lemma_serialize_aliasKeyTBS_payload_unfold x;
+  Seq.lemma_len_append
+    (serialize_x509_version `serialize` x.aliasKeyTBS_version)
+    (serialize_x509_serialNumber `serialize` x.aliasKeyTBS_serialNumber);
+  Seq.lemma_len_append
+    ((serialize_x509_version `serialize` x.aliasKeyTBS_version)
+      `Seq.append`
+     (serialize_x509_serialNumber `serialize` x.aliasKeyTBS_serialNumber))
+    (serialize_algorithmIdentifier `serialize` x.aliasKeyTBS_signatureAlg);
+  Seq.lemma_len_append
+    ((serialize_x509_version `serialize` x.aliasKeyTBS_version)
+      `Seq.append`
+     (serialize_x509_serialNumber `serialize` x.aliasKeyTBS_serialNumber)
+      `Seq.append`
+     (serialize_algorithmIdentifier `serialize` x.aliasKeyTBS_signatureAlg))
+    (serialize_aliasKeyTBS_issuer `serialize` x.aliasKeyTBS_issuer);
+  Seq.lemma_len_append
+    ((serialize_x509_version `serialize` x.aliasKeyTBS_version)
+      `Seq.append`
+     (serialize_x509_serialNumber `serialize` x.aliasKeyTBS_serialNumber)
+      `Seq.append`
+     (serialize_algorithmIdentifier `serialize` x.aliasKeyTBS_signatureAlg)
+      `Seq.append`
+     (serialize_aliasKeyTBS_issuer `serialize` x.aliasKeyTBS_issuer))
+    (serialize_x509_validity `serialize` x.aliasKeyTBS_validity);
+   Seq.lemma_len_append
+     ((serialize_x509_version `serialize` x.aliasKeyTBS_version)
+       `Seq.append`
+      (serialize_x509_serialNumber `serialize` x.aliasKeyTBS_serialNumber)
+       `Seq.append`
+      (serialize_algorithmIdentifier `serialize` x.aliasKeyTBS_signatureAlg)
+       `Seq.append`
+      (serialize_aliasKeyTBS_issuer `serialize` x.aliasKeyTBS_issuer)
+       `Seq.append`
+      (serialize_x509_validity `serialize` x.aliasKeyTBS_validity))
+     (serialize_aliasKeyTBS_subject `serialize` x.aliasKeyTBS_subject);
+   Seq.lemma_len_append
+      ((serialize_x509_version `serialize` x.aliasKeyTBS_version)
+        `Seq.append`
+       (serialize_x509_serialNumber `serialize` x.aliasKeyTBS_serialNumber)
+        `Seq.append`
+       (serialize_algorithmIdentifier `serialize` x.aliasKeyTBS_signatureAlg)
+        `Seq.append`
+       (serialize_aliasKeyTBS_issuer `serialize` x.aliasKeyTBS_issuer)
+        `Seq.append`
+       (serialize_x509_validity `serialize` x.aliasKeyTBS_validity)
+        `Seq.append`
+       (serialize_aliasKeyTBS_subject `serialize` x.aliasKeyTBS_subject))
+      (serialize_subjectPublicKeyInfo `serialize` x.aliasKeyTBS_aliasKey_pub);
+   Seq.lemma_len_append
+      ((serialize_x509_version `serialize` x.aliasKeyTBS_version)
+        `Seq.append`
+       (serialize_x509_serialNumber `serialize` x.aliasKeyTBS_serialNumber)
+        `Seq.append`
+       (serialize_algorithmIdentifier `serialize` x.aliasKeyTBS_signatureAlg)
+        `Seq.append`
+       (serialize_aliasKeyTBS_issuer `serialize` x.aliasKeyTBS_issuer)
+        `Seq.append`
+       (serialize_x509_validity `serialize` x.aliasKeyTBS_validity)
+        `Seq.append`
+       (serialize_aliasKeyTBS_subject `serialize` x.aliasKeyTBS_subject)
+        `Seq.append`
+       (serialize_subjectPublicKeyInfo `serialize` x.aliasKeyTBS_aliasKey_pub))
+      (serialize_x509_extensions_TLV serialize_aliasKeyTBS_extensions `serialize` x.aliasKeyTBS_extensions);
+    lemma_serialize_x509_version_size_exact x.aliasKeyTBS_version;
+    lemma_serialize_x509_serialNumber_size x.aliasKeyTBS_serialNumber;
+    lemma_serialize_algorithmIdentifier_size_exact x.aliasKeyTBS_signatureAlg;
+    lemma_serialize_aliasKeyTBS_issuer_size_exact x.aliasKeyTBS_issuer;
+    lemma_serialize_x509_validity_size_exact x.aliasKeyTBS_validity;
+    lemma_serialize_aliasKeyTBS_subject_size_exact x.aliasKeyTBS_subject;
+    lemma_serialize_subjectPublicKeyInfo_size_exact x.aliasKeyTBS_aliasKey_pub;
+    lemma_serialize_x509_extensions_TLV_size serialize_aliasKeyTBS_extensions x.aliasKeyTBS_extensions;
+      lemma_serialize_aliasKeyTBS_extensions_size_exact x.aliasKeyTBS_extensions
+#pop-options
 
 let aliasKeyTBS_t
 = inbound_sequence_value_of (serialize_aliasKeyTBS_payload)
@@ -276,20 +350,10 @@ let len_of_aliasKeyTBS
       s_common s_org s_country
       version)
 
-#push-options "--z3rlimit 128"
+#push-options "--z3rlimit 512"
 let lemma_serialize_aliasKeyTBS_size_exact
   (x: aliasKeyTBS_t)
 : Lemma (
-  // lemma_aliasKeyTBS_ingredients_valid
-  //         x.aliasKeyTBS_serialNumber
-  //         (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer.aliasKeyTBS_issuer_Common)
-  //         (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer.aliasKeyTBS_issuer_Organization)
-  //         (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer.aliasKeyTBS_issuer_Country)
-  //         (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Common)
-  //         (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Organization)
-  //         (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Country)
-  //         RIoT.X509.Extension.(x.aliasKeyTBS_extensions.aliasKeyTBS_extensions_riot.x509_extValue_riot.riot_version);
-  lemma_serialize_aliasKeyTBS_payload_size x;
   (* exact size *)
   length_of_opaque_serialization (serialize_aliasKeyTBS) x
   == v (len_of_aliasKeyTBS
@@ -304,6 +368,7 @@ let lemma_serialize_aliasKeyTBS_size_exact
 )
 = lemma_serialize_aliasKeyTBS_size x;
     lemma_serialize_aliasKeyTBS_payload_size x
+#pop-options
 
 (* low *)
 val serialize32_aliasKeyTBS_payload_backwards

@@ -180,12 +180,8 @@ let lemma_serialize_aliasKeyTBS_extensions_payload_unfold x
   (* prf*) ()
   (* in *) (x)
 
-let lemma_aliasKeyTBS_extensions_payload_ingredients_valid version
-= ()
-
 let lemma_serialize_aliasKeyTBS_extensions_payload_size x
-= (* FIXME: *) admit();
-  lemma_serialize_aliasKeyTBS_extensions_payload_unfold x;
+= lemma_serialize_aliasKeyTBS_extensions_payload_unfold x;
     lemma_serialize_x509_key_usage_size_exact x.aliasKeyTBS_extensions_key_usage;
     lemma_x509_keyPurposeIDs_unique aliasKeyCrt_extendedKeyUsage_oids;
     lemma_serialize_aliasKeyTBS_extensions_extendedKeyUsage_size_exact
@@ -195,7 +191,8 @@ let lemma_serialize_aliasKeyTBS_extensions_payload_size x
     lemma_serialize_aliasKeyTBS_extensions_authKeyID_size_exact
                                               x.aliasKeyTBS_extensions_authKeyID;
     lemma_serialize_riot_extension_size_exact x.aliasKeyTBS_extensions_riot;
-()
+  lemma_length_of_aliasKeyTBS_extensions_payload_size_max x.aliasKeyTBS_extensions_riot.riot_version
+
 
 (*
  * SEQUENCE serializer
@@ -206,13 +203,6 @@ let lemma_serialize_aliasKeyTBS_extensions_unfold x
 
 let lemma_serialize_aliasKeyTBS_extensions_size x
 = lemma_serialize_asn1_sequence_TLV_size serialize_aliasKeyTBS_extensions_payload x
-
-let lemma_aliasKeyTBS_extensions_ingredients_valid version
-= lemma_aliasKeyTBS_extensions_payload_ingredients_valid version
-
-let lemma_aliasKeyTBS_extensions_valid x
-= lemma_aliasKeyTBS_extensions_ingredients_valid
-          (x.aliasKeyTBS_extensions_riot.x509_extValue_riot.riot_version)
 
 // #push-options "--z3rlimit 256 --fuel 0"
 // let lemma_aliasKeyTBS_extensions_ingredients_valid
@@ -232,7 +222,7 @@ let lemma_aliasKeyTBS_extensions_valid x
 // #pop-options
 
 let lemma_serialize_aliasKeyTBS_extensions_size_exact x
-= Classical.forall_intro lemma_aliasKeyTBS_extensions_ingredients_valid;
+= //Classical.forall_intro lemma_aliasKeyTBS_extensions_ingredients_valid;
   lemma_serialize_aliasKeyTBS_extensions_size x;
   lemma_serialize_aliasKeyTBS_extensions_payload_size x;
 ()
