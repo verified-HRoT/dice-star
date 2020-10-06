@@ -57,6 +57,7 @@ open RIoT.Spec.Certificate
    NOTE: Other extensions like Key Usage are __NOT__ included in this version.
 *)
 
+#push-options "--z3rlimit 16"
 unfold
 let create_aliasKeyTBS_pre
   (h: HS.mem)
@@ -94,6 +95,7 @@ let create_aliasKeyTBS_pre
                          i_common i_org i_country
                          s_common s_org s_country
                          riot_version))
+#pop-options
 
 unfold
 let create_aliasKeyTBS_post
