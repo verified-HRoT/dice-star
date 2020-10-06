@@ -169,9 +169,6 @@ let lemma_serialize_riot_extension_size_exact
 )
 = lemma_serialize_riot_extension_size x;
   lemma_serialize_riot_extension_payload_size_exact x;
-  //TODO: AR: 10/03
-  assume (length_of_opaque_serialization serialize_riot_extension x ==
-          length_of_riot_extension x.x509_extValue_riot.riot_version);
   RIoT.X509.LengthUtils.lemma_length_of_riot_extension_riot_version
     x.x509_extValue_riot.riot_version
 #pop-options

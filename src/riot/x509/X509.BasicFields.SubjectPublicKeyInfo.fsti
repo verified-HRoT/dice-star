@@ -96,7 +96,8 @@ let length_of_subjectPublicKeyInfo
 : asn1_TLV_length_of_type SEQUENCE
 = 44
 
-noextract inline_for_extraction unfold
+noextract inline_for_extraction
+unfold
 [@@ "opaque_to_smt"]
 let len_of_subjectPublicKeyInfo
 : (len: asn1_TLV_int32_of_type SEQUENCE

@@ -129,7 +129,8 @@ let length_of_x509_validity ()
 : GTot (asn1_TLV_length_of_type SEQUENCE)
 = 36
 
-noextract inline_for_extraction unfold
+noextract inline_for_extraction
+unfold
 [@@ "opaque_to_smt"]
 let len_of_x509_validity ()
 : Tot (len: asn1_TLV_int32_of_type SEQUENCE

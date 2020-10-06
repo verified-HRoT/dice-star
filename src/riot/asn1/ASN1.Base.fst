@@ -340,9 +340,12 @@ unfold
 [@@ "opaque_to_smt"]
 let asn1_TLV_int32_of_type
   (_a: asn1_tag_t)
-= let min, max = asn1_TLV_length_min_of_type _a, asn1_TLV_length_max_of_type _a in
+= //let min, max = asn1_TLV_length_min_of_type _a, asn1_TLV_length_max_of_type _a in
   // LowParse.Spec.BoundedInt.bounded_int32 min max
-  n: U32.t { asn1_int32_inbounds min max n }
+  n: asn1_int32 { asn1_int32_inbounds
+                    (asn1_TLV_length_min_of_type _a)
+                    (asn1_TLV_length_max_of_type _a)
+                    n }
 
 //////////////////////////////////////////////////////////////////////
 /// A weak parser kind (for ASN1 variable-length values) generator. They
