@@ -55,8 +55,9 @@ type aliasKeyCRT_ingredients_t = {
 }
 
 let deviceIDCRI_pre (x:deviceIDCSR_ingredients_t) =
-  valid_deviceIDCRI_ingredients
-    x.deviceIDCSR_version x.deviceIDCSR_s_common x.deviceIDCSR_s_org x.deviceIDCSR_s_country x.deviceIDCSR_ku
+  True
+  // valid_deviceIDCRI_ingredients
+  //   x.deviceIDCSR_version x.deviceIDCSR_s_common x.deviceIDCSR_s_org x.deviceIDCSR_s_country x.deviceIDCSR_ku
 
 [@@ "opaque_to_smt"]
 unfold noextract
@@ -67,8 +68,8 @@ let deviceIDCSR_pre (x:deviceIDCSR_ingredients_t{deviceIDCRI_pre x}) (deviceIDCS
   let l = coerce_asn1_tlv_int32_of_type_to_asn1_int32
     (len_of_deviceIDCRI
       x.deviceIDCSR_version x.deviceIDCSR_s_common x.deviceIDCSR_s_org
-      x.deviceIDCSR_s_country x.deviceIDCSR_ku) in
-  
+      x.deviceIDCSR_s_country) in
+
   valid_deviceIDCSR_ingredients l /\
   eq2 #nat (v deviceIDCSR_len) (length_of_deviceIDCSR l)
 
@@ -76,7 +77,7 @@ let aliasKeyCRT_pre (x:aliasKeyCRT_ingredients_t) (aliasKeyCRT_len:UInt32.t) =
   let l = coerce_asn1_tlv_int32_of_type_to_asn1_int32
     (len_of_aliasKeyTBS
       x.aliasKeyCrt_serialNumber x.aliasKeyCrt_i_common x.aliasKeyCrt_i_org x.aliasKeyCrt_i_country
-      x.aliasKeyCrt_s_common x.aliasKeyCrt_s_org x.aliasKeyCrt_s_country x.aliasKeyCrt_ku
+      x.aliasKeyCrt_s_common x.aliasKeyCrt_s_org x.aliasKeyCrt_s_country
       x.aliasKeyCrt_riot_version) in
   valid_aliasKeyCRT_ingredients l /\
   eq2 #nat (v aliasKeyCRT_len) (length_of_aliasKeyCRT l)
@@ -167,8 +168,7 @@ let deviceIDCSR_post
     let deviceIDCRI_len = coerce_asn1_tlv_int32_of_type_to_asn1_int32
       (len_of_deviceIDCRI
         deviceIDCSR_ingredients.deviceIDCSR_version deviceIDCSR_ingredients.deviceIDCSR_s_common
-        deviceIDCSR_ingredients.deviceIDCSR_s_org deviceIDCSR_ingredients.deviceIDCSR_s_country
-        deviceIDCSR_ingredients.deviceIDCSR_ku) in
+        deviceIDCSR_ingredients.deviceIDCSR_s_org deviceIDCSR_ingredients.deviceIDCSR_s_country) in
       
     let (* Prf *) _ = lemma_serialize_deviceIDCRI_size_exact deviceIDCRI in  //AR: TODO: This takes long time
     let deviceIDCSR: deviceIDCSR_t deviceIDCRI_len = sign_and_finalize_deviceIDCSR_spec
@@ -226,7 +226,6 @@ let aliasKeyCRT_post
          aliasKeyCRT_ingredients.aliasKeyCrt_s_common
          aliasKeyCRT_ingredients.aliasKeyCrt_s_org
          aliasKeyCRT_ingredients.aliasKeyCrt_s_country
-         aliasKeyCRT_ingredients.aliasKeyCrt_ku
          aliasKeyCRT_ingredients.aliasKeyCrt_riot_version) in
      let (* Prf *) _ = lemma_serialize_aliasKeyTBS_size_exact aliasKeyTBS in
      assume (Seq.length aliasKeyTBS_seq == v aliasKeyTBS_len); //TODO: help Z3 prove it
@@ -288,24 +287,9 @@ let riot
   (aliasKey_label_len: size_t)
   (aliasKey_label: B.lbuffer byte_sec (v aliasKey_label_len))
 (* DeviceID CSR Inputs*)
-  (deviceIDCSR_ku: key_usage_payload_t)
-  (deviceIDCSR_version: datatype_of_asn1_type INTEGER)
-  (deviceIDCSR_s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
-  (deviceIDCSR_s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
-  (deviceIDCSR_s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
+  (deviceIDCSR_ingredients:deviceIDCSR_ingredients_t)
 (* AliasKey Crt Inputs*)
-  (aliasKeyCrt_version: x509_version_t)
-  (aliasKeyCrt_serialNumber: x509_serialNumber_t)
-  (aliasKeyCrt_i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
-  (aliasKeyCrt_i_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
-  (aliasKeyCrt_i_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-  (aliasKeyCrt_notBefore: datatype_of_asn1_type Generalized_Time)
-  (aliasKeyCrt_notAfter : datatype_of_asn1_type Generalized_Time)
-  (aliasKeyCrt_s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
-  (aliasKeyCrt_s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
-  (aliasKeyCrt_s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-  (aliasKeyCrt_ku: key_usage_payload_t)
-  (riot_version: datatype_of_asn1_type INTEGER)
+  (aliasKeyCRT_ingredients:aliasKeyCRT_ingredients_t)
 (* Common Outputs *)
   (aliasKey_pub: B.lbuffer byte_pub 32)
   (aliasKey_priv: B.lbuffer uint8 32)
@@ -322,41 +306,23 @@ let riot
                         (fwid)
                         (deviceID_label_len) (deviceID_label)
                         (aliasKey_label_len) (aliasKey_label)
-                        (deviceIDCSR_ku)
-                        (deviceIDCSR_version)
-                        (deviceIDCSR_s_common) (deviceIDCSR_s_org) (deviceIDCSR_s_country)
-                        (aliasKeyCrt_version)
-                        (aliasKeyCrt_serialNumber)
-                        (aliasKeyCrt_i_common) (aliasKeyCrt_i_org) (aliasKeyCrt_i_country)
-                        (aliasKeyCrt_notBefore) (aliasKeyCrt_notAfter)
-                        (aliasKeyCrt_s_common) (aliasKeyCrt_s_org) (aliasKeyCrt_s_country)
-                        (aliasKeyCrt_ku)
-                        (riot_version)
-                        (aliasKey_pub)
-                        (aliasKey_priv)
+                        (deviceIDCSR_ingredients)
+                        (aliasKeyCRT_ingredients)
+                        (aliasKey_pub) (aliasKey_priv)
                         (deviceIDCSR_len) (deviceIDCSR_buf)
                         (aliasKeyCRT_len) (aliasKeyCRT_buf)
    )
    (ensures fun h0 _ h1 -> riot_post
-                        (h0) () (h1)
                         (cdi)
                         (fwid)
                         (deviceID_label_len) (deviceID_label)
                         (aliasKey_label_len) (aliasKey_label)
-                        (deviceIDCSR_ku)
-                        (deviceIDCSR_version)
-                        (deviceIDCSR_s_common) (deviceIDCSR_s_org) (deviceIDCSR_s_country)
-                        (aliasKeyCrt_version)
-                        (aliasKeyCrt_serialNumber)
-                        (aliasKeyCrt_i_common) (aliasKeyCrt_i_org) (aliasKeyCrt_i_country)
-                        (aliasKeyCrt_notBefore) (aliasKeyCrt_notAfter)
-                        (aliasKeyCrt_s_common) (aliasKeyCrt_s_org) (aliasKeyCrt_s_country)
-                        (aliasKeyCrt_ku)
-                        (riot_version)
-                        (aliasKey_pub)
-                        (aliasKey_priv)
+                        (deviceIDCSR_ingredients)
+                        (aliasKeyCRT_ingredients)
+                        (aliasKey_pub) (aliasKey_priv)
                         (deviceIDCSR_len) (deviceIDCSR_buf)
-                        (aliasKeyCRT_len) (aliasKeyCRT_buf))
+                        (aliasKeyCRT_len) (aliasKeyCRT_buf)
+                        (h0) (h1))
 = HST.push_frame ();
 
 (* Derive DeviceID *)
@@ -389,20 +355,19 @@ let riot
 
 (* Create DeviceIDCRI *)
    let deviceIDCRI_len: asn1_TLV_int32_of_type SEQUENCE = len_of_deviceIDCRI
-                                                            deviceIDCSR_version
-                                                            deviceIDCSR_s_common
-                                                            deviceIDCSR_s_org
-                                                            deviceIDCSR_s_country
-                                                            deviceIDCSR_ku in
+                                                            deviceIDCSR_ingredients.deviceIDCSR_version
+                                                            deviceIDCSR_ingredients.deviceIDCSR_s_common
+                                                            deviceIDCSR_ingredients.deviceIDCSR_s_org
+                                                            deviceIDCSR_ingredients.deviceIDCSR_s_country in
    let deviceIDCRI_buf: B.lbuffer byte_pub (v deviceIDCRI_len) = B.alloca 0x00uy deviceIDCRI_len in
 
    printf "Creating DeviceID Certificate Signing Request Information\n" done;
    create_deviceIDCRI
-    (* version   *) deviceIDCSR_version
-                    deviceIDCSR_s_common
-                    deviceIDCSR_s_org
-                    deviceIDCSR_s_country
-    (* key usage *) deviceIDCSR_ku
+    (* version   *) deviceIDCSR_ingredients.deviceIDCSR_version
+                    deviceIDCSR_ingredients.deviceIDCSR_s_common
+                    deviceIDCSR_ingredients.deviceIDCSR_s_org
+                    deviceIDCSR_ingredients.deviceIDCSR_s_country
+    (* key usage *) deviceIDCSR_ingredients.deviceIDCSR_ku
     (* DeviceID  *) deviceID_pub
     (*DeviceIDCRI*) deviceIDCRI_len
                     deviceIDCRI_buf;
@@ -417,24 +382,32 @@ let riot
                     deviceIDCSR_buf;
 (* Create AliasKeyTBS *)
   let aliasKeyTBS_len: asn1_TLV_int32_of_type SEQUENCE = len_of_aliasKeyTBS
-                                                           aliasKeyCrt_serialNumber
-                                                           aliasKeyCrt_i_common aliasKeyCrt_i_org aliasKeyCrt_i_country
-                                                           aliasKeyCrt_s_common aliasKeyCrt_s_org aliasKeyCrt_s_country
-                                                           aliasKeyCrt_ku
-                                                           riot_version in
+                                                           aliasKeyCRT_ingredients.aliasKeyCrt_serialNumber
+                                                           aliasKeyCRT_ingredients.aliasKeyCrt_i_common
+                                                           aliasKeyCRT_ingredients.aliasKeyCrt_i_org
+                                                           aliasKeyCRT_ingredients.aliasKeyCrt_i_country
+                                                           aliasKeyCRT_ingredients.aliasKeyCrt_s_common
+                                                           aliasKeyCRT_ingredients.aliasKeyCrt_s_org
+                                                           aliasKeyCRT_ingredients.aliasKeyCrt_s_country
+                                                           aliasKeyCRT_ingredients.aliasKeyCrt_riot_version in
   let aliasKeyTBS_buf: B.lbuffer byte_pub (v aliasKeyTBS_len) = B.alloca 0x00uy aliasKeyTBS_len in
 
   printf "Creating AliasKey Certificate TBS\n" done;
   create_aliasKeyTBS
-    (aliasKeyCrt_version)
-    (aliasKeyCrt_serialNumber)
-    (aliasKeyCrt_i_common) (aliasKeyCrt_i_org) (aliasKeyCrt_i_country)
-    (aliasKeyCrt_notBefore) (aliasKeyCrt_notAfter)
-    (aliasKeyCrt_s_common) (aliasKeyCrt_s_org) (aliasKeyCrt_s_country)
+    (aliasKeyCRT_ingredients.aliasKeyCrt_version)
+    (aliasKeyCRT_ingredients.aliasKeyCrt_serialNumber)
+    (aliasKeyCRT_ingredients.aliasKeyCrt_i_common)
+    (aliasKeyCRT_ingredients.aliasKeyCrt_i_org)
+    (aliasKeyCRT_ingredients.aliasKeyCrt_i_country)
+    (aliasKeyCRT_ingredients.aliasKeyCrt_notBefore)
+    (aliasKeyCRT_ingredients.aliasKeyCrt_notAfter)
+    (aliasKeyCRT_ingredients.aliasKeyCrt_s_common)
+    (aliasKeyCRT_ingredients.aliasKeyCrt_s_org)
+    (aliasKeyCRT_ingredients.aliasKeyCrt_s_country)
     (fwid)
-    (aliasKeyCrt_ku)
+    (aliasKeyCRT_ingredients.aliasKeyCrt_ku)
     (aliasKeyCrt_keyID)
-    (riot_version)
+    (aliasKeyCRT_ingredients.aliasKeyCrt_riot_version)
     (* DeviceID  *) deviceID_pub
     (* AliasKey  *) aliasKey_pub
     (*AliasKeyTBS*) aliasKeyTBS_len
