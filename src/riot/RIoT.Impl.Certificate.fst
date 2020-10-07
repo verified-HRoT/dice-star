@@ -152,6 +152,7 @@ let create_aliasKeyTBS_post
   B.as_seq h1 aliasKeyTBS_buf == serialize_aliasKeyTBS `serialize` aliasKeyTBS
 
 #push-options "--z3rlimit 64"
+[@@ "opaque_to_smt"]
 inline_for_extraction noextract
 let create_aliasKeyTBS_buffers_to_bytes
   (fwid: B.lbuffer byte_sec 32)
@@ -189,6 +190,7 @@ let create_aliasKeyTBS_buffers_to_bytes
     HST.pop_frame ();
     fwid_pub32, keyID_pub32, deviceID_pub32, aliasKey_pub32
 
+[@@ "opaque_to_smt"]
 let create_aliasKeyTBS
   (crt_version: x509_version_t)
   (serialNumber: x509_serialNumber_t)
@@ -297,6 +299,7 @@ let create_aliasKeyTBS
 *)
 
 #push-options "--z3rlimit 256"
+[@@ "opaque_to_smt"]
 let sign_and_finalize_aliasKeyCRT
   (deviceID_priv: B.lbuffer byte_sec 32)
   (aliasKeyTBS_len: size_t)
@@ -376,6 +379,7 @@ let sign_and_finalize_aliasKeyCRT
  *)
 
 #push-options "--z3rlimit 512"
+[@@ "opaque_to_smt"]
 let create_deviceIDCRI
   (csr_version: datatype_of_asn1_type INTEGER)
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
@@ -433,6 +437,7 @@ let create_deviceIDCRI
 #pop-options
 
 #push-options "--z3rlimit 256"
+[@@ "opaque_to_smt"]
 let sign_and_finalize_deviceIDCSR
   (deviceID_priv: B.lbuffer byte_sec 32)
   (deviceIDCRI_len: size_t)

@@ -20,6 +20,7 @@ open RIoT.Spec.Crypto
 
 #set-options "--z3rlimit 64 --fuel 0 --ifuel 0"
 
+[@@ "opaque_to_smt"]
 let derive_key_pair
   (public_key : B.lbuffer pub_uint8 32)                 // Out
   (private_key: B.lbuffer uint8 32)                     // Out
@@ -85,7 +86,7 @@ let derive_key_pair
   HST.pop_frame ()
 
 
-
+[@@ "opaque_to_smt"]
 let derive_DeviceID
   (deviceID_pub: B.lbuffer pub_uint8 32)
   (deviceID_priv: B.lbuffer uint8 32)
@@ -120,6 +121,7 @@ let derive_DeviceID
     riot_label_DeviceID_len riot_label_DeviceID;
   HST.pop_frame ()
 
+[@@ "opaque_to_smt"]
 let derive_AliasKey
   (aliasKey_pub: B.lbuffer pub_uint8 32)
   (aliasKey_priv: B.lbuffer uint8 32)
@@ -167,6 +169,7 @@ let derive_AliasKey
     riot_label_AliasKey_len riot_label_AliasKey;
   HST.pop_frame ()
 
+[@@ "opaque_to_smt"]
 let derive_authKeyID
   (authKeyID: B.lbuffer byte_pub 20)
   (deviceIDPub: B.lbuffer byte_sec 32)
