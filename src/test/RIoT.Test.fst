@@ -121,8 +121,7 @@ let main ()
   let deviceIDCSR_len = len_of_deviceIDCSR
                           (len_of_deviceIDCRI
                              deviceIDCSR_version
-                             aliasKeyCrt_s_common aliasKeyCrt_s_org aliasKeyCrt_s_country
-                             ku) in
+                             aliasKeyCrt_s_common aliasKeyCrt_s_org aliasKeyCrt_s_country) in
   let deviceIDCSR_buf: B.lbuffer byte_pub (v deviceIDCSR_len) = B.alloca 0x00uy deviceIDCSR_len in
 
   let aliasKeyCRT_len = len_of_aliasKeyCRT
@@ -130,12 +129,34 @@ let main ()
                             aliasKeyCrt_serialNumber
                             aliasKeyCrt_i_common aliasKeyCrt_i_org aliasKeyCrt_i_country
                             aliasKeyCrt_s_common aliasKeyCrt_s_org aliasKeyCrt_s_country
-                            ku
                             riot_version) in
   let aliasKeyCRT_buf: B.lbuffer byte_pub (v aliasKeyCRT_len) = B.alloca 0x00uy aliasKeyCRT_len in
 
   let aliasKey_pub : B.lbuffer byte_pub 32 = B.alloca 0x00uy 32ul in
   let aliasKey_priv: B.lbuffer byte_sec 32 = B.alloca (u8 0x00) 32ul in
+
+  let aliasKeyCRT_ingredients: aliasKeyCRT_ingredients_t = {
+    aliasKeyCrt_version      = aliasKeyCrt_version;
+    aliasKeyCrt_serialNumber = aliasKeyCrt_serialNumber;
+    aliasKeyCrt_i_common     = aliasKeyCrt_i_common;
+    aliasKeyCrt_i_org        = aliasKeyCrt_i_org;
+    aliasKeyCrt_i_country    = aliasKeyCrt_i_country;
+    aliasKeyCrt_notBefore    = notBefore;
+    aliasKeyCrt_notAfter     = notAfter;
+    aliasKeyCrt_s_common     = aliasKeyCrt_s_common;
+    aliasKeyCrt_s_org        = aliasKeyCrt_s_org;
+    aliasKeyCrt_s_country    = aliasKeyCrt_s_country;
+    aliasKeyCrt_ku           = ku;
+    aliasKeyCrt_riot_version = riot_version
+  } in
+
+  let deviceIDCSR_ingredients: deviceIDCSR_ingredients_t = {
+    deviceIDCSR_ku        = ku;
+    deviceIDCSR_version   = deviceIDCSR_version;
+    deviceIDCSR_s_common  = aliasKeyCrt_s_common;
+    deviceIDCSR_s_org     = aliasKeyCrt_s_org;
+    deviceIDCSR_s_country = aliasKeyCrt_s_country
+  } in
 
   comment "Call riot main function";
   printf "Enter RIoT\n" done;
@@ -148,24 +169,9 @@ let main ()
                     aliasKey_lbl_len
                     aliasKey_lbl
 (* DeviceID CSR Inputs*)
-    (* key usage *) ku
-                    deviceIDCSR_version
-                    aliasKeyCrt_s_common
-                    aliasKeyCrt_s_org
-                    aliasKeyCrt_s_country
+                    deviceIDCSR_ingredients
 (* AliasKey Crt Inputs*)
-    (* version   *) aliasKeyCrt_version
-    (*   SN      *) aliasKeyCrt_serialNumber
-    (* issuer    *) aliasKeyCrt_i_common
-                    aliasKeyCrt_i_org
-                    aliasKeyCrt_i_country
-    (* validity  *) notBefore
-                    notAfter
-    (* subject   *) aliasKeyCrt_s_common
-                    aliasKeyCrt_s_org
-                    aliasKeyCrt_s_country
-    (* key usage *) ku
-                    riot_version
+                    aliasKeyCRT_ingredients
 (* Common Outputs *)
     (* aliasKey  *) aliasKey_pub
                     aliasKey_priv

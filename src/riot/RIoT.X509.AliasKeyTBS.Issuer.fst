@@ -7,7 +7,7 @@ open FStar.Integers
 
 module B32 = FStar.Bytes
 
-#set-options "--z3rlimit 128 --fuel 0 --ifuel 0"
+#set-options "--z3rlimit 256 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
 let aliasKeyTBS_issuer_payload_t' = (
   x509_RDN_x520_attribute_t COMMON_NAME  IA5_STRING `tuple2`

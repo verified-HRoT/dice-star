@@ -63,13 +63,15 @@ val lemma_serialize_deviceIDCRI_payload_unfold
  (serialize_deviceIDCRI_attributes `serialize` x.deviceIDCRI_attributes)
 )
 
+[@@ "opaque_to_smt"]
+unfold
 let len_of_deviceIDCRI_payload_max ()
 : Tot (asn1_value_int32_of_type SEQUENCE)
 // = len_of_asn1_primitive_TLV #INTEGER version +
-= 6ul +
+= asn1_TLV_int32_max_of_type INTEGER +
   len_of_deviceIDCRI_subject_max () +
   len_of_subjectPublicKeyInfo +
-  len_of_deviceIDCRI_attributes
+  len_of_deviceIDCRI_attributes ()
 
 let len_of_deviceIDCRI_payload
   (version: datatype_of_asn1_type INTEGER)
@@ -80,7 +82,7 @@ let len_of_deviceIDCRI_payload
 = len_of_asn1_primitive_TLV #INTEGER version +
   len_of_deviceIDCRI_subject s_common s_org s_country +
   len_of_subjectPublicKeyInfo +
-  len_of_deviceIDCRI_attributes
+  len_of_deviceIDCRI_attributes ()
 
 val lemma_serialize_deviceIDCRI_payload_size
   (x: deviceIDCRI_payload_t)
