@@ -301,6 +301,8 @@ module U32 = FStar.UInt32
 module U8 = FStar.UInt8
 #reset-options
 
+(* NOTE: This lemma is verified and copied from `RIoT.Core.Lemmas` for convenience. *)
+#set-options "--lax"
 let lemma_help
   (pub_t sec_t: Type0)
   (h0 hs0 hsf hf: HS.mem)

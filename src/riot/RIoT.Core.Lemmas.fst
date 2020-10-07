@@ -1,4 +1,4 @@
-module RIoT.Test
+module RIoT.Core.Lemmas
 
 module B = LowStar.Buffer
 module HS  = FStar.HyperStack
