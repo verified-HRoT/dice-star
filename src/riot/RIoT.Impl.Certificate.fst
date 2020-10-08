@@ -514,7 +514,7 @@ let sign_and_finalize_deviceIDCSR
   HST.pop_frame ()
 #pop-options
 
-#push-options "--z3rlimit 50"
+#push-options "--z3rlimit 256"
 [@@ "opaque_to_smt"]
 unfold
 let riot_core_step2_pre
@@ -741,7 +741,7 @@ let riot_core_step3_pre
   v aliasKeyCRT_len `eq2 #nat` length_of_aliasKeyCRT aliasKeyTBS_len
 #pop-options
 
-#push-options "--z3rlimit 256"
+#push-options "--z3rlimit 512"
 [@@ "opaque_to_smt"]
 unfold
 let riot_core_step3_post
