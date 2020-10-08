@@ -42,6 +42,51 @@ let f
 module U32 = FStar.UInt32
 module U8 = FStar.UInt8
 
+#set-options "--z3rlimit 50 --fuel 0 --ifuel 0"
+let lemma_help
+  (pub_t sec_t: Type0)
+  (init_pub: pub_t) (init_sec: sec_t)
+  (h0 hs0 hsf hf: HS.mem)
+  (cdi: B.buffer sec_t) (fwid: B.buffer sec_t) (lbl_d: B.buffer sec_t) (lbl_a: B.buffer sec_t)
+  (a_pub: B.buffer pub_t) (a_priv: B.buffer sec_t)
+  (hs1 hs2 hs3 hs4: HS.mem)
+  (_d_pub : B.buffer pub_t)
+  (_d_priv: B.buffer sec_t)
+  (_keyID : B.buffer pub_t)
+: Lemma
+  (requires
+            B.all_live h0 [B.buf cdi; B.buf fwid; B.buf lbl_d; B.buf lbl_a;
+                           B.buf a_pub; B.buf a_priv] /\
+            B.all_disjoint [B.loc_buffer cdi; B.loc_buffer fwid; B.loc_buffer lbl_d; B.loc_buffer lbl_a;
+                            B.loc_buffer a_pub; B.loc_buffer a_priv] /\
+            HS.fresh_frame h0 hs0 /\ HS.get_tip hs0 == HS.get_tip hsf /\ HS.popped hsf hf /\
+            B.alloc_post_mem_common _d_pub  hs0 hs1 (Seq.create 32 init_pub) /\ B.frameOf _d_pub == HS.get_tip hs0 /\
+            B.alloc_post_mem_common _d_priv hs1 hs2 (Seq.create 32 init_sec) /\ B.frameOf _d_pub == HS.get_tip hs1 /\
+            B.alloc_post_mem_common _keyID  hs2 hs3 (Seq.create 32 init_pub) /\ B.frameOf _d_pub == HS.get_tip hs2 /\
+
+            (* step 1 *)
+            B.modifies (
+              B.loc_buffer _d_pub  `B.loc_union`
+              B.loc_buffer _d_priv `B.loc_union`
+              B.loc_buffer a_pub  `B.loc_union`
+              B.loc_buffer a_priv `B.loc_union`
+              B.loc_buffer _keyID
+            ) hs3 hs4 /\
+
+            hs4 == hsf
+            )
+  (ensures
+    B.modifies (
+      B.loc_buffer _d_pub  `B.loc_union`
+      B.loc_buffer _d_priv `B.loc_union`
+      B.loc_buffer a_pub  `B.loc_union`
+      B.loc_buffer a_priv `B.loc_union`
+      B.loc_buffer _keyID
+    ) h0 hf /\
+    True
+  )
+= ()
+
 #set-options "--z3rlimit 256 --fuel 0 --ifuel 0"
 let lemma_help
   (pub_t sec_t: Type0)

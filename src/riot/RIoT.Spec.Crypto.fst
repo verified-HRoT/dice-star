@@ -114,16 +114,16 @@ let derive_authKeyID_spec
        Spec.Agile.Hash.SHA1
        deviceIDPub)
 
-let derive_authKeyID_from_cdi_spec
-  (cdi: lbytes_sec 32)
-  (riot_label_DeviceID_len: size_t {valid_hkdf_lbl_len riot_label_DeviceID_len})
-  (riot_label_DeviceID: lbytes_sec (v riot_label_DeviceID_len))
-: GTot (lbytes_pub 20)
-= let deviceID_pub_seq, deviceID_priv_seq = derive_sec_key_pair_spec
-                                                 (32ul) (Spec.Agile.Hash.hash alg cdi)
-                                                 (riot_label_DeviceID_len)
-                                                 (riot_label_DeviceID) in
-  derive_authKeyID_spec deviceID_pub_seq
+// let derive_authKeyID_from_cdi_spec
+//   (cdi: lbytes_sec 32)
+//   (riot_label_DeviceID_len: size_t {valid_hkdf_lbl_len riot_label_DeviceID_len})
+//   (riot_label_DeviceID: lbytes_sec (v riot_label_DeviceID_len))
+// : GTot (lbytes_pub 20)
+// = let deviceID_pub_seq, deviceID_priv_seq = derive_sec_key_pair_spec
+//                                                  (32ul) (Spec.Agile.Hash.hash alg cdi)
+//                                                  (riot_label_DeviceID_len)
+//                                                  (riot_label_DeviceID) in
+//   derive_authKeyID_spec deviceID_pub_seq
 
 (* Appendix:
                                RFC 5869: HKDF
