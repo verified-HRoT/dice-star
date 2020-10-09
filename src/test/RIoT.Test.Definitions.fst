@@ -45,42 +45,41 @@ let aliasKeyCrt_serialNumber_buf = IB.igcmalloc_of_list HS.root aliasKeyCrt_seri
 //   assert_norm (filter_x509_serialNumber x);
 //   x)
 
-
 (* AliasKeyTBS Names *)
 let aliasKeyCrt_s_common_len = 2ul
 noextract inline_for_extraction let aliasKeyCrt_s_common_list
-: List.llist byte_pub (v aliasKeyCrt_s_common_len)
+: character_string_llist IA5_STRING aliasKeyCrt_s_common_len
 = [0x01uy; 0x03uy]
 let aliasKeyCrt_s_common_buf = IB.igcmalloc_of_list HS.root aliasKeyCrt_s_common_list
 
 let aliasKeyCrt_s_org_len = 2ul
 noextract inline_for_extraction let aliasKeyCrt_s_org_list
-: List.llist byte_pub (v aliasKeyCrt_s_org_len)
+: character_string_llist IA5_STRING aliasKeyCrt_s_org_len
 = [0x01uy; 0x03uy]
 let aliasKeyCrt_s_org_buf = IB.igcmalloc_of_list HS.root aliasKeyCrt_s_org_list
 
 let aliasKeyCrt_s_country_len = 2ul
 noextract inline_for_extraction let aliasKeyCrt_s_country_list
-: List.llist byte_pub (v aliasKeyCrt_s_country_len)
-= [0x01uy; 0x03uy]
+: character_string_llist PRINTABLE_STRING aliasKeyCrt_s_country_len
+= [0x41uy; 0x42uy]
 let aliasKeyCrt_s_country_buf = IB.igcmalloc_of_list HS.root aliasKeyCrt_s_country_list
 
 let aliasKeyCrt_i_common_len = 2ul
 noextract inline_for_extraction let aliasKeyCrt_i_common_list
-: List.llist byte_pub (v aliasKeyCrt_i_common_len)
+: character_string_llist IA5_STRING aliasKeyCrt_i_common_len
 = [0x01uy; 0x03uy]
 let aliasKeyCrt_i_common_buf = IB.igcmalloc_of_list HS.root aliasKeyCrt_i_common_list
 
 let aliasKeyCrt_i_org_len = 2ul
 noextract inline_for_extraction let aliasKeyCrt_i_org_list
-: List.llist byte_pub (v aliasKeyCrt_i_org_len)
+: character_string_llist IA5_STRING aliasKeyCrt_i_org_len
 = [0x01uy; 0x03uy]
 let aliasKeyCrt_i_org_buf = IB.igcmalloc_of_list HS.root aliasKeyCrt_i_org_list
 
 let aliasKeyCrt_i_country_len = 2ul
 noextract inline_for_extraction let aliasKeyCrt_i_country_list
-: List.llist byte_pub (v aliasKeyCrt_i_country_len)
-= [0x01uy; 0x03uy]
+: character_string_llist PRINTABLE_STRING aliasKeyCrt_i_country_len
+= [0x41uy; 0x42uy]
 let aliasKeyCrt_i_country_buf = IB.igcmalloc_of_list HS.root aliasKeyCrt_i_country_list
 
 // let s_common: x509_RDN_x520_attribute_string_t COMMON_NAME IA5_STRING

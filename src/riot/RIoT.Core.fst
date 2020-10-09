@@ -342,17 +342,14 @@ let riot
 
 (* Derive DeviceID *)
   let deviceID_pub : B.lbuffer byte_pub 32 = B.alloca 0x00uy    32ul in
-  let hs1 = HST.get () in
   let deviceID_priv: B.lbuffer byte_sec 32 = B.alloca (u8 0x00) 32ul in
-  let hs2 = HST.get () in
   let authKeyID: B.lbuffer byte_pub 20 = B.alloca 0x00uy 20ul in
-  let hs3 = HST.get () in
 
   let _h_step1_pre = HST.get () in
-  (**) B.modifies_buffer_elim cdi  B.loc_none h0 hs3;
-  (**) B.modifies_buffer_elim fwid B.loc_none h0 hs3;
-  (**) B.modifies_buffer_elim deviceID_label B.loc_none h0 hs3;
-  (**) B.modifies_buffer_elim deviceID_label B.loc_none h0 hs3;
+  (**) B.modifies_buffer_elim cdi  B.loc_none h0 _h_step1_pre;
+  (**) B.modifies_buffer_elim fwid B.loc_none h0 _h_step1_pre;
+  (**) B.modifies_buffer_elim deviceID_label B.loc_none h0 _h_step1_pre;
+  (**) B.modifies_buffer_elim deviceID_label B.loc_none h0 _h_step1_pre;
   riot_core_step1
     (cdi) (fwid)
     (deviceID_label_len) (deviceID_label)
@@ -361,17 +358,16 @@ let riot
     (aliasKey_pub) (aliasKey_priv)
     (authKeyID);
   let _h_step1_post = HST.get () in
-  (**) let hs4 = HST.get () in
 
   assert (aliasKey_post cdi fwid aliasKey_label_len aliasKey_label aliasKey_pub aliasKey_priv h0 _h_step1_post);
 
-  (**) B.modifies_trans B.loc_none h0 hs3 (
+  (**) B.modifies_trans B.loc_none h0 _h_step1_pre (
     B.loc_buffer deviceID_pub  `B.loc_union`
     B.loc_buffer deviceID_priv `B.loc_union`
     B.loc_buffer aliasKey_pub  `B.loc_union`
     B.loc_buffer aliasKey_priv `B.loc_union`
     B.loc_buffer authKeyID
-  ) hs4;
+  ) _h_step1_post;
 
   let _h_step2_pre = _h_step1_post in
 

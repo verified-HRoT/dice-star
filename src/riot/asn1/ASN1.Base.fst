@@ -462,12 +462,26 @@ let valid_character_string_bytes
 : Tot (bool)
 = Seq.for_all (valid_character_string_byte t) s
 
+noextract
+let character_string_list
+  (t: character_string_type)
+: Type
+= l: list byte { valid_character_string_bytes t (Seq.createL l) }
+
+noextract
+let character_string_llist
+  (t: character_string_type)
+  (len: asn1_value_int32_of_type t)
+: Type
+= l: List.llist byte (v len) { valid_character_string_bytes t (Seq.createL l) }
+
 inline_for_extraction
 let character_string_bytes32
   (t: character_string_type)
 : Type
 = s32: B32.bytes { valid_character_string_bytes t (B32.reveal s32) }
 
+inline_for_extraction
 let character_string_lbytes32
   (t: character_string_type)
   (len: asn1_value_int32_of_type t)

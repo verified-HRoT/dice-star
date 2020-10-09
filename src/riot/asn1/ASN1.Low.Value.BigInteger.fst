@@ -5,6 +5,7 @@ open ASN1.Low.Base
 open ASN1.Low.Tag
 open ASN1.Low.Length
 open ASN1.Low.Value.OCTET_STRING
+open ASN1.Low.Bytes32
 open ASN1.Spec.Value.BigInteger
 module HS = FStar.HyperStack
 module HST = FStar.HyperStack.ST
@@ -25,15 +26,13 @@ friend ASN1.Spec.Value.BigInteger
 // = serialize32_asn1_length_of_bound_backwards 1ul (asn1_int32_max - 6ul)
 
 inline_for_extraction
-let serialize32_big_integer_as_octet_string_backwards
-  (len: asn1_value_int32_of_big_integer)
-: Tot (serializer32_backwards (serialize_big_integer_as_octet_string (v len)))
+let serialize32_big_integer_as_octet_string_backwards len
 = fun (x)
     (#rrel #rel: _)
     (b: B.mbuffer byte rrel rel)
     (pos: size_t)
 ->  (* prf *) let h0 = HST.get () in
-    (* Prf *) lemma_serialize_big_integer_as_octet_string_unfold (v len) (x);
+    (* Prf *) lemma_serialize_big_integer_as_octet_string_unfold len (x);
     (* Prf *) writable_weaken
               (* buf *) b
               (*range*) (v (pos - len)) (v pos)
@@ -89,7 +88,6 @@ let serialize32_big_integer_as_octet_string_backwards
 //   ( (INTEGER, dfst x) )
 
 let serialize32_big_integer_as_octet_string_TLV_backwards ()
-: Tot (serializer32_backwards (serialize_big_integer_as_octet_string_TLV))
 = serialize32_tagged_union_backwards
   (* lst *) (serialize32_asn1_tag_of_type_backwards INTEGER
              `serialize32_nondep_then_backwards`

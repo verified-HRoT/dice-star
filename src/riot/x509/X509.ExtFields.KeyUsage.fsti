@@ -50,16 +50,16 @@ val x509_KU_CRL_SIGN          :key_usage_payload_t // = 0x02l    (* bit 6 *)
 val x509_KU_ENCIPHER_ONLY     :key_usage_payload_t // = 0x01l    (* bit 7 *)
 val x509_KU_DECIPHER_ONLY     :key_usage_payload_t // = 0x8000l  (* bit 8 *)
 
-val lemma_key_usage_close_under_or
-  (ku1 ku2: key_usage_payload_t)
-: Lemma (
-  valid_key_usage (ku1 |^ ku2)
-)
+// val lemma_key_usage_close_under_or
+//   (ku1 ku2: key_usage_payload_t)
+// : Lemma (
+//   valid_key_usage (ku1 |^ ku2)
+// )
 
-val op_ku_with
-  (ku1 ku2: key_usage_payload_t)
-: Tot (ku: key_usage_payload_t
-           { ku == (ku1 |^ ku2) })
+// val op_ku_with
+//   (ku1 ku2: key_usage_payload_t)
+// : Tot (ku: key_usage_payload_t
+//            { ku == (ku1 |^ ku2) })
 
 let _parse_x509_key_usage_payload_kind
 : parser_kind

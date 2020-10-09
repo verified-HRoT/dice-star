@@ -30,7 +30,7 @@ module Ed25519 = Hacl.Ed25519
 open RIoT.Test.Definitions
 
 #restart-solver
-#push-options "--z3rlimit 256 --fuel 0 --ifuel 0 --admit_smt_queries true"
+#push-options "--z3rlimit 512 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection' --admit_smt_queries true"
 let main ()
 : HST.ST C.exit_code
   (requires fun h -> True)
@@ -65,7 +65,7 @@ let main ()
   comment "AliasKey Crt Subject Names";
   IB.recall aliasKeyCrt_s_common_buf;
   IB.recall_contents aliasKeyCrt_s_common_buf (Seq.createL aliasKeyCrt_s_common_list);
-  let aliasKeyCrt_s_common: x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING =
+  let aliasKeyCrt_s_common: x509_RDN_x520_attribute_string_t COMMON_NAME IA5_STRING =
     normalize_term ( asn1_get_character_string
                        #IA5_STRING
                        aliasKeyCrt_s_common_len
@@ -81,7 +81,7 @@ let main ()
 
   IB.recall aliasKeyCrt_s_country_buf;
   IB.recall_contents aliasKeyCrt_s_country_buf (Seq.createL aliasKeyCrt_s_country_list);
-  let aliasKeyCrt_s_country: x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING =
+  let aliasKeyCrt_s_country: x509_RDN_x520_attribute_string_t COUNTRY PRINTABLE_STRING =
     normalize_term ( asn1_get_character_string
                        #PRINTABLE_STRING
                        aliasKeyCrt_s_country_len
@@ -90,7 +90,7 @@ let main ()
   comment "AliasKey Crt Issuer Names";
   IB.recall aliasKeyCrt_i_common_buf;
   IB.recall_contents aliasKeyCrt_i_common_buf (Seq.createL aliasKeyCrt_i_common_list);
-  let aliasKeyCrt_i_common: x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING =
+  let aliasKeyCrt_i_common: x509_RDN_x520_attribute_string_t COMMON_NAME IA5_STRING =
     normalize_term ( asn1_get_character_string
                        #IA5_STRING
                        aliasKeyCrt_i_common_len
@@ -106,7 +106,7 @@ let main ()
 
   IB.recall aliasKeyCrt_i_country_buf;
   IB.recall_contents aliasKeyCrt_i_country_buf (Seq.createL aliasKeyCrt_i_country_list);
-  let aliasKeyCrt_i_country: x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING =
+  let aliasKeyCrt_i_country: x509_RDN_x520_attribute_string_t COUNTRY PRINTABLE_STRING =
     normalize_term ( asn1_get_character_string
                        #PRINTABLE_STRING
                        aliasKeyCrt_i_country_len

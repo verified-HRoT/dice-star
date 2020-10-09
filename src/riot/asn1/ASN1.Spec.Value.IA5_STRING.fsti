@@ -141,23 +141,3 @@ let serialize_asn1_ia5_string_TLV_with_character_bound
     (lb)
     (ub)
 
-// open ASN1.Spec.Length
-// module U32 = FStar.UInt32
-
-
-// let lem
-//   (lb: asn1_value_int32_of_type IA5_STRING)
-//   (ub: asn1_value_int32_of_type IA5_STRING { lb <= ub })
-//   (x: asn1_string_with_character_bound_t IA5_STRING count_ia5_character lb ub)
-// : Lemma (
-//   let value_len = dfst (x <: datatype_of_asn1_type IA5_STRING) in
-
-//   length_of_opaque_serialization
-//     (serialize_asn1_ia5_string_TLV_with_character_bound lb ub)
-//     (x)
-//   <=
-//   1 +
-//   length_of_asn1_length ub +
-//   U32.v (ub)
-// )
-// = lemma_serialize_asn1_ia5_string_TLV_size x
