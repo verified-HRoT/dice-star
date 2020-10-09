@@ -1,10 +1,34 @@
 module RIoT.X509.Base
 open ASN1.Spec
 open RIoT.Base
-open X509.Base
-open X509.ExtFields.KeyUsage
+open X509
 
 module B32 = FStar.Bytes
+
+noeq
+type deviceIDCSR_ingredients_t = {
+  deviceIDCSR_ku: key_usage_payload_t;
+  deviceIDCSR_version: datatype_of_asn1_type INTEGER;
+  deviceIDCSR_s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING;
+  deviceIDCSR_s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING;
+  deviceIDCSR_s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING
+}
+
+noeq
+type aliasKeyCRT_ingredients_t = {
+  aliasKeyCrt_version: x509_version_t;
+  aliasKeyCrt_serialNumber: x509_serialNumber_t;
+  aliasKeyCrt_i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING;
+  aliasKeyCrt_i_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING;
+  aliasKeyCrt_i_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING;
+  aliasKeyCrt_notBefore: datatype_of_asn1_type Generalized_Time;
+  aliasKeyCrt_notAfter : datatype_of_asn1_type Generalized_Time;
+  aliasKeyCrt_s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING;
+  aliasKeyCrt_s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING;
+  aliasKeyCrt_s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING;
+  aliasKeyCrt_ku: key_usage_payload_t;
+  aliasKeyCrt_riot_version: datatype_of_asn1_type INTEGER;
+}
 
 let aliasKeyCrt_key_usage: key_usage_payload_t
 = normalize_term (x509_KU_KEY_CERT_SIGN

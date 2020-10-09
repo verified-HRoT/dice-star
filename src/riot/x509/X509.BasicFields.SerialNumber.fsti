@@ -30,22 +30,16 @@ module B32 = FStar.Bytes
 (* NOTE: 1. `big_integer_as_octet_string_t` is the UN-ENCODED PLAIN integer represented as octets;
          2. the 20 octets restriction is on this plain serialNumber value. *)
 
-let filter_x509_serialNumber_from_s32
-  (len: asn1_value_int32_of_big_integer)
-  (s32: B32.lbytes32 len)
-: GTot bool
-=
-(* Conforming RFC 5280 -- serialNumber __value__ should not longer then 20 octets *)
-  len <= 20ul &&
-(* Non-Negative -- the first bit is zero *)
-  B32.index s32 0 < 0x80uy &&
-(* Non-Zero -- when length is 1, the only octet is not 0 *)
- (len > 1ul || B32.index s32 0 > 0x00uy)
-
 let filter_x509_serialNumber
   (x: big_integer_as_octet_string_t)
 : GTot bool
-= filter_x509_serialNumber_from_s32 (dfst x) (dsnd x)
+=
+(* Conforming RFC 5280 -- serialNumber __value__ should not longer then 20 octets *)
+  dfst x <= 20ul &&
+(* Non-Negative -- the first bit is zero *)
+  B32.index (dsnd x) 0 < 0x80uy &&
+(* Non-Zero -- when length is 1, the only octet is not 0 *)
+ ((dfst x) > 1ul || B32.index (dsnd x) 0 > 0x00uy)
 
 let x509_serialNumber_t
 = parse_filter_refine filter_x509_serialNumber
@@ -95,9 +89,11 @@ let len_of_x509_serialNumber
 val serialize32_x509_serialNumber_backwards
 : serializer32_backwards serialize_x509_serialNumber
 
-// let x509_get_serialNumber
-//   (len: asn1_value_int32_of_big_integer)
-//   (s32: B32.lbytes32 len
-//         { filter_x509_serialNumber_from_s32 len s32 })
-// = asn1_get_big_integer_as_octet_string len s32
+let x509_get_serialNumber
+  (len: asn1_value_int32_of_big_integer)
+  (s32: B32.lbytes32 len
+        { valid_big_integer_as_octet_string len s32 /\
+          filter_x509_serialNumber (asn1_get_big_integer_as_octet_string len s32) })
+: Tot (x509_serialNumber_t)
+= asn1_get_big_integer_as_octet_string len s32
 

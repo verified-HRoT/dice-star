@@ -40,15 +40,15 @@ let valid_key_usage
 let key_usage_payload_t = i: int_32
                      { valid_key_usage i }
 
-val x509_KU_DIGITAL_SIGNATURE :key_usage_payload_t // = 0x80l    (* bit 0 *)
-val x509_KU_NON_REPUDIATION   :key_usage_payload_t // = 0x40l    (* bit 1 *)
-val x509_KU_KEY_ENCIPHERMENT  :key_usage_payload_t // = 0x20l    (* bit 2 *)
-val x509_KU_DATA_ENCIPHERMENT :key_usage_payload_t // = 0x10l    (* bit 3 *)
-val x509_KU_KEY_AGREEMENT     :key_usage_payload_t // = 0x08l    (* bit 4 *)
-val x509_KU_KEY_CERT_SIGN     :key_usage_payload_t // = 0x04l    (* bit 5 *)
-val x509_KU_CRL_SIGN          :key_usage_payload_t // = 0x02l    (* bit 6 *)
-val x509_KU_ENCIPHER_ONLY     :key_usage_payload_t // = 0x01l    (* bit 7 *)
-val x509_KU_DECIPHER_ONLY     :key_usage_payload_t // = 0x8000l  (* bit 8 *)
+let x509_KU_DIGITAL_SIGNATURE :key_usage_payload_t = 0x80l    (* bit 0 *)
+let x509_KU_NON_REPUDIATION   :key_usage_payload_t = 0x40l    (* bit 1 *)
+let x509_KU_KEY_ENCIPHERMENT  :key_usage_payload_t = 0x20l    (* bit 2 *)
+let x509_KU_DATA_ENCIPHERMENT :key_usage_payload_t = 0x10l    (* bit 3 *)
+let x509_KU_KEY_AGREEMENT     :key_usage_payload_t = 0x08l    (* bit 4 *)
+let x509_KU_KEY_CERT_SIGN     :key_usage_payload_t = 0x04l    (* bit 5 *)
+let x509_KU_CRL_SIGN          :key_usage_payload_t = 0x02l    (* bit 6 *)
+let x509_KU_ENCIPHER_ONLY     :key_usage_payload_t = 0x01l    (* bit 7 *)
+let x509_KU_DECIPHER_ONLY     :key_usage_payload_t = 0x8000l  (* bit 8 *)
 
 // val lemma_key_usage_close_under_or
 //   (ku1 ku2: key_usage_payload_t)

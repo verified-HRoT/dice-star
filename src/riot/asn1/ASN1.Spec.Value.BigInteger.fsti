@@ -20,18 +20,6 @@ module B32 = FStar.Bytes
 *)
 
 unfold
-let big_integer_as_octet_string_t
-= x: datatype_of_asn1_type OCTET_STRING
-  { let (.[]) = B32.get in
-      v (dfst x) > 0 /\                    // no nil
-    ( if (v (dfst x) > 1) then
-      ( (dsnd x).[0ul] =!= 0x00uy )        // no leading zero byte if length > 1
-      else ( True ) ) /\
-    ( if ((dsnd x).[0ul] >= 0x80uy) then   // leave one space for leading zero byte
-      ( v (dfst x) <= asn1_length_max - 7 )
-      else ( True ) ) }
-
-unfold
 [@@ "opaque_to_smt"]
 let asn1_value_length_of_big_integer
 = l: asn1_length_t { 1 <= l /\ l <= asn1_length_max - 6}
@@ -50,6 +38,21 @@ unfold
 [@@ "opaque_to_smt"]
 let asn1_TLV_int32_of_big_integer
 = n: U32.t {asn1_int32_inbounds 3 asn1_length_max n}
+
+let valid_big_integer_as_octet_string
+  (len: asn1_value_int32_of_type OCTET_STRING)
+  (s32: B32.lbytes32 len)
+= let (.[]) = B32.get in
+(* no nil *)
+  v len > 0 /\
+(* no leading zero byte if length > 1 *)
+  (if v len > 1 then s32.[0ul] =!= 0x00uy else True) /\
+(* leave one space for leading zero byte *)
+  (if s32.[0ul] >= 0x80uy then v len <= asn1_length_max - 7 else True)
+
+let big_integer_as_octet_string_t
+= x: datatype_of_asn1_type OCTET_STRING
+  { valid_big_integer_as_octet_string (dfst x) (dsnd x) }
 
 unfold
 let valid_big_integer_as_octet_string_prop
@@ -227,6 +230,6 @@ let asn1_get_octet_string
 let asn1_get_big_integer_as_octet_string
   (len: asn1_value_int32_of_big_integer)
   (s32: B32.lbytes32 len
-        { filter_big_integer_as_octet_string len s32 })
+        { valid_big_integer_as_octet_string len s32 })
 : Tot (big_integer_as_octet_string_t)
-= synth_big_integer_as_octet_string len s32
+= asn1_get_octet_string len s32

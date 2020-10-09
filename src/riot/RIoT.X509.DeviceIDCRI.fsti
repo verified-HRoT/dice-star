@@ -30,6 +30,7 @@ type deviceIDCRI_payload_t = {
   deviceIDCRI_attributes: deviceIDCRI_attributes_t
 }
 
+noextract
 let parse_deviceIDCRI_payload_kind
 : parser_kind
 = parse_asn1_TLV_kind_of_type INTEGER
