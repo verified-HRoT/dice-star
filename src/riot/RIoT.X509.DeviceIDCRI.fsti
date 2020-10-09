@@ -150,6 +150,7 @@ let len_of_deviceIDCRI_max ()
 : Tot (asn1_TLV_int32_of_type SEQUENCE)
 = len_of_TLV SEQUENCE (len_of_deviceIDCRI_payload_max ())
 
+#push-options "--z3rlimit 256"
 let len_of_deviceIDCRI
   (version: datatype_of_asn1_type INTEGER)
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
@@ -157,7 +158,11 @@ let len_of_deviceIDCRI
   (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
 : Tot (len: asn1_TLV_int32_of_type SEQUENCE
             { v len <= v (len_of_deviceIDCRI_max ()) })
-= len_of_TLV SEQUENCE (len_of_deviceIDCRI_payload version s_common s_org s_country)
+= [@ inline_let]
+  let len = len_of_TLV SEQUENCE (len_of_deviceIDCRI_payload version s_common s_org s_country) in
+  assert ( v len <= v (len_of_deviceIDCRI_max ()));
+  len
+#pop-options
 
 val lemma_serialize_deviceIDCRI_size_exact
   (x: deviceIDCRI_t)

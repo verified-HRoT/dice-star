@@ -10,7 +10,7 @@ open FStar.Integers
 
 module B32 = FStar.Bytes
 
-#set-options "--z3rlimit 256 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
+#set-options "--z3rlimit 512 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
 let aliasKeyTBS_payload_t' = (
 (*
@@ -245,80 +245,81 @@ let lemma_serialize_aliasKeyTBS_payload_unfold x
   (* prf*) ()
   (* in *) (x)
 
-// let lemma_serialize_aliasKeyTBS_payload_size x
-// = lemma_serialize_aliasKeyTBS_payload_unfold x;
-//   Seq.lemma_len_append
-//     (serialize_x509_version `serialize` x.aliasKeyTBS_version)
-//     (serialize_x509_serialNumber `serialize` x.aliasKeyTBS_serialNumber);
-//   Seq.lemma_len_append
-//     ((serialize_x509_version `serialize` x.aliasKeyTBS_version)
-//       `Seq.append`
-//      (serialize_x509_serialNumber `serialize` x.aliasKeyTBS_serialNumber))
-//     (serialize_algorithmIdentifier `serialize` x.aliasKeyTBS_signatureAlg);
-//   Seq.lemma_len_append
-//     ((serialize_x509_version `serialize` x.aliasKeyTBS_version)
-//       `Seq.append`
-//      (serialize_x509_serialNumber `serialize` x.aliasKeyTBS_serialNumber)
-//       `Seq.append`
-//      (serialize_algorithmIdentifier `serialize` x.aliasKeyTBS_signatureAlg))
-//     (serialize_aliasKeyTBS_issuer `serialize` x.aliasKeyTBS_issuer);
-//   Seq.lemma_len_append
-//     ((serialize_x509_version `serialize` x.aliasKeyTBS_version)
-//       `Seq.append`
-//      (serialize_x509_serialNumber `serialize` x.aliasKeyTBS_serialNumber)
-//       `Seq.append`
-//      (serialize_algorithmIdentifier `serialize` x.aliasKeyTBS_signatureAlg)
-//       `Seq.append`
-//      (serialize_aliasKeyTBS_issuer `serialize` x.aliasKeyTBS_issuer))
-//     (serialize_x509_validity `serialize` x.aliasKeyTBS_validity);
-//    Seq.lemma_len_append
-//      ((serialize_x509_version `serialize` x.aliasKeyTBS_version)
-//        `Seq.append`
-//       (serialize_x509_serialNumber `serialize` x.aliasKeyTBS_serialNumber)
-//        `Seq.append`
-//       (serialize_algorithmIdentifier `serialize` x.aliasKeyTBS_signatureAlg)
-//        `Seq.append`
-//       (serialize_aliasKeyTBS_issuer `serialize` x.aliasKeyTBS_issuer)
-//        `Seq.append`
-//       (serialize_x509_validity `serialize` x.aliasKeyTBS_validity))
-//      (serialize_aliasKeyTBS_subject `serialize` x.aliasKeyTBS_subject);
-//    Seq.lemma_len_append
-//       ((serialize_x509_version `serialize` x.aliasKeyTBS_version)
-//         `Seq.append`
-//        (serialize_x509_serialNumber `serialize` x.aliasKeyTBS_serialNumber)
-//         `Seq.append`
-//        (serialize_algorithmIdentifier `serialize` x.aliasKeyTBS_signatureAlg)
-//         `Seq.append`
-//        (serialize_aliasKeyTBS_issuer `serialize` x.aliasKeyTBS_issuer)
-//         `Seq.append`
-//        (serialize_x509_validity `serialize` x.aliasKeyTBS_validity)
-//         `Seq.append`
-//        (serialize_aliasKeyTBS_subject `serialize` x.aliasKeyTBS_subject))
-//       (serialize_subjectPublicKeyInfo `serialize` x.aliasKeyTBS_aliasKey_pub);
-//    Seq.lemma_len_append
-//       ((serialize_x509_version `serialize` x.aliasKeyTBS_version)
-//         `Seq.append`
-//        (serialize_x509_serialNumber `serialize` x.aliasKeyTBS_serialNumber)
-//         `Seq.append`
-//        (serialize_algorithmIdentifier `serialize` x.aliasKeyTBS_signatureAlg)
-//         `Seq.append`
-//        (serialize_aliasKeyTBS_issuer `serialize` x.aliasKeyTBS_issuer)
-//         `Seq.append`
-//        (serialize_x509_validity `serialize` x.aliasKeyTBS_validity)
-//         `Seq.append`
-//        (serialize_aliasKeyTBS_subject `serialize` x.aliasKeyTBS_subject)
-//         `Seq.append`
-//        (serialize_subjectPublicKeyInfo `serialize` x.aliasKeyTBS_aliasKey_pub))
-//       (serialize_x509_extensions_TLV serialize_aliasKeyTBS_extensions `serialize` x.aliasKeyTBS_extensions);
-//     lemma_serialize_x509_version_size_exact x.aliasKeyTBS_version;
-//     lemma_serialize_x509_serialNumber_size x.aliasKeyTBS_serialNumber;
-//     lemma_serialize_algorithmIdentifier_size_exact x.aliasKeyTBS_signatureAlg;
-//     lemma_serialize_aliasKeyTBS_issuer_size_exact x.aliasKeyTBS_issuer;
-//     lemma_serialize_x509_validity_size_exact x.aliasKeyTBS_validity;
-//     lemma_serialize_aliasKeyTBS_subject_size_exact x.aliasKeyTBS_subject;
-//     lemma_serialize_subjectPublicKeyInfo_size_exact x.aliasKeyTBS_aliasKey_pub;
-//     lemma_serialize_x509_extensions_TLV_size serialize_aliasKeyTBS_extensions x.aliasKeyTBS_extensions;
-//       lemma_serialize_aliasKeyTBS_extensions_size_exact x.aliasKeyTBS_extensions
+#push-options "--using_facts_from '* -FStar.Tactics -FStar.Reflection -LowParse'"
+let lemma_serialize_aliasKeyTBS_payload_size x
+= lemma_serialize_aliasKeyTBS_payload_unfold x;
+  Seq.lemma_len_append
+    (serialize_x509_version `serialize` x.aliasKeyTBS_version)
+    (serialize_x509_serialNumber `serialize` x.aliasKeyTBS_serialNumber);
+  Seq.lemma_len_append
+    ((serialize_x509_version `serialize` x.aliasKeyTBS_version)
+      `Seq.append`
+     (serialize_x509_serialNumber `serialize` x.aliasKeyTBS_serialNumber))
+    (serialize_algorithmIdentifier `serialize` x.aliasKeyTBS_signatureAlg);
+  Seq.lemma_len_append
+    ((serialize_x509_version `serialize` x.aliasKeyTBS_version)
+      `Seq.append`
+     (serialize_x509_serialNumber `serialize` x.aliasKeyTBS_serialNumber)
+      `Seq.append`
+     (serialize_algorithmIdentifier `serialize` x.aliasKeyTBS_signatureAlg))
+    (serialize_aliasKeyTBS_issuer `serialize` x.aliasKeyTBS_issuer);
+  Seq.lemma_len_append
+    ((serialize_x509_version `serialize` x.aliasKeyTBS_version)
+      `Seq.append`
+     (serialize_x509_serialNumber `serialize` x.aliasKeyTBS_serialNumber)
+      `Seq.append`
+     (serialize_algorithmIdentifier `serialize` x.aliasKeyTBS_signatureAlg)
+      `Seq.append`
+     (serialize_aliasKeyTBS_issuer `serialize` x.aliasKeyTBS_issuer))
+    (serialize_x509_validity `serialize` x.aliasKeyTBS_validity);
+   Seq.lemma_len_append
+     ((serialize_x509_version `serialize` x.aliasKeyTBS_version)
+       `Seq.append`
+      (serialize_x509_serialNumber `serialize` x.aliasKeyTBS_serialNumber)
+       `Seq.append`
+      (serialize_algorithmIdentifier `serialize` x.aliasKeyTBS_signatureAlg)
+       `Seq.append`
+      (serialize_aliasKeyTBS_issuer `serialize` x.aliasKeyTBS_issuer)
+       `Seq.append`
+      (serialize_x509_validity `serialize` x.aliasKeyTBS_validity))
+     (serialize_aliasKeyTBS_subject `serialize` x.aliasKeyTBS_subject);
+   Seq.lemma_len_append
+      ((serialize_x509_version `serialize` x.aliasKeyTBS_version)
+        `Seq.append`
+       (serialize_x509_serialNumber `serialize` x.aliasKeyTBS_serialNumber)
+        `Seq.append`
+       (serialize_algorithmIdentifier `serialize` x.aliasKeyTBS_signatureAlg)
+        `Seq.append`
+       (serialize_aliasKeyTBS_issuer `serialize` x.aliasKeyTBS_issuer)
+        `Seq.append`
+       (serialize_x509_validity `serialize` x.aliasKeyTBS_validity)
+        `Seq.append`
+       (serialize_aliasKeyTBS_subject `serialize` x.aliasKeyTBS_subject))
+      (serialize_subjectPublicKeyInfo `serialize` x.aliasKeyTBS_aliasKey_pub);
+   Seq.lemma_len_append
+      ((serialize_x509_version `serialize` x.aliasKeyTBS_version)
+        `Seq.append`
+       (serialize_x509_serialNumber `serialize` x.aliasKeyTBS_serialNumber)
+        `Seq.append`
+       (serialize_algorithmIdentifier `serialize` x.aliasKeyTBS_signatureAlg)
+        `Seq.append`
+       (serialize_aliasKeyTBS_issuer `serialize` x.aliasKeyTBS_issuer)
+        `Seq.append`
+       (serialize_x509_validity `serialize` x.aliasKeyTBS_validity)
+        `Seq.append`
+       (serialize_aliasKeyTBS_subject `serialize` x.aliasKeyTBS_subject)
+        `Seq.append`
+       (serialize_subjectPublicKeyInfo `serialize` x.aliasKeyTBS_aliasKey_pub))
+      (serialize_x509_extensions_TLV serialize_aliasKeyTBS_extensions `serialize` x.aliasKeyTBS_extensions);
+    lemma_serialize_x509_version_size_exact x.aliasKeyTBS_version;
+    lemma_serialize_x509_serialNumber_size x.aliasKeyTBS_serialNumber;
+    lemma_serialize_algorithmIdentifier_size_exact x.aliasKeyTBS_signatureAlg;
+    lemma_serialize_aliasKeyTBS_issuer_size_exact x.aliasKeyTBS_issuer;
+    lemma_serialize_x509_validity_size_exact x.aliasKeyTBS_validity;
+    lemma_serialize_aliasKeyTBS_subject_size_exact x.aliasKeyTBS_subject;
+    lemma_serialize_subjectPublicKeyInfo_size_exact x.aliasKeyTBS_aliasKey_pub;
+    lemma_serialize_x509_extensions_TLV_size serialize_aliasKeyTBS_extensions x.aliasKeyTBS_extensions;
+      lemma_serialize_aliasKeyTBS_extensions_size_exact x.aliasKeyTBS_extensions
 
 let lemma_serialize_aliasKeyTBS_unfold x
 = lemma_serialize_asn1_sequence_TLV_unfold (serialize_aliasKeyTBS_payload) x
@@ -326,19 +327,20 @@ let lemma_serialize_aliasKeyTBS_unfold x
 let lemma_serialize_aliasKeyTBS_size x
 = lemma_serialize_asn1_sequence_TLV_size (serialize_aliasKeyTBS_payload) x
 
-// let lemma_serialize_aliasKeyTBS_size_exact x
-// =
-//   // lemma_aliasKeyTBS_ingredients_valid
-//   //         x.aliasKeyTBS_serialNumber
-//   //         (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer.aliasKeyTBS_issuer_Common)
-//   //         (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer.aliasKeyTBS_issuer_Organization)
-//   //         (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer.aliasKeyTBS_issuer_Country)
-//   //         (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Common)
-//   //         (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Organization)
-//   //         (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Country)
-//   //         RIoT.X509.Extension.(x.aliasKeyTBS_extensions.aliasKeyTBS_extensions_riot.x509_extValue_riot.riot_version);
-//   lemma_serialize_aliasKeyTBS_size x;
-//     lemma_serialize_aliasKeyTBS_payload_size x
+let lemma_serialize_aliasKeyTBS_size_exact x
+=
+  // lemma_aliasKeyTBS_ingredients_valid
+  //         x.aliasKeyTBS_serialNumber
+  //         (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer.aliasKeyTBS_issuer_Common)
+  //         (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer.aliasKeyTBS_issuer_Organization)
+  //         (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer.aliasKeyTBS_issuer_Country)
+  //         (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Common)
+  //         (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Organization)
+  //         (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Country)
+  //         RIoT.X509.Extension.(x.aliasKeyTBS_extensions.aliasKeyTBS_extensions_riot.x509_extValue_riot.riot_version);
+  lemma_serialize_aliasKeyTBS_size x;
+    lemma_serialize_aliasKeyTBS_payload_size x
+#pop-options
 
 (* low *)
 let serialize32_aliasKeyTBS_payload_backwards

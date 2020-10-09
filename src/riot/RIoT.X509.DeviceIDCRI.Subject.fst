@@ -7,7 +7,7 @@ open FStar.Integers
 
 module B32 = FStar.Bytes
 
-#set-options "--z3rlimit 128 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
+#set-options "--z3rlimit 512 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
 let deviceIDCRI_subject_payload_t' = (
   x509_RDN_x520_attribute_t COMMON_NAME  IA5_STRING `tuple2`

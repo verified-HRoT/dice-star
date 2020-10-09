@@ -282,6 +282,7 @@ let riot_core_step1_post
 
 #set-options "--z3rlimit 20 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 [@@ "opaque_to_smt"]
+inline_for_extraction
 let riot_core_step1
 (* Inputs *)
   (cdi : B.lbuffer byte_sec 32)
