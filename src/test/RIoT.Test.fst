@@ -31,6 +31,7 @@ open RIoT.Test.Definitions
 
 #restart-solver
 #push-options "--z3rlimit 1024 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection -LowParse'"
+
 let main ()
 : HST.ST C.exit_code
   (requires fun h -> True)
@@ -72,11 +73,11 @@ let main ()
                             aliasKeyCRT_ingredients.aliasKeyCrt_s_country
                             aliasKeyCRT_ingredients.aliasKeyCrt_riot_version) in
   let aliasKeyCRT_buf: B.lbuffer byte_pub (v aliasKeyCRT_len) = B.alloca 0x00uy aliasKeyCRT_len in
-
+admit();
   let deviceID_pub : B.lbuffer byte_pub 32 = B.alloca 0x00uy 32ul in
   let aliasKey_pub : B.lbuffer byte_pub 32 = B.alloca 0x00uy 32ul in
   let aliasKey_priv: B.lbuffer byte_sec 32 = B.alloca (u8 0x00) 32ul in
-
+admit();
   comment "Call riot main function";
   printf "Enter RIoT\n" done;
   riot

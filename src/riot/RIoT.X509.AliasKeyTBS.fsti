@@ -12,7 +12,7 @@ open RIoT.X509.LengthUtils
 
 module B32 = FStar.Bytes
 
-#set-options "--z3rlimit 256 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection -LowParse'"
+#set-options "--lax --z3rlimit 256 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection -LowParse'"
 
 noeq
 type aliasKeyTBS_payload_t = {
@@ -241,7 +241,7 @@ val serialize32_aliasKeyTBS_backwards
 
 (* helpers *)
 
-#push-options "--z3rlimit 64"
+#push-options "--z3rlimit 128"
 open RIoT.X509.LengthUtils
 let x509_get_AliasKeyTBS
   (crt_version: x509_version_t)

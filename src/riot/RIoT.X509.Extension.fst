@@ -150,7 +150,7 @@ noextract inline_for_extraction unfold
 [@@ "opaque_to_smt"]
 let len_of_riot_extension_max ()
 : Tot (asn1_TLV_int32_of_type SEQUENCE)
-= 117ul
+= 118ul
 
 let len_of_riot_extension
     (version: datatype_of_asn1_type INTEGER)

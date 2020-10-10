@@ -10,7 +10,7 @@ open FStar.Integers
 
 module B32 = FStar.Bytes
 
-#set-options "--z3rlimit 512 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
+#set-options "--lax --z3rlimit 512 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
 let aliasKeyTBS_payload_t' = (
 (*
@@ -373,3 +373,5 @@ let serialize32_aliasKeyTBS_backwards
   (* s32*) (serialize32_asn1_sequence_TLV_backwards
              (serialize32_aliasKeyTBS_payload_backwards))
   (* prf*) ()
+
+let () = ()

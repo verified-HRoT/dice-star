@@ -226,7 +226,7 @@ else
 ifeq ($(shell basename "`pwd`"),test)
   KRML_EXECUTABLE = test.exe
 else
-  KRML_EXECUTABLE =
+  KRML_EXECUTABLE = test.exe
 endif
 endif
 endif

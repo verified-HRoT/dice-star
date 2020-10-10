@@ -14,8 +14,8 @@ module B32 = FStar.Bytes
 
 open FStar.Integers
 
-open X509.BasicFields.RelativeDistinguishedName
-open X509.BasicFields.SerialNumber
+// open X509.BasicFields.RelativeDistinguishedName
+// open X509.BasicFields.SerialNumber
 
 #set-options "--z3rlimit 64 --fuel 0 --ifuel 0"
 
@@ -50,20 +50,7 @@ open X509.BasicFields.SerialNumber
  *)
 
 let serialize32_x509_authKeyID_keyIdentifier_backwards
-= x509_authKeyID_keyIdentifier_tag `serialize32_asn1_envelop_tag_with_TLV_backwards`
-  (**) (serialize32_asn1_TLV_backwards_of_type OCTET_STRING)
-
-let lemma_serialize_x509_authKeyID_keyIdentifier_unfold x
-= lemma_serialize_asn1_envelop_tag_with_TLV_unfold
-    (x509_authKeyID_keyIdentifier_tag)
-    (serialize_asn1_TLV_of_type OCTET_STRING)
-    (x)
-
-let lemma_serialize_x509_authKeyID_keyIdentifier_size x
-= lemma_serialize_asn1_envelop_tag_with_TLV_size
-    (x509_authKeyID_keyIdentifier_tag)
-    (serialize_asn1_TLV_of_type OCTET_STRING)
-    (x)
+= serialize32_asn1_octet_string_TLV_with_tag_backwards x509_authKeyID_keyIdentifier_tag
 
 let lemma_serialize_x509_authKeyID_keyIdentifier_size_exact x
 = lemma_serialize_x509_authKeyID_keyIdentifier_size x

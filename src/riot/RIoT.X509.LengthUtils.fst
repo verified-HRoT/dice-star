@@ -22,7 +22,7 @@ let lemma_length_of_riot_extension (version:datatype_of_asn1_type INTEGER)
   = ()
 
 let lemma_length_of_riot_extension_riot_version (x:datatype_of_asn1_type INTEGER)
-  : Lemma (length_of_TLV SEQUENCE (length_of_asn1_primitive_TLV x + 109) <= 117)
+  : Lemma (length_of_TLV SEQUENCE (length_of_asn1_primitive_TLV x + 110) <= 118)
   = ()
 
 unfold noextract
