@@ -63,7 +63,7 @@ let serialize32_aliasKeyTBS_extensions_extendedKeyUsage_backwards
 #push-options "--z3rlimit 256"
 let length_of_aliasKeyTBS_extensions_extendedKeyUsage ()
 : GTot (l: asn1_TLV_length_of_type SEQUENCE
-           { l == 23 })
+           { l == 24 })
 = length_of_x509_ext_key_usage aliasKeyCrt_extendedKeyUsage_oids
 #pop-options
 
@@ -73,7 +73,7 @@ let len_of_aliasKeyTBS_extensions_extendedKeyUsage ()
 : Tot (len: asn1_TLV_int32_of_type SEQUENCE
             { v len == length_of_aliasKeyTBS_extensions_extendedKeyUsage () })
 // (* FIXME: *) = len_of_x509_ext_key_usage aliasKeyCrt_extendedKeyUsage_oids
-= 23ul
+= 24ul
 
 let lemma_serialize_aliasKeyTBS_extensions_extendedKeyUsage_size_exact
   (x: aliasKeyTBS_extensions_extendedKeyUsage_t)

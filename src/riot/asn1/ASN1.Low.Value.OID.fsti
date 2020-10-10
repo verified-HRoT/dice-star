@@ -13,11 +13,11 @@ let len_of_oid
 : Tot (len: asn1_value_int32_of_type OID
       { v len == length_of_oid oid })
 = match oid with
-  | OID_RIOT                     -> 9ul
+  | OID_RIOT                     -> 10ul
   | OID_AT_CN                    -> 3ul
   | OID_AT_COUNTRY               -> 3ul
   | OID_AT_ORGANIZATION          -> 3ul
-  | OID_CLIENT_AUTH              -> 7ul
+  | OID_CLIENT_AUTH              -> 8ul
   | OID_AUTHORITY_KEY_IDENTIFIER -> 3ul
   | OID_KEY_USAGE                -> 3ul
   | OID_EXTENDED_KEY_USAGE       -> 3ul

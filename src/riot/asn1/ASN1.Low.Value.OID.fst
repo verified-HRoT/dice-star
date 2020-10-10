@@ -30,53 +30,65 @@ friend ASN1.Spec.Value.OID
    blocked by HACL*.
 *)
 
+unfold
+let oid_buffer_t (oid_list: list UInt8.t)
+= b: IB.mbuffer UInt8.t
+        (IB.immutable_preorder UInt8.t)
+        (IB.immutable_preorder UInt8.t)
+      { IB.length b == List.length oid_list /\
+        ~ (IB.g_is_null b) /\
+        IB.witnessed b (IB.cpred (Seq.createL oid_list)) /\
+        IB.frameOf b == HS.root /\
+        IB.recallable b }
+
 (* ZT: Noramlize them here instead of mark OID lists as unfold and normalize them everywhere. *)
-let oid_RIOT_as_buffer                     = IB.igcmalloc_of_list HS.root (oid_RIOT)
-let oid_AT_CN_as_buffer                    = IB.igcmalloc_of_list HS.root (oid_AT_CN)
-let oid_AT_COUNTRY_as_buffer               = IB.igcmalloc_of_list HS.root (oid_AT_COUNTRY)
-let oid_AT_ORGANIZATION_as_buffer          = IB.igcmalloc_of_list HS.root (oid_AT_ORGANIZATION)
-let oid_CLIENT_AUTH_as_buffer              = IB.igcmalloc_of_list HS.root (oid_CLIENT_AUTH)
-let oid_AUTHORITY_KEY_IDENTIFIER_as_buffer = IB.igcmalloc_of_list HS.root (oid_AUTHORITY_KEY_IDENTIFIER)
-let oid_KEY_USAGE_as_buffer                = IB.igcmalloc_of_list HS.root (oid_KEY_USAGE)
-let oid_EXTENDED_KEY_USAGE_as_buffer       = IB.igcmalloc_of_list HS.root (oid_EXTENDED_KEY_USAGE)
-let oid_BASIC_CONSTRAINTS_as_buffer        = IB.igcmalloc_of_list HS.root (oid_BASIC_CONSTRAINTS)
-let oid_EC_ALG_UNRESTRICTED_as_buffer      = IB.igcmalloc_of_list HS.root (oid_EC_ALG_UNRESTRICTED)
-let oid_EC_GRP_SECP256R1_as_buffer         = IB.igcmalloc_of_list HS.root (oid_EC_GRP_SECP256R1)
-let oid_DIGEST_ALG_SHA256_as_buffer        = IB.igcmalloc_of_list HS.root (oid_DIGEST_ALG_SHA256)
-let oid_ED25519_as_bufffer                 = IB.igcmalloc_of_list HS.root (oid_ED25519)
-let oid_X25519_as_bufffer                  = IB.igcmalloc_of_list HS.root (oid_X25519)
-let oid_PKCS9_CSR_EXT_REQ_as_buffer        = IB.igcmalloc_of_list HS.root (oid_PKCS9_CSR_EXT_REQ)
-
-
-
-(* NOTE: A workaround
-   To not extract any (total) seq, we split the `oid_buffer_t` into three
-   functions, all of them take an `oid: oid_t`, returns the corresponding
-   len, (total) seq and ibuffer. The (total) seq will be only used in the
-   `IB.recall_contents` lemma, and the function returns the (total) seq
-   will be marded as `noextract`.
-*)
-
-// let len_of_oid oid
-// = match oid with
-//   | OID_RIOT                     -> 9ul
-//   | OID_AT_CN                    -> 3ul
-//   | OID_AT_COUNTRY               -> 3ul
-//   | OID_AT_ORGANIZATION          -> 3ul
-//   | OID_CLIENT_AUTH              -> 7ul
-//   | OID_AUTHORITY_KEY_IDENTIFIER -> 3ul
-//   | OID_KEY_USAGE                -> 3ul
-//   | OID_EXTENDED_KEY_USAGE       -> 3ul
-//   | OID_BASIC_CONSTRAINTS        -> 3ul
-//   | OID_DIGEST_SHA256            -> 9ul
-//   | OID_EC_ALG_UNRESTRICTED      -> 5ul
-//   | OID_EC_GRP_SECP256R1         -> 6ul
-//   | OID_ED25519                  -> 3ul
-//   | OID_X25519                   -> 3ul
-//   | OID_PKCS9_CSR_EXT_REQ        -> 9ul
+let oid_RIOT_as_buffer
+: oid_buffer_t (oid_RIOT)
+= IB.igcmalloc_of_list HS.root (oid_RIOT)
+let oid_AT_CN_as_buffer
+: oid_buffer_t (oid_AT_CN)
+= IB.igcmalloc_of_list HS.root (oid_AT_CN)
+let oid_AT_COUNTRY_as_buffer
+: oid_buffer_t (oid_AT_COUNTRY)
+= IB.igcmalloc_of_list HS.root (oid_AT_COUNTRY)
+let oid_AT_ORGANIZATION_as_buffer
+: oid_buffer_t (oid_AT_ORGANIZATION)
+= IB.igcmalloc_of_list HS.root (oid_AT_ORGANIZATION)
+let oid_CLIENT_AUTH_as_buffer
+: oid_buffer_t (oid_CLIENT_AUTH)
+= IB.igcmalloc_of_list HS.root (oid_CLIENT_AUTH)
+let oid_AUTHORITY_KEY_IDENTIFIER_as_buffer
+: oid_buffer_t (oid_AUTHORITY_KEY_IDENTIFIER)
+= IB.igcmalloc_of_list HS.root (oid_AUTHORITY_KEY_IDENTIFIER)
+let oid_KEY_USAGE_as_buffer
+: oid_buffer_t (oid_KEY_USAGE)
+= IB.igcmalloc_of_list HS.root (oid_KEY_USAGE)
+let oid_EXTENDED_KEY_USAGE_as_buffer
+: oid_buffer_t (oid_EXTENDED_KEY_USAGE)
+= IB.igcmalloc_of_list HS.root (oid_EXTENDED_KEY_USAGE)
+let oid_BASIC_CONSTRAINTS_as_buffer
+: oid_buffer_t (oid_BASIC_CONSTRAINTS)
+= IB.igcmalloc_of_list HS.root (oid_BASIC_CONSTRAINTS)
+let oid_EC_ALG_UNRESTRICTED_as_buffer
+: oid_buffer_t (oid_EC_ALG_UNRESTRICTED)
+= IB.igcmalloc_of_list HS.root (oid_EC_ALG_UNRESTRICTED)
+let oid_EC_GRP_SECP256R1_as_buffer
+: oid_buffer_t (oid_EC_GRP_SECP256R1)
+= IB.igcmalloc_of_list HS.root (oid_EC_GRP_SECP256R1)
+let oid_DIGEST_ALG_SHA256_as_buffer
+: oid_buffer_t (oid_DIGEST_ALG_SHA256)
+= IB.igcmalloc_of_list HS.root (oid_DIGEST_ALG_SHA256)
+let oid_ED25519_as_bufffer
+: oid_buffer_t (oid_ED25519)
+= IB.igcmalloc_of_list HS.root (oid_ED25519)
+let oid_X25519_as_bufffer
+: oid_buffer_t (oid_X25519)
+= IB.igcmalloc_of_list HS.root (oid_X25519)
+let oid_PKCS9_CSR_EXT_REQ_as_buffer
+: oid_buffer_t (oid_PKCS9_CSR_EXT_REQ)
+= IB.igcmalloc_of_list HS.root (oid_PKCS9_CSR_EXT_REQ)
 
 (* NOTE: The order will affect Z3 for some reason. *)
-(* NOTE: Check the type of this function if a proof regression happened. *)
 let oid_buffer_of_oid
   (oid: oid_t)
 = match oid with
@@ -102,11 +114,11 @@ let len_of_oid_buffer
       { v len == B.length (oid_buffer_of_oid oid) /\
         v len == length_of_oid oid })
 = match oid with
-  | OID_RIOT                     -> 9ul //oid_RIOT_as_buffer
+  | OID_RIOT                     -> 10ul //oid_RIOT_as_buffer
   | OID_AT_CN                    -> 3ul //oid_AT_CN_as_buffer
   | OID_AT_COUNTRY               -> 3ul //oid_AT_COUNTRY_as_buffer
   | OID_AT_ORGANIZATION          -> 3ul //oid_AT_ORGANIZATION_as_buffer
-  | OID_CLIENT_AUTH              -> 7ul //oid_CLIENT_AUTH_as_buffer
+  | OID_CLIENT_AUTH              -> 8ul //oid_CLIENT_AUTH_as_buffer
   | OID_AUTHORITY_KEY_IDENTIFIER -> 3ul //oid_AUTHORITY_KEY_IDENTIFIER_as_buffer
   | OID_KEY_USAGE                -> 3ul //oid_KEY_USAGE_as_buffer
   | OID_EXTENDED_KEY_USAGE       -> 3ul //oid_EXTENDED_KEY_USAGE_as_buffer

@@ -170,7 +170,7 @@ noextract inline_for_extraction val oid_BASIC_CONSTRAINTS : llu8 3
 #define MBEDTLS_OID_OCSP_SIGNING                MBEDTLS_OID_KP "\x09" /**< id-kp-OCSPSigning OBJECT IDENTIFIER ::= { id-kp 9 } */
 *)
 // noextract inline_for_extraction val oid_KP : lu8
-noextract inline_for_extraction val oid_CLIENT_AUTH : llu8 7
+noextract inline_for_extraction val oid_CLIENT_AUTH : llu8 8
 
 (* Digest algorithms
   ==================
@@ -288,7 +288,7 @@ noextract inline_for_extraction val oid_PKCS9_CSR_EXT_REQ : llu8 9
 1.3.6.1.4.1.311.89.3.1
 *)
 (* FIXME: Check RIoT's OID *)
-noextract inline_for_extraction val oid_RIOT : llu8 9
+noextract inline_for_extraction val oid_RIOT : llu8 10
 
 noextract
 let oid_seq_of
@@ -320,11 +320,11 @@ let length_of_oid
 : GTot (l: asn1_value_length_of_type OID
       { l == Seq.length (oid_seq_of oid) })
 = match oid with
-  | OID_RIOT                     -> assert_norm (List.length oid_RIOT == 9); 9
+  | OID_RIOT                     -> assert_norm (List.length oid_RIOT == 10); 10
   | OID_AT_CN                    -> assert_norm (List.length oid_AT_CN == 3); 3
   | OID_AT_COUNTRY               -> assert_norm (List.length oid_AT_COUNTRY == 3); 3
   | OID_AT_ORGANIZATION          -> assert_norm (List.length oid_AT_ORGANIZATION == 3); 3
-  | OID_CLIENT_AUTH              -> assert_norm (List.length oid_CLIENT_AUTH == 7); 7
+  | OID_CLIENT_AUTH              -> assert_norm (List.length oid_CLIENT_AUTH == 8); 8
   | OID_AUTHORITY_KEY_IDENTIFIER -> assert_norm (List.length oid_AUTHORITY_KEY_IDENTIFIER == 3); 3
   | OID_KEY_USAGE                -> assert_norm (List.length oid_KEY_USAGE == 3); 3
   | OID_EXTENDED_KEY_USAGE       -> assert_norm (List.length oid_EXTENDED_KEY_USAGE == 3); 3

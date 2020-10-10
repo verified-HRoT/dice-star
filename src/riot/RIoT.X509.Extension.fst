@@ -117,7 +117,7 @@ let lemma_serialize_riot_extension_size
 
 let length_of_riot_extension_payload
     (version: datatype_of_asn1_type INTEGER)
-= length_of_asn1_primitive_TLV version + 109
+= length_of_asn1_primitive_TLV version + 110
 
 let len_of_riot_extension_payload
     (version: datatype_of_asn1_type INTEGER
@@ -125,7 +125,7 @@ let len_of_riot_extension_payload
                 <= asn1_value_length_max_of_type SEQUENCE })
 : Tot (len: asn1_TLV_int32_of_type SEQUENCE
             { v len == length_of_riot_extension_payload version })
-= len_of_asn1_primitive_TLV version + 109ul
+= len_of_asn1_primitive_TLV version + 110ul
 
 #push-options "--z3rlimit 128 --fuel 0 --ifuel 2"
 let lemma_serialize_riot_extension_payload_size_exact
@@ -133,10 +133,10 @@ let lemma_serialize_riot_extension_payload_size_exact
 : Lemma (
   length_of_opaque_serialization serialize_riot_extension_payload x ==
   length_of_riot_extension_payload x.x509_extValue_riot.riot_version /\
-  length_of_opaque_serialization serialize_riot_extension_payload x <= 115
+  length_of_opaque_serialization serialize_riot_extension_payload x <= 116
 )
 = lemma_serialize_riot_extension_payload_size x;
-  assert (length_of_asn1_primitive_TLV x.x509_extID_riot == 11);
+  assert (length_of_asn1_primitive_TLV x.x509_extID_riot == 12);
   lemma_serialize_compositeDeviceID_size_exact x.x509_extValue_riot;
   assert (length_of_TLV OCTET_STRING (length_of_opaque_serialization serialize_compositeDeviceID x.x509_extValue_riot)
           == length_of_asn1_primitive_TLV x.x509_extValue_riot.riot_version + 95)

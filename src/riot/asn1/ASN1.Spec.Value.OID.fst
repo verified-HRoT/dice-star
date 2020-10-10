@@ -9,6 +9,7 @@ open LowParse.Spec.SeqBytes.Base
 
 open FStar.Integers
 
+#set-options "--fuel 15 --ifuel 0"
 
 (* Top level OID tuples
   =====================
@@ -73,7 +74,8 @@ noextract inline_for_extraction let oid_NIST_ALG = normalize_term(oid_GOV @ [0x0
 #define MBEDTLS_OID_INTERNET                    MBEDTLS_OID_ISO_IDENTIFIED_ORG MBEDTLS_OID_ORG_DOD "\x01"
 #define MBEDTLS_OID_PKIX                        MBEDTLS_OID_INTERNET "\x05\x05\x07"
 *)
-noextract inline_for_extraction let oid_INTERNET = normalize_term(oid_head_ISO_IDENTIFIED_ORG @ [0x01uy])
+noextract inline_for_extraction let oid_node_ORG_DOD = normalize_term([0x06uy])
+noextract inline_for_extraction let oid_INTERNET = normalize_term(oid_head_ISO_IDENTIFIED_ORG @ oid_node_ORG_DOD @ [0x01uy])
 noextract inline_for_extraction let oid_PKIX     = normalize_term(oid_INTERNET @ [0x05uy; 0x05uy; 0x07uy])
 
 (* Arc for standard naming attributes
@@ -306,7 +308,7 @@ noextract inline_for_extraction let oid_PKCS9_CSR_EXT_REQ =
 noextract inline_for_extraction let oid_RIOT =
   [@inline_let]
   let l = oid_INTERNET @ [0x04uy; 0x01uy; 0x82uy; 0x37uy; 0x59uy; 0x03uy; 0x01uy] in
-  assert_norm (List.Tot.length l == 9);
+  assert_norm (List.Tot.length l == 10);
   normalize_term l
 
 (* Known OIDs *)
