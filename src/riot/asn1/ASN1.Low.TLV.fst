@@ -13,6 +13,7 @@ open ASN1.Spec.Value.PRINTABLE_STRING
 open ASN1.Spec.Value.BIT_STRING
 open ASN1.Spec.Value.OID
 open ASN1.Spec.Value.SEQUENCE
+open ASN1.Spec.Value.UTC_TIME
 open ASN1.Spec.Value.Generalized_Time
 open ASN1.Spec.TLV
 open ASN1.Spec.Bytes32
@@ -31,6 +32,7 @@ open ASN1.Low.Value.IA5_STRING
 open ASN1.Low.Value.PRINTABLE_STRING
 open ASN1.Low.Value.BIT_STRING
 open ASN1.Low.Value.OID
+open ASN1.Low.Value.UTC_TIME
 open ASN1.Low.Value.Generalized_Time
 open ASN1.Low.Value.SEQUENCE
 open ASN1.Low.Bytes32
@@ -78,6 +80,9 @@ let len_of_asn1_primitive_value
 
   | OID          -> ( let value = value <: datatype_of_asn1_type OID in
                       len_of_oid value )
+
+  | UTC_TIME     -> ( 13ul )
+
   | Generalized_Time
                  -> ( 15ul )
 #pop-options
@@ -109,7 +114,10 @@ let len_of_asn1_primitive_TLV
                                 ; lemma_serialize_asn1_oid_TLV_unfold          (value <: datatype_of_asn1_type OID         ) )
               | Generalized_Time
                              -> ( lemma_serialize_asn1_generalized_time_TLV_unfold (value <: datatype_of_asn1_type Generalized_Time)
-                                ; lemma_serialize_asn1_generalized_time_TLV_size   (value <: datatype_of_asn1_type Generalized_Time) ));
+                                ; lemma_serialize_asn1_generalized_time_TLV_size   (value <: datatype_of_asn1_type Generalized_Time) )
+              | UTC_TIME     -> ( lemma_serialize_asn1_utc_time_TLV_unfold (value <: datatype_of_asn1_type UTC_TIME)
+                                ; lemma_serialize_asn1_utc_time_TLV_size   (value <: datatype_of_asn1_type UTC_TIME) )
+              );
 
   let value_len = len_of_asn1_primitive_value value in
 
@@ -136,6 +144,7 @@ let serialize32_asn1_TLV_backwards_of_type
   | IA5_STRING   -> serialize32_asn1_ia5_string_TLV_backwards
   | BIT_STRING   -> serialize32_asn1_bit_string_TLV_backwards   ()
   | OID          -> serialize32_asn1_oid_TLV_backwards          ()
+  | UTC_TIME     -> serialize32_asn1_utc_time_TLV_backwards
   | Generalized_Time
                  -> serialize32_asn1_generalized_time_TLV_backwards
 

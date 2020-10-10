@@ -213,7 +213,7 @@ let riot_get_aliasKeyCRT_ingredients ()
 
   IB.recall x509_validity_notAfter_default_buffer;
   IB.recall_contents x509_validity_notAfter_default_buffer asn1_generalized_time_for_x509_validity_notAfter_default_seq;
-  let notBefore: datatype_of_asn1_type Generalized_Time = B32.of_buffer 15ul x509_validity_notAfter_default_buffer in
+  let notBefore: datatype_of_asn1_type UTC_TIME = B32.of_buffer 13ul x509_validity_notAfter_default_buffer in
   let notAfter : datatype_of_asn1_type Generalized_Time = B32.of_buffer 15ul x509_validity_notAfter_default_buffer in
 
   let aliasKeyCRT_ingredients: aliasKeyCRT_ingredients_t = {

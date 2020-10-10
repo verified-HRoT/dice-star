@@ -249,7 +249,7 @@ let x509_get_AliasKeyTBS
   (i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (i_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (i_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-  (notBefore: datatype_of_asn1_type Generalized_Time)
+  (notBefore: datatype_of_asn1_type UTC_TIME)
   (notAfter : datatype_of_asn1_type Generalized_Time)
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)

@@ -21,7 +21,7 @@ type aliasKeyCRT_ingredients_t = {
   aliasKeyCrt_i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING;
   aliasKeyCrt_i_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING;
   aliasKeyCrt_i_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING;
-  aliasKeyCrt_notBefore: datatype_of_asn1_type Generalized_Time;
+  aliasKeyCrt_notBefore: datatype_of_asn1_type UTC_TIME;
   aliasKeyCrt_notAfter : datatype_of_asn1_type Generalized_Time;
   aliasKeyCrt_s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING;
   aliasKeyCrt_s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING;

@@ -50,7 +50,7 @@ let x509_validity_notAfter_default_buffer
 = IB.igcmalloc_of_list HS.root (asn1_generalized_time_for_x509_validity_notAfter_default_list)
 
 let x509_validity_payload_t' = (
-  generalized_time_t `tuple2`
+  utc_time_t `tuple2`
   generalized_time_t
 )
 
@@ -68,7 +68,7 @@ let synth_x509_validity_payload'
     x.notAfter )
 
 let parse_x509_validity_payload
-= parse_asn1_TLV_of_type Generalized_Time
+= parse_asn1_TLV_of_type UTC_TIME
   `nondep_then`
   parse_asn1_TLV_of_type Generalized_Time
   `parse_synth`
@@ -76,11 +76,11 @@ let parse_x509_validity_payload
 
 let serialize_x509_validity_payload
 = serialize_synth
-  (* p1 *) (parse_asn1_TLV_of_type Generalized_Time
+  (* p1 *) (parse_asn1_TLV_of_type UTC_TIME
             `nondep_then`
             parse_asn1_TLV_of_type Generalized_Time)
   (* f2 *) (synth_x509_validity_payload)
-  (* s1 *) (serialize_asn1_TLV_of_type Generalized_Time
+  (* s1 *) (serialize_asn1_TLV_of_type UTC_TIME
             `serialize_nondep_then`
             serialize_asn1_TLV_of_type Generalized_Time)
   (* g1 *) (synth_x509_validity_payload')
@@ -88,15 +88,15 @@ let serialize_x509_validity_payload
 
 let lemma_x509_validity_payload_unfold x
 = serialize_nondep_then_eq
-  (* s1 *) (serialize_asn1_TLV_of_type Generalized_Time)
+  (* s1 *) (serialize_asn1_TLV_of_type UTC_TIME)
   (* s2 *) (serialize_asn1_TLV_of_type Generalized_Time)
   (* in *) (synth_x509_validity_payload' x);
   serialize_synth_eq
-  (* p1 *) (parse_asn1_TLV_of_type Generalized_Time
+  (* p1 *) (parse_asn1_TLV_of_type UTC_TIME
             `nondep_then`
             parse_asn1_TLV_of_type Generalized_Time)
   (* f2 *) (synth_x509_validity_payload)
-  (* s1 *) (serialize_asn1_TLV_of_type Generalized_Time
+  (* s1 *) (serialize_asn1_TLV_of_type UTC_TIME
             `serialize_nondep_then`
             serialize_asn1_TLV_of_type Generalized_Time)
   (* g1 *) (synth_x509_validity_payload')
@@ -117,7 +117,7 @@ let lemma_serialize_x509_validity_size_exact x
 
 let serialize32_x509_validity_payload_backwards
 = serialize32_synth_backwards
-  (* s32 *) (serialize32_asn1_TLV_backwards_of_type Generalized_Time
+  (* s32 *) (serialize32_asn1_TLV_backwards_of_type UTC_TIME
              `serialize32_nondep_then_backwards`
              serialize32_asn1_TLV_backwards_of_type Generalized_Time)
   (* f2 *) (synth_x509_validity_payload)
