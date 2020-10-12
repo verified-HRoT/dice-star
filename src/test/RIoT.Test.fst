@@ -41,12 +41,12 @@ let main ()
 
   comment "Common Inputs";
   let cdi : B.lbuffer byte_sec 32 = B.alloca (u8 0x00) 32ul in
-  let fwid: B.lbuffer byte_sec 32 = B.alloca (u8 0x00) 32ul in
+  let fwid: B.lbuffer byte_pub 32 = B.alloca 0uy 32ul in
 
   let deviceID_lbl_len: x:size_t {normalize (valid_hkdf_lbl_len x)} = 5ul in
-  let deviceID_lbl: B.lbuffer byte_sec (v deviceID_lbl_len) = B.alloca (u8 0x00) deviceID_lbl_len in
+  let deviceID_lbl: B.lbuffer byte_pub (v deviceID_lbl_len) = B.alloca 0uy deviceID_lbl_len in
   let aliasKey_lbl_len: x:size_t {normalize (valid_hkdf_lbl_len x)} = 5ul in
-  let aliasKey_lbl: B.lbuffer byte_sec (v aliasKey_lbl_len) = B.alloca (u8 0x00) aliasKey_lbl_len in
+  let aliasKey_lbl: B.lbuffer byte_pub (v aliasKey_lbl_len) = B.alloca 0uy aliasKey_lbl_len in
   (* Prf *) assert_norm (valid_hkdf_lbl_len deviceID_lbl_len /\ valid_hkdf_lbl_len aliasKey_lbl_len);
 
   comment "DeviceID CSR Inputs";
