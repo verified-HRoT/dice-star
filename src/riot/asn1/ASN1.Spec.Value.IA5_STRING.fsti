@@ -140,3 +140,4 @@ let serialize_asn1_ia5_string_TLV_with_character_bound
     (count_ia5_character)
     (lb)
     (ub)
+

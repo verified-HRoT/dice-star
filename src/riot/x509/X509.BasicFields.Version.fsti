@@ -105,28 +105,18 @@ val lemma_serialize_x509_version_size
     (x)
 )
 
+noextract unfold
+[@@ "opaque_to_smt"]
+let len_of_x509_version ()
+: Tot (asn1_value_int32_of_type SEQUENCE)
+= 5ul
+
 val lemma_serialize_x509_version_size_exact
   (x: x509_version_t)
 : Lemma (
   length_of_opaque_serialization serialize_x509_version x ==
-  5
+  v (len_of_x509_version ())
 )
-
-let length_of_x509_version ()
-: GTot (l: asn1_value_length_of_type SEQUENCE
-           { forall (x: x509_version_t).
-               let _ = lemma_serialize_x509_version_size_exact x in
-               l == length_of_opaque_serialization serialize_x509_version x })
-= Classical.forall_intro lemma_serialize_x509_version_size_exact;
-  5
-
-let len_of_x509_version ()
-: Tot (len: asn1_value_int32_of_type SEQUENCE
-           { forall (x: x509_version_t).
-               let _ = lemma_serialize_x509_version_size_exact x in
-               v len == length_of_opaque_serialization serialize_x509_version x })
-= Classical.forall_intro lemma_serialize_x509_version_size_exact;
-  5ul
 
 val serialize32_x509_version_backwards
 : serializer32_backwards serialize_x509_version

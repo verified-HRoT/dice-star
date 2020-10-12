@@ -105,13 +105,6 @@ val lemma_serialize_asn1_octet_string_size
 //// ASN1 `OCTET_STRING` TLV Parser and Serializer
 ///////////////////////////////////////////////////////////
 
-/// parser tag for the `tagged_union` combinators
-
-noextract
-val parser_tag_of_octet_string
-  (x: datatype_of_asn1_type OCTET_STRING)
-: GTot (the_asn1_tag OCTET_STRING & asn1_value_int32_of_type OCTET_STRING)
-
 inline_for_extraction noextract
 let parse_asn1_octet_string_TLV_kind
 : parser_kind
@@ -121,84 +114,20 @@ let parse_asn1_octet_string_TLV_kind
   `and_then_kind`
   weak_kind_of_type OCTET_STRING
 
-///
-/// A pair of aux parser/serializer, which explicitly coerce the `OCTET_STRING` value
-/// between the subtype used by `OCTET_STRING` value parser/serialzier and `OCTET_STRING`
-/// TLV parser/serializer.
-///
-/// NOTE: I found that have this aux parser explicitly defined will make the prove of
-///       `_unfold` lemmas simpler.
-///
-
-/// Convert an `OCTET_STRING` value from the subtype used by its value parser to the subtype
-/// used by its TLV parser/serializer
-/// (value : subtype_{value}) <: subtype_{TLV}
-
-noextract
-val synth_asn1_octet_string_V
-  (tag: (the_asn1_tag OCTET_STRING & asn1_value_int32_of_type OCTET_STRING))
-  (value: datatype_of_asn1_type OCTET_STRING { v (dfst value) == v (snd tag) })
-: GTot (refine_with_tag parser_tag_of_octet_string tag)
-
-/// Convert an `OCTET_STRING` value from the subtype used by its TLV parser to the subtype
-/// used by its value parser/serializer
-/// (value : subtype_{TLV}) <: subtype_{value}
-
-noextract
-val synth_asn1_octet_string_V_inverse
-  (tag: (the_asn1_tag OCTET_STRING & asn1_value_int32_of_type OCTET_STRING))
-  (value': refine_with_tag parser_tag_of_octet_string tag)
-: GTot (value: datatype_of_asn1_type OCTET_STRING { v (dfst value) == v (snd tag) /\ value' == synth_asn1_octet_string_V tag value})
-
-
-///
-/// Aux parser
-///
-
-noextract
-val parse_asn1_octet_string_V
-  (tag: (the_asn1_tag OCTET_STRING & asn1_value_int32_of_type OCTET_STRING))
-: parser (weak_kind_of_type OCTET_STRING) (refine_with_tag parser_tag_of_octet_string tag)
-
-///
-/// Aux serializer
-///
-
-noextract
-val serialize_asn1_octet_string_V
-  (tag: (the_asn1_tag OCTET_STRING & asn1_value_int32_of_type OCTET_STRING))
-: serializer (parse_asn1_octet_string_V tag)
-
-///
-/// Lemmas
-///
-
-/// Reveal the computation of parse
-
-val lemma_parse_asn1_octet_string_V_unfold
-  (tag: (the_asn1_tag OCTET_STRING & asn1_value_int32_of_type OCTET_STRING))
-  (input: bytes)
-: Lemma (
-  parse (parse_asn1_octet_string_V tag) input ==
- (match parse (parse_asn1_octet_string (v (snd tag))) input with
-  | None -> None
-  | Some (value, consumed) ->  Some (synth_asn1_octet_string_V tag value, consumed)))
-
-
 //////////////////////////////////////////////////////////
 ///
 /// ASN1 `OCTET_STRING` TLV Parser
 ///
 noextract
-val parse_asn1_octet_string_TLV
+val parse_asn1_octet_string_TLV_with_tag (a: asn1_tag_t)
 : parser parse_asn1_octet_string_TLV_kind (datatype_of_asn1_type OCTET_STRING)
 
 ///
 /// Serializer
 ///
 noextract
-val serialize_asn1_octet_string_TLV
-: serializer parse_asn1_octet_string_TLV
+val serialize_asn1_octet_string_TLV_with_tag (a: asn1_tag_t)
+: serializer (parse_asn1_octet_string_TLV_with_tag a)
 
 ///
 /// Lemmas
@@ -206,11 +135,12 @@ val serialize_asn1_octet_string_TLV
 
 /// Reveal the computation of serialize
 
-val lemma_serialize_asn1_octet_string_TLV_unfold
+val lemma_serialize_asn1_octet_string_TLV_with_tag_unfold
+  (a: asn1_tag_t)
   (value: datatype_of_asn1_type OCTET_STRING)
 : Lemma (
-  serialize serialize_asn1_octet_string_TLV value ==
-  serialize (serialize_asn1_tag_of_type OCTET_STRING) OCTET_STRING
+  serialize (serialize_asn1_octet_string_TLV_with_tag a) value ==
+  serialize (serialize_asn1_tag_of_type a) a
   `Seq.append`
   serialize (serialize_asn1_length_of_type OCTET_STRING) (dfst value)
   `Seq.append`
@@ -219,9 +149,23 @@ val lemma_serialize_asn1_octet_string_TLV_unfold
 
 /// Reveal the size of a serialzation
 
-val lemma_serialize_asn1_octet_string_TLV_size
+val lemma_serialize_asn1_octet_string_TLV_with_tag_size
+  (a: asn1_tag_t)
   (value: datatype_of_asn1_type OCTET_STRING)
 : Lemma (
-  Seq.length (serialize serialize_asn1_octet_string_TLV value) ==
+  Seq.length (serialize (serialize_asn1_octet_string_TLV_with_tag a) value) ==
   1 + length_of_asn1_length (dfst value) + B32.length (dsnd value)
 )
+
+
+noextract inline_for_extraction unfold
+let parse_asn1_octet_string_TLV = parse_asn1_octet_string_TLV_with_tag OCTET_STRING
+
+noextract inline_for_extraction unfold
+let serialize_asn1_octet_string_TLV = serialize_asn1_octet_string_TLV_with_tag OCTET_STRING
+
+unfold
+let lemma_serialize_asn1_octet_string_TLV_unfold = lemma_serialize_asn1_octet_string_TLV_with_tag_unfold OCTET_STRING
+
+unfold
+let lemma_serialize_asn1_octet_string_TLV_size = lemma_serialize_asn1_octet_string_TLV_with_tag_size OCTET_STRING

@@ -31,24 +31,15 @@ open FStar.Integers
  * #define MBEDTLS_X509_KU_DECIPHER_ONLY              (0x8000)  /* bit 8 */
  *)
 
-let x509_KU_DIGITAL_SIGNATURE = 0x80l    (* bit 0 *)
-let x509_KU_NON_REPUDIATION   = 0x40l    (* bit 1 *)
-let x509_KU_KEY_ENCIPHERMENT  = 0x20l    (* bit 2 *)
-let x509_KU_DATA_ENCIPHERMENT = 0x10l    (* bit 3 *)
-let x509_KU_KEY_AGREEMENT     = 0x08l    (* bit 4 *)
-let x509_KU_KEY_CERT_SIGN     = 0x04l    (* bit 5 *)
-let x509_KU_CRL_SIGN          = 0x02l    (* bit 6 *)
-let x509_KU_ENCIPHER_ONLY     = 0x01l    (* bit 7 *)
-let x509_KU_DECIPHER_ONLY     = 0x8000l  (* bit 8 *)
-
-(* FIXME: Can we normalize bitwise operators? *)
-let lemma_key_usage_close_under_or ku1 ku2
-= admit()
-
-let op_ku_with ku1 ku2
-= [@inline_let]let ku: int_32 = ku1 |^ ku2 in
-  lemma_key_usage_close_under_or ku1 ku2;
-  ku
+// let x509_KU_DIGITAL_SIGNATURE = 0x80l    (* bit 0 *)
+// let x509_KU_NON_REPUDIATION   = 0x40l    (* bit 1 *)
+// let x509_KU_KEY_ENCIPHERMENT  = 0x20l    (* bit 2 *)
+// let x509_KU_DATA_ENCIPHERMENT = 0x10l    (* bit 3 *)
+// let x509_KU_KEY_AGREEMENT     = 0x08l    (* bit 4 *)
+// let x509_KU_KEY_CERT_SIGN     = 0x04l    (* bit 5 *)
+// let x509_KU_CRL_SIGN          = 0x02l    (* bit 6 *)
+// let x509_KU_ENCIPHER_ONLY     = 0x01l    (* bit 7 *)
+// let x509_KU_DECIPHER_ONLY     = 0x8000l  (* bit 8 *)
 
 let _filter_x509_key_usage_payload
   (bs: datatype_of_asn1_type BIT_STRING)

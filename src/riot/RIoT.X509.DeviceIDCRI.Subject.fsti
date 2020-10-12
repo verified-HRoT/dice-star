@@ -5,6 +5,8 @@ open ASN1.Low
 open X509
 open FStar.Integers
 
+open RIoT.X509.LengthUtils
+
 module B32 = FStar.Bytes
 
 #set-options "--z3rlimit 128 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
@@ -35,23 +37,22 @@ noextract
 val serialize_deviceIDCRI_subject_payload
 : serializer (parse_deviceIDCRI_subject_payload)
 
-let length_of_deviceIDCRI_subject_payload
-  (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
-  (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
-  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-: GTot (nat)
-= length_of_RDN_x520_attribute s_common +
-  length_of_RDN_x520_attribute s_org +
-  length_of_RDN_x520_attribute s_country
+// unfold
+// [@@ "opaque_to_smt"]
+let len_of_deviceIDCRI_subject_payload_max ()
+: Tot (asn1_value_int32_of_type SEQUENCE)
+= len_of_RDN_x520_attribute_max COMMON_NAME  IA5_STRING +
+  len_of_RDN_x520_attribute_max ORGANIZATION IA5_STRING +
+  len_of_RDN_x520_attribute_max COUNTRY      PRINTABLE_STRING
 
+// unfold
+// [@@ "opaque_to_smt"]
 let len_of_deviceIDCRI_subject_payload
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
-  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING
-              { length_of_deviceIDCRI_subject_payload s_common s_org s_country
-                <= asn1_value_length_max_of_type SEQUENCE })
+  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
 : Tot (len: asn1_value_int32_of_type SEQUENCE
-            { v len == length_of_deviceIDCRI_subject_payload s_common s_org s_country })
+            { v len <= v (len_of_deviceIDCRI_subject_payload_max ()) })
 = len_of_RDN_x520_attribute s_common +
   len_of_RDN_x520_attribute s_org +
   len_of_RDN_x520_attribute s_country
@@ -75,11 +76,14 @@ val lemma_serialize_deviceIDCRI_subject_payload_size
      length_of_opaque_serialization (serialize_RDN_x520_attribute _ _) x.deviceIDCRI_subject_Organization +
      length_of_opaque_serialization (serialize_RDN_x520_attribute _ _) x.deviceIDCRI_subject_Country /\
   length_of_opaque_serialization (serialize_deviceIDCRI_subject_payload) x
-  == length_of_deviceIDCRI_subject_payload
-       (get_RDN_x520_attribute_string x.deviceIDCRI_subject_Common)
-       (get_RDN_x520_attribute_string x.deviceIDCRI_subject_Organization)
-       (get_RDN_x520_attribute_string x.deviceIDCRI_subject_Country)
+  == v (len_of_deviceIDCRI_subject_payload
+         (get_RDN_x520_attribute_string x.deviceIDCRI_subject_Common)
+         (get_RDN_x520_attribute_string x.deviceIDCRI_subject_Organization)
+         (get_RDN_x520_attribute_string x.deviceIDCRI_subject_Country)) /\
+  length_of_opaque_serialization (serialize_deviceIDCRI_subject_payload) x
+  <= v (len_of_deviceIDCRI_subject_payload_max ())
 )
+
 
 (*
  *
@@ -105,24 +109,21 @@ let serialize_deviceIDCRI_subject
           (**) (serialize_deviceIDCRI_subject_payload))
   (*prf*) ()
 
-let length_of_deviceIDCRI_subject
-  (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
-  (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
-  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING
-              { length_of_deviceIDCRI_subject_payload s_common s_org s_country
-                <= asn1_value_length_max_of_type SEQUENCE })
-: GTot (asn1_TLV_length_of_type SEQUENCE)
-= SEQUENCE `length_of_TLV`
-  (**) (length_of_deviceIDCRI_subject_payload s_common s_org s_country)
+noextract unfold
+[@@ "opaque_to_smt"]
+let len_of_deviceIDCRI_subject_max ()
+: Tot (asn1_TLV_int32_of_type SEQUENCE)
+= SEQUENCE `len_of_TLV`
+  (**) (len_of_deviceIDCRI_subject_payload_max ())
 
+// unfold
+// [@@ "opaque_to_smt"]
 let len_of_deviceIDCRI_subject
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
-  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING
-              { length_of_deviceIDCRI_subject_payload s_common s_org s_country
-                <= asn1_value_length_max_of_type SEQUENCE })
+  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
 : Tot (len: asn1_TLV_int32_of_type SEQUENCE
-            { v len == length_of_deviceIDCRI_subject s_common s_org s_country })
+            { v len <= v (len_of_deviceIDCRI_subject_max ()) })
 = SEQUENCE `len_of_TLV`
   (**) (len_of_deviceIDCRI_subject_payload s_common s_org s_country)
 
@@ -139,10 +140,12 @@ val lemma_serialize_deviceIDCRI_subject_size_exact
 : Lemma (
   let _ = lemma_serialize_deviceIDCRI_subject_payload_size x in
   length_of_opaque_serialization (serialize_deviceIDCRI_subject) x
-  == length_of_deviceIDCRI_subject
-       (get_RDN_x520_attribute_string x.deviceIDCRI_subject_Common)
-       (get_RDN_x520_attribute_string x.deviceIDCRI_subject_Organization)
-       (get_RDN_x520_attribute_string x.deviceIDCRI_subject_Country)
+  == v (len_of_deviceIDCRI_subject
+         (get_RDN_x520_attribute_string x.deviceIDCRI_subject_Common)
+         (get_RDN_x520_attribute_string x.deviceIDCRI_subject_Organization)
+         (get_RDN_x520_attribute_string x.deviceIDCRI_subject_Country)) /\
+  length_of_opaque_serialization (serialize_deviceIDCRI_subject) x
+  <= v (len_of_deviceIDCRI_subject_max ())
 )
 
 (* Low *)
@@ -159,7 +162,6 @@ val serialize32_deviceIDCRI_subject_backwards
  *
  *)
 
-#set-options "--fuel 4 --fuel 4"
 let x509_get_deviceIDCRI_subject
   (#len_common: asn1_value_int32_of_type IA5_STRING
                 { x520_attribute_lb COMMON_NAME <= len_common /\

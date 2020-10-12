@@ -1,6 +1,7 @@
 module ASN1.Base
 open FStar.Integers
 
+module U32 = FStar.UInt32
 module B32 = FStar.Bytes
 
 let (.[]) = FStar.Seq.index
@@ -34,6 +35,7 @@ type asn1_tag_t: Type =
 | IA5_STRING
 | BIT_STRING
 | OID
+| UTC_TIME
 | Generalized_Time
 | SEQUENCE
 | SET
@@ -71,15 +73,18 @@ let asn1_implicit_tagging
 /////      bounded mathematical integers for ASN1 value lengths
 ///// Defines the valid length/size of a ASN1 DER values
 ///////////////////////////////////////////////////////////////////////////
-let asn1_length_t = n: nat //{within_bounds (Unsigned W32) n}
+unfold
+let asn1_length_t = nat //{within_bounds (Unsigned W32) n}
 
-inline_for_extraction noextract
+inline_for_extraction noextract unfold
 let asn1_length_min (*: n: asn1_length_t {forall (n':asn1_length_t). n <= n'}*) = 0
-inline_for_extraction noextract
+inline_for_extraction noextract unfold
 let asn1_length_max (*: n: asn1_length_t {forall (n':asn1_length_t). n >= n'}*) = 4294967295
-inline_for_extraction noextract
+inline_for_extraction noextract unfold
 let asn1_length_inbound (x: nat) (min max: asn1_length_t): bool
 = min <= x && x <= max
+// unfold
+// let asn1_length_inbound_t = n: asn1_length_t { asn1_length_inbound n asn1_length_min asn1_length_max }
 
 (* Defining the min and max length of the serialization of ASN1 _value_, not Tag-Len-Value tuples. Note
    that a ASN1 tag always take 1 byte to serialize, a ASN1 length (of value) at most take 5 bytes to
@@ -93,7 +98,8 @@ let asn1_length_inbound (x: nat) (min max: asn1_length_t): bool
    6. BIT_STRING value could take arbitrary greater-than-zero valid ASN1 value length/size of bytes, since
       it always take one byte to store the `unused_bits`, see `ASN1.Spec.Value.BIT_STRING` for details;
    7. SEQUENCE value could take arbitrary valid ASN1 value length/size of bytes. *)
-inline_for_extraction noextract
+inline_for_extraction noextract unfold
+[@@ "opaque_to_smt"]
 let asn1_value_length_min_of_type
   (a: asn1_tag_t)
 : asn1_length_t
@@ -105,13 +111,15 @@ let asn1_value_length_min_of_type
   | IA5_STRING
   | PRINTABLE_STRING  -> asn1_length_min   (* An empty `OCTET_STRING` [] has length 0. *)
   | OID          -> asn1_length_min   (* `OID` is just `OCTET_STRING`. *)
+  | UTC_TIME -> 13
   | Generalized_Time -> 15
   | BIT_STRING   -> 1                 (* An empty `BIT_STRING` with a leading byte of `unused_bits` has length 0. *)
   | SEQUENCE     -> asn1_length_min   (* An empty `SEQUENCE` has length 0. *)
   | SET          -> asn1_length_min   (* An empty `SET` has length 0. *)
   | CUSTOM_TAG _ _ _ -> asn1_length_min
 
-inline_for_extraction noextract
+inline_for_extraction noextract unfold
+[@@ "opaque_to_smt"]
 let asn1_value_length_max_of_type
   (a: asn1_tag_t)
 : asn1_length_t
@@ -123,6 +131,7 @@ let asn1_value_length_max_of_type
   | IA5_STRING
   | PRINTABLE_STRING -> asn1_length_max - 6  (* An `OCTET_STRING` of size `asn1_length_max - 6`. *)
   | OID          -> asn1_length_max - 6  (* `OID` is just `OCTET_STRING`. *)
+  | UTC_TIME -> 13
   | Generalized_Time -> 15
   | BIT_STRING   -> asn1_length_max - 6  (* An `BIT_STRING` of size `asn1_length_max - 7` with a leading byte of `unused_bits`. *)
   | SEQUENCE     -> asn1_length_max - 6  (* An `SEQUENCE` whose value has length `asn1_length_max - 6` *)
@@ -130,7 +139,8 @@ let asn1_value_length_max_of_type
   | CUSTOM_TAG _ _ _ -> asn1_length_max - 6
 
 /// Helper to assert a length `l` is a valid ASN1 value length of the given type `a`
-noextract
+noextract unfold
+[@@ "opaque_to_smt"]
 let asn1_value_length_inbound_of_type
   (a: asn1_tag_t) (l: nat)
 : bool
@@ -138,7 +148,8 @@ let asn1_value_length_inbound_of_type
   asn1_length_inbound l min max
 
 /// Valid ASN1 Value length subtype for a given type`a`
-noextract
+noextract unfold
+[@@ "opaque_to_smt"]
 let asn1_value_length_of_type
   (a: asn1_tag_t)
 = l: asn1_length_t {asn1_value_length_inbound_of_type a l}
@@ -151,7 +162,8 @@ let asn1_value_length_of_type
 (* NOTE: The valid TLV length range of a ASN1 type is its valid value length
          range plus the corresponding Tag-Length length.
 *)
-noextract
+noextract unfold
+[@@ "opaque_to_smt"]
 let asn1_TLV_length_min_of_type
   (a: asn1_tag_t)
 : asn1_length_t
@@ -163,13 +175,15 @@ let asn1_TLV_length_min_of_type
   | IA5_STRING
   | PRINTABLE_STRING -> 2 (*  1 + 1 + 0  *)
   | OID          -> 2 (*  1 + 1 + 0  *)
+  | UTC_TIME -> 15
   | Generalized_Time -> 17
   | BIT_STRING   -> 3 (*  1 + 1 + 1  *)
   | SEQUENCE     -> 2 (*  1 + 1 + 0  *)
   | SET          -> 2 (*  1 + 1 + 0  *)
   | CUSTOM_TAG _ _ _ -> 2
 
-noextract
+noextract unfold
+[@@ "opaque_to_smt"]
 let asn1_TLV_length_max_of_type
   (a: asn1_tag_t)
 : asn1_length_t
@@ -181,6 +195,7 @@ let asn1_TLV_length_max_of_type
   | IA5_STRING
   | PRINTABLE_STRING -> asn1_length_max  (*  1 + 5 + _  *)
   | OID          -> asn1_length_max  (*  1 + 5 + _  *)
+  | UTC_TIME -> 15
   | Generalized_Time -> 17
   | BIT_STRING   -> asn1_length_max  (*  1 + 5 + _  *)
   | SEQUENCE     -> asn1_length_max  (*  1 + 5 + _  *)
@@ -188,7 +203,8 @@ let asn1_TLV_length_max_of_type
   | CUSTOM_TAG _ _ _ -> asn1_length_max
 
 /// Helper to assert a length `l` is a valid ASN1 TLV length of the given type `a`
-noextract
+noextract unfold
+[@@ "opaque_to_smt"]
 let asn1_TLV_length_inbound_of_type
   (a: asn1_tag_t) (x: nat)
 : bool
@@ -196,7 +212,8 @@ let asn1_TLV_length_inbound_of_type
   asn1_length_inbound x min max
 
 /// Valid ASN1 TLV length subtype for a given type`a`
-noextract
+noextract unfold
+[@@ "opaque_to_smt"]
 let asn1_TLV_length_of_type
   (a: asn1_tag_t)
 = l: asn1_length_t {asn1_TLV_length_inbound_of_type a l}
@@ -208,15 +225,29 @@ let asn1_TLV_length_of_type
 ///// Defines the valid length/size of a ASN1 DER Tag-Length-Value tuple
 ////  Same as above, specified using the above definitions
 ///////////////////////////////////////////////////////////////////////////
-inline_for_extraction
-let asn1_int32 = LowParse.Spec.BoundedInt.bounded_int32 asn1_length_min asn1_length_max
-inline_for_extraction
+unfold
+[@@ "opaque_to_smt"]
+let asn1_int32_inbounds
+  (min: nat)
+  (max: nat)
+  (x: U32.t)
+: GTot bool
+= not (U32.v x < min || max < U32.v x)
+
+inline_for_extraction unfold
+[@@ "opaque_to_smt"]
+// let asn1_int32 = LowParse.Spec.BoundedInt.bounded_int32 asn1_length_min asn1_length_max
+let asn1_int32 = n: U32.t { asn1_int32_inbounds asn1_length_min asn1_length_max n }
+inline_for_extraction unfold
+[@@ "opaque_to_smt"]
 let asn1_int32_min: i: asn1_int32 {forall (i': asn1_int32). i <= i'} = 0ul
-inline_for_extraction
+inline_for_extraction unfold
+[@@ "opaque_to_smt"]
 let asn1_int32_max: i: asn1_int32 {forall (i': asn1_int32). i >= i'} = 4294967295ul
 
 (* Defining the min and max machine len of the serialization of _value_s *)
-inline_for_extraction
+inline_for_extraction unfold
+[@@ "opaque_to_smt"]
 let asn1_value_int32_min_of_type
   (a: asn1_tag_t)
 : Tot (n: asn1_int32 {v n == asn1_value_length_min_of_type a})
@@ -228,15 +259,17 @@ let asn1_value_int32_min_of_type
   | IA5_STRING
   | PRINTABLE_STRING -> asn1_int32_min
   | OID          -> asn1_int32_min
+  | UTC_TIME -> 13ul
   | Generalized_Time -> 15ul
   | BIT_STRING   -> 1ul
   | SEQUENCE     -> asn1_int32_min
   | SET          -> asn1_int32_min
   | CUSTOM_TAG _ _ _ -> asn1_int32_min
 
-inline_for_extraction
+inline_for_extraction unfold
+[@@ "opaque_to_smt"]
 let asn1_value_int32_max_of_type
-  (a: asn1_type)
+  (a: asn1_tag_t)
 : Tot (n: asn1_int32 {v n == asn1_value_length_max_of_type a})
 = match a with
   | BOOLEAN      -> 1ul
@@ -246,6 +279,7 @@ let asn1_value_int32_max_of_type
   | IA5_STRING
   | PRINTABLE_STRING -> asn1_int32_max - 6ul
   | OID          -> asn1_int32_max - 6ul
+  | UTC_TIME -> 13ul
   | Generalized_Time -> 15ul
   | BIT_STRING   -> asn1_int32_max - 6ul
   | SEQUENCE     -> asn1_int32_max - 6ul
@@ -253,14 +287,16 @@ let asn1_value_int32_max_of_type
   | CUSTOM_TAG _ _ _ -> asn1_int32_max - 6ul
 
 /// Valid ASN1 Value len subtype for a given type`a`
-inline_for_extraction
+inline_for_extraction unfold
+[@@ "opaque_to_smt"]
 let asn1_value_int32_of_type
   (_a: asn1_tag_t)
 = [@inline_let]
   let min = asn1_value_length_min_of_type _a in
   [@inline_let]
   let max = asn1_value_length_max_of_type _a in
-  LowParse.Spec.BoundedInt.bounded_int32 min max
+  // LowParse.Spec.BoundedInt.bounded_int32 min max
+  n: U32.t { asn1_int32_inbounds min max n }
 
 
 ///////////////////////////////////////////////////////////////////////////
@@ -268,6 +304,8 @@ let asn1_value_int32_of_type
 ///// Defines the valid length/size of a ASN1 DER Tag-Length-Value tuple
 ////  Same as the mathematical version above, specified using the above definitions
 ///////////////////////////////////////////////////////////////////////////
+unfold
+[@@ "opaque_to_smt"]
 let asn1_TLV_int32_min_of_type
   (a: asn1_tag_t)
 : Tot (n: asn1_int32 {v n == asn1_TLV_length_min_of_type a})
@@ -279,12 +317,15 @@ let asn1_TLV_int32_min_of_type
   | IA5_STRING
   | PRINTABLE_STRING -> 2ul
   | OID          -> 2ul
+  | UTC_TIME -> 15ul
   | Generalized_Time -> 17ul
   | BIT_STRING   -> 3ul
   | SEQUENCE     -> 2ul
   | SET          -> 2ul
   | CUSTOM_TAG _ _ _ -> 2ul
 
+unfold
+[@@ "opaque_to_smt"]
 let asn1_TLV_int32_max_of_type
   (a: asn1_tag_t)
 : Tot (n: asn1_int32 {v n == asn1_TLV_length_max_of_type a})
@@ -296,6 +337,7 @@ let asn1_TLV_int32_max_of_type
   | IA5_STRING
   | PRINTABLE_STRING -> asn1_int32_max
   | OID          -> asn1_int32_max
+  | UTC_TIME -> 15ul
   | Generalized_Time -> 17ul
   | BIT_STRING   -> asn1_int32_max
   | SEQUENCE     -> asn1_int32_max
@@ -303,10 +345,16 @@ let asn1_TLV_int32_max_of_type
   | CUSTOM_TAG _ _ _ -> asn1_int32_max
 
 /// Valid ASN1 TLV len subtype for a given type`a`
+unfold
+[@@ "opaque_to_smt"]
 let asn1_TLV_int32_of_type
   (_a: asn1_tag_t)
-= let min, max = asn1_TLV_length_min_of_type _a, asn1_TLV_length_max_of_type _a in
-  LowParse.Spec.BoundedInt.bounded_int32 min max
+= //let min, max = asn1_TLV_length_min_of_type _a, asn1_TLV_length_max_of_type _a in
+  // LowParse.Spec.BoundedInt.bounded_int32 min max
+  n: asn1_int32 { asn1_int32_inbounds
+                    (asn1_TLV_length_min_of_type _a)
+                    (asn1_TLV_length_max_of_type _a)
+                    n }
 
 //////////////////////////////////////////////////////////////////////
 /// A weak parser kind (for ASN1 variable-length values) generator. They
@@ -423,12 +471,26 @@ let valid_character_string_bytes
 : Tot (bool)
 = Seq.for_all (valid_character_string_byte t) s
 
+noextract
+let character_string_list
+  (t: character_string_type)
+: Type
+= l: list byte { valid_character_string_bytes t (Seq.createL l) }
+
+noextract
+let character_string_llist
+  (t: character_string_type)
+  (len: asn1_value_int32_of_type t)
+: Type
+= l: List.llist byte (v len) { valid_character_string_bytes t (Seq.createL l) }
+
 inline_for_extraction
 let character_string_bytes32
   (t: character_string_type)
 : Type
 = s32: B32.bytes { valid_character_string_bytes t (B32.reveal s32) }
 
+inline_for_extraction
 let character_string_lbytes32
   (t: character_string_type)
   (len: asn1_value_int32_of_type t)
@@ -441,6 +503,26 @@ let character_string_t
 // : Type
 = ( len: asn1_value_int32_of_type t &
     character_string_lbytes32 t len)
+  
+noextract inline_for_extraction
+let asn1_utc_time_for_x509_validity_notBefore_default_list
+: l: list byte { List.length l == 13 }
+= [@inline_let] let l = [0x31uy; 0x37uy; 0x30uy; 0x31uy; 0x30uy; 0x31uy; 0x30uy; 0x30uy; 0x30uy; 0x30uy; 0x30uy; 0x30uy; 0x5Auy] in
+  assert_norm (List.length l == 13);
+  l
+
+noextract inline_for_extraction
+let asn1_utc_time_for_x509_validity_notBefore_default_seq
+: s: bytes { Seq.createL_post asn1_utc_time_for_x509_validity_notBefore_default_list s }
+= Seq.createL asn1_utc_time_for_x509_validity_notBefore_default_list
+
+let valid_utc_time
+  (x: B32.lbytes32 13ul)
+: GTot bool
+= true
+
+let utc_time_t: Type
+= LowParse.Spec.Combinators.parse_filter_refine valid_utc_time
 
 noextract inline_for_extraction
 let asn1_generalized_time_for_x509_validity_notAfter_default_list
@@ -493,6 +575,8 @@ let datatype_of_asn1_type (a: asn1_primitive_type): Type
   | IA5_STRING   -> character_string_t IA5_STRING
 
   | OID          -> oid_t
+  
+  | UTC_TIME -> utc_time_t
 
   | Generalized_Time -> generalized_time_t
 

@@ -226,7 +226,7 @@ else
 ifeq ($(shell basename "`pwd`"),test)
   KRML_EXECUTABLE = test.exe
 else
-  KRML_EXECUTABLE =
+  KRML_EXECUTABLE = test.exe
 endif
 endif
 endif
@@ -238,7 +238,7 @@ endif
 #     requires the use of alloca(3) for MSVC)
 # @15: function is not Low*; need compatibility headers
 KRML_WARN_ERRORS = \
-  -warn-error @4-6-17
+  -warn-error @2@4@15@17-6
 
 KREMLIN_FLAGS = \
   $(OTHER_KRML_FLAGS) \

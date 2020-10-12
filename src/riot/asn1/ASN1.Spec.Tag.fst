@@ -32,7 +32,7 @@ open FStar.Integers
 
 let filter_asn1_tag b =
   match b with
-  | 0x01uy | 0x04uy | 0x05uy | 0x13uy | 0x16uy | 0x18uy | 0x30uy | 0x31uy | 0x03uy | 0x02uy | 0x06uy -> true
+  | 0x01uy | 0x04uy | 0x05uy | 0x13uy | 0x16uy | 0x17uy | 0x18uy | 0x30uy | 0x31uy | 0x03uy | 0x02uy | 0x06uy -> true
   | _ -> if (b / 0b01000000uy <> 00uy) then true else false
 
 /// decode input bytes
@@ -48,6 +48,7 @@ let synth_asn1_tag b
   | 0x16uy -> IA5_STRING
   | 0x05uy -> ASN1_NULL
   | 0x06uy -> OID
+  | 0x17uy -> UTC_TIME
   | 0x18uy -> Generalized_Time
   | 0x30uy -> SEQUENCE
   | 0x31uy -> SET
@@ -73,6 +74,7 @@ let synth_asn1_tag_inverse a
   | IA5_STRING   -> 0x16uy
   | ASN1_NULL    -> 0x05uy
   | OID          -> 0x06uy
+  | UTC_TIME     -> 0x17uy
   | Generalized_Time -> 0x18uy
   | SEQUENCE     -> 0x30uy
   | SET          -> 0x31uy

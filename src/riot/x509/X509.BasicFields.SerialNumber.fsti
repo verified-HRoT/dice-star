@@ -29,16 +29,17 @@ module B32 = FStar.Bytes
 
 (* NOTE: 1. `big_integer_as_octet_string_t` is the UN-ENCODED PLAIN integer represented as octets;
          2. the 20 octets restriction is on this plain serialNumber value. *)
+
 let filter_x509_serialNumber
   (x: big_integer_as_octet_string_t)
 : GTot bool
-= let (|len, s32|) = x in
+=
 (* Conforming RFC 5280 -- serialNumber __value__ should not longer then 20 octets *)
-  len <= 20ul &&
+  dfst x <= 20ul &&
 (* Non-Negative -- the first bit is zero *)
-  B32.index s32 0 < 0x80uy &&
+  B32.index (dsnd x) 0 < 0x80uy &&
 (* Non-Zero -- when length is 1, the only octet is not 0 *)
- (len > 1ul || B32.index s32 0 > 0x00uy)
+ ((dfst x) > 1ul || B32.index (dsnd x) 0 > 0x00uy)
 
 let x509_serialNumber_t
 = parse_filter_refine filter_x509_serialNumber
@@ -63,22 +64,36 @@ val lemma_serialize_x509_serialNumber_unfold
   `Seq.append`
  (serialize_asn1_length_of_big_integer `serialize` (snd tg))
   `Seq.append`
- (serialize_big_integer_as_octet_string (v (snd tg)) `serialize` x)
+ (serialize_big_integer_as_octet_string (snd tg) `serialize` x)
 )
+
+noextract unfold [@@ "opaque_to_smt"]
+let len_of_x509_serialNumber_max = 23ul
 
 val lemma_serialize_x509_serialNumber_size
   (x: x509_serialNumber_t)
 : Lemma (
   length_of_opaque_serialization serialize_x509_serialNumber x ==
-  length_of_big_integer_as_octet_string x
+  v (len_of_big_integer_as_octet_string_TLV x) /\
+  length_of_opaque_serialization serialize_x509_serialNumber x
+  <= v (len_of_x509_serialNumber_max)
 )
-
 let len_of_x509_serialNumber
   (x: x509_serialNumber_t)
 : Tot (len: asn1_value_int32_of_big_integer
-            { v len == length_of_opaque_serialization serialize_x509_serialNumber x })
+            { v len == length_of_opaque_serialization serialize_x509_serialNumber x /\
+              v len <= v len_of_x509_serialNumber_max })
 = lemma_serialize_x509_serialNumber_size x;
-  len_of_big_integer_as_octet_string x
+  len_of_big_integer_as_octet_string_TLV x
 
 val serialize32_x509_serialNumber_backwards
 : serializer32_backwards serialize_x509_serialNumber
+
+let x509_get_serialNumber
+  (len: asn1_value_int32_of_big_integer)
+  (s32: B32.lbytes32 len
+        { valid_big_integer_as_octet_string len s32 /\
+          filter_x509_serialNumber (asn1_get_big_integer_as_octet_string len s32) })
+: Tot (x509_serialNumber_t)
+= asn1_get_big_integer_as_octet_string len s32
+

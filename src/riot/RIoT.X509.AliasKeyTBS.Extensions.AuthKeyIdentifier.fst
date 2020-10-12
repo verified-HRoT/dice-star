@@ -52,18 +52,17 @@ let lemma_serialize_aliasKeyTBS_extensions_authKeyID_extValue_payload_unfold
 
 let length_of_aliasKeyTBS_extensions_authKeyID_extValue_payload ()
 : GTot (nat)
-= 24
+= 22
 
 let len_of_aliasKeyTBS_extensions_authKeyID_extValue_payload
   (keyID: datatype_of_asn1_type OCTET_STRING)
 : Tot (len: asn1_value_int32_of_type SEQUENCE
             { v len == length_of_aliasKeyTBS_extensions_authKeyID_extValue_payload () })
-= 24ul
+= 22ul
 
 let lemma_serialize_aliasKeyTBS_extensions_authKeyID_extValue_payload_size
   (x: aliasKeyTBS_extensions_authKeyID_extValue_payload_t)
 : Lemma (
-  valid_authKeyID_keyIdentifier_ingredients x /\
   length_of_opaque_serialization serialize_aliasKeyTBS_extensions_authKeyID_extValue_payload x ==
   length_of_opaque_serialization serialize_x509_authKeyID_keyIdentifier x /\
   length_of_opaque_serialization serialize_aliasKeyTBS_extensions_authKeyID_extValue_payload x ==
@@ -126,12 +125,12 @@ let lemma_serialize_aliasKeyTBS_extensions_authKeyID_extValue_size
 
 let length_of_aliasKeyTBS_extensions_authKeyID_extValue ()
 : GTot (asn1_value_length_of_type OCTET_STRING)
-= 26
+= 24
 
 let len_of_aliasKeyTBS_extensions_authKeyID_extValue ()
 : Tot (len: asn1_value_int32_of_type OCTET_STRING
             { v len == length_of_aliasKeyTBS_extensions_authKeyID_extValue () })
-= 26ul
+= 24ul
 
 let lemma_serialize_aliasKeyTBS_extensions_authKeyID_extValue_size_exact
   (x: aliasKeyTBS_extensions_authKeyID_extValue_t)
@@ -210,7 +209,7 @@ let lemma_serialize_aliasKeyTBS_extensions_authKeyID_size
 
 let length_of_aliasKeyTBS_extensions_authKeyID ()
 : GTot (asn1_TLV_length_of_type SEQUENCE)
-= 38
+= 36
   // Classical.forall_intro lemma_serialize_aliasKeyTBS_extensions_authKeyID_extValue_payload_size;
   // Classical.forall_intro lemma_serialize_aliasKeyTBS_extensions_authKeyID_extValue_size_exact;
   // length_of_x509_extension
@@ -219,10 +218,12 @@ let length_of_aliasKeyTBS_extensions_authKeyID ()
   //   (x509_get_aliasKeyTBS_extensions_authKeyID_extValue keyID)
   //   (length_of_aliasKeyTBS_extensions_authKeyID_extValue ())
 
+noextract inline_for_extraction unfold
+[@@ "opaque_to_smt"]
 let len_of_aliasKeyTBS_extensions_authKeyID ()
 : Tot (len: asn1_TLV_int32_of_type SEQUENCE
             { v len == length_of_aliasKeyTBS_extensions_authKeyID () })
-= 38ul
+= 36ul
 
 let lemma_serialize_aliasKeyTBS_extensions_authKeyID_size_exact
   (ext: aliasKeyTBS_extensions_authKeyID_t)

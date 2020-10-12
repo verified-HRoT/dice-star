@@ -109,26 +109,26 @@ noextract
 val parse_asn1_boolean_TLV
 : parser parse_asn1_boolean_TLV_kind (datatype_of_asn1_type BOOLEAN)
 
-#push-options "--z3rlimit 16 --initial_ifuel 4"
-val lemma_parse_asn1_boolean_TLV_unfold
-  (input_TLV: bytes)
-: Lemma (
-  parse parse_asn1_boolean_TLV input_TLV ==
- (parser_kind_prop_equiv parse_asn1_tag_kind (parse_asn1_tag_of_type BOOLEAN);
-  match parse (parse_asn1_tag_of_type BOOLEAN) input_TLV with
-  | None -> None
-  | Some (BOOLEAN, 1) ->
-    (parser_kind_prop_equiv (parse_asn1_length_kind_of_type BOOLEAN) (parse_asn1_length_of_type BOOLEAN);
-     let input_LV = Seq.slice input_TLV 1 (Seq.length input_TLV) in
-     match parse (parse_asn1_length_of_type BOOLEAN) input_LV with
-     | None -> None
-     | Some (1ul, 1) ->
-       (parser_kind_prop_equiv parse_asn1_boolean_kind parse_asn1_boolean;
-        let input_V = Seq.slice input_LV 1 (Seq.length input_LV) in
-        match parse parse_asn1_boolean input_V with
-        | None -> None
-        | Some (value, 1) -> Some (value, (1 + 1 + 1 <: consumed_length input_TLV)))))
-)
+// #push-options "--z3rlimit 16 --initial_ifuel 4"
+// val lemma_parse_asn1_boolean_TLV_unfold
+//   (input_TLV: bytes)
+// : Lemma (
+//   parse parse_asn1_boolean_TLV input_TLV ==
+//  (parser_kind_prop_equiv parse_asn1_tag_kind (parse_asn1_tag_of_type BOOLEAN);
+//   match parse (parse_asn1_tag_of_type BOOLEAN) input_TLV with
+//   | None -> None
+//   | Some (BOOLEAN, 1) ->
+//     (parser_kind_prop_equiv (parse_asn1_length_kind_of_type BOOLEAN) (parse_asn1_length_of_type BOOLEAN);
+//      let input_LV = Seq.slice input_TLV 1 (Seq.length input_TLV) in
+//      match parse (parse_asn1_length_of_type BOOLEAN) input_LV with
+//      | None -> None
+//      | Some (1ul, 1) ->
+//        (parser_kind_prop_equiv parse_asn1_boolean_kind parse_asn1_boolean;
+//         let input_V = Seq.slice input_LV 1 (Seq.length input_LV) in
+//         match parse parse_asn1_boolean input_V with
+//         | None -> None
+//         | Some (value, 1) -> Some (value, (1 + 1 + 1 <: consumed_length input_TLV)))))
+// )
 
 noextract
 val serialize_asn1_boolean_TLV

@@ -1,210 +1,82 @@
 module ASN1.Spec.Value.BigInteger
 
 open ASN1.Spec.Base
-open LowParse.Spec.SeqBytes.Base
 
 open ASN1.Base
 open ASN1.Spec.Tag
 open ASN1.Spec.Length
+open ASN1.Spec.Bytes32
 
 open FStar.Integers
 
 module B32 = FStar.Bytes
 
-// let asn1_value_length_of_big_integer
-// = l: asn1_length_t { 1 <= l /\ l <= asn1_length_max - 6}
-
-// let asn1_value_int32_of_big_integer
-// = LowParse.Spec.BoundedInt.bounded_int32 1 (asn1_length_max - 6)
-
-// let asn1_TLV_length_of_big_integer
-// = l: asn1_length_t { 3 <= l /\ l <= asn1_length_max }
-
-// let asn1_TLV_int32_of_big_integer
-// = LowParse.Spec.BoundedInt.bounded_int32 3 asn1_length_max
-
-// unfold
-// let valid_big_integer_as_octet_string_prop
-//   (l: asn1_value_length_of_big_integer)
-//   (x: big_integer_as_octet_string_t)
-// : Type0
-// = v (dfst x) > 0 /\
-//   ( let (.[]) = B32.index in
-//     if l = 1 then
-//     ( v (dfst x) == l /\ (dsnd x).[0] < 0x80uy )
-//     else if ((dsnd x).[0] >= 0x80uy) then
-//     ( v (dfst x) == l - 1 )
-//     else
-//     ( v (dfst x) == l /\ (dsnd x).[0] > 0x00uy ) )
-
-///
-let filter_big_integer_as_octet_string
-  (l: asn1_value_length_of_big_integer)
-  (s: lbytes l)
-: GTot bool
-= l > 0 &&
-  ( if (l = 1) then
-    ( s.[0] < 0x80uy )
-    else if (s.[0] = 0x00uy) then
-    ( s.[1] >= 0x80uy )
-    else
-    ( s.[0] < 0x80uy ) )
-
-let synth_big_integer_as_octet_string
-  (l: asn1_value_length_of_big_integer)
-  (s: parse_filter_refine (filter_big_integer_as_octet_string l))
-: GTot (value: big_integer_as_octet_string_t
-               { valid_big_integer_as_octet_string_prop l value })
-= if (l = 1) then
-  ( (|1ul, B32.hide s|) )
-  else if (s.[0] = 0x00uy) then
-  ( (|u (l - 1), B32.hide (Seq.slice s 1 l)|) )
-  else
-  ( (|u l, B32.hide s|) )
-
 let lemma_synth_big_integer_as_octet_string_injective'
-  (l: asn1_value_length_of_big_integer)
-  (s s': parse_filter_refine (filter_big_integer_as_octet_string l))
+  (len: asn1_value_int32_of_big_integer)
+  (s32 s32': parse_filter_refine (filter_big_integer_as_octet_string len))
 : Lemma
-  (requires synth_big_integer_as_octet_string l s == synth_big_integer_as_octet_string l s')
-  (ensures s == s')
-= if (l = 1) then
+  (requires synth_big_integer_as_octet_string len s32 == synth_big_integer_as_octet_string len s32')
+  (ensures s32 == s32')
+= if (v len = 1) then
   ( () )
-  else if (s.[0] = 0x00uy) then
-  ( Seq.lemma_split s  1;
-    Seq.lemma_split s' 1;
-    assert (s `Seq.equal` s') )
+  else if (s32 `B32.index` 0 = 0x00uy) then
+  ( assert (B32.length s32 == B32.length s32');
+    assert (s32' `B32.index` 0 == 0x00uy);
+    assert (s32 `B32.index` 0 == s32' `B32.index` 0);
+    assert (B32.slice s32 1ul len `B32.equal` B32.slice s32' 1ul len);
+    assert (forall (i: UInt32.t { 1 <= v i /\ v i < v (B32.length s32 )}). s32  `B32.get` i == B32.slice s32  1ul len `B32.get` (i - 1ul) );
+    assert (forall (i: UInt32.t { 1 <= v i /\ v i < v (B32.length s32')}). s32' `B32.get` i == B32.slice s32' 1ul len `B32.get` (i - 1ul) );
+    assert (s32 `B32.equal` s32');
+    B32.extensionality s32 s32' )
   else
   ( () )
 
-let lemma_synth_big_integer_as_octet_string_injective
-  (l: asn1_value_length_of_big_integer)
-: Lemma (
-  synth_injective (synth_big_integer_as_octet_string l)
-)
+let lemma_synth_big_integer_as_octet_string_injective len
 = synth_injective_intro'
-  (* f *) (synth_big_integer_as_octet_string l)
-  (*prf*) (lemma_synth_big_integer_as_octet_string_injective' l)
+  (* f *) (synth_big_integer_as_octet_string len)
+  (*prf*) (lemma_synth_big_integer_as_octet_string_injective' len)
 
-/// Encodes our representation of a OCTET_STRING into bytes
-let synth_big_integer_as_octet_string_inverse
-  (l: asn1_value_length_of_big_integer)
-  (value: big_integer_as_octet_string_t {valid_big_integer_as_octet_string_prop l value})
-: GTot (s32: parse_filter_refine (filter_big_integer_as_octet_string l)
-            { value == synth_big_integer_as_octet_string l s32 })
-= let (.[]) = B32.index in
-  if l = 1 then
-  ( B32.reveal (dsnd value) )
-  else if (dsnd value).[0] >= 0x80uy then
-  ( let s = Seq.create 1 0x00uy `Seq.append` B32.reveal (dsnd value) in
-    B32.extensionality (dsnd value) (B32.hide (Seq.slice s 1 l));
-    s )
-  else
-  ( B32.reveal (dsnd value) )
-
-// inline_for_extraction noextract
-// let parse_big_integer_as_octet_string_kind (l: asn1_value_length_of_big_integer) = constant_size_parser_kind l
-
-///
-/// Parser
-///
-let parse_big_integer_as_octet_string
-  (l: asn1_value_length_of_big_integer)
-: parser (parse_big_integer_as_octet_string_kind l) (x: big_integer_as_octet_string_t {valid_big_integer_as_octet_string_prop l x})
-= lemma_synth_big_integer_as_octet_string_injective l;
-  parse_seq_flbytes l
+let parse_big_integer_as_octet_string len
+= lemma_synth_big_integer_as_octet_string_injective len;
+  parse_flbytes32 len
   `parse_filter`
-  filter_big_integer_as_octet_string l
+  filter_big_integer_as_octet_string len
   `parse_synth`
-  synth_big_integer_as_octet_string l
+  synth_big_integer_as_octet_string len
 
-///
-/// Serializer
-///
-let serialize_big_integer_as_octet_string
-  (l: asn1_value_length_of_big_integer)
-: serializer (parse_big_integer_as_octet_string l)
+let serialize_big_integer_as_octet_string len
 = serialize_synth
-  (* p1 *) (parse_seq_flbytes l
+  (* p1 *) (parse_flbytes32 len
             `parse_filter`
-            filter_big_integer_as_octet_string l)
-  (* f2 *) (synth_big_integer_as_octet_string l)
-  (* s1 *) (serialize_seq_flbytes l
+            filter_big_integer_as_octet_string len)
+  (* f2 *) (synth_big_integer_as_octet_string len)
+  (* s1 *) (serialize_flbytes32 len
             `serialize_filter`
-            filter_big_integer_as_octet_string l)
-  (* g1 *) (synth_big_integer_as_octet_string_inverse l)
-  (* Prf*) (lemma_synth_big_integer_as_octet_string_injective l)
+            filter_big_integer_as_octet_string len)
+  (* g1 *) (synth_big_integer_as_octet_string_inverse len)
+  (* Prf*) (lemma_synth_big_integer_as_octet_string_injective len)
 
-///
-/// Lemmas
-///
-
-/// Reveal the computation of serialize
-let lemma_serialize_big_integer_as_octet_string_unfold
-  (l: asn1_value_length_of_big_integer)
-  (value: get_parser_type (parse_big_integer_as_octet_string l))
-: Lemma (
-  serialize (serialize_big_integer_as_octet_string l) value ==
-  serialize (serialize_seq_flbytes l) (synth_big_integer_as_octet_string_inverse l value))
+let lemma_serialize_big_integer_as_octet_string_unfold len value
 = serialize_synth_eq
-  (* p1 *) (parse_seq_flbytes l
+  (* p1 *) (parse_flbytes32 len
             `parse_filter`
-            filter_big_integer_as_octet_string l)
-  (* f2 *) (synth_big_integer_as_octet_string l)
-  (* s1 *) (serialize_seq_flbytes l
+            filter_big_integer_as_octet_string len)
+  (* f2 *) (synth_big_integer_as_octet_string len)
+  (* s1 *) (serialize_flbytes32 len
             `serialize_filter`
-            filter_big_integer_as_octet_string l)
-  (* g1 *) (synth_big_integer_as_octet_string_inverse l)
-  (* Prf*) (lemma_synth_big_integer_as_octet_string_injective l)
+            filter_big_integer_as_octet_string len)
+  (* g1 *) (synth_big_integer_as_octet_string_inverse len)
+  (* Prf*) (lemma_synth_big_integer_as_octet_string_injective len)
   (* in *) (value)
 
-/// Reveal the length of a serialzation
-let lemma_serialize_big_integer_as_octet_string_size
-  (l: asn1_value_length_of_big_integer)
-  (value: get_parser_type (parse_big_integer_as_octet_string l))
-: Lemma (
-  Seq.length (serialize (serialize_big_integer_as_octet_string l) value) == l)
-= lemma_serialize_big_integer_as_octet_string_unfold l value
-
-
-/// parser tag for the `tagged_union` combinators
-// let parser_tag_of_big_integer_as_octet_string
-//   (x: big_integer_as_octet_string_t)
-// : Tot (the_asn1_tag INTEGER & asn1_value_int32_of_big_integer)
-// = let (.[]) = B32.index in
-//   if ((dsnd x).[0] >= 0x80uy) then
-//   ( (INTEGER, dfst x + 1ul) )
-//   else
-//   ( (INTEGER, dfst x) )
-
-// open LowParse.Spec.DER
-// let parse_asn1_length_kind_of_big_integer
-// = parse_bounded_der_length32_kind 1 (asn1_length_max - 6)
-
-// let parse_asn1_length_of_big_integer
-// : parser parse_asn1_length_kind_of_big_integer asn1_value_int32_of_big_integer
-// = parse_asn1_length_of_bound 1 (asn1_length_max - 6)
-
-// let serialize_asn1_length_of_big_integer
-// : serializer (parse_asn1_length_of_big_integer)
-// = serialize_asn1_length_of_bound 1 (asn1_length_max - 6)
-
-// let weak_kind_of_big_integer
-// = strong_parser_kind 1 (asn1_length_max - 6) None
-
-// let parse_big_integer_as_octet_string_TLV_kind
-// : parser_kind
-// = parse_asn1_tag_kind
-//   `and_then_kind`
-//   parse_asn1_length_kind_of_big_integer
-//   `and_then_kind`
-//   weak_kind_of_big_integer
+let lemma_serialize_big_integer_as_octet_string_size len value
+= lemma_serialize_big_integer_as_octet_string_unfold len value
 
 noextract
 let synth_big_integer_as_octet_string_V
   (tag: (the_asn1_tag INTEGER & asn1_value_int32_of_big_integer))
   (value: big_integer_as_octet_string_t
-         { valid_big_integer_as_octet_string_prop (v (snd tag)) value })
+         { valid_big_integer_as_octet_string_prop (snd tag) value })
 : GTot (refine_with_tag parser_tag_of_big_integer_as_octet_string tag)
 = value
 
@@ -213,7 +85,7 @@ let synth_big_integer_as_octet_string_V_inverse
   (tag: (the_asn1_tag INTEGER & asn1_value_int32_of_big_integer))
   (value': refine_with_tag parser_tag_of_big_integer_as_octet_string tag)
 : Tot (value: big_integer_as_octet_string_t
-               { valid_big_integer_as_octet_string_prop (v (snd tag)) value /\
+               { valid_big_integer_as_octet_string_prop (snd tag) value /\
                  value' == synth_big_integer_as_octet_string_V tag value})
 = value'
 
@@ -227,7 +99,7 @@ let parse_big_integer_as_octet_string_V
 : parser (weak_kind_of_big_integer) (refine_with_tag parser_tag_of_big_integer_as_octet_string tag)
 = weak_kind_of_big_integer
   `weaken`
-  parse_big_integer_as_octet_string (v (snd tag))
+  parse_big_integer_as_octet_string (snd tag)
   `parse_synth`
   synth_big_integer_as_octet_string_V tag
 
@@ -241,11 +113,11 @@ let serialize_big_integer_as_octet_string_V
 = serialize_synth
   (* p1 *) (weak_kind_of_big_integer
             `weaken`
-            parse_big_integer_as_octet_string (v (snd tag)))
+            parse_big_integer_as_octet_string (snd tag))
   (* f2 *) (synth_big_integer_as_octet_string_V tag)
   (* s1 *) (weak_kind_of_big_integer
             `serialize_weaken`
-            serialize_big_integer_as_octet_string (v (snd tag)))
+            serialize_big_integer_as_octet_string (snd tag))
   (* g1 *) (synth_big_integer_as_octet_string_V_inverse tag)
   (* prf*) ()
 
@@ -260,13 +132,13 @@ let lemma_parse_big_integer_as_octet_string_V_unfold
   (input: bytes)
 : Lemma (
   parse (parse_big_integer_as_octet_string_V tag) input ==
- (match parse (parse_big_integer_as_octet_string (v (snd tag))) input with
+ (match parse (parse_big_integer_as_octet_string (snd tag)) input with
   | None -> None
   | Some (value, consumed) ->  Some (synth_big_integer_as_octet_string_V tag value, consumed)))
 = parse_synth_eq
   (* p1 *) (weak_kind_of_big_integer
             `weaken`
-            parse_big_integer_as_octet_string (v (snd tag)))
+            parse_big_integer_as_octet_string (snd tag))
   (* f2 *) (synth_big_integer_as_octet_string_V tag)
   (* in *) input
 
@@ -277,16 +149,16 @@ let lemma_serialize_big_integer_as_octet_string_V_unfold
   (value: refine_with_tag parser_tag_of_big_integer_as_octet_string tag)
 : Lemma (
   serialize (serialize_big_integer_as_octet_string_V tag) value ==
-  serialize (serialize_big_integer_as_octet_string (v (snd tag))) value
+  serialize (serialize_big_integer_as_octet_string (snd tag)) value
 )
 = serialize_synth_eq
   (* p1 *) (weak_kind_of_big_integer
             `weaken`
-            parse_big_integer_as_octet_string (v (snd tag)))
+            parse_big_integer_as_octet_string (snd tag))
   (* f2 *) (synth_big_integer_as_octet_string_V tag)
   (* s1 *) (weak_kind_of_big_integer
             `serialize_weaken`
-            serialize_big_integer_as_octet_string (v (snd tag)))
+            serialize_big_integer_as_octet_string (snd tag))
   (* g1 *) (synth_big_integer_as_octet_string_V_inverse tag)
   (* prf*) ()
   (* in *) (value)
@@ -330,7 +202,7 @@ let lemma_serialize_big_integer_as_octet_string_TLV_unfold
   `Seq.append`
   serialize (serialize_asn1_length_of_big_integer) (snd tg)
   `Seq.append`
-  serialize (serialize_big_integer_as_octet_string (v (snd tg))) value
+  serialize (serialize_big_integer_as_octet_string (snd tg)) value
 )
 = serialize_nondep_then_eq
   (* s1 *) (serialize_asn1_tag_of_type INTEGER)
@@ -362,16 +234,11 @@ let lemma_serialize_big_integer_as_octet_string_TLV_unfold
 /// Reveal the size of a serialzation
 
 #push-options "--z3rlimit 32 --fuel 0 --ifuel 0"
-let lemma_serialize_big_integer_as_octet_string_TLV_size
-  (value: big_integer_as_octet_string_t)
-: Lemma (
-  Seq.length (serialize serialize_big_integer_as_octet_string_TLV value) ==
-  length_of_big_integer_as_octet_string value
-)
+let lemma_serialize_big_integer_as_octet_string_TLV_size value
 = let tg = parser_tag_of_big_integer_as_octet_string value in
   lemma_serialize_asn1_tag_of_type_size INTEGER INTEGER;
   serialize_asn1_length_of_bound_eq 1 (asn1_length_max - 6) (snd tg);
   lemma_serialize_asn1_length_of_bound_size 1 (asn1_length_max - 6) (snd tg);
-  lemma_serialize_big_integer_as_octet_string_size (v (snd tg)) value;
+  lemma_serialize_big_integer_as_octet_string_size (snd tg) value;
   lemma_serialize_big_integer_as_octet_string_TLV_unfold value
 #pop-options

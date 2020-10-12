@@ -146,7 +146,7 @@ let parse_x509_extension_sequence_TLV_kind
 = parse_asn1_envelop_tag_with_TLV_kind SEQUENCE
 
 inline_for_extraction noextract
-val parse_x509_extension_sequence_TLV
+let parse_x509_extension_sequence_TLV
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
@@ -158,9 +158,11 @@ val parse_x509_extension_sequence_TLV
   (prf: unit{ synth_inverse f g /\
               synth_injective f })
 : parser parse_x509_extension_sequence_TLV_kind (x509_extension_t_inbound oid s f g prf)
+= parse_asn1_sequence_TLV
+  (* s *) (serialize_x509_extension oid s f g prf)
 
 inline_for_extraction noextract
-val serialize_x509_extension_sequence_TLV
+let serialize_x509_extension_sequence_TLV
   (#k: parser_kind)
   (#t: Type0)
   (#p: parser k t)
@@ -172,6 +174,8 @@ val serialize_x509_extension_sequence_TLV
   (prf: unit{ synth_inverse f g /\
               synth_injective f })
 : serializer (parse_x509_extension_sequence_TLV oid s f g prf)
+= serialize_asn1_sequence_TLV
+  (* s *) (serialize_x509_extension oid s f g prf)
 
 val lemma_serialize_x509_extension_sequence_TLV_unfold
   (#k: parser_kind)

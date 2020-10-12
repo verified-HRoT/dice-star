@@ -12,7 +12,7 @@ open RIoT.X509.LengthUtils
 
 module B32 = FStar.Bytes
 
-#set-options "--fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection -LowParse'"
+#set-options "--lax --z3rlimit 256 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection -LowParse'"
 
 noeq
 type aliasKeyTBS_payload_t = {
@@ -99,80 +99,17 @@ val lemma_serialize_aliasKeyTBS_payload_unfold
  (serialize_x509_extensions_TLV serialize_aliasKeyTBS_extensions `serialize` x.aliasKeyTBS_extensions)
 )
 
-#push-options "--z3rlimit 40"
-let valid_aliasKeyTBS_ingredients
-  (serialNumber: x509_serialNumber_t)
-  (i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
-  (i_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
-  (i_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-  (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
-  (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
-  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-  (ku: key_usage_payload_t)
-  (version: datatype_of_asn1_type INTEGER)
-: Type0
-= valid_aliasKeyTBS_extensions_ingredients ku version /\
-  length_of_aliasKeyTBS_extensions ku version
-  <= asn1_value_length_max_of_type x509_extensions_outmost_explicit_tag /\
-  length_of_x509_version () +
-  v (len_of_x509_serialNumber serialNumber) +
-  v (len_of_algorithmIdentifier ()) +
-  length_of_aliasKeyTBS_issuer i_common i_org i_country +
-  length_of_x509_validity () +
-  length_of_aliasKeyTBS_subject s_common s_org s_country +
-  length_of_subjectPublicKeyInfo +
-  length_of_x509_extensions (length_of_aliasKeyTBS_extensions ku version)
-  <= asn1_value_length_max_of_type SEQUENCE
-#pop-options
-
-val lemma_aliasKeyTBS_ingredients_valid
-  (serialNumber: x509_serialNumber_t)
-  (i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
-  (i_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
-  (i_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-  (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
-  (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
-  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-  (ku: key_usage_payload_t)
-  (version: datatype_of_asn1_type INTEGER)
-: Lemma (
-  valid_aliasKeyTBS_ingredients
-    serialNumber
-    i_common i_org i_country
-    s_common s_org s_country
-    ku version
-)
-
-//AR: TODO: 10/03: can we prove lemmas about max lengths of various
-//                 lengths used here, and call those lemmas to help Z3
-//                 prove that their sum is in the range of the return type?
-//                 ditto for the next function
-#push-options "--admit_smt_queries true"
-let length_of_aliasKeyTBS_payload
-  (serialNumber: x509_serialNumber_t)
-  (i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
-  (i_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
-  (i_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-  (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
-  (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
-  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-  (ku: key_usage_payload_t)
-  (version: datatype_of_asn1_type INTEGER)
-: GTot (asn1_value_length_of_type SEQUENCE)
-= lemma_aliasKeyTBS_extensions_ingredients_valid ku version;
-  lemma_aliasKeyTBS_ingredients_valid
-                serialNumber
-                i_common i_org i_country
-                s_common s_org s_country
-                ku version;
-  length_of_x509_version () +
-  v (len_of_x509_serialNumber serialNumber) +
-  v (len_of_algorithmIdentifier ()) +
-  length_of_aliasKeyTBS_issuer i_common i_org i_country +
-  length_of_x509_validity () +
-  length_of_aliasKeyTBS_subject s_common s_org s_country +
-  length_of_subjectPublicKeyInfo +
-  length_of_x509_extensions (length_of_aliasKeyTBS_extensions ku version)
+#push-options "--z3rlimit 32"
+let len_of_aliasKeyTBS_payload_max ()
+: Tot (asn1_value_int32_of_type SEQUENCE)
+= len_of_x509_version () +
+  len_of_x509_serialNumber_max +
+  len_of_algorithmIdentifier () +
+  len_of_aliasKeyTBS_issuer_max () +
+  len_of_x509_validity () +
+  len_of_aliasKeyTBS_subject_max () +
+  len_of_subjectPublicKeyInfo +
+  len_of_x509_extensions (len_of_aliasKeyTBS_extensions_max ())
 
 let len_of_aliasKeyTBS_payload
   (serialNumber: x509_serialNumber_t)
@@ -182,28 +119,17 @@ let len_of_aliasKeyTBS_payload
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-  (ku: key_usage_payload_t)
   (version: datatype_of_asn1_type INTEGER)
-: Tot (len: asn1_TLV_int32_of_type SEQUENCE
-            { v len == length_of_aliasKeyTBS_payload
-                         serialNumber
-                         i_common i_org i_country
-                         s_common s_org s_country
-                         ku version })
-= lemma_aliasKeyTBS_extensions_ingredients_valid ku version;
-  lemma_aliasKeyTBS_ingredients_valid
-                serialNumber
-                i_common i_org i_country
-                s_common s_org s_country
-                ku version;
-  len_of_x509_version () +
+: Tot (len: asn1_value_int32_of_type SEQUENCE
+            { v len <= v (len_of_aliasKeyTBS_payload_max ()) })
+= len_of_x509_version () +
   len_of_x509_serialNumber serialNumber +
   len_of_algorithmIdentifier () +
   len_of_aliasKeyTBS_issuer i_common i_org i_country +
   len_of_x509_validity () +
   len_of_aliasKeyTBS_subject s_common s_org s_country +
   len_of_subjectPublicKeyInfo +
-  len_of_x509_extensions (len_of_aliasKeyTBS_extensions ku version)
+  len_of_x509_extensions (len_of_aliasKeyTBS_extensions version)
 #pop-options
 
 unfold
@@ -211,7 +137,7 @@ let predicate_serialize_aliasKeyTBS_payload_size_unfold
   (x: aliasKeyTBS_payload_t)
 : Type0
 =
-  length_of_opaque_serialization (serialize_aliasKeyTBS_payload) x ==
+  length_of_opaque_serialization (serialize_aliasKeyTBS_payload)      x ==
   length_of_opaque_serialization (serialize_x509_version)             x.aliasKeyTBS_version      +
   length_of_opaque_serialization (serialize_x509_serialNumber)        x.aliasKeyTBS_serialNumber +
   length_of_opaque_serialization (serialize_algorithmIdentifier)      x.aliasKeyTBS_signatureAlg +
@@ -225,39 +151,18 @@ let predicate_serialize_aliasKeyTBS_payload_size_unfold
 val lemma_serialize_aliasKeyTBS_payload_size
   (x: aliasKeyTBS_payload_t)
 : Lemma (
-  let _ = lemma_aliasKeyTBS_ingredients_valid
-            (x.aliasKeyTBS_serialNumber)
-            (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer.aliasKeyTBS_issuer_Common)
-            (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer.aliasKeyTBS_issuer_Organization)
-            (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer.aliasKeyTBS_issuer_Country)
-            (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Common)
-            (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Organization)
-            (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Country)
-            (snd x.aliasKeyTBS_extensions.aliasKeyTBS_extensions_key_usage)
-            RIoT.X509.Extension.(x.aliasKeyTBS_extensions.aliasKeyTBS_extensions_riot.x509_extValue_riot.riot_version) in
-  lemma_serialize_aliasKeyTBS_payload_unfold x;
-    lemma_serialize_x509_version_size_exact x.aliasKeyTBS_version;
-    lemma_serialize_x509_serialNumber_size x.aliasKeyTBS_serialNumber;
-    lemma_serialize_algorithmIdentifier_size_exact x.aliasKeyTBS_signatureAlg;
-    lemma_serialize_aliasKeyTBS_issuer_size_exact x.aliasKeyTBS_issuer;
-    lemma_serialize_x509_validity_size_exact x.aliasKeyTBS_validity;
-    lemma_serialize_aliasKeyTBS_subject_size_exact x.aliasKeyTBS_subject;
-    lemma_serialize_subjectPublicKeyInfo_size_exact x.aliasKeyTBS_aliasKey_pub;
-    lemma_serialize_x509_extensions_TLV_size serialize_aliasKeyTBS_extensions x.aliasKeyTBS_extensions;
-      lemma_serialize_aliasKeyTBS_extensions_size_exact x.aliasKeyTBS_extensions;
   predicate_serialize_aliasKeyTBS_payload_size_unfold x /\
   (* exact size *)
   length_of_opaque_serialization (serialize_aliasKeyTBS_payload) x
-  == length_of_aliasKeyTBS_payload
-       x.aliasKeyTBS_serialNumber
-       (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer.aliasKeyTBS_issuer_Common)
-       (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer.aliasKeyTBS_issuer_Organization)
-       (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer.aliasKeyTBS_issuer_Country)
-       (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Common)
-       (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Organization)
-       (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Country)
-       (snd x.aliasKeyTBS_extensions.aliasKeyTBS_extensions_key_usage)
-       RIoT.X509.Extension.(x.aliasKeyTBS_extensions.aliasKeyTBS_extensions_riot.x509_extValue_riot.riot_version)
+  == v (len_of_aliasKeyTBS_payload
+          x.aliasKeyTBS_serialNumber
+          (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer.aliasKeyTBS_issuer_Common)
+          (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer.aliasKeyTBS_issuer_Organization)
+          (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer.aliasKeyTBS_issuer_Country)
+          (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Common)
+          (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Organization)
+          (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Country)
+          RIoT.X509.Extension.(x.aliasKeyTBS_extensions.aliasKeyTBS_extensions_riot.x509_extValue_riot.riot_version))
 )
 
 let aliasKeyTBS_t
@@ -287,29 +192,11 @@ val lemma_serialize_aliasKeyTBS_size
   (x: aliasKeyTBS_t)
 : Lemma ( predicate_serialize_asn1_sequence_TLV_size (serialize_aliasKeyTBS_payload) x )
 
-let length_of_aliasKeyTBS
-  (serialNumber: x509_serialNumber_t)
-  (i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
-  (i_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
-  (i_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-  (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
-  (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
-  (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-  (ku: key_usage_payload_t)
-  (version: datatype_of_asn1_type INTEGER)
-: GTot (asn1_TLV_length_of_type SEQUENCE)
-= lemma_aliasKeyTBS_ingredients_valid
-    serialNumber
-    i_common i_org i_country
-    s_common s_org s_country
-    ku version;
-  length_of_TLV
-    (SEQUENCE)
-    (length_of_aliasKeyTBS_payload
-      serialNumber
-      i_common i_org i_country
-      s_common s_org s_country
-      ku version)
+unfold
+[@@ "opaque_to_smt"]
+let len_of_aliasKeyTBS_max ()
+= SEQUENCE `len_of_TLV`
+  (**) (len_of_aliasKeyTBS_payload_max ())
 
 let len_of_aliasKeyTBS
   (serialNumber: x509_serialNumber_t)
@@ -319,65 +206,30 @@ let len_of_aliasKeyTBS
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-  (ku: key_usage_payload_t)
   (version: datatype_of_asn1_type INTEGER)
-: Tot (len: asn1_TLV_int32_of_type SEQUENCE
-             { v len == length_of_aliasKeyTBS
-                          serialNumber
-                          i_common i_org i_country
-                          s_common s_org s_country
-                          ku version })
-= lemma_aliasKeyTBS_ingredients_valid
-    serialNumber
-    i_common i_org i_country
-    s_common s_org s_country
-    ku version;
-
-  (*
-   * AR: TODO: 10/03: This seems to be a bug?
-   *     len_of_aliasKeyTBS_payload returns a (asn1_TLV_int32_of_type SEQUENCE)
-   *     while len_of_TLV expects a (asn1_value_int32_of_type SEQUENCE)
-   *
-   *     the former has range (2, max)
-   *     while the latter has range (0, max - 6)
-   *
-   *     and so, the former does not seem coercible to the latter?
-   *)
-  admit ();
-  len_of_TLV
+: Tot (asn1_TLV_int32_of_type SEQUENCE)
+= len_of_TLV
     (SEQUENCE)
     (len_of_aliasKeyTBS_payload
       serialNumber
       i_common i_org i_country
       s_common s_org s_country
-      ku version)
+      version)
 
 val lemma_serialize_aliasKeyTBS_size_exact
   (x: aliasKeyTBS_t)
 : Lemma (
-  lemma_aliasKeyTBS_ingredients_valid
-          x.aliasKeyTBS_serialNumber
-          (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer.aliasKeyTBS_issuer_Common)
-          (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer.aliasKeyTBS_issuer_Organization)
-          (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer.aliasKeyTBS_issuer_Country)
-          (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Common)
-          (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Organization)
-          (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Country)
-          (snd x.aliasKeyTBS_extensions.aliasKeyTBS_extensions_key_usage)
-          RIoT.X509.Extension.(x.aliasKeyTBS_extensions.aliasKeyTBS_extensions_riot.x509_extValue_riot.riot_version);
-  lemma_serialize_aliasKeyTBS_payload_size x;
   (* exact size *)
   length_of_opaque_serialization (serialize_aliasKeyTBS) x
-  == length_of_aliasKeyTBS
-       x.aliasKeyTBS_serialNumber
-       (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer.aliasKeyTBS_issuer_Common)
-       (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer.aliasKeyTBS_issuer_Organization)
-       (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer.aliasKeyTBS_issuer_Country)
-       (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Common)
-       (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Organization)
-       (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Country)
-       (snd x.aliasKeyTBS_extensions.aliasKeyTBS_extensions_key_usage)
-       RIoT.X509.Extension.(x.aliasKeyTBS_extensions.aliasKeyTBS_extensions_riot.x509_extValue_riot.riot_version)
+  == v (len_of_aliasKeyTBS
+         x.aliasKeyTBS_serialNumber
+         (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer.aliasKeyTBS_issuer_Common)
+         (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer.aliasKeyTBS_issuer_Organization)
+         (get_RDN_x520_attribute_string x.aliasKeyTBS_issuer.aliasKeyTBS_issuer_Country)
+         (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Common)
+         (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Organization)
+         (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Country)
+         RIoT.X509.Extension.(x.aliasKeyTBS_extensions.aliasKeyTBS_extensions_riot.x509_extValue_riot.riot_version))
 )
 
 (* low *)
@@ -389,7 +241,7 @@ val serialize32_aliasKeyTBS_backwards
 
 (* helpers *)
 
-#push-options "--z3rlimit 64"
+#push-options "--z3rlimit 128"
 open RIoT.X509.LengthUtils
 let x509_get_AliasKeyTBS
   (crt_version: x509_version_t)
@@ -397,7 +249,7 @@ let x509_get_AliasKeyTBS
   (i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (i_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (i_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-  (notBefore: datatype_of_asn1_type Generalized_Time)
+  (notBefore: datatype_of_asn1_type UTC_TIME)
   (notAfter : datatype_of_asn1_type Generalized_Time)
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
@@ -409,12 +261,7 @@ let x509_get_AliasKeyTBS
   (deviceIDPub: B32.lbytes32 32ul)
   (aliasKeyPub: B32.lbytes32 32ul)
 : Tot (aliasKeyTBS_t)
-= lemma_aliasKeyTBS_ingredients_valid
-    serialNumber
-    i_common i_org i_country
-    s_common s_org s_country
-    ku version;
-  let signatureAlg: algorithmIdentifier_t = x509_get_algorithmIdentifier () in
+= let signatureAlg: algorithmIdentifier_t = x509_get_algorithmIdentifier () in
   (* Prf *) lemma_serialize_algorithmIdentifier_size_exact signatureAlg;
 
   [@inline_let]
@@ -431,7 +278,7 @@ let x509_get_AliasKeyTBS
     (dsnd i_org)
     #(dfst i_country)
     (dsnd i_country) in
-   
+
   (* Prf *) lemma_serialize_aliasKeyTBS_issuer_size_exact issuer;
 
   let validity: x509_validity_t = x509_get_validity

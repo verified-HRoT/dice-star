@@ -8,7 +8,7 @@ module U8  = FStar.UInt8
 module U32 = FStar.UInt32
 module Cast = FStar.Int.Cast
 
-#set-options "--z3rlimit 32 --fuel 0 --ifuel 0"
+#set-options "--z3rlimit 32 --fuel 0 --ifuel 1"
 
 /// ASN1 length parser, based on `LowParse.Spec.DER`
 
@@ -87,7 +87,8 @@ let lemma_serialize_asn1_length_size
 = lemma_serialize_asn1_length_of_bound_size asn1_length_min asn1_length_max
 
 (* ZT: Exposing this definition. *)
-noextract
+noextract unfold
+[@@ "opaque_to_smt"]
 let length_of_asn1_length
   (len: asn1_int32)
 : GTot (length: asn1_length_t
@@ -95,18 +96,15 @@ let length_of_asn1_length
          length <= 5 })
 = lemma_serialize_asn1_length_unfold len;
   lemma_serialize_asn1_length_size len;
-  let x = tag_of_der_length32 len in
-  let open FStar.Integers in
-  if x < 128uy then
-  ( 1 )
-  else if x = 129uy then
-  ( 2 )
-  else if x = 130uy then
-  ( 3 )
-  else if x = 131uy then
-  ( 4 )
-  else
-  ( 5 )
+  if len `U32.lt` 128ul
+  then 1
+  else if len `U32.lt` 256ul
+  then 2
+  else if len `U32.lt` 65536ul
+  then 3
+  else if len `U32.lt` 16777216ul
+  then 4
+  else 5
 
 /// Specialized for a specific ASN1 type
 ///

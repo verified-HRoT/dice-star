@@ -6,7 +6,7 @@ open FStar.Integers
 
 open ASN1.Base
 
-#set-options "--z3rlimit 32 --fuel 0 --ifuel 0"
+#set-options "--z3rlimit 32 --fuel 0 --ifuel 1"
 
 /// ASN1 length parser, based on `LowParse.Spec.DER`
 

@@ -9,15 +9,15 @@ module B32 = FStar.Bytes
 module T = FStar.Tactics
 module P = FStar.Pervasives
 
-(* 4 fuels for the recursively defined 3-oid extendedKeyUsage *)
-#set-options "--z3rlimit 64 --fuel 4 --ifuel 0"
+(* 2 fuels for the recursively defined 1-oid extendedKeyUsage *)
+#set-options "--z3rlimit 64 --fuel 2 --ifuel 0"
 
 noextract inline_for_extraction
 let aliasKeyCrt_extendedKeyUsage_oids
 : l: keyPurposeIDs_oids_t
      { valid_x509_ext_key_usage_ingredients l }
 = [@inline_let]
-  let l = [OID_AT_CN; OID_AT_COUNTRY; OID_AT_ORGANIZATION] in
+  let l = [OID_CLIENT_AUTH] in
   assert_norm (  valid_keyPurposeIDs l  );
   // lemma_serialize_x509_keyPurposeIDs_size_norm l;
   lemma_serialize_x509_keyPurposeIDs_size l;
@@ -31,11 +31,12 @@ let lemma_aliasKeyTBS_extensions_extendedKeyUsage_norm ()
 : Lemma (
   aliasKeyTBS_extensions_extendedKeyUsage_t == x509_ext_key_usage_t aliasKeyCrt_extendedKeyUsage_oids
 )
-= P.norm_spec
-    (norm_steps_x509_keyPurposeIDs (`%aliasKeyCrt_extendedKeyUsage_oids))
-    (x509_ext_key_usage_t aliasKeyCrt_extendedKeyUsage_oids)
-  // assert ( aliasKeyTBS_extensions_extendedKeyUsage_t == x509_ext_key_usage_t aliasKeyCrt_extendedKeyUsage_oids )
-  // by ( postprocess_x509_keyPurposeIDs (`%aliasKeyCrt_extendedKeyUsage_oids) () )
+=
+  // P.norm_spec
+  //   (norm_steps_x509_keyPurposeIDs (`%aliasKeyCrt_extendedKeyUsage_oids))
+  //   (x509_ext_key_usage_t aliasKeyCrt_extendedKeyUsage_oids)
+  assert ( aliasKeyTBS_extensions_extendedKeyUsage_t == x509_ext_key_usage_t aliasKeyCrt_extendedKeyUsage_oids )
+  by ( postprocess_x509_keyPurposeIDs (`%aliasKeyCrt_extendedKeyUsage_oids) () )
 
 let parse_aliasKeyTBS_extensions_extendedKeyUsage
 : parser X509.BasicFields.Extension2.parse_x509_extension_kind aliasKeyTBS_extensions_extendedKeyUsage_t
@@ -62,16 +63,17 @@ let serialize32_aliasKeyTBS_extensions_extendedKeyUsage_backwards
 #push-options "--z3rlimit 256"
 let length_of_aliasKeyTBS_extensions_extendedKeyUsage ()
 : GTot (l: asn1_TLV_length_of_type SEQUENCE
-           { l == 29 })
+           { l == 24 })
 = length_of_x509_ext_key_usage aliasKeyCrt_extendedKeyUsage_oids
 #pop-options
 
-[@@T.postprocess_with (postprocess_x509_keyPurposeIDs (`%aliasKeyCrt_extendedKeyUsage_oids))]
+noextract inline_for_extraction unfold
+[@@ "opaque_to_smt"; T.postprocess_with (postprocess_x509_keyPurposeIDs (`%aliasKeyCrt_extendedKeyUsage_oids))]
 let len_of_aliasKeyTBS_extensions_extendedKeyUsage ()
 : Tot (len: asn1_TLV_int32_of_type SEQUENCE
             { v len == length_of_aliasKeyTBS_extensions_extendedKeyUsage () })
 // (* FIXME: *) = len_of_x509_ext_key_usage aliasKeyCrt_extendedKeyUsage_oids
-= 29ul
+= 24ul
 
 let lemma_serialize_aliasKeyTBS_extensions_extendedKeyUsage_size_exact
   (x: aliasKeyTBS_extensions_extendedKeyUsage_t)

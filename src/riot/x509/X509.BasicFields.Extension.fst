@@ -116,14 +116,6 @@ let lemma_serialize_x509_extension_size #k #t #p oid s #instance_t f g prf x
   lemma_serialize_asn1_boolean_TLV_size (snd (fst (g x)))
 #pop-options
 
-let parse_x509_extension_sequence_TLV #k #t #p oid s #instance_t f g prf
-= parse_asn1_sequence_TLV
-  (* s *) (serialize_x509_extension oid s f g prf)
-
-let serialize_x509_extension_sequence_TLV #k #t #p oid s #instance_t f g prf
-= serialize_asn1_sequence_TLV
-  (* s *) (serialize_x509_extension oid s f g prf)
-
 let lemma_serialize_x509_extension_sequence_TLV_unfold #k #t #p oid s #instance_t f g prf x
 = lemma_serialize_asn1_sequence_TLV_unfold
   (* s *) (serialize_x509_extension oid s f g prf)

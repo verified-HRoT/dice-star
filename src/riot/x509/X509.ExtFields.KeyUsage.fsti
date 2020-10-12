@@ -40,26 +40,26 @@ let valid_key_usage
 let key_usage_payload_t = i: int_32
                      { valid_key_usage i }
 
-val x509_KU_DIGITAL_SIGNATURE :key_usage_payload_t // = 0x80l    (* bit 0 *)
-val x509_KU_NON_REPUDIATION   :key_usage_payload_t // = 0x40l    (* bit 1 *)
-val x509_KU_KEY_ENCIPHERMENT  :key_usage_payload_t // = 0x20l    (* bit 2 *)
-val x509_KU_DATA_ENCIPHERMENT :key_usage_payload_t // = 0x10l    (* bit 3 *)
-val x509_KU_KEY_AGREEMENT     :key_usage_payload_t // = 0x08l    (* bit 4 *)
-val x509_KU_KEY_CERT_SIGN     :key_usage_payload_t // = 0x04l    (* bit 5 *)
-val x509_KU_CRL_SIGN          :key_usage_payload_t // = 0x02l    (* bit 6 *)
-val x509_KU_ENCIPHER_ONLY     :key_usage_payload_t // = 0x01l    (* bit 7 *)
-val x509_KU_DECIPHER_ONLY     :key_usage_payload_t // = 0x8000l  (* bit 8 *)
+let x509_KU_DIGITAL_SIGNATURE :key_usage_payload_t = 0x80l    (* bit 0 *)
+let x509_KU_NON_REPUDIATION   :key_usage_payload_t = 0x40l    (* bit 1 *)
+let x509_KU_KEY_ENCIPHERMENT  :key_usage_payload_t = 0x20l    (* bit 2 *)
+let x509_KU_DATA_ENCIPHERMENT :key_usage_payload_t = 0x10l    (* bit 3 *)
+let x509_KU_KEY_AGREEMENT     :key_usage_payload_t = 0x08l    (* bit 4 *)
+let x509_KU_KEY_CERT_SIGN     :key_usage_payload_t = 0x04l    (* bit 5 *)
+let x509_KU_CRL_SIGN          :key_usage_payload_t = 0x02l    (* bit 6 *)
+let x509_KU_ENCIPHER_ONLY     :key_usage_payload_t = 0x01l    (* bit 7 *)
+let x509_KU_DECIPHER_ONLY     :key_usage_payload_t = 0x8000l  (* bit 8 *)
 
-val lemma_key_usage_close_under_or
-  (ku1 ku2: key_usage_payload_t)
-: Lemma (
-  valid_key_usage (ku1 |^ ku2)
-)
+// val lemma_key_usage_close_under_or
+//   (ku1 ku2: key_usage_payload_t)
+// : Lemma (
+//   valid_key_usage (ku1 |^ ku2)
+// )
 
-val op_ku_with
-  (ku1 ku2: key_usage_payload_t)
-: Tot (ku: key_usage_payload_t
-           { ku == (ku1 |^ ku2) })
+// val op_ku_with
+//   (ku1 ku2: key_usage_payload_t)
+// : Tot (ku: key_usage_payload_t
+//            { ku == (ku1 |^ ku2) })
 
 let _parse_x509_key_usage_payload_kind
 : parser_kind
@@ -157,35 +157,26 @@ val lemma_serialize_x509_key_usage_size
              _serialize_x509_key_usage_payload))
             x )
 
-let length_of_x509_key_usage
-  (ku: key_usage_payload_t)
-: GTot (asn1_TLV_length_of_type SEQUENCE)
-= length_of_TLV
-    SEQUENCE
-    ( length_of_x509_key_usage_payload () +
-      ( length_of_TLV
-          OCTET_STRING
-          ( length_of_asn1_primitive_TLV #OID OID_KEY_USAGE ) ) )
+noextract inline_for_extraction unfold
+[@@ "opaque_to_smt"]
+let len_of_x509_key_usage ()
+: Tot (asn1_TLV_int32_of_type SEQUENCE)
+// = len_of_TLV
+//     SEQUENCE
+//     ( len_of_x509_key_usage_payload () +
+//       ( len_of_TLV
+//           OCTET_STRING
+//           ( len_of_asn1_primitive_TLV #OID OID_KEY_USAGE ) ) )
+= 14ul
 
 val lemma_serialize_x509_key_usage_size_exact
   (x: key_usage_t)
 : Lemma (
   length_of_opaque_serialization serialize_x509_key_usage x
-  == length_of_x509_key_usage (snd x)
+  == v (len_of_x509_key_usage ())
 )
 
 open ASN1.Low
-
-let len_of_x509_key_usage
-  (ku: key_usage_payload_t)
-: Tot (len: asn1_TLV_int32_of_type SEQUENCE
-            { v len == length_of_x509_key_usage ku })
-= len_of_TLV
-    SEQUENCE
-    ( len_of_x509_key_usage_payload () +
-      ( len_of_TLV
-          OCTET_STRING
-          ( len_of_asn1_primitive_TLV #OID OID_KEY_USAGE ) ) )
 
 val _serialize32_x509_key_usage_payload_backwards
 : serializer32_backwards (_serialize_x509_key_usage_payload)

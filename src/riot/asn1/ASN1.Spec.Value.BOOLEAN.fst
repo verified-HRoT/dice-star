@@ -120,29 +120,29 @@ let parse_asn1_boolean_TLV
   `parse_synth`
   synth_asn1_boolean_TLV
 
-#push-options "--z3rlimit 16 --initial_ifuel 4"
-let lemma_parse_asn1_boolean_TLV_unfold input_TLV
-= parser_kind_prop_equiv parse_asn1_tag_kind (parse_asn1_tag_of_type BOOLEAN);
-  parser_kind_prop_equiv (parse_asn1_length_kind_of_type BOOLEAN) (parse_asn1_length_of_type BOOLEAN);
-  parser_kind_prop_equiv parse_asn1_boolean_kind parse_asn1_boolean;
-  nondep_then_eq
-  (* p1 *) (parse_asn1_tag_of_type BOOLEAN)
-  (* p2 *) (parse_asn1_length_of_type BOOLEAN)
-  (* in *) (input_TLV);
-  nondep_then_eq
-  (* p1 *) (parse_asn1_tag_of_type BOOLEAN
-            `nondep_then`
-            parse_asn1_length_of_type BOOLEAN)
-  (* p2 *) (parse_asn1_boolean)
-  (* in *) (input_TLV);
-  parse_synth_eq
-  (* p1 *) (parse_asn1_tag_of_type BOOLEAN
-            `nondep_then`
-            parse_asn1_length_of_type BOOLEAN
-            `nondep_then`
-            parse_asn1_boolean)
-  (* f2 *) (synth_asn1_boolean_TLV)
-  (* in *) (input_TLV)
+// #push-options "--z3rlimit 16 --initial_ifuel 4"
+// let lemma_parse_asn1_boolean_TLV_unfold input_TLV
+// = parser_kind_prop_equiv parse_asn1_tag_kind (parse_asn1_tag_of_type BOOLEAN);
+//   parser_kind_prop_equiv (parse_asn1_length_kind_of_type BOOLEAN) (parse_asn1_length_of_type BOOLEAN);
+//   parser_kind_prop_equiv parse_asn1_boolean_kind parse_asn1_boolean;
+//   nondep_then_eq
+//   (* p1 *) (parse_asn1_tag_of_type BOOLEAN)
+//   (* p2 *) (parse_asn1_length_of_type BOOLEAN)
+//   (* in *) (input_TLV);
+//   nondep_then_eq
+//   (* p1 *) (parse_asn1_tag_of_type BOOLEAN
+//             `nondep_then`
+//             parse_asn1_length_of_type BOOLEAN)
+//   (* p2 *) (parse_asn1_boolean)
+//   (* in *) (input_TLV);
+//   parse_synth_eq
+//   (* p1 *) (parse_asn1_tag_of_type BOOLEAN
+//             `nondep_then`
+//             parse_asn1_length_of_type BOOLEAN
+//             `nondep_then`
+//             parse_asn1_boolean)
+//   (* f2 *) (synth_asn1_boolean_TLV)
+//   (* in *) (input_TLV)
 
 let serialize_asn1_boolean_TLV
 = serialize_synth
