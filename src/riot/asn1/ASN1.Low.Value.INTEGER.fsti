@@ -9,7 +9,7 @@ open FStar.Integers
 (* NOTE: Read after `ASN1.Spec.Tag`, `ASN1.Spec.Length` *)
 
 /// Implementation of length computation of `INTEGER` value's serialization
-inline_for_extraction
+//inline_for_extraction
 let len_of_asn1_integer
   (value: datatype_of_asn1_type INTEGER)
 : (len: asn1_value_int32_of_type INTEGER { v len == length_of_asn1_integer value } )
