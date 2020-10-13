@@ -21,7 +21,7 @@ friend ASN1.Spec.Tag
 /// Encode ASN1 tag to a byte, implementation of `synth_asn1_tag_inverse`
 
 ///
-inline_for_extraction
+//inline_for_extraction
 let encode_asn1_tag
   (a: asn1_tag_t)
 : Tot (b: byte{b == synth_asn1_tag_inverse a})
