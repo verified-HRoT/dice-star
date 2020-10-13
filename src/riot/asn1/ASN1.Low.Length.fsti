@@ -15,8 +15,8 @@ open FStar.Integers
 
 #reset-options "--fuel 0 --ifuel 0"
 
-noextract inline_for_extraction unfold
-[@@ "opaque_to_smt"]
+// noextract inline_for_extraction unfold
+// [@@ "opaque_to_smt"]
 let len_of_asn1_length
   (len: asn1_int32)
 : (offset: U32.t {v offset == Seq.length (serialize serialize_asn1_length len)})
