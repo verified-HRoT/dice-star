@@ -6,8 +6,8 @@ open ASN1.Low.Base
 
 open FStar.Integers
 
-inline_for_extraction noextract unfold
-[@@ "opaque_to_smt"]
+// inline_for_extraction noextract unfold
+// [@@ "opaque_to_smt"]
 let len_of_oid
   (oid: oid_t)
 : Tot (len: asn1_value_int32_of_type OID
