@@ -129,7 +129,7 @@ let derive_AliasKey
   (aliasKey_priv: B.lbuffer uint8 32)
   // (cdi_len: hashable_len)
   (cdi: B.lbuffer uint8 32)
-  (fwid: B.lbuffer uint8 32)
+  (fwid: B.lbuffer pub_uint8 32)
   (riot_label_AliasKey_len: size_t {valid_hkdf_lbl_len riot_label_AliasKey_len})
   (riot_label_AliasKey: B.lbuffer uint8 (v riot_label_AliasKey_len))
 : HST.Stack (unit)
@@ -160,10 +160,12 @@ let derive_AliasKey
     cdi 32ul
     cDigest;
   let aDigest = B.alloca (u8 0) 32ul in
+  let fwid_sec = B.alloca (u8 0) 32ul in
+  RIoT.Declassify.classify_public_buffer 32ul fwid fwid_sec;
   riot_hmac alg
     aDigest
     cDigest 32ul
-    fwid    32ul;
+    fwid_sec    32ul;
   derive_key_pair
     aliasKey_pub
     aliasKey_priv
@@ -200,7 +202,7 @@ let riot_core_step1_pre
   (h: HS.mem)
 (* Inputs *)
   (cdi : B.lbuffer byte_sec 32)
-  (fwid: B.lbuffer byte_sec 32)
+  (fwid: B.lbuffer byte_pub 32)
   (deviceID_label_len: size_t)
   (deviceID_label: B.lbuffer byte_sec (v deviceID_label_len))
   (aliasKey_label_len: size_t)
@@ -238,7 +240,7 @@ let riot_core_step1_post
   (h0: HS.mem) (h1: HS.mem)
 (* Inputs *)
   (cdi : B.lbuffer byte_sec 32)
-  (fwid: B.lbuffer byte_sec 32)
+  (fwid: B.lbuffer byte_pub 32)
   (deviceID_label_len: size_t)
   (deviceID_label: B.lbuffer byte_sec (v deviceID_label_len))
   (aliasKey_label_len: size_t)
@@ -286,7 +288,7 @@ inline_for_extraction
 let riot_core_step1
 (* Inputs *)
   (cdi : B.lbuffer byte_sec 32)
-  (fwid: B.lbuffer byte_sec 32)
+  (fwid: B.lbuffer byte_pub 32)
   (deviceID_label_len: size_t)
   (deviceID_label: B.lbuffer byte_sec (v deviceID_label_len))
   (aliasKey_label_len: size_t)

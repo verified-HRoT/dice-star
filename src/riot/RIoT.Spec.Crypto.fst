@@ -91,12 +91,12 @@ let derive_DeviceID_spec
  *)
 let derive_AliasKey_spec
   (cdi: lbytes_sec 32)
-  (fwid: lbytes_sec 32)
+  (fwid: lbytes_pub 32)
   (riot_label_AliasKey_len: size_t {valid_hkdf_lbl_len riot_label_AliasKey_len})
   (riot_label_AliasKey: lbytes_sec (v riot_label_AliasKey_len))
 : GTot (lbytes_pub 32 & lbytes_sec 32)
 = let cdigest = Spec.Agile.Hash.hash alg cdi in
-  let adigest = Spec.Agile.HMAC.hmac alg cdigest fwid in
+  let adigest = Spec.Agile.HMAC.hmac alg cdigest (classify_public_bytes fwid) in
   derive_key_pair_spec
     (* ikm *) 32ul adigest
     (* lbl *) riot_label_AliasKey_len riot_label_AliasKey

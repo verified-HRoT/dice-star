@@ -67,7 +67,7 @@ let riot_pre
   (h: HS.mem)
 (* Common Inputs *)
   (cdi : B.lbuffer byte_sec 32)
-  (fwid: B.lbuffer a 32)
+  (fwid: B.lbuffer byte_pub 32)
   (deviceID_label_len: UInt32.t)
   (deviceID_label: B.lbuffer a (v deviceID_label_len))
   (aliasKey_label_len: UInt32.t)
@@ -115,7 +115,7 @@ let riot_pre
 
 unfold
 let aliasKey_post
-  (cdi : B.lbuffer byte_sec 32) (fwid:Seq.lseq byte_sec 32)
+  (cdi : B.lbuffer byte_sec 32) (fwid:Seq.lseq byte_pub 32)
   (aliasKey_label_len:UInt32.t{valid_hkdf_lbl_len aliasKey_label_len})
   (aliasKey_label:Seq.lseq byte_sec (v aliasKey_label_len))
   (aliasKey_pub: B.lbuffer byte_pub 32)
@@ -169,7 +169,7 @@ let deviceIDCSR_post
 unfold
 let aliasKeyCRT_post
   (cdi:B.lbuffer byte_sec 32)
-  (fwid:Seq.lseq byte_sec 32)
+  (fwid:Seq.lseq byte_pub 32)
   (deviceID_label_len:UInt32.t{valid_hkdf_lbl_len deviceID_label_len})
   (deviceID_label:Seq.lseq byte_sec (v deviceID_label_len))
   (aliasKeyCRT_ingredients:aliasKeyCRT_ingredients_t)
@@ -225,7 +225,7 @@ unfold
 let riot_aux_post
 (* Common Inputs *)
   (cdi : B.lbuffer byte_sec 32)
-  (fwid: B.lbuffer byte_sec 32)
+  (fwid: B.lbuffer byte_pub 32)
   (deviceID_label_len: UInt32.t)
   (deviceID_label: B.lbuffer byte_sec (v deviceID_label_len))
   (aliasKey_label_len: UInt32.t)
@@ -276,7 +276,7 @@ module U8 = FStar.UInt8
 let riot_aux
 (* Common Inputs *)
   (cdi : B.lbuffer byte_sec 32)
-  (fwid: B.lbuffer byte_sec 32)
+  (fwid: B.lbuffer byte_pub 32)
   (deviceID_label_len: UInt32.t)
   (deviceID_label: B.lbuffer byte_sec (v deviceID_label_len))
   (aliasKey_label_len: UInt32.t)
@@ -534,7 +534,7 @@ let riot_post
                  loc_buffer aliasKeyCRT_buf) h0 h1) /\
 
     aliasKey_post cdi
-      (RIoT.Declassify.classify_public_bytes (B.as_seq h0 fwid))
+      (B.as_seq h0 fwid)
       aliasKey_label_len
       (RIoT.Declassify.classify_public_bytes (B.as_seq h0 aliasKey_label))
       aliasKey_pub aliasKey_priv h0 h1 /\
@@ -544,7 +544,7 @@ let riot_post
       deviceIDCSR_ingredients deviceIDCSR_len deviceIDCSR_buf h0 h1 /\
 
     aliasKeyCRT_post cdi
-      (RIoT.Declassify.classify_public_bytes (B.as_seq h0 fwid))
+      (B.as_seq h0 fwid)
       deviceID_label_len
       (RIoT.Declassify.classify_public_bytes (B.as_seq h0 deviceID_label))
       aliasKeyCRT_ingredients aliasKeyCRT_len aliasKeyCRT_buf aliasKey_pub h0 h1 /\
@@ -599,13 +599,13 @@ let riot
                         (h0) (h1)
   )
   = HST.push_frame ();
-    let fwid_sec = B.alloca (u8 0x00) 32ul in
+    //let fwid_sec = B.alloca (u8 0x00) 32ul in
     let dk_label = B.alloca (u8 0x00) deviceID_label_len in
     let ak_label = B.alloca (u8 0x00) aliasKey_label_len in
-    classify_public_buffer 32ul fwid fwid_sec;
+    //classify_public_buffer 32ul fwid fwid_sec;
     classify_public_buffer deviceID_label_len deviceID_label dk_label;
     classify_public_buffer aliasKey_label_len aliasKey_label ak_label;
-    riot_aux cdi fwid_sec deviceID_label_len dk_label aliasKey_label_len ak_label
+    riot_aux cdi fwid deviceID_label_len dk_label aliasKey_label_len ak_label
       deviceIDCSR_ingredients aliasKeyCRT_ingredients
       deviceID_pub aliasKey_pub aliasKey_priv
       deviceIDCSR_len deviceIDCSR_buf

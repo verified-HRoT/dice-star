@@ -71,7 +71,7 @@ let create_aliasKeyTBS_pre
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-  (fwid: B.lbuffer byte_sec 32)
+  (fwid: B.lbuffer byte_pub 32)
   (ku: key_usage_payload_t)
   (keyID: B.lbuffer byte_pub 20)
   (riot_version: datatype_of_asn1_type INTEGER)
@@ -112,7 +112,7 @@ let create_aliasKeyTBS_post
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-  (fwid: B.lbuffer byte_sec 32)
+  (fwid: B.lbuffer byte_pub 32)
   (ku: key_usage_payload_t)
   (keyID: B.lbuffer byte_pub 20)
   (riot_version: datatype_of_asn1_type INTEGER)
@@ -155,7 +155,7 @@ let create_aliasKeyTBS_post
 [@@ "opaque_to_smt"]
 inline_for_extraction noextract
 let create_aliasKeyTBS_buffers_to_bytes
-  (fwid: B.lbuffer byte_sec 32)
+  (fwid: B.lbuffer byte_pub 32)
   (keyID: B.lbuffer byte_pub 20)
   (deviceID_pub: B.lbuffer byte_pub 32)
   (aliasKey_pub: B.lbuffer byte_pub 32)
@@ -176,14 +176,12 @@ let create_aliasKeyTBS_buffers_to_bytes
       (ensures fun h0 r h1 ->
         B.(modifies loc_none h0 h1) /\
         (let (fwid_pub32, keyID_pub32, deviceID_pub32, aliasKey_pub32) = r in
-         B32.hide (declassify_secret_bytes (B.as_seq h0 fwid)) == fwid_pub32 /\
+         B32.hide (B.as_seq h0 fwid) == fwid_pub32 /\
          B32.hide (B.as_seq h0 deviceID_pub) == deviceID_pub32 /\
          B32.hide (B.as_seq h0 aliasKey_pub) == aliasKey_pub32 /\
          B32.hide (B.as_seq h0 keyID) == keyID_pub32))
   = HST.push_frame ();
-    let fwid_pub      : B.lbuffer byte_pub 32 = B.alloca 0x00uy 32ul in
-    declassify_secret_buffer 32ul fwid fwid_pub;
-    let fwid_pub32    : B32.lbytes32 32ul = B32.of_buffer 32ul fwid_pub in
+    let fwid_pub32    : B32.lbytes32 32ul = B32.of_buffer 32ul fwid in
     let deviceID_pub32: B32.lbytes32 32ul = B32.of_buffer 32ul deviceID_pub in
     let aliasKey_pub32: B32.lbytes32 32ul = B32.of_buffer 32ul aliasKey_pub in
     let keyID_pub32 = B32.of_buffer 20ul keyID in
@@ -202,7 +200,7 @@ let create_aliasKeyTBS
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-  (fwid: B.lbuffer byte_sec 32)
+  (fwid: B.lbuffer byte_pub 32)
   (ku: key_usage_payload_t)
   (keyID: B.lbuffer byte_pub 20)
   (riot_version: datatype_of_asn1_type INTEGER)
@@ -710,7 +708,7 @@ let riot_core_step3_pre
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-  (fwid: B.lbuffer byte_sec 32)
+  (fwid: B.lbuffer byte_pub 32)
   (ku: key_usage_payload_t)
   (keyID: B.lbuffer byte_pub 20)
   (riot_version: datatype_of_asn1_type INTEGER)
@@ -756,7 +754,7 @@ let riot_core_step3_post
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-  (fwid: B.lbuffer byte_sec 32)
+  (fwid: B.lbuffer byte_pub 32)
   (ku: key_usage_payload_t)
   (keyID: B.lbuffer byte_pub 20)
   (riot_version: datatype_of_asn1_type INTEGER)
@@ -807,7 +805,7 @@ let riot_core_step3
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   (s_country: x509_RDN_x520_attribute_string_t COUNTRY      PRINTABLE_STRING)
-  (fwid: B.lbuffer byte_sec 32)
+  (fwid: B.lbuffer byte_pub 32)
   (ku: key_usage_payload_t)
   (keyID: B.lbuffer byte_pub 20)
   (riot_version: datatype_of_asn1_type INTEGER)

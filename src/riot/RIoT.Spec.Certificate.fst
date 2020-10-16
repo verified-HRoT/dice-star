@@ -67,14 +67,14 @@ let create_aliasKeyTBS_spec
   (ku: key_usage_payload_t)
   (keyID: lbytes_pub 20)
   (version: datatype_of_asn1_type INTEGER)
-  (fwid: lbytes_sec 32)
+  (fwid: lbytes_pub 32)
   (deviceID_pub: lbytes_pub 32)
   (aliasKey_pub: lbytes_pub 32)
 : GTot (aliasKeyTBS_t)
 =
 (* Create AliasKeyTBS *)
   let deviceID_pub32: B32.lbytes32 32ul = B32.hide deviceID_pub in
-  let fwid32        : B32.lbytes32 32ul = B32.hide (declassify_secret_bytes fwid) in
+  let fwid32        : B32.lbytes32 32ul = B32.hide fwid in
   let aliasKey_pub32: B32.lbytes32 32ul = B32.hide aliasKey_pub in
   let aliasKeyTBS = x509_get_AliasKeyTBS
                                      crt_version
