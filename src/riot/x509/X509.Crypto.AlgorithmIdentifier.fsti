@@ -123,11 +123,11 @@ val lemma_serialize_algorithmIdentifier_size_exact
 /// Low
 ///
 
-inline_for_extraction
+//inline_for_extraction
 val serialize32_algorithmIdentifier_payload_backwards
 : serializer32_backwards (serialize_algorithmIdentifier_payload)
 
-inline_for_extraction
+//inline_for_extraction
 val serialize32_algorithmIdentifier_backwards
 : serializer32_backwards (serialize_algorithmIdentifier)
 

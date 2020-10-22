@@ -32,6 +32,7 @@ let synth_asn1_generalized_time_TLV
 : GTot (datatype_of_asn1_type Generalized_Time)
 = snd a
 
+inline_for_extraction noextract
 let synth_asn1_generalized_time_TLV_inverse
   (x: datatype_of_asn1_type Generalized_Time)
 : Tot (a: ((the_asn1_tag Generalized_Time `tuple2`

@@ -116,11 +116,11 @@ val lemma_serialize_subjectPublicKeyInfo_size_exact
 /// Low
 ///
 
-inline_for_extraction
+//inline_for_extraction
 val serialize32_subjectPublicKeyInfo_payload_backwards
 : serializer32_backwards (serialize_subjectPublicKeyInfo_payload)
 
-inline_for_extraction
+//inline_for_extraction
 val serialize32_subjectPublicKeyInfo_backwards
 : serializer32_backwards (serialize_subjectPublicKeyInfo)
 

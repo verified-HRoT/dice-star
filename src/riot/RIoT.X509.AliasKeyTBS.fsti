@@ -52,6 +52,9 @@ type aliasKeyTBS_payload_t = {
 }
 
 noextract
+let and_then_kind (k1 k2:parser_kind) = and_then_kind k1 k2
+
+noextract
 let parse_aliasKeyTBS_payload_kind
 : parser_kind
 = parse_x509_version_kind
@@ -192,8 +195,8 @@ val lemma_serialize_aliasKeyTBS_size
   (x: aliasKeyTBS_t)
 : Lemma ( predicate_serialize_asn1_sequence_TLV_size (serialize_aliasKeyTBS_payload) x )
 
-unfold
 [@@ "opaque_to_smt"]
+unfold
 let len_of_aliasKeyTBS_max ()
 = SEQUENCE `len_of_TLV`
   (**) (len_of_aliasKeyTBS_payload_max ())

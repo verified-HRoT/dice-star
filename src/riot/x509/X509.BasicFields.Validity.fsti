@@ -150,11 +150,11 @@ val lemma_serialize_x509_validity_size_exact
   length_of_x509_validity ()
 )
 
-noextract inline_for_extraction
+//noextract inline_for_extraction
 val serialize32_x509_validity_payload_backwards
 : serializer32_backwards (serialize_x509_validity_payload)
 
-noextract inline_for_extraction
+//noextract inline_for_extraction
 val serialize32_x509_validity_backwards
 : serializer32_backwards (serialize_x509_validity)
 

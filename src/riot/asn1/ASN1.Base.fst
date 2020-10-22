@@ -64,6 +64,7 @@ let asn1_primitive_type
 let character_string_type : Type
 = a: asn1_tag_t { a == IA5_STRING \/ a == PRINTABLE_STRING }
 
+inline_for_extraction noextract
 let asn1_implicit_tagging
   (t1 t2: asn1_tag_t)
 : asn1_tag_t

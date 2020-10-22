@@ -150,11 +150,11 @@ val lemma_serialize_aliasKeyTBS_issuer_size_exact
 
 (* Low *)
 
-noextract inline_for_extraction
+//noextract inline_for_extraction
 val serialize32_aliasKeyTBS_issuer_payload_backwards
 : serializer32_backwards (serialize_aliasKeyTBS_issuer_payload)
 
-noextract inline_for_extraction
+//noextract inline_for_extraction
 val serialize32_aliasKeyTBS_issuer_backwards
 : serializer32_backwards (serialize_aliasKeyTBS_issuer)
 

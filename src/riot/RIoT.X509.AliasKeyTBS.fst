@@ -14,36 +14,36 @@ module B32 = FStar.Bytes
 
 let aliasKeyTBS_payload_t' = (
 (*
- *       version         [0]  EXPLICIT Version DEFAULT v1,
- *)
+//  *       version         [0]  EXPLICIT Version DEFAULT v1,
+//  *)
   x509_version_t `tuple2`
 (*
- *       serialNumber         CertificateSerialNumber,
- *)
+//  *       serialNumber         CertificateSerialNumber,
+//  *)
   x509_serialNumber_t `tuple2`
 (*
- *       signature            AlgorithmIdentifier,
- *)
+//  *       signature            AlgorithmIdentifier,
+//  *)
   algorithmIdentifier_t `tuple2`
 (*
- *       issuer               Name,
- *)
+//  *       issuer               Name,
+//  *)
   aliasKeyTBS_issuer_t `tuple2`
 (*
- *       validity             Validity,
- *)
+//  *       validity             Validity,
+//  *)
   x509_validity_t `tuple2`
 (*
- *       subject              Name,
- *)
+//  *       subject              Name,
+//  *)
   aliasKeyTBS_subject_t `tuple2`
 (*
- *      subjectPublicKeyInfo SubjectPublicKeyInfo
- *)
+//  *      subjectPublicKeyInfo SubjectPublicKeyInfo
+//  *)
   subjectPublicKeyInfo_t `tuple2`
 (*
- *      extensions      [3]  EXPLICIT Extensions OPTIONAL
- *)
+//  *      extensions      [3]  EXPLICIT Extensions OPTIONAL
+//  *)
   x509_extensions_t_inbound serialize_aliasKeyTBS_extensions
 )
 
