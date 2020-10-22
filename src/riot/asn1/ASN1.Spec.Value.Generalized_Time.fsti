@@ -13,6 +13,7 @@ module B32 = FStar.Bytes
 
 #set-options "--z3rlimit 32  --fuel 0 --ifuel 0"
 
+inline_for_extraction noextract
 let parse_asn1_generalized_time_kind: parser_kind
 = parse_filter_kind (total_constant_size_parser_kind 15)
 

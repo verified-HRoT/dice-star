@@ -43,6 +43,7 @@ let synth_algorithmIdentifier_payload_t'
 : Tot (x': algorithmIdentifier_payload_t' { x == synth_algorithmIdentifier_payload_t x' })
 = x.algID_ed25519
 
+inline_for_extraction noextract
 let parse_algorithmIdentifier_payload_kind
 : parser_kind
 = parse_asn1_TLV_kind_of_type OID

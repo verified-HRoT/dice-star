@@ -20,7 +20,7 @@ type compositeDeviceID_payload_t
     riot_deviceID: subjectPublicKeyInfo_t;
     riot_fwid    : fwid_t }
 
-noextract
+inline_for_extraction noextract
 let parse_compositeDeviceID_payload_kind
 : parser_kind
 = parse_asn1_TLV_kind_of_type INTEGER

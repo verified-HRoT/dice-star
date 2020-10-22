@@ -22,7 +22,7 @@ type fwid_payload_t = {
   fwid_value  : x:datatype_of_asn1_type OCTET_STRING {v (dfst x) == 32}
 }
 
-noextract
+inline_for_extraction noextract
 let parse_fwid_payload_kind
 : parser_kind
 = parse_filter_kind parse_asn1_oid_TLV_kind

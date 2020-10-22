@@ -19,6 +19,7 @@ let filter_x509_version
 let x509_version_payload_t: Type
 = parse_filter_refine filter_x509_version
 
+inline_for_extraction noextract
 let parse_x509_version_payload_kind
 : parser_kind
 = parse_filter_kind (parse_asn1_TLV_kind_of_type INTEGER)
@@ -71,6 +72,7 @@ val x509_version_2: x509_version_t
 noextract inline_for_extraction
 val x509_version_3: x509_version_t
 
+inline_for_extraction noextract
 let parse_x509_version_kind
 : parser_kind
 = parse_asn1_envelop_tag_with_TLV_kind (CUSTOM_TAG CONTEXT_SPECIFIC CONSTRUCTED 0uy)

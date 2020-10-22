@@ -20,6 +20,7 @@ let filter_x509_signature
 let x509_signature_t
 = parse_filter_refine filter_x509_signature
 
+inline_for_extraction noextract
 let parse_x509_signature_kind
 = parse_asn1_TLV_kind_of_type BIT_STRING
 

@@ -64,6 +64,7 @@ let lemma_serialize_asn1_ia5_string_size
     (synth_asn1_ia5_string_inverse)
     ()
 
+inline_for_extraction noextract
 let parse_asn1_ia5_string_TLV_kind = parse_asn1_string_TLV_kind IA5_STRING
 
 let parse_asn1_ia5_string_TLV

@@ -16,7 +16,7 @@ open ASN1.Spec.Length
 ////  ASN1 `ASN1_NULL` Value Parser/Serializer
 ///////////////////////////////////////////////////////////////
 
-noextract
+inline_for_extraction noextract
 let parse_asn1_ASN1_NULL_kind = parse_ret_kind
 
 ///

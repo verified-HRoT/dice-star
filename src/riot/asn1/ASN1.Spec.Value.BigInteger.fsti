@@ -121,6 +121,7 @@ let synth_big_integer_as_octet_string_inverse
   else
   ( dsnd value )
 
+inline_for_extraction noextract
 let parse_big_integer_as_octet_string_kind (len: asn1_value_int32_of_big_integer) = constant_size_parser_kind (v len)
 
 noextract
@@ -159,6 +160,7 @@ let parser_tag_of_big_integer_as_octet_string
   else
   ( (INTEGER, dfst x) )
 
+inline_for_extraction noextract
 let parse_asn1_length_kind_of_big_integer
 = parse_bounded_der_length32_kind 1 (asn1_length_max - 6)
 
@@ -175,6 +177,7 @@ let serialize_asn1_length_of_big_integer
   `coerce_parser_serializer _`
   (assert_norm (bounded_int32 1 (asn1_length_max - 6) == asn1_value_int32_of_big_integer))
 
+inline_for_extraction noextract
 let weak_kind_of_big_integer
 = strong_parser_kind 1 (asn1_length_max - 6) None
 

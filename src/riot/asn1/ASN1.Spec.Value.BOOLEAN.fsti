@@ -45,7 +45,7 @@ val synth_asn1_boolean_inverse
   (b: datatype_of_asn1_type BOOLEAN)
 : GTot (r: parse_filter_refine filter_asn1_boolean{synth_asn1_boolean r == b})
 
-noextract
+inline_for_extraction noextract
 let parse_asn1_boolean_kind = strong_parser_kind 1 1 None
 
 noextract

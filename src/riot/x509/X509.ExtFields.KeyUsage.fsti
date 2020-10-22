@@ -61,6 +61,7 @@ let x509_KU_DECIPHER_ONLY     :key_usage_payload_t = 0x8000l  (* bit 8 *)
 // : Tot (ku: key_usage_payload_t
 //            { ku == (ku1 |^ ku2) })
 
+inline_for_extraction noextract
 let _parse_x509_key_usage_payload_kind
 : parser_kind
 = parse_filter_kind (parse_asn1_TLV_kind_of_type BIT_STRING)

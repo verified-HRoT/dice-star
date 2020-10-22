@@ -17,7 +17,7 @@ type deviceIDCSR_payload_t (cri_len: asn1_int32) = {
   deviceIDCSR_sig: x509_signature_t
 }
 
-noextract
+inline_for_extraction noextract
 let parse_deviceIDCSR_payload_kind
   (cri_len: asn1_int32)
 : parser_kind

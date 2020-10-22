@@ -74,6 +74,7 @@ let x509_basicConstraints_extValue_payload_t
   else
   ( asn1_boolean_false_t )
 
+inline_for_extraction noextract
 let parse_x509_basicConstraints_extValue_payload_kind
   (isCA: bool)
 : k: parser_kind {Mkparser_kind'?.parser_kind_subkind k == Some ParserStrong}

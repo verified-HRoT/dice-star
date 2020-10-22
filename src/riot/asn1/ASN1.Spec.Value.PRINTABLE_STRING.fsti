@@ -64,6 +64,7 @@ let lemma_serialize_asn1_printable_string_size
     (synth_asn1_printable_string_inverse)
     ()
 
+inline_for_extraction noextract
 let parse_asn1_printable_string_TLV_kind = parse_asn1_string_TLV_kind PRINTABLE_STRING
 
 let parse_asn1_printable_string_TLV

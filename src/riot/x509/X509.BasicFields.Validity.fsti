@@ -61,6 +61,7 @@ type x509_validity_payload_t: Type = {
   notAfter: generalized_time_t
 }
 
+inline_for_extraction noextract
 let parse_x509_validity_payload_kind
 : parser_kind
 = parse_asn1_TLV_kind_of_type UTC_TIME

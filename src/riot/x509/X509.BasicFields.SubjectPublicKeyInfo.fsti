@@ -14,6 +14,7 @@ type subjectPublicKeyInfo_payload_t
 = { subjectPubKey_alg : algorithmIdentifier_t;
     subjectPubKey     : pubkey_t }
 
+inline_for_extraction noextract
 let parse_subjectPublicKeyInfo_payload_kind
 : parser_kind
 = parse_filter_kind

@@ -190,6 +190,7 @@ val serialize_asn1_string_V
   (tag: the_asn1_tag t `tuple2` asn1_value_int32_of_type t)
 : serializer (parse_asn1_string_V t len_of_string filter_string synth_string prf tag)
 
+inline_for_extraction noextract
 let parse_asn1_string_TLV_kind
   (t: asn1_type { t == IA5_STRING \/ t == PRINTABLE_STRING \/ t == OCTET_STRING })
 : parser_kind

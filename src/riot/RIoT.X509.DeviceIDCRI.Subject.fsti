@@ -18,7 +18,7 @@ type deviceIDCRI_subject_payload_t = {
   deviceIDCRI_subject_Country     : x509_RDN_x520_attribute_t COUNTRY      PRINTABLE_STRING
 }
 
-noextract
+inline_for_extraction noextract
 let parse_deviceIDCRI_subject_payload_kind
 : parser_kind
 = parse_asn1_envelop_tag_with_TLV_kind SET
