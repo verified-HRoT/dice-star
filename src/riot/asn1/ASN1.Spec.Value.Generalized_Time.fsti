@@ -27,7 +27,11 @@ val serialize_asn1_generalized_time
 inline_for_extraction noextract
 let parse_asn1_generalized_time_TLV_kind
 : parser_kind
-= strong_parser_kind 17 17 None
+= parse_asn1_tag_kind
+  `and_then_kind`
+  parse_asn1_length_kind_of_type Generalized_Time
+  `and_then_kind`
+  parse_asn1_generalized_time_kind
 
 val parse_asn1_generalized_time_TLV
 : parser parse_asn1_generalized_time_TLV_kind (datatype_of_asn1_type Generalized_Time)
