@@ -180,20 +180,18 @@ let serialize32_nondep_then_backwards
   (ls2 : serializer32_backwards s2)
 : Tot (serializer32_backwards (s1 `serialize_nondep_then` s2))
 = fun x #rrel #rel b pos ->
-  [@inline_let]
-  let x1 = fst x in
-  [@inline_let]
-  let x2 = snd x in
-  (* Prf *) serialize_nondep_then_eq s1 s2 x;
-  (* Prf *) let posl = Ghost.hide (pos - u (Seq.length (serialize (s1 `serialize_nondep_then` s2) x))) in
-  (* Prf *) let posr = Ghost.hide pos in
+  match x with
+  | Mktuple2 x1 x2 ->
+    (* Prf *) serialize_nondep_then_eq s1 s2 x;
+    (* Prf *) let posl = Ghost.hide (pos - u (Seq.length (serialize (s1   `serialize_nondep_then` s2) x))) in
+    (* Prf *) let posr = Ghost.hide pos in
 
-  let offset2 = frame_serializer32_backwards ls2 x2 b posl posr pos in
+    let offset2 = frame_serializer32_backwards ls2 x2 b posl posr pos in
 
-  let pos = pos - offset2 in
-  let offset1 = frame_serializer32_backwards ls1 x1 b posl posr pos in
+    let pos = pos - offset2 in
+    let offset1 = frame_serializer32_backwards ls1 x1 b posl posr pos in
 
-(* return *) offset1 + offset2
+  (* return *) offset1 + offset2
 
 inline_for_extraction
 let serialize32_tagged_union_backwards
@@ -211,6 +209,7 @@ let serialize32_tagged_union_backwards
   (ls: (t: tag_t) -> Tot (serializer32_backwards (s t)))
 : Tot (serializer32_backwards (serialize_tagged_union st tag_of_data s))
 = fun (x: data_t) #rrel #rel b pos ->
+  [@inline_let]
   let tg = tag_of_data_impl x in
   (* Prf *) serialize_tagged_union_eq
             (* st *) (st)
@@ -270,4 +269,3 @@ let serialize32_synth_backwards
     serialize_synth_eq p1 f2 s1 g1 () x
   in
   s1' (g1' x) input pos
-
