@@ -187,6 +187,8 @@ val serialize32_x509_key_usage_backwards
 : serializer32_backwards (serialize_x509_key_usage)
 
 /// Helper constructor
+
+inline_for_extraction noextract
 let x509_get_key_usage
   (ku: key_usage_payload_t)
 : Tot (key_usage_t)

@@ -73,6 +73,7 @@ val lemma_serialize_algorithmIdentifier_payload_unfold
 ///
 /// lemma: reveal sequence serialization size
 
+inline_for_extraction noextract
 let len_of_algorithmIdentifier_payload ()
 : Tot (asn1_value_int32_of_type SEQUENCE)
 = 5ul

@@ -60,6 +60,7 @@ let synth_x509_validity_payload
 = { notBefore = fst x;
     notAfter  = snd x }
 
+inline_for_extraction noextract
 let synth_x509_validity_payload'
   (x: x509_validity_payload_t)
 : Tot (x': x509_validity_payload_t'

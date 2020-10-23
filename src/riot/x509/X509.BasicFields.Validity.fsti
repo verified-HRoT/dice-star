@@ -159,6 +159,7 @@ val serialize32_x509_validity_payload_backwards
 val serialize32_x509_validity_backwards
 : serializer32_backwards (serialize_x509_validity)
 
+inline_for_extraction noextract
 let x509_get_validity
   (notBefore: datatype_of_asn1_type UTC_TIME)
   (notAfter : datatype_of_asn1_type Generalized_Time)
