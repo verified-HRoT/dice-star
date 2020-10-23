@@ -96,7 +96,7 @@ let serialize32_big_integer_as_octet_string_TLV_backwards ()
   (* ls  *) (fun parser_tag -> (serialize32_synth_backwards
                               (* ls *) (weak_kind_of_big_integer
                                         `serialize32_weaken_backwards`
-                                        serialize32_big_integer_as_octet_string_backwards (snd parser_tag))
+                                        serialize32_big_integer_as_octet_string_backwards (msnd parser_tag))
                               (* f2 *) (synth_big_integer_as_octet_string_V parser_tag)
                               (* g1 *) (synth_big_integer_as_octet_string_V_inverse parser_tag)
                               (* g1'*) (synth_big_integer_as_octet_string_V_inverse parser_tag)

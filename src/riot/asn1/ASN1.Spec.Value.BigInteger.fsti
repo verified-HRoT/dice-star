@@ -146,16 +146,16 @@ val lemma_serialize_big_integer_as_octet_string_size
 : Lemma (
   Seq.length (serialize (serialize_big_integer_as_octet_string len) value) == v len)
 
-
+let len_of_big_integer_as_octet_string (x:big_integer_as_octet_string_t)
+  : asn1_value_int32_of_big_integer
+  = if B32.get x.s 0ul >= 0x80uy
+    then x.len + 1ul
+    else x.len
 
 let parser_tag_of_big_integer_as_octet_string
   (x: big_integer_as_octet_string_t)
-: Tot (the_asn1_tag INTEGER & asn1_value_int32_of_big_integer)
-= let (.[]) = B32.get in
-  if ((x.s).[0ul] >= 0x80uy) then
-  ( (INTEGER, x.len + 1ul) )
-  else
-  ( (INTEGER, x.len) )
+: GTot (the_asn1_tag INTEGER & asn1_value_int32_of_big_integer)
+= INTEGER, len_of_big_integer_as_octet_string x
 
 inline_for_extraction noextract
 let parse_asn1_length_kind_of_big_integer
@@ -210,8 +210,8 @@ val lemma_serialize_big_integer_as_octet_string_TLV_unfold
 let len_of_big_integer_as_octet_string_TLV
   (x: big_integer_as_octet_string_t)
 : Tot (asn1_TLV_int32_of_big_integer)
-= let tg = parser_tag_of_big_integer_as_octet_string x in
-  1ul + ASN1.Low.Length.len_of_asn1_length (snd tg) + (snd tg)
+= let len = len_of_big_integer_as_octet_string x in
+  1ul + ASN1.Low.Length.len_of_asn1_length len + len
 
 val lemma_serialize_big_integer_as_octet_string_TLV_size
   (value: big_integer_as_octet_string_t)
@@ -220,6 +220,7 @@ val lemma_serialize_big_integer_as_octet_string_TLV_size
   v (len_of_big_integer_as_octet_string_TLV value)
 )
 
+inline_for_extraction noextract
 let asn1_get_octet_string
   (len: asn1_value_int32_of_type OCTET_STRING)
   (s32: B32.lbytes32 len)
@@ -227,6 +228,7 @@ let asn1_get_octet_string
 = { len = len; s = s32 }
 
 (* Given a big integer in bytes, returns the _encoded_ octet string. *)
+inline_for_extraction noextract
 let asn1_get_big_integer_as_octet_string
   (len: asn1_value_int32_of_big_integer)
   (s32: B32.lbytes32 len
