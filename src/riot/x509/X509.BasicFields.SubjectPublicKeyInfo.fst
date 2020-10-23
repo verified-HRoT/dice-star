@@ -24,6 +24,7 @@ let synth_subjectPublicKeyInfo_payload_t
 = { subjectPubKey_alg = fst x';
     subjectPubKey     = snd x' }
 
+inline_for_extraction noextract
 let synth_subjectPublicKeyInfo_payload_t'
   (x: subjectPublicKeyInfo_payload_t)
 : Tot (x': subjectPublicKeyInfo_payload_t' { x == synth_subjectPublicKeyInfo_payload_t x' })

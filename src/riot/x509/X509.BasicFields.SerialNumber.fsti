@@ -89,6 +89,7 @@ let len_of_x509_serialNumber
 val serialize32_x509_serialNumber_backwards
 : serializer32_backwards serialize_x509_serialNumber
 
+inline_for_extraction noextract
 let x509_get_serialNumber
   (len: asn1_value_int32_of_big_integer)
   (s32: B32.lbytes32 len
