@@ -19,7 +19,7 @@ open FStar.Integers
 *)
 type fwid_payload_t = {
   fwid_hashAlg: x:datatype_of_asn1_type OID {x == OID_DIGEST_SHA256}; (* OID *)
-  fwid_value  : x:datatype_of_asn1_type OCTET_STRING {v (dfst x) == 32}
+  fwid_value  : x:datatype_of_asn1_type OCTET_STRING {v (x.ASN1.Base.len) == 32}
 }
 
 inline_for_extraction noextract
@@ -107,7 +107,7 @@ let x509_get_fwid
 =
   let fwid: fwid_payload_t = {
     fwid_hashAlg = OID_DIGEST_SHA256;
-    fwid_value   = (|32ul, fwid|)
+    fwid_value   = { ASN1.Base.len = 32ul; s = fwid }
   } in
   (* Prf *) lemma_serialize_fwid_payload_size fwid;
   (* Prf *) (**) lemma_serialize_asn1_oid_TLV_size fwid.fwid_hashAlg;

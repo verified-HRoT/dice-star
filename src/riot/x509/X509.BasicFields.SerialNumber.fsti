@@ -35,11 +35,11 @@ let filter_x509_serialNumber
 : GTot bool
 =
 (* Conforming RFC 5280 -- serialNumber __value__ should not longer then 20 octets *)
-  dfst x <= 20ul &&
+  x.ASN1.Base.len <= 20ul &&
 (* Non-Negative -- the first bit is zero *)
-  B32.index (dsnd x) 0 < 0x80uy &&
+  B32.index (x.s) 0 < 0x80uy &&
 (* Non-Zero -- when length is 1, the only octet is not 0 *)
- ((dfst x) > 1ul || B32.index (dsnd x) 0 > 0x00uy)
+ ((x.ASN1.Base.len) > 1ul || B32.index (x.s) 0 > 0x00uy)
 
 let x509_serialNumber_t
 = parse_filter_refine filter_x509_serialNumber

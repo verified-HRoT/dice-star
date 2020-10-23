@@ -41,14 +41,14 @@ noextract
 val synth_asn1_octet_string
   (l: asn1_value_length_of_type OCTET_STRING)
   (s32: B32.lbytes l)
-: GTot (value: datatype_of_asn1_type OCTET_STRING{v (dfst value) == l})
+: GTot (value: datatype_of_asn1_type OCTET_STRING{v (value.len) == l})
 
 
 /// Encodes our representation of a OCTET_STRING into bytes
 noextract
 val synth_asn1_octet_string_inverse
   (l: asn1_value_length_of_type OCTET_STRING)
-  (value: datatype_of_asn1_type OCTET_STRING{v (dfst value) == l})
+  (value: datatype_of_asn1_type OCTET_STRING{v (value.len) == l})
 : GTot (s32: B32.lbytes l{ value == synth_asn1_octet_string l s32 })
 
 inline_for_extraction noextract
@@ -60,7 +60,7 @@ let parse_asn1_octet_string_kind (l: asn1_value_length_of_type OCTET_STRING) = t
 noextract
 val parse_asn1_octet_string
   (l: asn1_value_length_of_type OCTET_STRING)
-: parser (parse_asn1_octet_string_kind l) (x: datatype_of_asn1_type OCTET_STRING{v (dfst x) == l})
+: parser (parse_asn1_octet_string_kind l) (x: datatype_of_asn1_type OCTET_STRING{v (x.len) == l})
 
 ///
 /// Serializer
@@ -88,7 +88,7 @@ val lemma_parse_asn1_octet_string_unfold
 /// Reveal the computation of serialize
 val lemma_serialize_asn1_octet_string_unfold
   (l: asn1_value_length_of_type OCTET_STRING)
-  (value: datatype_of_asn1_type OCTET_STRING{v (dfst value) == l})
+  (value: datatype_of_asn1_type OCTET_STRING{v (value.len) == l})
 : Lemma (
   serialize (serialize_asn1_octet_string l) value ==
   serialize (serialize_flbytes l) (synth_asn1_octet_string_inverse l value))
@@ -96,7 +96,7 @@ val lemma_serialize_asn1_octet_string_unfold
 /// Reveal the length of a serialzation
 val lemma_serialize_asn1_octet_string_size
   (l: asn1_value_length_of_type OCTET_STRING)
-  (value: datatype_of_asn1_type OCTET_STRING{v (dfst value) == l})
+  (value: datatype_of_asn1_type OCTET_STRING{v (value.len) == l})
 : Lemma (
   Seq.length (serialize (serialize_asn1_octet_string l) value) == l)
 
@@ -142,9 +142,9 @@ val lemma_serialize_asn1_octet_string_TLV_with_tag_unfold
   serialize (serialize_asn1_octet_string_TLV_with_tag a) value ==
   serialize (serialize_asn1_tag_of_type a) a
   `Seq.append`
-  serialize (serialize_asn1_length_of_type OCTET_STRING) (dfst value)
+  serialize (serialize_asn1_length_of_type OCTET_STRING) (value.len)
   `Seq.append`
-  serialize (serialize_asn1_octet_string (v (dfst value))) value
+  serialize (serialize_asn1_octet_string (v (value.len))) value
 )
 
 /// Reveal the size of a serialzation
@@ -154,7 +154,7 @@ val lemma_serialize_asn1_octet_string_TLV_with_tag_size
   (value: datatype_of_asn1_type OCTET_STRING)
 : Lemma (
   Seq.length (serialize (serialize_asn1_octet_string_TLV_with_tag a) value) ==
-  1 + length_of_asn1_length (dfst value) + B32.length (dsnd value)
+  1 + length_of_asn1_length (value.len) + B32.length (value.s)
 )
 
 

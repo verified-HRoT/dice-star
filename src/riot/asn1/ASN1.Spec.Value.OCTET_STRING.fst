@@ -38,12 +38,12 @@ module B32 = FStar.Bytes
 
 /// Decodes input bytes into our representation of a OCTET_STRING value
 let synth_asn1_octet_string l s32
-= (|u l, s32|)
+= { len = u l; s = s32 }
 
 
 /// Encodes our representation of a OCTET_STRING into bytes
 let synth_asn1_octet_string_inverse l value
-= dsnd value
+= value.s
 
 ///
 /// Parser
@@ -102,7 +102,7 @@ let parser_tag_of_octet_string
   (a: asn1_tag_t)
   (x: datatype_of_asn1_type OCTET_STRING)
 : GTot (the_asn1_tag a & asn1_value_int32_of_type OCTET_STRING)
-= (a, dfst x)
+= (a, x.len)
 
 ///
 /// A pair of aux parser/serializer, which explicitly coerce the `OCTET_STRING` value
@@ -120,7 +120,7 @@ noextract
 let synth_asn1_octet_string_V
   (a: asn1_tag_t)
   (tag: (the_asn1_tag a & asn1_value_int32_of_type OCTET_STRING))
-  (value: datatype_of_asn1_type OCTET_STRING { v (dfst value) == v (snd tag) })
+  (value: datatype_of_asn1_type OCTET_STRING { v (value.len) == v (snd tag) })
 : GTot (refine_with_tag (parser_tag_of_octet_string a) tag)
 = value
 
@@ -132,7 +132,7 @@ let synth_asn1_octet_string_V_inverse
   (a: asn1_tag_t)
   (tag: (the_asn1_tag a & asn1_value_int32_of_type OCTET_STRING))
   (value': refine_with_tag (parser_tag_of_octet_string a) tag)
-: GTot (value: datatype_of_asn1_type OCTET_STRING { v (dfst value) == v (snd tag) /\ value' == synth_asn1_octet_string_V a tag value})
+: GTot (value: datatype_of_asn1_type OCTET_STRING { v (value.len) == v (snd tag) /\ value' == synth_asn1_octet_string_V a tag value})
 = value'
 
 
@@ -290,7 +290,7 @@ let lemma_serialize_asn1_octet_string_TLV_with_tag_unfold a value
 let lemma_serialize_asn1_octet_string_TLV_with_tag_size a value
 = lemma_serialize_asn1_octet_string_TLV_with_tag_unfold a value;
   lemma_serialize_asn1_tag_of_type_size a a;
-  lemma_serialize_asn1_length_size (dfst value);
-  serialize_asn1_length_of_type_eq OCTET_STRING (dfst value);
-  lemma_serialize_asn1_octet_string_size (v (dfst value)) value
+  lemma_serialize_asn1_length_size (value.len);
+  serialize_asn1_length_of_type_eq OCTET_STRING (value.len);
+  lemma_serialize_asn1_octet_string_size (v (value.len)) value
 #pop-options

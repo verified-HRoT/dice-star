@@ -34,10 +34,10 @@ let parser_tag_of_big_integer_as_octet_string_impl
 : Tot (tg: (the_asn1_tag INTEGER & asn1_value_int32_of_big_integer)
            { tg == parser_tag_of_big_integer_as_octet_string x })
 = let (.[]) = B32.index in
-  if ((dsnd x).[0] >= 0x80uy) then
-  ( (INTEGER, dfst x + 1ul) )
+  if ((x.s).[0] >= 0x80uy) then
+  ( (INTEGER, x.ASN1.Base.len + 1ul) )
   else
-  ( (INTEGER, dfst x) )
+  ( (INTEGER, x.ASN1.Base.len) )
 
 val serialize32_big_integer_as_octet_string_TLV_backwards (_:unit)
 : Tot (serializer32_backwards (serialize_big_integer_as_octet_string_TLV))

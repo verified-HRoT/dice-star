@@ -550,6 +550,11 @@ let valid_generalized_time
 let generalized_time_t: Type
 = LowParse.Spec.Combinators.parse_filter_refine valid_generalized_time
 
+type octet_string_t = {
+  len : asn1_value_int32_of_type OCTET_STRING;
+  s  : b:B32.bytes { B32.length b == v len };
+}
+
 ////////////////////////////////////////////////////////////////////////
 ////            Representation of ASN1 Values
 //// NOTE: They will be directly used in both spec and impl level
@@ -567,8 +572,7 @@ let datatype_of_asn1_type (a: asn1_primitive_type): Type
   (* An octet string is represented as
      1. `len`: the length of the octet string;
      2. `s`: the octet string. *)
-  | OCTET_STRING -> ( len: asn1_value_int32_of_type OCTET_STRING &
-                      s  : B32.bytes { B32.length s == v len } )
+  | OCTET_STRING -> octet_string_t
 
   | PRINTABLE_STRING
                  -> character_string_t PRINTABLE_STRING

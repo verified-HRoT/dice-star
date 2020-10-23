@@ -242,7 +242,8 @@ let create_aliasKeyTBS
   let fwid_pub32, keyID_pub32, deviceID_pub32, aliasKey_pub32 =
     create_aliasKeyTBS_buffers_to_bytes fwid keyID deviceID_pub aliasKey_pub in
 
-  let keyID_string: datatype_of_asn1_type OCTET_STRING = (|20ul, keyID_pub32|) in
+  let keyID_string: datatype_of_asn1_type OCTET_STRING =
+    { ASN1.Base.len = 20ul; ASN1.Base.s = keyID_pub32 } in
 
   printf "Creating AliasKey Certificate TBS Message\n" done;
   let aliasKeyTBS = x509_get_AliasKeyTBS

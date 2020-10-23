@@ -264,7 +264,7 @@ val serialize32_aliasKeyTBS_extensions_backwards
 
 let x509_get_aliasKeyTBS_extensions
   (ku: key_usage_payload_t)
-  (keyID: datatype_of_asn1_type OCTET_STRING {dfst keyID == 20ul})
+  (keyID: datatype_of_asn1_type OCTET_STRING {keyID.ASN1.Base.len == 20ul})
   (version: datatype_of_asn1_type INTEGER)
   (fwid: B32.lbytes32 32ul)
   (deviceIDPub: B32.lbytes32 32ul)

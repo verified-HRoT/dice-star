@@ -89,7 +89,7 @@ let length_of_asn1_primitive_value
     | BOOLEAN      -> serialize serialize_asn1_boolean value
     | ASN1_NULL    -> serialize serialize_asn1_ASN1_NULL value
     | INTEGER      -> serialize (serialize_asn1_integer (length_of_asn1_integer (value <: datatype_of_asn1_type INTEGER))) value
-    | OCTET_STRING -> serialize (serialize_asn1_octet_string (v (dfst (value <: datatype_of_asn1_type OCTET_STRING)))) value
+    | OCTET_STRING -> serialize (serialize_asn1_octet_string (v ((value <: datatype_of_asn1_type OCTET_STRING).len))) value
     | PRINTABLE_STRING
                    -> let value: datatype_of_asn1_type PRINTABLE_STRING = value in
                       serialize (serialize_asn1_printable_string (dfst (value))) value
@@ -117,7 +117,7 @@ let length_of_asn1_primitive_value
                     ; length )
 
   | OCTET_STRING -> ( let value = value <: datatype_of_asn1_type OCTET_STRING in
-                      let length = v (dfst value) in
+                      let length = v (value.len) in
                       lemma_serialize_asn1_octet_string_size length value
                     ; length )
 
@@ -178,7 +178,7 @@ let length_of_asn1_primitive_TLV
                                     lemma_serialize_asn1_integer_TLV_size value )
 
                 | OCTET_STRING -> ( let value = value <: datatype_of_asn1_type OCTET_STRING in
-                                    let length = v (dfst value) in
+                                    let length = v (value.len) in
                                     let len: asn1_value_int32_of_type OCTET_STRING = u length in
                                     lemma_serialize_asn1_octet_string_TLV_size value )
 
@@ -224,7 +224,7 @@ let length_of_asn1_primitive_TLV
                     ; 1 + length_of_asn1_length len + length )
 
   | OCTET_STRING -> ( let value = value <: datatype_of_asn1_type OCTET_STRING in
-                      let length = v (dfst value) in
+                      let length = v (value.len) in
                       let len: asn1_value_int32_of_type OCTET_STRING = u length in
                       lemma_serialize_asn1_octet_string_TLV_size value
                     ; 1 + length_of_asn1_length len + length )

@@ -15,7 +15,7 @@ module B32 = FStar.Bytes
 let filter_aliasKeyTBS_extensions_authKeyID_extValue_payload
   (x: x509_authKeyID_keyIdentifier_t)
 : Tot (bool)
-= dfst (x <: datatype_of_asn1_type OCTET_STRING) = 20ul
+= (x <: datatype_of_asn1_type OCTET_STRING).ASN1.Base.len = 20ul
 
 let aliasKeyTBS_extensions_authKeyID_extValue_payload_t: Type0
 = parse_filter_refine filter_aliasKeyTBS_extensions_authKeyID_extValue_payload
@@ -241,7 +241,7 @@ let lemma_serialize_aliasKeyTBS_extensions_authKeyID_size_exact
 
 let x509_get_aliasKeyTBS_extensions_authKeyID
   (criticality: datatype_of_asn1_type BOOLEAN)
-  (keyID: datatype_of_asn1_type OCTET_STRING { dfst keyID == 20ul })
+  (keyID: datatype_of_asn1_type OCTET_STRING { keyID.ASN1.Base.len == 20ul })
 : Tot (aliasKeyTBS_extensions_authKeyID_t)
 = (* Prf *) lemma_serialize_asn1_octet_string_TLV_size keyID;
   let extValue_payload: aliasKeyTBS_extensions_authKeyID_extValue_payload_t = keyID in

@@ -52,7 +52,7 @@ let valid_big_integer_as_octet_string
 
 let big_integer_as_octet_string_t
 = x: datatype_of_asn1_type OCTET_STRING
-  { valid_big_integer_as_octet_string (dfst x) (dsnd x) }
+  { valid_big_integer_as_octet_string (x.len) (x.s) }
 
 unfold
 let valid_big_integer_as_octet_string_prop
@@ -60,13 +60,13 @@ let valid_big_integer_as_octet_string_prop
   (x: big_integer_as_octet_string_t)
 : Type0
 = let (.[]) = B32.get in
-  v (dfst x) > 0 /\
+  v (x.len) > 0 /\
   ( if v len = 1 then
-    ( v (dfst x) == v len /\ (dsnd x).[0ul] < 0x80uy )
-    else if ((dsnd x).[0ul] >= 0x80uy) then
-    ( v (dfst x) == v len - 1 )
+    ( v (x.len) == v len /\ (x.s).[0ul] < 0x80uy )
+    else if ((x.s).[0ul] >= 0x80uy) then
+    ( v (x.len) == v len - 1 )
     else
-    ( v (dfst x) == v len /\ (dsnd x).[0ul] > 0x00uy ) )
+    ( v (x.len) == v len /\ (x.s).[0ul] > 0x00uy ) )
 
 (* ZT: Exposing them because one lemma needs `synth_..._inverse`. *)
 let filter_big_integer_as_octet_string
@@ -88,12 +88,9 @@ let synth_big_integer_as_octet_string
 : Tot (value: big_integer_as_octet_string_t
                { valid_big_integer_as_octet_string_prop len value })
 = let (.[]) = B32.get in
-  if (v len = 1) then
-  ( (|1ul, s32|) )
-  else if (s32.[0ul] = 0x00uy) then
-  ( (|len - 1ul, B32.slice s32 1ul len|) )
-  else
-  ( (|len, s32|) )
+  if (v len = 1) then { len = 1ul; s = s32 }
+  else if (s32.[0ul] = 0x00uy) then { len = len - 1ul; s = B32.slice s32 1ul len }
+  else { len = len; s = s32 }
 
 val lemma_synth_big_integer_as_octet_string_injective
   (len: asn1_value_int32_of_big_integer)
@@ -108,18 +105,18 @@ let synth_big_integer_as_octet_string_inverse
             { value == synth_big_integer_as_octet_string len s32 })
 = let (.[]) = B32.get in
   if len = 1ul then
-  ( dsnd value )
-  else if (dsnd value).[0ul] >= 0x80uy then
-  ( let s32 = B32.create 1ul 0x00uy `B32.append` dsnd value in
-    B32.extensionality (dsnd value) (B32.slice s32 1ul len);
-    assert (B32.reveal s32 == B32.reveal (B32.create 1ul 0x00uy) `Seq.append` B32.reveal (dsnd value));
+  ( value.s )
+  else if (value.s).[0ul] >= 0x80uy then
+  ( let s32 = B32.create 1ul 0x00uy `B32.append` value.s in
+    B32.extensionality (value.s) (B32.slice s32 1ul len);
+    assert (B32.reveal s32 == B32.reveal (B32.create 1ul 0x00uy) `Seq.append` B32.reveal (value.s));
     assert (s32.[0ul] = B32.reveal s32 `Seq.index` 0);
     assert (B32.reveal s32 `Seq.index` 0 == B32.create 1ul 0x00uy `B32.get` 0ul);
     assert (B32.create 1ul 0x00uy `B32.get` 0ul == 0x00uy);
     assert (s32.[0ul] == 0x00uy);
     s32 )
   else
-  ( dsnd value )
+  ( value.s )
 
 inline_for_extraction noextract
 let parse_big_integer_as_octet_string_kind (len: asn1_value_int32_of_big_integer) = constant_size_parser_kind (v len)
@@ -155,10 +152,10 @@ let parser_tag_of_big_integer_as_octet_string
   (x: big_integer_as_octet_string_t)
 : Tot (the_asn1_tag INTEGER & asn1_value_int32_of_big_integer)
 = let (.[]) = B32.get in
-  if ((dsnd x).[0ul] >= 0x80uy) then
-  ( (INTEGER, dfst x + 1ul) )
+  if ((x.s).[0ul] >= 0x80uy) then
+  ( (INTEGER, x.len + 1ul) )
   else
-  ( (INTEGER, dfst x) )
+  ( (INTEGER, x.len) )
 
 inline_for_extraction noextract
 let parse_asn1_length_kind_of_big_integer
@@ -227,7 +224,7 @@ let asn1_get_octet_string
   (len: asn1_value_int32_of_type OCTET_STRING)
   (s32: B32.lbytes32 len)
 : Tot (datatype_of_asn1_type OCTET_STRING)
-= (|len, s32|)
+= { len = len; s = s32 }
 
 (* Given a big integer in bytes, returns the _encoded_ octet string. *)
 let asn1_get_big_integer_as_octet_string

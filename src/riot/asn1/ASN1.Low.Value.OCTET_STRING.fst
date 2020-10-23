@@ -18,14 +18,14 @@ friend ASN1.Spec.Value.OCTET_STRING
 (* NOTE: Read after `ASN1.Spec.Tag`, `ASN1.Spec.Length` *)
 
 let serialize32_asn1_octet_string_backwards len
-= fun (value: datatype_of_asn1_type OCTET_STRING { v (dfst value) == v len })
+= fun (value: datatype_of_asn1_type OCTET_STRING { v (value.ASN1.Base.len) == v len })
     (#rrel #rel: _)
     (b: B.mbuffer byte rrel rel)
     (pos: size_t)
 ->  (* Prf *) lemma_serialize_asn1_octet_string_unfold (v len) (value);
 
     store_bytes
-    (* src *) (dsnd value)
+    (* src *) (value.s)
     (* from*) 0ul
     (* to  *) len
     (* dst *) b
@@ -38,7 +38,7 @@ let parser_tag_of_octet_string_impl
   (a: asn1_tag_t)
   (x: datatype_of_asn1_type OCTET_STRING)
 : Tot (tg: (the_asn1_tag a & asn1_value_int32_of_type OCTET_STRING) {tg == parser_tag_of_octet_string a x})
-= (a, dfst x)
+= (a, x.ASN1.Base.len)
 
 inline_for_extraction
 let synth_asn1_octet_string_V_inverse_impl
@@ -46,7 +46,7 @@ let synth_asn1_octet_string_V_inverse_impl
   (tag: (the_asn1_tag a & asn1_value_int32_of_type OCTET_STRING))
   (value': refine_with_tag (parser_tag_of_octet_string a) tag)
 : Tot (value: datatype_of_asn1_type OCTET_STRING
-              { v (dfst value) == v (snd tag) /\
+              { v (value.ASN1.Base.len) == v (snd tag) /\
                 value == synth_asn1_octet_string_V_inverse a tag value' })
 = value'
 
@@ -60,7 +60,7 @@ let serialize32_asn1_octet_string_TLV_with_tag_backwards a
   (* ls  *) (fun x -> (serialize32_synth_backwards
                      (* ls1 *) (weak_kind_of_type OCTET_STRING
                                 `serialize32_weaken_backwards`
-                                serialize32_asn1_octet_string_backwards (snd x))
+                                serialize32_asn1_octet_string_backwards (msnd x))
                      (* f2  *) (synth_asn1_octet_string_V a x)
                      (* g1  *) (synth_asn1_octet_string_V_inverse a x)
                      (* g1' *) (synth_asn1_octet_string_V_inverse_impl a x)

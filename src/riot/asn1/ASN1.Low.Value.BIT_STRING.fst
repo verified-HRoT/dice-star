@@ -103,7 +103,7 @@ let serialize32_asn1_bit_string_TLV_backwards ()
   (* ls  *) (fun parser_tag -> (serialize32_synth_backwards
                               (* ls *) (weak_kind_of_type BIT_STRING
                                         `serialize32_weaken_backwards`
-                                        serialize32_asn1_bit_string_backwards (snd parser_tag))
+                                        serialize32_asn1_bit_string_backwards (msnd parser_tag))
                               (* f2 *) (synth_asn1_bit_string_V parser_tag)
                               (* g1 *) (synth_asn1_bit_string_V_inverse parser_tag)
                               (* g1'*) (synth_asn1_bit_string_V_inverse_impl parser_tag)

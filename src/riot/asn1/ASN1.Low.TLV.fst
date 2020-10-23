@@ -66,7 +66,7 @@ let len_of_asn1_primitive_value
                       len_of_asn1_integer value )
 
   | OCTET_STRING -> ( let value = value <: datatype_of_asn1_type OCTET_STRING in
-                      dfst value )
+                      value.ASN1.Base.len )
 
   | PRINTABLE_STRING
                  -> ( let value = value <: datatype_of_asn1_type PRINTABLE_STRING in

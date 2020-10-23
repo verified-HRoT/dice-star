@@ -37,16 +37,16 @@ let serialize32_big_integer_as_octet_string_backwards len
               (* buf *) b
               (*range*) (v (pos - len)) (v pos)
               (* mem *) h0
-              (* from*) (v (pos - dfst x))
+              (* from*) (v (pos - x.ASN1.Base.len))
               (* to  *) (v pos);
     store_bytes
-      (* src *) (dsnd x)
+      (* src *) (x.s)
       (* from*) 0ul
-      (* to  *) (dfst x)
+      (* to  *) (x.ASN1.Base.len)
       (* dst *) b
-      (* pos *) (pos - (dfst x));
+      (* pos *) (pos - (x.ASN1.Base.len));
 
-    if (B32.get (dsnd x) 0ul >= 0x80uy) then
+    if (B32.get (x.s) 0ul >= 0x80uy) then
     ( let h1 = HST.get () in
       (* Prf *) writable_modifies
                 (* buf *) b
@@ -59,7 +59,7 @@ let serialize32_big_integer_as_octet_string_backwards len
                 (*range*) (v (pos - len)) (v pos)
                 (* mem *) h1
                 (* from*) (v (pos - len))
-                (* to  *) (v (pos - dfst x));
+                (* to  *) (v (pos - x.ASN1.Base.len));
       mbuffer_upd
         (* buf *) b
         (*range*) (v (pos - len)) (v pos)
@@ -68,8 +68,8 @@ let serialize32_big_integer_as_octet_string_backwards len
       (* Prf *) let h2 = HST.get () in
       (* Prf *) B.modifies_buffer_from_to_elim
             (* buf *) b
-            (*frame*) (pos - dfst x) (pos)
-            (* new *) (B.loc_buffer_from_to b (pos - len) (pos - dfst x))
+            (*frame*) (pos - x.ASN1.Base.len) (pos)
+            (* new *) (B.loc_buffer_from_to b (pos - len) (pos - x.ASN1.Base.len))
             (* mem *) h1
             (* mem'*) h2;
   (* Prf *) Seq.lemma_split (Seq.slice (B.as_seq h2 b) (v (pos - len)) (v pos)) 1 );

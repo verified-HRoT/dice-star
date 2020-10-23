@@ -269,3 +269,9 @@ let serialize32_synth_backwards
     serialize_synth_eq p1 f2 s1 g1 () x
   in
   s1' (g1' x) input pos
+
+
+inline_for_extraction noextract
+let msnd (#a:Type) (#b:Type) (x:a & b) : b = match x with
+  | Mktuple2 _ x -> x
+

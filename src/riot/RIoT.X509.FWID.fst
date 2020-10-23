@@ -22,7 +22,7 @@ let filter_fwid_payload_string
   (s: datatype_of_asn1_type OCTET_STRING)
 : GTot bool
 = //fst x' = OID_DIGEST_SHA256 &&
-  v (dfst s) = 32
+  v (s.ASN1.Base.len) = 32
 
 let fwid_payload_t'
 = (OID_DIGEST_SHA256) `envelop_OID_with_t`

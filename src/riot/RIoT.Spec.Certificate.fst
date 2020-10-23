@@ -83,7 +83,7 @@ let create_aliasKeyTBS_spec
                                      notBefore notAfter
                                      s_common s_org s_country
                                      ku
-                                     (|20ul, B32.hide keyID|)
+                                     ({ len = 20ul; s = B32.hide keyID })
                                      version
                                      fwid32
                                      deviceID_pub32
