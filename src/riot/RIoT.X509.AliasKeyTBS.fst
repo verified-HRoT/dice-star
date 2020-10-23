@@ -10,7 +10,7 @@ open FStar.Integers
 
 module B32 = FStar.Bytes
 
-#set-options "--lax --z3rlimit 512 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
+#set-options "--z3rlimit 512 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
 let aliasKeyTBS_payload_t' = (
 (*

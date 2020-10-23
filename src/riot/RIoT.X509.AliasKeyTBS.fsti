@@ -12,7 +12,7 @@ open RIoT.X509.LengthUtils
 
 module B32 = FStar.Bytes
 
-#set-options "--lax --z3rlimit 256 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection -LowParse'"
+#set-options "--z3rlimit 256 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection -LowParse'"
 
 noeq
 type aliasKeyTBS_payload_t = {
