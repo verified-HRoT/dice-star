@@ -40,6 +40,7 @@ let synth_deviceIDCRI_payload_t
   deviceIDCRI_attributes    = snd x';
 }
 
+inline_for_extraction noextract
 let synth_deviceIDCRI_payload_t'
   (x: deviceIDCRI_payload_t)
 : Tot (x': deviceIDCRI_payload_t'

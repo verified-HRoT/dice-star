@@ -75,7 +75,7 @@ let serialize32_asn1_string_TLV_backwards
   (* ls *) (fun x -> (serialize32_synth_backwards
                     (* ls *) (weak_kind_of_type t
                               `serialize32_weaken_backwards`
-                              serialize32_asn1_string_backwards t len_of_string filter_string synth_string synth_string_inverse prf (snd x))
+                              serialize32_asn1_string_backwards t len_of_string filter_string synth_string synth_string_inverse prf (msnd x))
                     (* f2 *) (synth_asn1_string_V t len_of_string x)
                     (* g1 *) (synth_asn1_string_V_inverse t len_of_string x)
                     (* g1'*) (synth_asn1_string_V_inverse t len_of_string x)

@@ -22,6 +22,7 @@ let synth_deviceIDCRI_subject_payload_t
     deviceIDCRI_subject_Organization = snd (fst x');
     deviceIDCRI_subject_Country      = snd x' }
 
+inline_for_extraction noextract
 let synth_deviceIDCRI_subject_payload_t'
   (x: deviceIDCRI_subject_payload_t)
 : Tot (x': deviceIDCRI_subject_payload_t'
