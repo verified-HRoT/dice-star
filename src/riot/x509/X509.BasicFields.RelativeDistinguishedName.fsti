@@ -452,10 +452,19 @@ val lemma_serialize_RDN_x520_attribute_size_exact
 )
 
 noextract inline_for_extraction
-val serialize32_RDN_x520_attribute_backwards
+private val serialize32_RDN_x520_attribute_backwards
   (t: x520_attribute_t)
   (string_t: directory_string_type { ((t == COUNTRY) ==> (string_t == PRINTABLE_STRING)) })
 : serializer32_backwards (serialize_RDN_x520_attribute t string_t)
+
+let serialize32_RDN_COMMON_NAME : serializer32_backwards (serialize_RDN_x520_attribute COMMON_NAME IA5_STRING)
+  = serialize32_RDN_x520_attribute_backwards COMMON_NAME IA5_STRING
+
+let serialize32_RDN_ORGANIZATION : serializer32_backwards (serialize_RDN_x520_attribute ORGANIZATION IA5_STRING)
+  = serialize32_RDN_x520_attribute_backwards ORGANIZATION IA5_STRING
+
+let serialize32_RDN_COUNTRY : serializer32_backwards (serialize_RDN_x520_attribute COUNTRY PRINTABLE_STRING)
+  = serialize32_RDN_x520_attribute_backwards COUNTRY PRINTABLE_STRING
 
 // #push-options "--fuel 4 --ifuel 0"
 // let _ = assert_norm (Seq.for_all valid_IA5_byte (B32.reveal (B32.hide (Seq.createL [0x10uy; 0x11uy; 0x12uy]))) )

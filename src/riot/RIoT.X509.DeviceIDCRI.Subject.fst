@@ -9,6 +9,8 @@ module B32 = FStar.Bytes
 
 #set-options "--z3rlimit 512 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
+#set-options "--__temp_no_proj RIoT.X509.DeviceIDCRI.Subject"
+
 let deviceIDCRI_subject_payload_t' = (
   x509_RDN_x520_attribute_t COMMON_NAME  IA5_STRING `tuple2`
   x509_RDN_x520_attribute_t ORGANIZATION IA5_STRING `tuple2`
@@ -107,11 +109,11 @@ let lemma_serialize_deviceIDCRI_subject_size_exact x
 
 let serialize32_deviceIDCRI_subject_payload_backwards
 = serialize32_synth_backwards
-  (* s32*) (serialize32_RDN_x520_attribute_backwards COMMON_NAME  IA5_STRING
+  (* s32*) (serialize32_RDN_COMMON_NAME
             `serialize32_nondep_then_backwards`
-            serialize32_RDN_x520_attribute_backwards ORGANIZATION IA5_STRING
+            serialize32_RDN_ORGANIZATION
             `serialize32_nondep_then_backwards`
-            serialize32_RDN_x520_attribute_backwards COUNTRY      PRINTABLE_STRING)
+            serialize32_RDN_COUNTRY)
   (* f2 *) (synth_deviceIDCRI_subject_payload_t)
   (* g1 *) (synth_deviceIDCRI_subject_payload_t')
   (* g1'*) (synth_deviceIDCRI_subject_payload_t')

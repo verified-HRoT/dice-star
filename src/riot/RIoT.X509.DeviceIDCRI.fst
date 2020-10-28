@@ -11,6 +11,9 @@ module B32 = FStar.Bytes
 
 #set-options "--z3rlimit 256 --fuel 0 --ifuel 0"
 
+#set-options "--__temp_no_proj RIoT.X509.DeviceIDCRI"
+
+
 (*     (To-Be-Signed) DeviceID Certification Request Info
  *================================================================
  *   CertificationRequestInfo ::= SEQUENCE {

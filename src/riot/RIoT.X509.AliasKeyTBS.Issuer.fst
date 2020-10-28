@@ -106,11 +106,11 @@ let lemma_serialize_aliasKeyTBS_issuer_size_exact x
 
 let serialize32_aliasKeyTBS_issuer_payload_backwards
 = serialize32_synth_backwards
-  (* s32*) (serialize32_RDN_x520_attribute_backwards COMMON_NAME  IA5_STRING
+  (* s32*) (serialize32_RDN_COMMON_NAME
             `serialize32_nondep_then_backwards`
-            serialize32_RDN_x520_attribute_backwards ORGANIZATION IA5_STRING
+            serialize32_RDN_ORGANIZATION
             `serialize32_nondep_then_backwards`
-            serialize32_RDN_x520_attribute_backwards COUNTRY      PRINTABLE_STRING)
+            serialize32_RDN_COUNTRY)
   (* f2 *) (synth_aliasKeyTBS_issuer_payload_t)
   (* g1 *) (synth_aliasKeyTBS_issuer_payload_t')
   (* g1'*) (synth_aliasKeyTBS_issuer_payload_t')
