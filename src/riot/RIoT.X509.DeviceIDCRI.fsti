@@ -200,11 +200,11 @@ val lemma_serialize_deviceIDCRI_size_exact
 
 (* low *)
 
-noextract inline_for_extraction
+//noextract inline_for_extraction
 val serialize32_deviceIDCRI_payload_backwards
 : serializer32_backwards (serialize_deviceIDCRI_payload)
 
-noextract inline_for_extraction
+//noextract inline_for_extraction
 val serialize32_deviceIDCRI_backwards
 : serializer32_backwards (serialize_deviceIDCRI)
 

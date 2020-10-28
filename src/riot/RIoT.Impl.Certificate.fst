@@ -151,6 +151,16 @@ let create_aliasKeyTBS_post
   B.(modifies (loc_buffer aliasKeyTBS_buf) h0 h1) /\
   B.as_seq h1 aliasKeyTBS_buf == serialize_aliasKeyTBS `serialize` aliasKeyTBS
 
+#set-options "--__temp_no_proj RIoT.Impl.Certificate"
+noeq
+type aliasKeyTBS_bytes = {
+  fwid_pub32     : B32.lbytes32 32ul;
+  keyID_pub32    : B32.lbytes32 20ul;
+  deviceID_pub32 : B32.lbytes32 32ul;
+  aliasKey_pub32 : B32.lbytes32 32ul
+}
+
+
 #push-options "--z3rlimit 64"
 [@@ "opaque_to_smt"]
 inline_for_extraction noextract
@@ -159,11 +169,7 @@ let create_aliasKeyTBS_buffers_to_bytes
   (keyID: B.lbuffer byte_pub 20)
   (deviceID_pub: B.lbuffer byte_pub 32)
   (aliasKey_pub: B.lbuffer byte_pub 32)
-  : HST.Stack
-      (B32.lbytes32 32ul &  //fwid
-       B32.lbytes32 20ul &  //key id
-       B32.lbytes32 32ul &  //device id
-       B32.lbytes32 32ul)  //alias key
+  : HST.Stack aliasKeyTBS_bytes
       (requires fun h ->
         B.(all_live h [buf fwid;
                        buf deviceID_pub;
@@ -175,18 +181,20 @@ let create_aliasKeyTBS_buffers_to_bytes
                          loc_buffer keyID]))
       (ensures fun h0 r h1 ->
         B.(modifies loc_none h0 h1) /\
-        (let (fwid_pub32, keyID_pub32, deviceID_pub32, aliasKey_pub32) = r in
-         B32.hide (B.as_seq h0 fwid) == fwid_pub32 /\
-         B32.hide (B.as_seq h0 deviceID_pub) == deviceID_pub32 /\
-         B32.hide (B.as_seq h0 aliasKey_pub) == aliasKey_pub32 /\
-         B32.hide (B.as_seq h0 keyID) == keyID_pub32))
+        (B32.hide (B.as_seq h0 fwid) == r.fwid_pub32 /\
+         B32.hide (B.as_seq h0 deviceID_pub) == r.deviceID_pub32 /\
+         B32.hide (B.as_seq h0 aliasKey_pub) == r.aliasKey_pub32 /\
+         B32.hide (B.as_seq h0 keyID) == r.keyID_pub32))
   = HST.push_frame ();
     let fwid_pub32    : B32.lbytes32 32ul = B32.of_buffer 32ul fwid in
     let deviceID_pub32: B32.lbytes32 32ul = B32.of_buffer 32ul deviceID_pub in
     let aliasKey_pub32: B32.lbytes32 32ul = B32.of_buffer 32ul aliasKey_pub in
     let keyID_pub32 = B32.of_buffer 20ul keyID in
     HST.pop_frame ();
-    fwid_pub32, keyID_pub32, deviceID_pub32, aliasKey_pub32
+    { fwid_pub32 = fwid_pub32;
+      keyID_pub32 = keyID_pub32;
+      deviceID_pub32 = deviceID_pub32;
+      aliasKey_pub32 = aliasKey_pub32 }
 
 [@@ "opaque_to_smt"]
 let create_aliasKeyTBS
@@ -239,11 +247,10 @@ let create_aliasKeyTBS
                          (aliasKeyTBS_len) (aliasKeyTBS_buf))
 = let h0 = FStar.HyperStack.ST.get () in
 
-  let fwid_pub32, keyID_pub32, deviceID_pub32, aliasKey_pub32 =
-    create_aliasKeyTBS_buffers_to_bytes fwid keyID deviceID_pub aliasKey_pub in
+  let b = create_aliasKeyTBS_buffers_to_bytes fwid keyID deviceID_pub aliasKey_pub in
 
   let keyID_string: datatype_of_asn1_type OCTET_STRING =
-    { ASN1.Base.len = 20ul; ASN1.Base.s = keyID_pub32 } in
+    { ASN1.Base.len = 20ul; ASN1.Base.s = b.keyID_pub32 } in
 
   printf "Creating AliasKey Certificate TBS Message\n" done;
   let aliasKeyTBS = x509_get_AliasKeyTBS
@@ -255,9 +262,9 @@ let create_aliasKeyTBS
                                      ku
                                      keyID_string
                                      riot_version
-                                     fwid_pub32
-                                     deviceID_pub32
-                                     aliasKey_pub32 in
+                                     b.fwid_pub32
+                                     b.deviceID_pub32
+                                     b.aliasKey_pub32 in
   (* Prf *) lemma_serialize_aliasKeyTBS_size_exact aliasKeyTBS;
 
   (*
@@ -580,7 +587,7 @@ let riot_core_step2_post
 
 #set-options "--z3rlimit 200 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 [@@ "opaque_to_smt"]
-inline_for_extraction
+inline_for_extraction noextract
 let riot_core_step2
   (csr_version: datatype_of_asn1_type INTEGER)
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
@@ -794,7 +801,7 @@ let riot_core_step3_post
 
 #set-options "--z3rlimit 200 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 [@@ "opaque_to_smt"]
-inline_for_extraction
+inline_for_extraction noextract
 let riot_core_step3
   (crt_version: x509_version_t)
   (serialNumber: x509_serialNumber_t)
