@@ -22,6 +22,8 @@ module B32 = FStar.Bytes
  *
  *)
 
+#set-options "--__temp_no_proj RIoT.X509.DeviceIDCRI"
+
 noeq
 type deviceIDCRI_payload_t = {
   deviceIDCRI_version: datatype_of_asn1_type INTEGER;
@@ -65,7 +67,7 @@ val lemma_serialize_deviceIDCRI_payload_unfold
 )
 
 [@@ "opaque_to_smt"]
-unfold
+unfold noextract
 let len_of_deviceIDCRI_payload_max ()
 : Tot (asn1_value_int32_of_type SEQUENCE)
 // = len_of_asn1_primitive_TLV #INTEGER version +
@@ -148,7 +150,7 @@ val lemma_serialize_deviceIDCRI_size
 //   <= asn1_value_length_max_of_type SEQUENCE
 
 let len_of_deviceIDCRI_max ()
-: Tot (asn1_TLV_int32_of_type SEQUENCE)
+: GTot (asn1_TLV_int32_of_type SEQUENCE)
 = len_of_TLV SEQUENCE (len_of_deviceIDCRI_payload_max ())
 
 #push-options "--z3rlimit 256"
