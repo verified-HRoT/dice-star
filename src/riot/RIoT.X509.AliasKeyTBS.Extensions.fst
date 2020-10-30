@@ -19,6 +19,11 @@ module P = FStar.Pervasives
 
 #set-options "--z3rlimit 128 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
+#set-options "--__temp_no_proj RIoT.X509.AliasKeyTBS.Extensions"
+
+let decl = ()
+
+
 (* Extensions of the AliasKey Certificate
  * Includes the RIoT Extension (`CompositeDeviceID`) and others
  * This is the SEQUENCE under the outmost explicit tag
@@ -67,6 +72,7 @@ let synth_aliasKeyTBS_extensions_payload_t
    aliasKeyTBS_extensions_riot             = snd x';
 }
 
+inline_for_extraction noextract
 let synth_aliasKeyTBS_extensions_payload_t'
   (x: aliasKeyTBS_extensions_payload_t)
 : Tot  (x': aliasKeyTBS_extensions_payload_t'

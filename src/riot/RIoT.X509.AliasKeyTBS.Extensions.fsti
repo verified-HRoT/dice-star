@@ -16,6 +16,10 @@ module B32 = FStar.Bytes
 
 #set-options "--z3rlimit 128 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
+#set-options "--__temp_no_proj RIoT.X509.AliasKeyTBS.Extensions"
+
+val decl : unit
+
 (* Extensions of the AliasKey Certificate
  * Includes the RIoT Extension (`CompositeDeviceID`) and others
  * This is the SEQUENCE under the outmost explicit tag

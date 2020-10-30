@@ -28,7 +28,7 @@ let serialize_aliasKeyTBS_extensions_basicConstraints
     (serialize_x509_basicConstraints aliasKeyTBS_extensions_basicConstraints_isCA)
     ()
 
-noextract inline_for_extraction
+//noextract inline_for_extraction
 let serialize32_aliasKeyTBS_extensions_basicConstraints_backwards
 : serializer32_backwards serialize_aliasKeyTBS_extensions_basicConstraints
 = coerce_serializer32_backwards

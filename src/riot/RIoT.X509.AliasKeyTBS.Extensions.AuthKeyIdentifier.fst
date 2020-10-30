@@ -171,7 +171,7 @@ let serialize_aliasKeyTBS_extensions_authKeyID
     (**) (serialize_aliasKeyTBS_extensions_authKeyID_extValue))
     ()
 
-noextract inline_for_extraction
+//noextract inline_for_extraction
 let serialize32_aliasKeyTBS_extensions_authKeyID_backwards
 : serializer32_backwards serialize_aliasKeyTBS_extensions_authKeyID
 = coerce_serializer32_backwards
