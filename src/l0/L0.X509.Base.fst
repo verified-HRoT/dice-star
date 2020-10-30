@@ -36,7 +36,7 @@ let aliasKeyCrt_key_usage: key_usage_payload_t
 = normalize_term (x509_KU_KEY_CERT_SIGN
   (*
    * Adding more key usage bits for test only. According to the
-   * [reference implementation](https://github.com/microsoft/L0/blob/master/Reference/RIoT/RIoTCrypt/include/x509bldr.h#L22),
+   * [reference implementation](https://github.com/microsoft/L0/blob/master/Reference/L0/RIoTCrypt/include/x509bldr.h#L22),
    * Only the KeyCertSign bit is set.
    *)
   // `op_ku_with` x509_KU_DIGITAL_SIGNATURE

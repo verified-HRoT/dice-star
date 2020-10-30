@@ -49,7 +49,7 @@ type aliasKeyTBS_extensions_payload_t = {
                                            // (x509_ext_key_usage_t aliasKeyCrt_extendedKeyUsage_oids);
   aliasKeyTBS_extensions_basicConstraints: aliasKeyTBS_extensions_basicConstraints_t;
   aliasKeyTBS_extensions_authKeyID: aliasKeyTBS_extensions_authKeyID_t;
-  aliasKeyTBS_extensions_l0: riot_extension_t
+  aliasKeyTBS_extensions_l0: l0_extension_t
 }
 
 noextract
@@ -91,7 +91,7 @@ val lemma_serialize_aliasKeyTBS_extensions_payload_unfold
   (serialize_aliasKeyTBS_extensions_authKeyID
                             `serialize` x.aliasKeyTBS_extensions_authKeyID)
   `Seq.append`
-  (serialize_l0_extension `serialize` x.aliasKeyTBS_extensions_riot)
+  (serialize_l0_extension `serialize` x.aliasKeyTBS_extensions_l0)
 )
 
 // let valid_aliasKeyTBS_extensions_payload_ingredients
@@ -150,15 +150,15 @@ val lemma_serialize_aliasKeyTBS_extensions_payload_size
                                                                          x.aliasKeyTBS_extensions_basicConstraints +
   length_of_opaque_serialization (serialize_aliasKeyTBS_extensions_authKeyID)
                                                                          x.aliasKeyTBS_extensions_authKeyID +
-  length_of_opaque_serialization (serialize_l0_extension)              x.aliasKeyTBS_extensions_riot /\
+  length_of_opaque_serialization (serialize_l0_extension)              x.aliasKeyTBS_extensions_l0 /\
   (* exact size *)
   length_of_opaque_serialization (serialize_aliasKeyTBS_extensions_payload)      x
   == v (len_of_aliasKeyTBS_extensions_payload
-         (x.aliasKeyTBS_extensions_l0.x509_extValue_riot.riot_version)) /\
+         (x.aliasKeyTBS_extensions_l0.x509_extValue_l0.riot_version)) /\
   length_of_opaque_serialization (serialize_aliasKeyTBS_extensions_payload)      x
   <= v (len_of_aliasKeyTBS_extensions_payload_max ())
 )
-// = lemma_length_of_aliasKeyTBS_extensions_payload_size_max x.aliasKeyTBS_extensions_l0.x509_extValue_riot.riot_version;
+// = lemma_length_of_aliasKeyTBS_extensions_payload_size_max x.aliasKeyTBS_extensions_l0.x509_extValue_l0.riot_version;
 //   lemma_serialize_aliasKeyTBS_extensions_payload_unfold x;
 //     lemma_serialize_x509_key_usage_size_exact x.aliasKeyTBS_extensions_key_usage;
 //     lemma_x509_keyPurposeIDs_unique aliasKeyCrt_extendedKeyUsage_oids;
@@ -168,7 +168,7 @@ val lemma_serialize_aliasKeyTBS_extensions_payload_size
 //                                               x.aliasKeyTBS_extensions_basicConstraints;
 //     lemma_serialize_aliasKeyTBS_extensions_authKeyID_size_exact
 //                                               x.aliasKeyTBS_extensions_authKeyID;
-//     lemma_serialize_l0_extension_size_exact x.aliasKeyTBS_extensions_riot
+//     lemma_serialize_l0_extension_size_exact x.aliasKeyTBS_extensions_l0
 
 (*
  * SEQUENCE serializer
@@ -220,7 +220,7 @@ val lemma_serialize_aliasKeyTBS_extensions_size
 //   (x: aliasKeyTBS_extensions_t)
 // : Type0
 // = valid_aliasKeyTBS_extensions_ingredients
-//           (x.aliasKeyTBS_extensions_l0.x509_extValue_riot.riot_version)
+//           (x.aliasKeyTBS_extensions_l0.x509_extValue_l0.riot_version)
 
 // val lemma_aliasKeyTBS_extensions_valid
 //   (x: aliasKeyTBS_extensions_t)
@@ -249,7 +249,7 @@ val lemma_serialize_aliasKeyTBS_extensions_size_exact
   (* exact size *)
   length_of_opaque_serialization (serialize_aliasKeyTBS_extensions) x
   == v (len_of_aliasKeyTBS_extensions
-         (x.aliasKeyTBS_extensions_l0.x509_extValue_riot.riot_version)) /\
+         (x.aliasKeyTBS_extensions_l0.x509_extValue_l0.riot_version)) /\
   length_of_opaque_serialization (serialize_aliasKeyTBS_extensions) x
   <= v (len_of_aliasKeyTBS_extensions_max ())
 )
@@ -292,18 +292,18 @@ let x509_get_aliasKeyTBS_extensions
                                                      keyID in
   (* Prf *)  lemma_serialize_aliasKeyTBS_extensions_authKeyID_size_exact authKeyID;
 
-  let l0_extension= x509_get_riot_extension
+  let l0_extension= x509_get_l0_extension
                         version
                         fwid
                         deviceIDPub in
-  (* Prf *) lemma_serialize_l0_extension_size_exact riot_extension;
+  (* Prf *) lemma_serialize_l0_extension_size_exact l0_extension;
 
   let aliasKeyTBS_extensions: aliasKeyTBS_extensions_payload_t = {
     aliasKeyTBS_extensions_key_usage        = key_usage;
     aliasKeyTBS_extensions_extendedKeyUsage = extendedKeyUsage;
     aliasKeyTBS_extensions_basicConstraints = basicConstraints;
     aliasKeyTBS_extensions_authKeyID        = authKeyID;
-    aliasKeyTBS_extensions_l0             = riot_extension
+    aliasKeyTBS_extensions_l0             = l0_extension
   } in
   (* Prf *) lemma_serialize_aliasKeyTBS_extensions_payload_unfold aliasKeyTBS_extensions;
   (* Prf *) lemma_serialize_aliasKeyTBS_extensions_payload_size   aliasKeyTBS_extensions;

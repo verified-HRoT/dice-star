@@ -135,14 +135,14 @@ let lemma_serialize_l0_extension_payload_size_exact
   (x: l0_extension_t)
 : Lemma (
   length_of_opaque_serialization serialize_l0_extension_payload x ==
-  length_of_l0_extension_payload x.x509_extValue_riot.riot_version /\
+  length_of_l0_extension_payload x.x509_extValue_l0.riot_version /\
   length_of_opaque_serialization serialize_l0_extension_payload x <= 116
 )
 = lemma_serialize_l0_extension_payload_size x;
   assert (length_of_asn1_primitive_TLV x.x509_extID_l0 == 12);
   lemma_serialize_compositeDeviceID_size_exact x.x509_extValue_l0;
   assert (length_of_TLV OCTET_STRING (length_of_opaque_serialization serialize_compositeDeviceID x.x509_extValue_l0)
-          == length_of_asn1_primitive_TLV x.x509_extValue_l0.riot_version + 95)
+          == length_of_asn1_primitive_TLV x.x509_extValue_l0.l0_version + 95)
 
 let length_of_l0_extension
     (version: datatype_of_asn1_type INTEGER)
@@ -166,14 +166,14 @@ let lemma_serialize_l0_extension_size_exact
   (x: l0_extension_t)
 : Lemma (
   length_of_opaque_serialization serialize_l0_extension x ==
-  length_of_l0_extension x.x509_extValue_riot.riot_version /\
+  length_of_l0_extension x.x509_extValue_l0.riot_version /\
   length_of_opaque_serialization serialize_l0_extension x
   <= v (len_of_l0_extension_max ())
 )
 = lemma_serialize_l0_extension_size x;
   lemma_serialize_l0_extension_payload_size_exact x;
-  L0.X509.LengthUtils.lemma_length_of_l0_extension_riot_version
-    x.x509_extValue_l0.riot_version
+  L0.X509.LengthUtils.lemma_length_of_l0_extension_l0_version
+    x.x509_extValue_l0.l0_version
 #pop-options
 
 (* low *)
@@ -218,15 +218,15 @@ let x509_get_l0_extension
   let compositeDeviceID: compositeDeviceID_t = x509_get_compositeDeviceID version deviceIDPub fwid in
   (* Prf *) lemma_serialize_compositeDeviceID_size_exact compositeDeviceID;
 
-  let l0_extension: riot_extension_payload_t = {
+  let l0_extension: l0_extension_payload_t = {
     x509_extID_l0       = OID_RIOT;
     x509_extCritical_l0 = false;
     x509_extValue_l0    = compositeDeviceID
   } in
-  (* Prf *) lemma_serialize_l0_extension_payload_unfold riot_extension;
-  (* Prf *) lemma_serialize_l0_extension_payload_size   riot_extension;
-  (* Prf *) (**) lemma_serialize_asn1_oid_TLV_size l0_extension.x509_extID_riot;
-  (* Prf *) (**) lemma_serialize_asn1_boolean_TLV_size l0_extension.x509_extCritical_riot;
+  (* Prf *) lemma_serialize_l0_extension_payload_unfold l0_extension;
+  (* Prf *) lemma_serialize_l0_extension_payload_size   l0_extension;
+  (* Prf *) (**) lemma_serialize_asn1_oid_TLV_size l0_extension.x509_extID_l0;
+  (* Prf *) (**) lemma_serialize_asn1_boolean_TLV_size l0_extension.x509_extCritical_l0;
 
 (*return*) l0_extension
 #pop-options

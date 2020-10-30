@@ -21,7 +21,7 @@ let lemma_length_of_l0_extension (version:datatype_of_asn1_type INTEGER)
            asn1_value_length_max_of_type SEQUENCE)
   = ()
 
-let lemma_length_of_l0_extension_riot_version (x:datatype_of_asn1_type INTEGER)
+let lemma_length_of_l0_extension_l0_version (x:datatype_of_asn1_type INTEGER)
   : Lemma (length_of_TLV SEQUENCE (length_of_asn1_primitive_TLV x + 110) <= 118)
   = ()
 

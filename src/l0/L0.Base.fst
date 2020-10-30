@@ -33,7 +33,7 @@ inline_for_extraction
 let alg : l0_hash_alg = SHA2_256
 
 inline_for_extraction noextract
-let l0_hash (alg:riot_hash_alg) : hash_st alg =
+let l0_hash (alg:l0_hash_alg) : hash_st alg =
   match alg with
   | SHA2_256 -> Hacl.Hash.SHA2.hash_256
   | SHA2_384 -> Hacl.Hash.SHA2.hash_384
@@ -41,7 +41,7 @@ let l0_hash (alg:riot_hash_alg) : hash_st alg =
   // | SHA1     -> Hacl.Hash.SHA1.legacy_hash
 
 inline_for_extraction noextract
-let l0_hmac (alg:riot_hash_alg) : Hacl.HMAC.compute_st alg =
+let l0_hmac (alg:l0_hash_alg) : Hacl.HMAC.compute_st alg =
   match alg with
   | SHA2_256 -> Hacl.HMAC.compute_sha2_256
   | SHA2_384 -> Hacl.HMAC.compute_sha2_384
