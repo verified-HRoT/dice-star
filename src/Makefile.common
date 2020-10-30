@@ -120,7 +120,7 @@ else
 ifeq ($(shell basename "`pwd`"),x509)
   FSTAR_ALREADY_CACHED = --already_cached '$(ALREADY_CACHED)'
 else
-ifeq ($(shell basename "`pwd`"),riot)
+ifeq ($(shell basename "`pwd`"),l0)
   FSTAR_ALREADY_CACHED = --already_cached '$(ALREADY_CACHED)'
 else
 ifeq ($(shell basename "`pwd`"),test)
@@ -166,7 +166,7 @@ KRML=$(KREMLIN_HOME)/krml
 
 KRML_NO_PREFIXS = \
   -no-prefix 'DICE.\*' \
-  -no-prefix 'RIoT.\*' \
+  -no-prefix 'L0.\*' \
   -no-prefix 'ASN1.\*' \
   -no-prefix 'X509.\*' \
   -no-prefix 'DICE.Definitions' \
@@ -175,12 +175,12 @@ KRML_NO_PREFIXS = \
   -no-prefix 'HWAbstraction' \
   -no-prefix 'ASN1.Test' \
   -no-prefix 'ASN1.Test.Helpers' \
-  -no-prefix 'RIoT.Base' \
-  -no-prefix 'RIoT.Spec' \
-  -no-prefix 'RIoT.Impl' \
-  -no-prefix 'RIoT.Core' \
-  -no-prefix 'RIoT.Test' \
-  -no-prefix 'RIoT.Helpers'
+  -no-prefix 'L0.Base' \
+  -no-prefix 'L0.Spec' \
+  -no-prefix 'L0.Impl' \
+  -no-prefix 'L0.Core' \
+  -no-prefix 'L0.Test' \
+  -no-prefix 'L0.Helpers'
 
 ifeq ($(shell basename "`pwd`"),test)
 #  KRML_LDOPTS = \
@@ -193,15 +193,15 @@ endif
  
 KRML_LIBRARIES = \
   -library HWAbstraction \
-  -library RIoT.Declassify \
+  -library L0.Declassify \
   -library ASN1.Test.Helpers \
-  -library RIoT.Helpers
+  -library L0.Helpers
 
 KRML_BUNDLES = \
   -bundle DICE.Definitions \
   -bundle ASN1.*,X509.* \
   -bundle LowParse.* \
-  -bundle RIoT.X509.LengthUtils \
+  -bundle L0.X509.LengthUtils \
   -bundle Prims,C.Failure,C,C.*,FStar.*,Hacl.*,Spec.*,Vale.*,Lib.*,LowStar.*,Meta.*[rename=Hacl_Lib]
 
 KRML_MISC_FLAGS = \
@@ -224,8 +224,8 @@ KRML_FSTAR_INCLUDES = $(addprefix -I , $(INCLUDES))
 ifeq ($(shell basename "`pwd`"),dice)
   KRML_EXECUTABLE = dice.exe
 else
-ifeq ($(shell basename "`pwd`"),riot)
-  KRML_EXECUTABLE = riot.exe
+ifeq ($(shell basename "`pwd`"),l0)
+  KRML_EXECUTABLE = l0.exe
 else
 ifeq ($(shell basename "`pwd`"),test)
   KRML_EXECUTABLE = test.exe
@@ -263,11 +263,11 @@ KREMLIN_FLAGS = \
 ifeq ($(shell basename "`pwd`"),dice)
   C_FILES = $(C_DIR)/HWAbstraction.c
 else
-ifeq ($(shell basename "`pwd`"),riot)
+ifeq ($(shell basename "`pwd`"),l0)
   C_FILES = $(C_DIR)/Declassification.c
 else
 ifeq ($(shell basename "`pwd`"),test)
-  C_FILES = $(C_DIR)/Declassification.c $(C_DIR)/ASN1.Test.Helpers.c $(C_DIR)/RIoT.Helpers.c
+  C_FILES = $(C_DIR)/Declassification.c $(C_DIR)/ASN1.Test.Helpers.c $(C_DIR)/L0.Helpers.c
 else
   C_FILES =
 endif

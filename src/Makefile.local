@@ -8,7 +8,7 @@ ifeq ($(shell basename "`pwd`"),dice)
   TARGET_FSTAR_FILES = \
     $(call find-all,$(DICE_DIR)/%,)
 else
-ifeq ($(shell basename "`pwd`"),riot)
+ifeq ($(shell basename "`pwd`"),l0)
   TARGET_FSTAR_FILES = \
     $(call find-all,$(ASN1_DIR)/%,) \
     $(call find-all,$(X509_DIR)/%,) \

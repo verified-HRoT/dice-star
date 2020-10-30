@@ -4,7 +4,7 @@
 # │   └── ...
 # ├── dice
 # │   └── ...
-# ├── riot
+# ├── l0
 # │   ├── asn1
 # │   │   └── ...
 # │   ├── x509
@@ -16,7 +16,7 @@
 ifeq ($(shell basename "`pwd`"),dice)
   SRC_DIR ?= ..
 else
-ifeq ($(shell basename "`pwd`"),riot)
+ifeq ($(shell basename "`pwd`"),l0)
   SRC_DIR ?= ..
 else
 ifeq ($(shell basename "`pwd`"),asn1)
@@ -38,7 +38,7 @@ endif
 OUTPUT_DIR ?= $(SRC_DIR)/obj
 HINT_DIR ?= $(SRC_DIR)/hints
 DICE_DIR ?= $(SRC_DIR)/dice
-RIOT_DIR ?= $(SRC_DIR)/riot
+RIOT_DIR ?= $(SRC_DIR)/l0
 ASN1_DIR ?= $(RIOT_DIR)/asn1
 X509_DIR ?= $(RIOT_DIR)/x509
 TEST_DIR ?= $(SRC_DIR)/test
