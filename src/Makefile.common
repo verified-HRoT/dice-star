@@ -165,6 +165,10 @@ FSTAR = $(FSTAR_HOME)/bin/fstar.exe
 KRML=$(KREMLIN_HOME)/krml
 
 KRML_NO_PREFIXS = \
+  -no-prefix 'DICE.\*' \
+  -no-prefix 'RIoT.\*' \
+  -no-prefix 'ASN1.\*' \
+  -no-prefix 'X509.\*' \
   -no-prefix 'DICE.Definitions' \
   -no-prefix 'DICE.Core' \
   -no-prefix 'DICE.Test' \
