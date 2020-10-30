@@ -1,4 +1,4 @@
-module RIoT.X509.DeviceIDCRI.Subject
+module L0.X509.DeviceIDCRI.Subject
 
 open ASN1.Spec
 open ASN1.Low

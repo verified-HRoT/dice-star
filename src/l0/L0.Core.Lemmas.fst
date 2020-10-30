@@ -1,4 +1,4 @@
-module RIoT.Core.Lemmas
+module L0.Core.Lemmas
 
 module B = LowStar.Buffer
 module IB = LowStar.ImmutableBuffer

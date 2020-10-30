@@ -1,4 +1,4 @@
-module RIoT.X509.AliasKeyTBS
+module L0.X509.AliasKeyTBS
 
 open ASN1.Spec
 open ASN1.Low

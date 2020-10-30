@@ -1,4 +1,4 @@
-module RIoT.Spec.Crypto
+module L0.Spec.Crypto
 
 module Fail = LowStar.Failure
 module B = LowStar.Buffer

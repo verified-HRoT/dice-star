@@ -1,4 +1,4 @@
-module RIoT.Spec.Certificate
+module L0.Spec.Certificate
 
 open ASN1.Spec
 open X509

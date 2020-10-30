@@ -1,4 +1,4 @@
-module RIoT.X509.AliasKeyCRT
+module L0.X509.AliasKeyCRT
 
 open ASN1.Spec
 open ASN1.Low

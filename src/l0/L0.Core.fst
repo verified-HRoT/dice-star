@@ -1,5 +1,5 @@
 /// Reference: https://github.com/microsoft/RIoT/blob/master/Reference/RIoT/Core/RIoT.cpp
-module RIoT.Core
+module L0.Core
 
 open LowStar.Comment
 open LowStar.Printf
