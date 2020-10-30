@@ -13,6 +13,10 @@ module B32 = FStar.Bytes
 
 #set-options "--z3rlimit 64 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
+#set-options "--__temp_no_proj RIoT.X509.AliasKeyCRT"
+
+val decl : unit
+
 noeq
 type aliasKeyCRT_payload_t (tbs_len: asn1_int32) = {
   aliasKeyCRT_tbs: B32.lbytes32 tbs_len;

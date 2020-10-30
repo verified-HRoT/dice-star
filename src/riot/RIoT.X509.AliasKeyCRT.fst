@@ -11,7 +11,11 @@ open FStar.Integers
 
 module B32 = FStar.Bytes
 
-#set-options "--z3rlimit 64 --fuel 0 --ifuel 0"
+#set-options "--z3rlimit 64 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
+
+#set-options "--__temp_no_proj RIoT.X509.AliasKeyCRT"
+
+let decl = ()
 
 let aliasKeyCRT_payload_t' (tbs_len: asn1_int32) = (
   (B32.lbytes32 tbs_len `tuple2`
@@ -27,6 +31,7 @@ let synth_aliasKeyCRT_payload_t
     aliasKeyCRT_sig_alg = snd (fst x');
     aliasKeyCRT_sig     = snd x' }
 
+inline_for_extraction noextract
 let synth_aliasKeyCRT_payload_t'
   (tbs_len: asn1_int32)
   (x: aliasKeyCRT_payload_t tbs_len)
