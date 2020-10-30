@@ -69,7 +69,7 @@ val lemma_serialize_deviceIDCRI_payload_unfold
 [@@ "opaque_to_smt"]
 unfold noextract
 let len_of_deviceIDCRI_payload_max ()
-: Tot (asn1_value_int32_of_type SEQUENCE)
+: GTot (asn1_value_int32_of_type SEQUENCE)
 // = len_of_asn1_primitive_TLV #INTEGER version +
 = asn1_TLV_int32_max_of_type INTEGER +
   len_of_deviceIDCRI_subject_max () +

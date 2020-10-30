@@ -394,7 +394,7 @@ unfold
 let len_of_RDN_x520_attribute_max
   (t: x520_attribute_t)
   (string_t: directory_string_type { ((t == COUNTRY) ==> (string_t == PRINTABLE_STRING)) })
-: Tot (asn1_value_int32_of_type SET)
+: GTot (asn1_value_int32_of_type SET)
 = (SET `len_of_TLV`
   (**) (SEQUENCE `len_of_TLV`
        (**) (len_of_asn1_primitive_TLV #OID (x520_attribute_oid t) +

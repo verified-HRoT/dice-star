@@ -9,7 +9,7 @@ open X509.Base
 
 open FStar.Integers
 
-#set-options "--z3rlimit 32 --fuel 0 --ifuel 0"
+#set-options "--z3rlimit 32 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
 (*
  *   Name ::= CHOICE { -- only one possibility for now --
@@ -158,7 +158,7 @@ let serialize_RDN_x520_attribute t string_t
     ()
 
 
-#push-options "--z3rlimit 64"
+#push-options "--z3rlimit 128"
 let lemma_serialize_RDN_x520_attribute_size_exact #t #string_t x
 = lemma_serialize_RDN_size_exact (x520_attribute_oid t) (string_t) (x520_attribute_lb t) (x520_attribute_ub t) x
 #pop-options

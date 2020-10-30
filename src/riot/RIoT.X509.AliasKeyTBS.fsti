@@ -104,7 +104,7 @@ val lemma_serialize_aliasKeyTBS_payload_unfold
 
 #push-options "--z3rlimit 32"
 let len_of_aliasKeyTBS_payload_max ()
-: Tot (asn1_value_int32_of_type SEQUENCE)
+: GTot (asn1_value_int32_of_type SEQUENCE)
 = len_of_x509_version () +
   len_of_x509_serialNumber_max +
   len_of_algorithmIdentifier () +

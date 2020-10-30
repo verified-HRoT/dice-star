@@ -40,7 +40,7 @@ val serialize_aliasKeyTBS_subject_payload
 // unfold
 // [@@ "opaque_to_smt"]
 let len_of_aliasKeyTBS_subject_payload_max ()
-: Tot (asn1_value_int32_of_type SEQUENCE)
+: GTot (asn1_value_int32_of_type SEQUENCE)
 = len_of_RDN_x520_attribute_max COMMON_NAME  IA5_STRING +
   len_of_RDN_x520_attribute_max ORGANIZATION IA5_STRING +
   len_of_RDN_x520_attribute_max COUNTRY      PRINTABLE_STRING
@@ -112,7 +112,7 @@ let serialize_aliasKeyTBS_subject
 noextract unfold
 [@@ "opaque_to_smt"]
 let len_of_aliasKeyTBS_subject_max ()
-: Tot (asn1_TLV_int32_of_type SEQUENCE)
+: GTot (asn1_TLV_int32_of_type SEQUENCE)
 = SEQUENCE `len_of_TLV`
   (**) (len_of_aliasKeyTBS_subject_payload_max ())
 
