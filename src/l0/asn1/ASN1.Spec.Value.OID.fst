@@ -9,7 +9,7 @@ open LowParse.Spec.SeqBytes.Base
 
 open FStar.Integers
 
-#set-options "--fuel 15 --ifuel 0"
+#set-options "--fuel 15 --ifuel 1"
 
 (* Top level OID tuples
   =====================
@@ -660,6 +660,7 @@ let synth_asn1_oid_V
 : GTot (refine_with_tag parser_tag_of_oid tag)
 = value
 
+#push-options "--fuel 0 --ifuel 0"
 let synth_asn1_oid_V_inverse
   (tag: (the_asn1_tag OID & asn1_value_int32_of_type OID))
   (value': refine_with_tag parser_tag_of_oid tag)
@@ -667,6 +668,7 @@ let synth_asn1_oid_V_inverse
        { length_of_oid value == v (snd tag) /\
          value' == synth_asn1_oid_V tag value })
 = value'
+#pop-options
 
 ///
 /// Aux parser/serialzier and lemmas
@@ -720,7 +722,7 @@ let lemma_parse_asn1_oid_V_unfold
   (* in *) input
 
 /// Reveal the computation of serialzation
-#push-options "--z3rlimit 16"
+#push-options "--z3rlimit 16 --fuel 0 --ifuel 0"
 noextract
 let lemma_serialize_asn1_oid_V_unfold
   (tag: (the_asn1_tag OID & asn1_value_int32_of_type OID))
