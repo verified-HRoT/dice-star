@@ -37,7 +37,7 @@ inline_for_extraction noextract
 let synth_compositeDeviceID_payload_t'
   (x: compositeDeviceID_payload_t)
 : Tot (x': compositeDeviceID_payload_t' { x == synth_compositeDeviceID_payload_t x' })
-= ((x.l0_version, x.l0_deviceID), x.riot_fwid)
+= ((x.l0_version, x.l0_deviceID), x.l0_fwid)
 
 let parse_compositeDeviceID_payload
 = parse_asn1_TLV_of_type INTEGER

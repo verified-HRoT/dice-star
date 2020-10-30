@@ -197,7 +197,7 @@ let lemma_serialize_aliasKeyTBS_extensions_payload_size x
     lemma_serialize_aliasKeyTBS_extensions_authKeyID_size_exact
                                               x.aliasKeyTBS_extensions_authKeyID;
     lemma_serialize_l0_extension_size_exact x.aliasKeyTBS_extensions_l0;
-  lemma_length_of_aliasKeyTBS_extensions_payload_size_max x.aliasKeyTBS_extensions_l0.x509_extValue_l0.riot_version
+  lemma_length_of_aliasKeyTBS_extensions_payload_size_max x.aliasKeyTBS_extensions_l0.x509_extValue_l0.l0_version
 
 
 (*

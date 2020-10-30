@@ -135,7 +135,7 @@ let lemma_serialize_l0_extension_payload_size_exact
   (x: l0_extension_t)
 : Lemma (
   length_of_opaque_serialization serialize_l0_extension_payload x ==
-  length_of_l0_extension_payload x.x509_extValue_l0.riot_version /\
+  length_of_l0_extension_payload x.x509_extValue_l0.l0_version /\
   length_of_opaque_serialization serialize_l0_extension_payload x <= 116
 )
 = lemma_serialize_l0_extension_payload_size x;
@@ -166,7 +166,7 @@ let lemma_serialize_l0_extension_size_exact
   (x: l0_extension_t)
 : Lemma (
   length_of_opaque_serialization serialize_l0_extension x ==
-  length_of_l0_extension x.x509_extValue_l0.riot_version /\
+  length_of_l0_extension x.x509_extValue_l0.l0_version /\
   length_of_opaque_serialization serialize_l0_extension x
   <= v (len_of_l0_extension_max ())
 )

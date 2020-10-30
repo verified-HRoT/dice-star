@@ -1,4 +1,4 @@
-/// Reference: https://github.com/microsoft/L0/blob/master/Reference/L0/Core/RIoT.cpp
+/// Reference: https://github.com/microsoft/L0/blob/master/Reference/L0/Core/L0.cpp
 module L0.Core
 
 open LowStar.Comment

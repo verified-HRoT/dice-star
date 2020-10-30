@@ -342,7 +342,7 @@ let lemma_serialize_aliasKeyTBS_size_exact x
   //         (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Common)
   //         (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Organization)
   //         (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Country)
-  //         L0.X509.Extension.(x.aliasKeyTBS_extensions.aliasKeyTBS_extensions_l0.x509_extValue_l0.riot_version);
+  //         L0.X509.Extension.(x.aliasKeyTBS_extensions.aliasKeyTBS_extensions_l0.x509_extValue_l0.l0_version);
   lemma_serialize_aliasKeyTBS_size x;
     lemma_serialize_aliasKeyTBS_payload_size x
 #pop-options

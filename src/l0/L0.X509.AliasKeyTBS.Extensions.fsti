@@ -154,11 +154,11 @@ val lemma_serialize_aliasKeyTBS_extensions_payload_size
   (* exact size *)
   length_of_opaque_serialization (serialize_aliasKeyTBS_extensions_payload)      x
   == v (len_of_aliasKeyTBS_extensions_payload
-         (x.aliasKeyTBS_extensions_l0.x509_extValue_l0.riot_version)) /\
+         (x.aliasKeyTBS_extensions_l0.x509_extValue_l0.l0_version)) /\
   length_of_opaque_serialization (serialize_aliasKeyTBS_extensions_payload)      x
   <= v (len_of_aliasKeyTBS_extensions_payload_max ())
 )
-// = lemma_length_of_aliasKeyTBS_extensions_payload_size_max x.aliasKeyTBS_extensions_l0.x509_extValue_l0.riot_version;
+// = lemma_length_of_aliasKeyTBS_extensions_payload_size_max x.aliasKeyTBS_extensions_l0.x509_extValue_l0.l0_version;
 //   lemma_serialize_aliasKeyTBS_extensions_payload_unfold x;
 //     lemma_serialize_x509_key_usage_size_exact x.aliasKeyTBS_extensions_key_usage;
 //     lemma_x509_keyPurposeIDs_unique aliasKeyCrt_extendedKeyUsage_oids;
@@ -220,7 +220,7 @@ val lemma_serialize_aliasKeyTBS_extensions_size
 //   (x: aliasKeyTBS_extensions_t)
 // : Type0
 // = valid_aliasKeyTBS_extensions_ingredients
-//           (x.aliasKeyTBS_extensions_l0.x509_extValue_l0.riot_version)
+//           (x.aliasKeyTBS_extensions_l0.x509_extValue_l0.l0_version)
 
 // val lemma_aliasKeyTBS_extensions_valid
 //   (x: aliasKeyTBS_extensions_t)
@@ -249,7 +249,7 @@ val lemma_serialize_aliasKeyTBS_extensions_size_exact
   (* exact size *)
   length_of_opaque_serialization (serialize_aliasKeyTBS_extensions) x
   == v (len_of_aliasKeyTBS_extensions
-         (x.aliasKeyTBS_extensions_l0.x509_extValue_l0.riot_version)) /\
+         (x.aliasKeyTBS_extensions_l0.x509_extValue_l0.l0_version)) /\
   length_of_opaque_serialization (serialize_aliasKeyTBS_extensions) x
   <= v (len_of_aliasKeyTBS_extensions_max ())
 )
