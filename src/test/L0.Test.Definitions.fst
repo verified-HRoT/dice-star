@@ -1,6 +1,6 @@
 (* NOTE: Separating this module because verification
          with RIoT.* loaded becomes expensive *)
-module RIoT.Test.Definitions
+module L0.Test.Definitions
 
 open LowStar.Comment
 open LowStar.Printf

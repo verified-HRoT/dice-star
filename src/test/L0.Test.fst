@@ -1,4 +1,4 @@
-module RIoT.Test
+module L0.Test
 
 open LowStar.Comment
 open LowStar.Printf
