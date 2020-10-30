@@ -231,7 +231,7 @@ let l0_get_aliasKeyCRT_ingredients ()
     aliasKeyCrt_s_org        = aliasKeyCrt_s_org;
     aliasKeyCrt_s_country    = aliasKeyCrt_s_country;
     aliasKeyCrt_ku           = ku;
-    aliasKeyCrt_l0_version = riot_version
+    aliasKeyCrt_l0_version = l0_version
   } in
 
   aliasKeyCRT_ingredients

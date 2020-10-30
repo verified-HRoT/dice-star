@@ -176,6 +176,6 @@ if __name__ == "__main__":
     if (args.target == "asn1"):
         generate_asn1_test("ASN1.test_suites.data", "ASN1.Test.fst")
     # elif(args.target == "l0"):
-    #     generate_l0_test("L0.test_suites.data", "RIoT.Test.fst")
+    #     generate_l0_test("L0.test_suites.data", "L0.Test.fst")
     else:
         print("No tests for target {}".format(args.target))
