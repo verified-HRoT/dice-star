@@ -50,7 +50,7 @@ open LowParse.Spec.Bytes
 
 #set-options "--z3rlimit 128 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
-#set-options "--__temp_no_proj RIoT.X509.DeviceIDCRI.Attributes"
+#set-options "--__temp_no_proj L0.X509.DeviceIDCRI.Attributes"
 
 val decl : unit
 

@@ -16,12 +16,12 @@ open FStar.Integers
 //         v (len_of_RDN_x520_attribute s_country)) <= asn1_value_length_max_of_type SEQUENCE)
 //   = ()
 
-let lemma_length_of_riot_extension (version:datatype_of_asn1_type INTEGER)
+let lemma_length_of_l0_extension (version:datatype_of_asn1_type INTEGER)
   : Lemma (length_of_TLV SEQUENCE (length_of_asn1_primitive_TLV version + 109) <=
            asn1_value_length_max_of_type SEQUENCE)
   = ()
 
-let lemma_length_of_riot_extension_riot_version (x:datatype_of_asn1_type INTEGER)
+let lemma_length_of_l0_extension_riot_version (x:datatype_of_asn1_type INTEGER)
   : Lemma (length_of_TLV SEQUENCE (length_of_asn1_primitive_TLV x + 110) <= 118)
   = ()
 

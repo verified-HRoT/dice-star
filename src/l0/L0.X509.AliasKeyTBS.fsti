@@ -3,18 +3,18 @@ module L0.X509.AliasKeyTBS
 open ASN1.Spec
 open ASN1.Low
 open X509
-open RIoT.X509.AliasKeyTBS.Issuer
-open RIoT.X509.AliasKeyTBS.Subject
-open RIoT.X509.AliasKeyTBS.Extensions
+open L0.X509.AliasKeyTBS.Issuer
+open L0.X509.AliasKeyTBS.Subject
+open L0.X509.AliasKeyTBS.Extensions
 open FStar.Integers
 
-open RIoT.X509.LengthUtils
+open L0.X509.LengthUtils
 
 module B32 = FStar.Bytes
 
 #set-options "--z3rlimit 256 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection -LowParse'"
 
-#set-options "--__temp_no_proj RIoT.X509.AliasKeyTBS"
+#set-options "--__temp_no_proj L0.X509.AliasKeyTBS"
 
 val decl : unit
 
@@ -169,7 +169,7 @@ val lemma_serialize_aliasKeyTBS_payload_size
           (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Common)
           (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Organization)
           (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Country)
-          RIoT.X509.Extension.(x.aliasKeyTBS_extensions.aliasKeyTBS_extensions_riot.x509_extValue_riot.riot_version))
+          L0.X509.Extension.(x.aliasKeyTBS_extensions.aliasKeyTBS_extensions_l0.x509_extValue_riot.riot_version))
 )
 
 let aliasKeyTBS_t
@@ -236,7 +236,7 @@ val lemma_serialize_aliasKeyTBS_size_exact
          (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Common)
          (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Organization)
          (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Country)
-         RIoT.X509.Extension.(x.aliasKeyTBS_extensions.aliasKeyTBS_extensions_riot.x509_extValue_riot.riot_version))
+         L0.X509.Extension.(x.aliasKeyTBS_extensions.aliasKeyTBS_extensions_l0.x509_extValue_riot.riot_version))
 )
 
 (* low *)
@@ -249,7 +249,7 @@ val serialize32_aliasKeyTBS_backwards
 (* helpers *)
 
 #push-options "--z3rlimit 128"
-open RIoT.X509.LengthUtils
+open L0.X509.LengthUtils
 let x509_get_AliasKeyTBS
   (crt_version: x509_version_t)
   (serialNumber: x509_serialNumber_t)

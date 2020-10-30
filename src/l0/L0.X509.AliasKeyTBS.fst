@@ -3,16 +3,16 @@ module L0.X509.AliasKeyTBS
 open ASN1.Spec
 open ASN1.Low
 open X509
-open RIoT.X509.AliasKeyTBS.Issuer
-open RIoT.X509.AliasKeyTBS.Subject
-open RIoT.X509.AliasKeyTBS.Extensions
+open L0.X509.AliasKeyTBS.Issuer
+open L0.X509.AliasKeyTBS.Subject
+open L0.X509.AliasKeyTBS.Extensions
 open FStar.Integers
 
 module B32 = FStar.Bytes
 
 #set-options "--z3rlimit 512 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
-#set-options "--__temp_no_proj RIoT.X509.AliasKeyTBS"
+#set-options "--__temp_no_proj L0.X509.AliasKeyTBS"
 
 let decl = ()
 
@@ -342,7 +342,7 @@ let lemma_serialize_aliasKeyTBS_size_exact x
   //         (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Common)
   //         (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Organization)
   //         (get_RDN_x520_attribute_string x.aliasKeyTBS_subject.aliasKeyTBS_subject_Country)
-  //         RIoT.X509.Extension.(x.aliasKeyTBS_extensions.aliasKeyTBS_extensions_riot.x509_extValue_riot.riot_version);
+  //         L0.X509.Extension.(x.aliasKeyTBS_extensions.aliasKeyTBS_extensions_l0.x509_extValue_riot.riot_version);
   lemma_serialize_aliasKeyTBS_size x;
     lemma_serialize_aliasKeyTBS_payload_size x
 #pop-options

@@ -5,7 +5,7 @@ open ASN1.Low
 open X509
 open FStar.Integers
 
-open RIoT.X509.LengthUtils
+open L0.X509.LengthUtils
 
 module B32 = FStar.Bytes
 

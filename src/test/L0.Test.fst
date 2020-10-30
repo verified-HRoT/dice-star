@@ -17,17 +17,17 @@ open ASN1.Spec
 open ASN1.Low
 open X509
 
-open RIoT.X509
-open RIoT.Base
-open RIoT.Declassify
-open RIoT.Helpers
-open RIoT.Spec
-open RIoT.Impl
-open RIoT.Core
+open L0.X509
+open L0.Base
+open L0.Declassify
+open L0.Helpers
+open L0.Spec
+open L0.Impl
+open L0.Core
 
 module Ed25519 = Hacl.Ed25519
 
-open RIoT.Test.Definitions
+open L0.Test.Definitions
 
 #restart-solver
 #push-options "--z3rlimit 1024 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection -LowParse'"
@@ -50,10 +50,10 @@ let main ()
   (* Prf *) assert_norm (valid_hkdf_lbl_len deviceID_lbl_len /\ valid_hkdf_lbl_len aliasKey_lbl_len);
 
   comment "DeviceID CSR Inputs";
-  let deviceIDCSR_ingredients = riot_get_deviceIDCSR_ingredients () in
+  let deviceIDCSR_ingredients = l0_get_deviceIDCSR_ingredients () in
 
   comment "AliasKey Crt Inputs";
-  let aliasKeyCRT_ingredients = riot_get_aliasKeyCRT_ingredients () in
+  let aliasKeyCRT_ingredients = l0_get_aliasKeyCRT_ingredients () in
 
   comment "Outputs";
   let deviceIDCSR_len = len_of_deviceIDCSR (len_of_deviceIDCRI
@@ -71,16 +71,16 @@ let main ()
                             aliasKeyCRT_ingredients.aliasKeyCrt_s_common
                             aliasKeyCRT_ingredients.aliasKeyCrt_s_org
                             aliasKeyCRT_ingredients.aliasKeyCrt_s_country
-                            aliasKeyCRT_ingredients.aliasKeyCrt_riot_version) in
+                            aliasKeyCRT_ingredients.aliasKeyCrt_l0_version) in
   let aliasKeyCRT_buf: B.lbuffer byte_pub (v aliasKeyCRT_len) = B.alloca 0x00uy aliasKeyCRT_len in
 admit();
   let deviceID_pub : B.lbuffer byte_pub 32 = B.alloca 0x00uy 32ul in
   let aliasKey_pub : B.lbuffer byte_pub 32 = B.alloca 0x00uy 32ul in
   let aliasKey_priv: B.lbuffer byte_sec 32 = B.alloca (u8 0x00) 32ul in
 admit();
-  comment "Call riot main function";
-  printf "Enter RIoT\n" done;
-  riot
+  comment "Call l0 main function";
+  printf "Enter L0\n" done;
+  l0
 (* Common Inputs *)
     (* cdi       *) cdi
     (* fwid      *) fwid
@@ -102,9 +102,9 @@ admit();
 (* AliasKey Crt Outputs *)
     (*aliasKeyCRT*) aliasKeyCRT_len
                     aliasKeyCRT_buf;
-  printf "Exit RIoT\n" done;
+  printf "Exit L0\n" done;
 
-  dump_riot
+  dump_l0
     deviceID_pub
     aliasKey_pub
     aliasKey_priv

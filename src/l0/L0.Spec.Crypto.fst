@@ -15,8 +15,8 @@ open Spec.Hash.Definitions
 open Hacl.Hash.Definitions
 open Lib.IntTypes
 
-open RIoT.Base
-open RIoT.Declassify
+open L0.Base
+open L0.Declassify
 
 #set-options "--z3rlimit 64 --fuel 0 --ifuel 0"
 
@@ -78,13 +78,13 @@ let derive_key_pair_spec
  *)
 let derive_DeviceID_spec
   (cdi: lbytes_sec 32)
-  (riot_label_DeviceID_len: size_t {valid_hkdf_lbl_len riot_label_DeviceID_len})
-  (riot_label_DeviceID: lbytes_sec (v riot_label_DeviceID_len))
+  (l0_label_DeviceID_len: size_t {valid_hkdf_lbl_len riot_label_DeviceID_len})
+  (l0_label_DeviceID: lbytes_sec (v riot_label_DeviceID_len))
 : GTot (lbytes_pub 32 & lbytes_sec 32)
 = let cdigest = Spec.Agile.Hash.hash alg cdi in
   derive_key_pair_spec
     (* ikm *) 32ul cdigest
-    (* lbl *) riot_label_DeviceID_len riot_label_DeviceID
+    (* lbl *) l0_label_DeviceID_len riot_label_DeviceID
 
 
 (* AliasKey Derivation
@@ -92,14 +92,14 @@ let derive_DeviceID_spec
 let derive_AliasKey_spec
   (cdi: lbytes_sec 32)
   (fwid: lbytes_pub 32)
-  (riot_label_AliasKey_len: size_t {valid_hkdf_lbl_len riot_label_AliasKey_len})
-  (riot_label_AliasKey: lbytes_sec (v riot_label_AliasKey_len))
+  (l0_label_AliasKey_len: size_t {valid_hkdf_lbl_len riot_label_AliasKey_len})
+  (l0_label_AliasKey: lbytes_sec (v riot_label_AliasKey_len))
 : GTot (lbytes_pub 32 & lbytes_sec 32)
 = let cdigest = Spec.Agile.Hash.hash alg cdi in
   let adigest = Spec.Agile.HMAC.hmac alg cdigest (classify_public_bytes fwid) in
   derive_key_pair_spec
     (* ikm *) 32ul adigest
-    (* lbl *) riot_label_AliasKey_len riot_label_AliasKey
+    (* lbl *) l0_label_AliasKey_len riot_label_AliasKey
 
 let lemma_derive_authKeyID_length_valid ()
 : Lemma ( 32 <= max_input_length Spec.Agile.Hash.SHA1 )
@@ -116,13 +116,13 @@ let derive_authKeyID_spec
 
 // let derive_authKeyID_from_cdi_spec
 //   (cdi: lbytes_sec 32)
-//   (riot_label_DeviceID_len: size_t {valid_hkdf_lbl_len riot_label_DeviceID_len})
-//   (riot_label_DeviceID: lbytes_sec (v riot_label_DeviceID_len))
+//   (l0_label_DeviceID_len: size_t {valid_hkdf_lbl_len riot_label_DeviceID_len})
+//   (l0_label_DeviceID: lbytes_sec (v riot_label_DeviceID_len))
 // : GTot (lbytes_pub 20)
 // = let deviceID_pub_seq, deviceID_priv_seq = derive_sec_key_pair_spec
 //                                                  (32ul) (Spec.Agile.Hash.hash alg cdi)
-//                                                  (riot_label_DeviceID_len)
-//                                                  (riot_label_DeviceID) in
+//                                                  (l0_label_DeviceID_len)
+//                                                  (l0_label_DeviceID) in
 //   derive_authKeyID_spec deviceID_pub_seq
 
 (* Appendix:

@@ -1,4 +1,4 @@
-/// Reference: https://github.com/microsoft/RIoT/blob/master/Reference/RIoT/Core/RIoT.cpp
+/// Reference: https://github.com/microsoft/L0/blob/master/Reference/RIoT/Core/RIoT.cpp
 module L0.Core
 
 open LowStar.Comment
@@ -18,13 +18,13 @@ open ASN1.Spec
 open ASN1.Low
 open X509
 
-open RIoT.X509
-open RIoT.Base
-open RIoT.Declassify
-open RIoT.Helpers
-open RIoT.Spec
-open RIoT.Impl
-open RIoT.Core.Lemmas
+open L0.X509
+open L0.Base
+open L0.Declassify
+open L0.Helpers
+open L0.Spec
+open L0.Impl
+open L0.Core.Lemmas
 
 module Ed25519 = Hacl.Ed25519
 
@@ -57,12 +57,12 @@ let aliasKeyCRT_pre (x:aliasKeyCRT_ingredients_t) (aliasKeyCRT_len:UInt32.t) =
     (len_of_aliasKeyTBS
       x.aliasKeyCrt_serialNumber x.aliasKeyCrt_i_common x.aliasKeyCrt_i_org x.aliasKeyCrt_i_country
       x.aliasKeyCrt_s_common x.aliasKeyCrt_s_org x.aliasKeyCrt_s_country
-      x.aliasKeyCrt_riot_version) in
+      x.aliasKeyCrt_l0_version) in
   valid_aliasKeyCRT_ingredients l /\
   eq2 #nat (v aliasKeyCRT_len) (length_of_aliasKeyCRT l)
 
 unfold
-let riot_pre
+let l0_pre
   (#a:Type)
   (h: HS.mem)
 (* Common Inputs *)
@@ -197,7 +197,7 @@ let aliasKeyCRT_post
       aliasKeyCRT_ingredients.aliasKeyCrt_s_country
       aliasKeyCRT_ingredients.aliasKeyCrt_ku
       aliasKeyCrt_keyID_seq
-      aliasKeyCRT_ingredients.aliasKeyCrt_riot_version
+      aliasKeyCRT_ingredients.aliasKeyCrt_l0_version
       fwid
       deviceID_pub_seq
       (B.as_seq h1 aliasKey_pub) in
@@ -211,7 +211,7 @@ let aliasKeyCRT_post
          aliasKeyCRT_ingredients.aliasKeyCrt_s_common
          aliasKeyCRT_ingredients.aliasKeyCrt_s_org
          aliasKeyCRT_ingredients.aliasKeyCrt_s_country
-         aliasKeyCRT_ingredients.aliasKeyCrt_riot_version) in
+         aliasKeyCRT_ingredients.aliasKeyCrt_l0_version) in
      let (* Prf *) _ = lemma_serialize_aliasKeyTBS_size_exact aliasKeyTBS in
      assert (Seq.length aliasKeyTBS_seq == v aliasKeyTBS_len); //TODO: help Z3 prove it
      let aliasKeyCRT: aliasKeyCRT_t aliasKeyTBS_len = sign_and_finalize_aliasKeyCRT_spec
@@ -222,7 +222,7 @@ let aliasKeyCRT_post
 #pop-options
 
 unfold
-let riot_aux_post
+let l0_aux_post
 (* Common Inputs *)
   (cdi : B.lbuffer byte_sec 32)
   (fwid: B.lbuffer byte_pub 32)
@@ -245,7 +245,7 @@ let riot_aux_post
   (aliasKeyCRT_len: UInt32.t)
   (aliasKeyCRT_buf: B.lbuffer byte_pub (v aliasKeyCRT_len))
   (h0:HS.mem{
-    riot_pre h0 cdi fwid deviceID_label_len deviceID_label
+    l0_pre h0 cdi fwid deviceID_label_len deviceID_label
     aliasKey_label_len aliasKey_label deviceIDCSR_ingredients
     aliasKeyCRT_ingredients deviceID_pub aliasKey_pub aliasKey_priv
     deviceIDCSR_len deviceIDCSR_buf
@@ -273,7 +273,7 @@ module U8 = FStar.UInt8
 //#reset-options
 #restart-solver
 #set-options "--z3rlimit 512 --fuel 0 --ifuel 0"
-let riot_aux
+let l0_aux
 (* Common Inputs *)
   (cdi : B.lbuffer byte_sec 32)
   (fwid: B.lbuffer byte_pub 32)
@@ -297,7 +297,7 @@ let riot_aux
   (aliasKeyCRT_buf: B.lbuffer byte_pub (v aliasKeyCRT_len))
 : HST.Stack unit
   (requires fun h ->
-                  riot_pre
+                  l0_pre
                         (h) (cdi) (fwid)
                         (deviceID_label_len) (deviceID_label)
                         (aliasKey_label_len) (aliasKey_label)
@@ -308,7 +308,7 @@ let riot_aux
                         (aliasKeyCRT_len) (aliasKeyCRT_buf)
    )
    (ensures fun h0 _ h1 ->
-                        riot_aux_post
+                        l0_aux_post
                         (cdi) (fwid)
                         (deviceID_label_len) (deviceID_label)
                         (aliasKey_label_len) (aliasKey_label)
@@ -336,7 +336,7 @@ let riot_aux
   (**) B.modifies_buffer_elim fwid B.loc_none h0 _h_step1_pre;
   (**) B.modifies_buffer_elim deviceID_label B.loc_none h0 _h_step1_pre;
   (**) B.modifies_buffer_elim deviceID_label B.loc_none h0 _h_step1_pre;
-  riot_core_step1
+  l0_core_step1
     (cdi) (fwid)
     (deviceID_label_len) (deviceID_label)
     (aliasKey_label_len) (aliasKey_label)
@@ -357,7 +357,7 @@ let riot_aux
 
   let _h_step2_pre = _h_step1_post in
 
-  riot_core_step2
+  l0_core_step2
     (* version   *) deviceIDCSR_ingredients.deviceIDCSR_version
                     deviceIDCSR_ingredients.deviceIDCSR_s_common
                     deviceIDCSR_ingredients.deviceIDCSR_s_org
@@ -402,7 +402,7 @@ let riot_aux
   (**) B.modifies_buffer_elim deviceID_priv (B.loc_buffer deviceIDCSR_buf) _h_step1_post _h_step3_pre;
   (**) B.modifies_buffer_elim aliasKey_pub  (B.loc_buffer deviceIDCSR_buf) _h_step1_post _h_step3_pre;
 
-  riot_core_step3
+  l0_core_step3
     (aliasKeyCRT_ingredients.aliasKeyCrt_version)
     (aliasKeyCRT_ingredients.aliasKeyCrt_serialNumber)
     (aliasKeyCRT_ingredients.aliasKeyCrt_i_common)
@@ -416,7 +416,7 @@ let riot_aux
     (fwid)
     (aliasKeyCRT_ingredients.aliasKeyCrt_ku)
     (authKeyID)
-    (aliasKeyCRT_ingredients.aliasKeyCrt_riot_version)
+    (aliasKeyCRT_ingredients.aliasKeyCrt_l0_version)
     (* DeviceID  *) deviceID_pub
                     deviceID_priv
     (* AliasKey  *) aliasKey_pub
@@ -457,7 +457,7 @@ let riot_aux
   (**) B.modifies_buffer_elim aliasKey_priv   (B.loc_region_only false (HS.get_tip hsf)) hsf hf;
   (**) B.modifies_buffer_elim deviceIDCSR_buf (B.loc_region_only false (HS.get_tip hsf)) hsf hf;
   (**) B.modifies_buffer_elim aliasKeyCRT_buf (B.loc_region_only false (HS.get_tip hsf)) hsf hf;
-  lemma_riot_modifies
+  lemma_l0_modifies
     (byte_pub) (byte_sec)
     (0x00uy) (u8 0x00)
     (h0) (hf)
@@ -496,7 +496,7 @@ let riot_aux
 
 
 unfold
-let riot_post
+let l0_post
 (* Common Inputs *)
   (cdi : B.lbuffer byte_sec 32)
   (fwid:B.lbuffer byte_pub 32)
@@ -519,7 +519,7 @@ let riot_post
   (aliasKeyCRT_len: UInt32.t)
   (aliasKeyCRT_buf: B.lbuffer byte_pub (v aliasKeyCRT_len))
   (h0:HS.mem{
-    riot_pre h0 cdi fwid deviceID_label_len deviceID_label
+    l0_pre h0 cdi fwid deviceID_label_len deviceID_label
     aliasKey_label_len aliasKey_label deviceIDCSR_ingredients
     aliasKeyCRT_ingredients deviceID_pub aliasKey_pub aliasKey_priv
     deviceIDCSR_len deviceIDCSR_buf
@@ -536,23 +536,23 @@ let riot_post
     aliasKey_post cdi
       (B.as_seq h0 fwid)
       aliasKey_label_len
-      (RIoT.Declassify.classify_public_bytes (B.as_seq h0 aliasKey_label))
+      (L0.Declassify.classify_public_bytes (B.as_seq h0 aliasKey_label))
       aliasKey_pub aliasKey_priv h0 h1 /\
 
     deviceIDCSR_post cdi deviceID_label_len
-      (RIoT.Declassify.classify_public_bytes (B.as_seq h0 deviceID_label))
+      (L0.Declassify.classify_public_bytes (B.as_seq h0 deviceID_label))
       deviceIDCSR_ingredients deviceIDCSR_len deviceIDCSR_buf h0 h1 /\
 
     aliasKeyCRT_post cdi
       (B.as_seq h0 fwid)
       deviceID_label_len
-      (RIoT.Declassify.classify_public_bytes (B.as_seq h0 deviceID_label))
+      (L0.Declassify.classify_public_bytes (B.as_seq h0 deviceID_label))
       aliasKeyCRT_ingredients aliasKeyCRT_len aliasKeyCRT_buf aliasKey_pub h0 h1 /\
 True
 
 #set-options "--z3rlimit 512 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection -LowParse -ASN1 -Spec -Hacl -X509 -FStar.Seq'"
 #restart-solver
-let riot
+let l0
 (* Common Inputs *)
   (cdi : B.lbuffer byte_sec 32)
   (fwid:B.lbuffer byte_pub 32)
@@ -576,7 +576,7 @@ let riot
   (aliasKeyCRT_buf: B.lbuffer byte_pub (v aliasKeyCRT_len))
 : HST.Stack unit
   (requires fun h ->
-                  riot_pre
+                  l0_pre
                         (h) (cdi) (fwid)
                         (deviceID_label_len) (deviceID_label)
                         (aliasKey_label_len) (aliasKey_label)
@@ -587,7 +587,7 @@ let riot
                         (aliasKeyCRT_len) (aliasKeyCRT_buf)
    )
    (ensures fun h0 _ h1 ->
-                        riot_post
+                        l0_post
                         (cdi) (fwid)
                         (deviceID_label_len) (deviceID_label)
                         (aliasKey_label_len) (aliasKey_label)
@@ -605,7 +605,7 @@ let riot
     //classify_public_buffer 32ul fwid fwid_sec;
     classify_public_buffer deviceID_label_len deviceID_label dk_label;
     classify_public_buffer aliasKey_label_len aliasKey_label ak_label;
-    riot_aux cdi fwid deviceID_label_len dk_label aliasKey_label_len ak_label
+    l0_aux cdi fwid deviceID_label_len dk_label aliasKey_label_len ak_label
       deviceIDCSR_ingredients aliasKeyCRT_ingredients
       deviceID_pub aliasKey_pub aliasKey_priv
       deviceIDCSR_len deviceIDCSR_buf

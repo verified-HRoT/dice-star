@@ -16,9 +16,9 @@ open Spec.Hash.Definitions
 open Hacl.Hash.Definitions
 open Lib.IntTypes
 
-open RIoT.Base
-open RIoT.Declassify
-open RIoT.Spec.Crypto
+open L0.Base
+open L0.Declassify
+open L0.Spec.Crypto
 
 #set-options "--z3rlimit 64 --fuel 0 --ifuel 0"
 
@@ -94,33 +94,33 @@ let derive_DeviceID
   (deviceID_priv: B.lbuffer uint8 32)
   // (cdi_len: hashable_len)
   (cdi: B.lbuffer uint8 32)
-  (riot_label_DeviceID_len: size_t {valid_hkdf_lbl_len riot_label_DeviceID_len})
-  (riot_label_DeviceID: B.lbuffer uint8 (v riot_label_DeviceID_len))
+  (l0_label_DeviceID_len: size_t {valid_hkdf_lbl_len riot_label_DeviceID_len})
+  (l0_label_DeviceID: B.lbuffer uint8 (v riot_label_DeviceID_len))
 : HST.Stack (unit)
   (requires fun h ->
     B.(all_live h [buf deviceID_pub;
                    buf deviceID_priv;
                    buf cdi;
-                   buf riot_label_DeviceID]) /\
+                   buf l0_label_DeviceID]) /\
     B.(all_disjoint [loc_buffer deviceID_pub;
                      loc_buffer deviceID_priv;
                      loc_buffer cdi;
-                     loc_buffer riot_label_DeviceID]))
+                     loc_buffer l0_label_DeviceID]))
   (ensures fun h0 _ h1 ->
     B.(modifies (loc_buffer deviceID_pub `loc_union` loc_buffer deviceID_priv) h0 h1) /\
     ((B.as_seq h1 deviceID_pub <: lbytes_pub 32), (B.as_seq h1 deviceID_priv <: lbytes_sec 32)) ==
-    derive_DeviceID_spec (B.as_seq h1 cdi) riot_label_DeviceID_len (B.as_seq h1 riot_label_DeviceID)
+    derive_DeviceID_spec (B.as_seq h1 cdi) l0_label_DeviceID_len (B.as_seq h1 riot_label_DeviceID)
    )
 = HST.push_frame ();
   let cDigest = B.alloca (u8 0) 32ul in
-  riot_hash alg
+  l0_hash alg
     cdi 32ul
     cDigest;
   derive_key_pair
     deviceID_pub
     deviceID_priv
     32ul cDigest
-    riot_label_DeviceID_len riot_label_DeviceID;
+    l0_label_DeviceID_len riot_label_DeviceID;
   HST.pop_frame ()
 
 [@@ "opaque_to_smt"]
@@ -130,39 +130,39 @@ let derive_AliasKey
   // (cdi_len: hashable_len)
   (cdi: B.lbuffer uint8 32)
   (fwid: B.lbuffer pub_uint8 32)
-  (riot_label_AliasKey_len: size_t {valid_hkdf_lbl_len riot_label_AliasKey_len})
-  (riot_label_AliasKey: B.lbuffer uint8 (v riot_label_AliasKey_len))
+  (l0_label_AliasKey_len: size_t {valid_hkdf_lbl_len riot_label_AliasKey_len})
+  (l0_label_AliasKey: B.lbuffer uint8 (v riot_label_AliasKey_len))
 : HST.Stack (unit)
   (requires fun h ->
     B.(all_live h [buf aliasKey_pub;
                    buf aliasKey_priv;
                    buf cdi;
                    buf fwid;
-                   buf riot_label_AliasKey]) /\
+                   buf l0_label_AliasKey]) /\
     B.(all_disjoint [loc_buffer aliasKey_pub;
                      loc_buffer aliasKey_priv;
                      loc_buffer cdi;
                      loc_buffer fwid;
-                     loc_buffer riot_label_AliasKey]))
+                     loc_buffer l0_label_AliasKey]))
   (ensures fun h0 _ h1 ->
     B.(modifies (loc_buffer aliasKey_pub `loc_union` loc_buffer aliasKey_priv) h0 h1) /\
     ((B.as_seq h1 aliasKey_pub  <: lbytes_pub 32),
      (B.as_seq h1 aliasKey_priv <: lbytes_sec 32)) == derive_AliasKey_spec
                                                         (B.as_seq h1 cdi)
                                                         (B.as_seq h1 fwid)
-                                                        riot_label_AliasKey_len
-                                                        (B.as_seq h1 riot_label_AliasKey) /\
+                                                        l0_label_AliasKey_len
+                                                        (B.as_seq h1 l0_label_AliasKey) /\
     True
     )
 = HST.push_frame ();
   let cDigest = B.alloca (u8 0) 32ul in
-  riot_hash alg
+  l0_hash alg
     cdi 32ul
     cDigest;
   let aDigest = B.alloca (u8 0) 32ul in
   let fwid_sec = B.alloca (u8 0) 32ul in
-  RIoT.Declassify.classify_public_buffer 32ul fwid fwid_sec;
-  riot_hmac alg
+  L0.Declassify.classify_public_buffer 32ul fwid fwid_sec;
+  l0_hmac alg
     aDigest
     cDigest 32ul
     fwid_sec    32ul;
@@ -170,7 +170,7 @@ let derive_AliasKey
     aliasKey_pub
     aliasKey_priv
     32ul aDigest
-    riot_label_AliasKey_len riot_label_AliasKey;
+    l0_label_AliasKey_len riot_label_AliasKey;
   HST.pop_frame ()
 
 [@@ "opaque_to_smt"]
@@ -198,7 +198,7 @@ let derive_authKeyID
 
 [@@ "opaque_to_smt"]
 unfold
-let riot_core_step1_pre
+let l0_core_step1_pre
   (h: HS.mem)
 (* Inputs *)
   (cdi : B.lbuffer byte_sec 32)
@@ -236,7 +236,7 @@ let riot_core_step1_pre
 
 [@@ "opaque_to_smt"]
 unfold
-let riot_core_step1_post
+let l0_core_step1_post
   (h0: HS.mem) (h1: HS.mem)
 (* Inputs *)
   (cdi : B.lbuffer byte_sec 32)
@@ -251,7 +251,7 @@ let riot_core_step1_post
   (aliasKey_pub : B.lbuffer byte_pub 32)
   (aliasKey_priv: B.lbuffer byte_sec 32)
   (authKeyID    : B.lbuffer byte_pub 20
-              { riot_core_step1_pre (h0)
+              { l0_core_step1_pre (h0)
                      (cdi) (fwid)
                      (deviceID_label_len) (deviceID_label)
                      (aliasKey_label_len) (aliasKey_label)
@@ -285,7 +285,7 @@ let riot_core_step1_post
 #set-options "--z3rlimit 20 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 [@@ "opaque_to_smt"]
 inline_for_extraction
-let riot_core_step1
+let l0_core_step1
 (* Inputs *)
   (cdi : B.lbuffer byte_sec 32)
   (fwid: B.lbuffer byte_pub 32)
@@ -300,14 +300,14 @@ let riot_core_step1
   (aliasKey_priv: B.lbuffer byte_sec 32)
   (authKeyID    : B.lbuffer byte_pub 20)
 : HST.Stack unit
-  (requires fun h -> riot_core_step1_pre (h)
+  (requires fun h -> l0_core_step1_pre (h)
                      (cdi) (fwid)
                      (deviceID_label_len) (deviceID_label)
                      (aliasKey_label_len) (aliasKey_label)
                      (deviceID_pub) (deviceID_priv)
                      (aliasKey_pub) (aliasKey_priv)
                      (authKeyID))
-  (ensures fun h0 _ h1 -> riot_core_step1_post (h0) (h1)
+  (ensures fun h0 _ h1 -> l0_core_step1_post (h0) (h1)
                      (cdi) (fwid)
                      (deviceID_label_len) (deviceID_label)
                      (aliasKey_label_len) (aliasKey_label)
@@ -352,7 +352,7 @@ let riot_core_step1
   (**) B.popped_modifies hsf hf;
 ()
 
-let lemma_riot_modifies
+let lemma_l0_modifies
   (pub_t sec_t: Type0)
   (init_pub: pub_t) (init_sec: sec_t)
   (h0 hf: HS.mem)

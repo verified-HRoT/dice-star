@@ -165,7 +165,7 @@ def generate_asn1_test(test_suites, test_script):
 
         out.write (tail_template)
 
-def generate_riot_test(test_suites, test_script):
+def generate_l0_test(test_suites, test_script):
     with open (test_script, "w+") as out:
         with open (test_suites, "r") as f:
             out.write (f.read())
@@ -175,7 +175,7 @@ if __name__ == "__main__":
 
     if (args.target == "asn1"):
         generate_asn1_test("ASN1.test_suites.data", "ASN1.Test.fst")
-    # elif(args.target == "riot"):
-    #     generate_riot_test("RIoT.test_suites.data", "RIoT.Test.fst")
+    # elif(args.target == "l0"):
+    #     generate_l0_test("L0.test_suites.data", "RIoT.Test.fst")
     else:
         print("No tests for target {}".format(args.target))

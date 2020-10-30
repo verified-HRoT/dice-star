@@ -9,20 +9,20 @@ open ASN1.Low
 open X509.Base
 open X509.BasicFields.SubjectPublicKeyInfo
 open X509.Crypto
-open RIoT.X509.Base
-open RIoT.X509.FWID
+open L0.X509.Base
+open L0.X509.FWID
 
 #set-options "--z3rlimit 32 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
-#set-options "--__temp_no_proj RIoT.X509.CompositeDeviceID"
+#set-options "--__temp_no_proj L0.X509.CompositeDeviceID"
 
 val decl : unit
 
 (* CompositeDeviceID *)
 type compositeDeviceID_payload_t
-= { riot_version : datatype_of_asn1_type INTEGER;
-    riot_deviceID: subjectPublicKeyInfo_t;
-    riot_fwid    : fwid_t }
+= { l0_version : datatype_of_asn1_type INTEGER;
+    l0_deviceID: subjectPublicKeyInfo_t;
+    l0_fwid    : fwid_t }
 
 inline_for_extraction noextract
 let parse_compositeDeviceID_payload_kind
@@ -45,22 +45,22 @@ val lemma_serialize_compositeDeviceID_payload_unfold
   (x: compositeDeviceID_payload_t)
 : Lemma (
   serialize (serialize_compositeDeviceID_payload) x ==
-  serialize (serialize_asn1_TLV_of_type INTEGER) x.riot_version
+  serialize (serialize_asn1_TLV_of_type INTEGER) x.l0_version
   `Seq.append`
-  serialize (serialize_subjectPublicKeyInfo) x.riot_deviceID
+  serialize (serialize_subjectPublicKeyInfo) x.l0_deviceID
   `Seq.append`
-  serialize serialize_fwid x.riot_fwid
+  serialize serialize_fwid x.l0_fwid
 )
 
 val lemma_serialize_compositeDeviceID_payload_size
   (x: compositeDeviceID_payload_t)
 : Lemma (
   length_of_opaque_serialization (serialize_compositeDeviceID_payload) x ==
-  length_of_asn1_primitive_TLV x.riot_version +
-  length_of_opaque_serialization (serialize_subjectPublicKeyInfo) x.riot_deviceID +
-  length_of_opaque_serialization serialize_fwid x.riot_fwid /\
+  length_of_asn1_primitive_TLV x.l0_version +
+  length_of_opaque_serialization (serialize_subjectPublicKeyInfo) x.l0_deviceID +
+  length_of_opaque_serialization serialize_fwid x.l0_fwid /\
   length_of_opaque_serialization serialize_compositeDeviceID_payload x ==
-  length_of_asn1_primitive_TLV x.riot_version + 91 /\
+  length_of_asn1_primitive_TLV x.l0_version + 91 /\
   length_of_opaque_serialization serialize_compositeDeviceID_payload x <= 97
 )
 
@@ -99,7 +99,7 @@ val lemma_serialize_compositeDeviceID_size_exact
   (x: compositeDeviceID_t)
 : Lemma (
   length_of_opaque_serialization serialize_compositeDeviceID x ==
-  length_of_asn1_primitive_TLV x.riot_version + 93 /\
+  length_of_asn1_primitive_TLV x.l0_version + 93 /\
   length_of_opaque_serialization serialize_compositeDeviceID_payload x <= 99
 )
 
@@ -124,11 +124,11 @@ let x509_get_compositeDeviceID
   (* Prf *) lemma_serialize_fwid_size_exact fwid;
 
   let compositeDeviceID: compositeDeviceID_payload_t = {
-    riot_version  = version;
-    riot_deviceID = deviceIDPublicKeyInfo;
-    riot_fwid     = fwid
+    l0_version  = version;
+    l0_deviceID = deviceIDPublicKeyInfo;
+    l0_fwid     = fwid
   } in
   (* Prf *) lemma_serialize_compositeDeviceID_payload_size compositeDeviceID;
-  (* Prf *) (**) lemma_serialize_asn1_integer_TLV_size compositeDeviceID.riot_version;
+  (* Prf *) (**) lemma_serialize_asn1_integer_TLV_size compositeDeviceID.l0_version;
 
 (* return *) compositeDeviceID

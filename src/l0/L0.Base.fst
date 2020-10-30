@@ -17,23 +17,23 @@ module Ed25519 = Hacl.Ed25519
 module Curve25519 = Hacl.Curve25519_51
 
 // module HW = HWAbstraction
-open RIoT.Declassify
+open L0.Declassify
 open Lib.IntTypes
 open Spec.Hash.Definitions
 open Hacl.Hash.Definitions
 (*
- * Some common definitions used in the RIoT code
+ * Some common definitions used in the L0 code
  *)
 
-#set-options "--__temp_no_proj RIoT.Definitions"
+#set-options "--__temp_no_proj L0.Definitions"
 
-type riot_hash_alg = a:hash_alg{a == SHA2_256}
+type l0_hash_alg = a:hash_alg{a == SHA2_256}
 
 inline_for_extraction
-let alg : riot_hash_alg = SHA2_256
+let alg : l0_hash_alg = SHA2_256
 
 inline_for_extraction noextract
-let riot_hash (alg:riot_hash_alg) : hash_st alg =
+let l0_hash (alg:riot_hash_alg) : hash_st alg =
   match alg with
   | SHA2_256 -> Hacl.Hash.SHA2.hash_256
   | SHA2_384 -> Hacl.Hash.SHA2.hash_384
@@ -41,7 +41,7 @@ let riot_hash (alg:riot_hash_alg) : hash_st alg =
   // | SHA1     -> Hacl.Hash.SHA1.legacy_hash
 
 inline_for_extraction noextract
-let riot_hmac (alg:riot_hash_alg) : Hacl.HMAC.compute_st alg =
+let l0_hmac (alg:riot_hash_alg) : Hacl.HMAC.compute_st alg =
   match alg with
   | SHA2_256 -> Hacl.HMAC.compute_sha2_256
   | SHA2_384 -> Hacl.HMAC.compute_sha2_384

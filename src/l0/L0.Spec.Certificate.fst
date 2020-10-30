@@ -3,9 +3,9 @@ module L0.Spec.Certificate
 open ASN1.Spec
 open X509
 
-open RIoT.Base
-open RIoT.Declassify
-open RIoT.X509
+open L0.Base
+open L0.Declassify
+open L0.X509
 
 open Lib.IntTypes
 

@@ -1,10 +1,10 @@
 module L0.X509
 
-include RIoT.X509.Base
-include RIoT.X509.FWID
-include RIoT.X509.CompositeDeviceID
-include RIoT.X509.Extension
-include RIoT.X509.AliasKeyTBS
-include RIoT.X509.AliasKeyCRT
-include RIoT.X509.DeviceIDCRI
-include RIoT.X509.DeviceIDCSR
+include L0.X509.Base
+include L0.X509.FWID
+include L0.X509.CompositeDeviceID
+include L0.X509.Extension
+include L0.X509.AliasKeyTBS
+include L0.X509.AliasKeyCRT
+include L0.X509.DeviceIDCRI
+include L0.X509.DeviceIDCSR

@@ -7,7 +7,7 @@ module HST = FStar.HyperStack.ST
 
 #set-options "--z3rlimit 50 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
-let lemma_riot_modifies
+let lemma_l0_modifies
   (pub_t sec_t: Type0)
   (init_pub: pub_t) (init_sec: sec_t)
   (h0 hf: HS.mem)

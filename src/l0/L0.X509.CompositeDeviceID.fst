@@ -9,12 +9,12 @@ open ASN1.Low
 open X509.Base
 open X509.BasicFields.SubjectPublicKeyInfo
 open X509.Crypto
-open RIoT.X509.Base
-open RIoT.X509.FWID
+open L0.X509.Base
+open L0.X509.FWID
 
 #set-options "--z3rlimit 32 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
-#set-options "--__temp_no_proj RIoT.X509.CompositeDeviceID"
+#set-options "--__temp_no_proj L0.X509.CompositeDeviceID"
 
 let decl = ()
 
@@ -29,15 +29,15 @@ let compositeDeviceID_payload_t'
 let synth_compositeDeviceID_payload_t
   (x': compositeDeviceID_payload_t')
 : GTot (compositeDeviceID_payload_t)
-= { riot_version  = fst (fst x');
-    riot_deviceID = snd (fst x');
-    riot_fwid     = snd x' }
+= { l0_version  = fst (fst x');
+    l0_deviceID = snd (fst x');
+    l0_fwid     = snd x' }
 
 inline_for_extraction noextract
 let synth_compositeDeviceID_payload_t'
   (x: compositeDeviceID_payload_t)
 : Tot (x': compositeDeviceID_payload_t' { x == synth_compositeDeviceID_payload_t x' })
-= ((x.riot_version, x.riot_deviceID), x.riot_fwid)
+= ((x.l0_version, x.riot_deviceID), x.riot_fwid)
 
 let parse_compositeDeviceID_payload
 = parse_asn1_TLV_of_type INTEGER
@@ -93,8 +93,8 @@ let lemma_serialize_compositeDeviceID_payload_unfold x
 
 let lemma_serialize_compositeDeviceID_payload_size x
 = lemma_serialize_compositeDeviceID_payload_unfold x;
-    lemma_serialize_subjectPublicKeyInfo_size_exact x.riot_deviceID;
-    lemma_serialize_fwid_size_exact x.riot_fwid
+    lemma_serialize_subjectPublicKeyInfo_size_exact x.l0_deviceID;
+    lemma_serialize_fwid_size_exact x.l0_fwid
 
 (* inbound sub type*)
 

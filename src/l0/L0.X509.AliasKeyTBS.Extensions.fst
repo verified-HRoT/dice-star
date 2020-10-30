@@ -3,13 +3,13 @@ module L0.X509.AliasKeyTBS.Extensions
 open ASN1.Spec
 open ASN1.Low
 open X509
-open RIoT.X509.Base
-open RIoT.X509.FWID
-open RIoT.X509.CompositeDeviceID
-open RIoT.X509.Extension
-open RIoT.X509.AliasKeyTBS.Extensions.BasicConstraints
-open RIoT.X509.AliasKeyTBS.Extensions.AuthKeyIdentifier
-open RIoT.X509.AliasKeyTBS.Extensions.ExtendedKeyUsage
+open L0.X509.Base
+open L0.X509.FWID
+open L0.X509.CompositeDeviceID
+open L0.X509.Extension
+open L0.X509.AliasKeyTBS.Extensions.BasicConstraints
+open L0.X509.AliasKeyTBS.Extensions.AuthKeyIdentifier
+open L0.X509.AliasKeyTBS.Extensions.ExtendedKeyUsage
 open FStar.Integers
 
 module B32 = FStar.Bytes
@@ -19,13 +19,13 @@ module P = FStar.Pervasives
 
 #set-options "--z3rlimit 128 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
-#set-options "--__temp_no_proj RIoT.X509.AliasKeyTBS.Extensions"
+#set-options "--__temp_no_proj L0.X509.AliasKeyTBS.Extensions"
 
 let decl = ()
 
 
 (* Extensions of the AliasKey Certificate
- * Includes the RIoT Extension (`CompositeDeviceID`) and others
+ * Includes the L0 Extension (`CompositeDeviceID`) and others
  * This is the SEQUENCE under the outmost explicit tag
  * Contains SEQUENCEs of individual extensions ({extID, extValue})
  * [3] {               <--- The outmost explicit tag
@@ -54,7 +54,7 @@ let aliasKeyTBS_extensions_payload_t' = (
   aliasKeyTBS_extensions_extendedKeyUsage_t `tuple2`
   aliasKeyTBS_extensions_basicConstraints_t `tuple2`
   aliasKeyTBS_extensions_authKeyID_t `tuple2`
-  riot_extension_t
+  l0_extension_t
 )
 
 (* Conversion of message between record and tuple types *)
@@ -69,7 +69,7 @@ let synth_aliasKeyTBS_extensions_payload_t
    aliasKeyTBS_extensions_extendedKeyUsage = snd (fst (fst (fst x')));
    aliasKeyTBS_extensions_basicConstraints = snd (fst (fst x'));
    aliasKeyTBS_extensions_authKeyID        = snd (fst x');
-   aliasKeyTBS_extensions_riot             = snd x';
+   aliasKeyTBS_extensions_l0             = snd x';
 }
 
 inline_for_extraction noextract
@@ -85,7 +85,7 @@ let synth_aliasKeyTBS_extensions_payload_t'
      x.aliasKeyTBS_extensions_extendedKeyUsage),
      x.aliasKeyTBS_extensions_basicConstraints),
      x.aliasKeyTBS_extensions_authKeyID),
-     x.aliasKeyTBS_extensions_riot
+     x.aliasKeyTBS_extensions_l0
 )
 
 (* Parser Specification for VALUE *)
@@ -98,7 +98,7 @@ let parse_aliasKeyTBS_extensions_payload
   `nondep_then`
   parse_aliasKeyTBS_extensions_authKeyID
   `nondep_then`
-  parse_riot_extension
+  parse_l0_extension
   `parse_synth`
   synth_aliasKeyTBS_extensions_payload_t
 
@@ -113,7 +113,7 @@ let serialize_aliasKeyTBS_extensions_payload
             `nondep_then`
             parse_aliasKeyTBS_extensions_authKeyID
             `nondep_then`
-            parse_riot_extension)
+            parse_l0_extension)
   (* f2 *) (synth_aliasKeyTBS_extensions_payload_t)
   (* s1 *) (serialize_x509_key_usage
             `serialize_nondep_then`
@@ -123,7 +123,7 @@ let serialize_aliasKeyTBS_extensions_payload
             `serialize_nondep_then`
             serialize_aliasKeyTBS_extensions_authKeyID
             `serialize_nondep_then`
-            serialize_riot_extension)
+            serialize_l0_extension)
   (* g1 *) (synth_aliasKeyTBS_extensions_payload_t')
   (* prf*) ()
 
@@ -159,7 +159,7 @@ let lemma_serialize_aliasKeyTBS_extensions_payload_unfold x
             serialize_aliasKeyTBS_extensions_basicConstraints
             `serialize_nondep_then`
             serialize_aliasKeyTBS_extensions_authKeyID)
-  (* s2 *) (serialize_riot_extension)
+  (* s2 *) (serialize_l0_extension)
   (* in *) (synth_aliasKeyTBS_extensions_payload_t' x);
 
   serialize_synth_eq
@@ -171,7 +171,7 @@ let lemma_serialize_aliasKeyTBS_extensions_payload_unfold x
             `nondep_then`
             parse_aliasKeyTBS_extensions_authKeyID
             `nondep_then`
-            parse_riot_extension)
+            parse_l0_extension)
   (* f2 *) (synth_aliasKeyTBS_extensions_payload_t)
   (* s1 *) (serialize_x509_key_usage
             `serialize_nondep_then`
@@ -181,7 +181,7 @@ let lemma_serialize_aliasKeyTBS_extensions_payload_unfold x
             `serialize_nondep_then`
             serialize_aliasKeyTBS_extensions_authKeyID
             `serialize_nondep_then`
-            serialize_riot_extension)
+            serialize_l0_extension)
   (* g1 *) (synth_aliasKeyTBS_extensions_payload_t')
   (* prf*) ()
   (* in *) (x)
@@ -196,8 +196,8 @@ let lemma_serialize_aliasKeyTBS_extensions_payload_size x
                                               x.aliasKeyTBS_extensions_basicConstraints;
     lemma_serialize_aliasKeyTBS_extensions_authKeyID_size_exact
                                               x.aliasKeyTBS_extensions_authKeyID;
-    lemma_serialize_riot_extension_size_exact x.aliasKeyTBS_extensions_riot;
-  lemma_length_of_aliasKeyTBS_extensions_payload_size_max x.aliasKeyTBS_extensions_riot.x509_extValue_riot.riot_version
+    lemma_serialize_l0_extension_size_exact x.aliasKeyTBS_extensions_riot;
+  lemma_length_of_aliasKeyTBS_extensions_payload_size_max x.aliasKeyTBS_extensions_l0.x509_extValue_riot.riot_version
 
 
 (*
@@ -249,7 +249,7 @@ let serialize32_aliasKeyTBS_extensions_payload_backwards
              `serialize32_nondep_then_backwards`
              serialize32_aliasKeyTBS_extensions_authKeyID_backwards
              `serialize32_nondep_then_backwards`
-             serialize32_riot_extension_backwards)
+             serialize32_l0_extension_backwards)
   (* f2  *) synth_aliasKeyTBS_extensions_payload_t
   (* g1  *) synth_aliasKeyTBS_extensions_payload_t'
   (* g1' *) synth_aliasKeyTBS_extensions_payload_t'

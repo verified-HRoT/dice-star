@@ -10,18 +10,18 @@ test-asn1: clean-test
 	$(MAKE) verify-all && $(MAKE) extract-all && $(MAKE) compile-all
 	@./test.exe
 
-test-riot:
+test-l0:
 	$(MAKE) verify-all && $(MAKE) extract-all && $(MAKE) compile-all
 	@./test.exe
 	@cat DeviceIDCSR.hex | xxd -r -p | openssl req -inform DER -out DeviceIDCSR.csr
 	@cat AliasKeyCrt.hex | xxd -r -p | openssl x509 -inform DER -out AliasKeyCrt.pem
 	@if openssl x509 -in AliasKeyCrt.pem -text -noout; then \
-      printf "[RIoT] Passed AliasKey Crt test!👍\n"; \
+      printf "[L0] Passed AliasKey Crt test!👍\n"; \
     else \
-      printf "[RIoT] Failed AliasKey Crt test!🔥\n"; \
+      printf "[L0] Failed AliasKey Crt test!🔥\n"; \
     fi && \
 	if openssl req -in DeviceIDCSR.csr -text -noout; then \
-      printf "[RIoT] Passed DeviceID CSR test!👍\n"; \
+      printf "[L0] Passed DeviceID CSR test!👍\n"; \
     else \
-      printf "[RIoT] Failed DeviceID CSR test!🔥\n"; \
+      printf "[L0] Failed DeviceID CSR test!🔥\n"; \
     fi

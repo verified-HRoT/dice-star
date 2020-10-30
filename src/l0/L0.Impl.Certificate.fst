@@ -2,9 +2,9 @@ module L0.Impl.Certificate
 
 open ASN1.Spec
 
-open RIoT.Base
-open RIoT.Declassify
-open RIoT.X509
+open L0.Base
+open L0.Declassify
+open L0.X509
 
 module B32 = FStar.Bytes
 module B = LowStar.Buffer
@@ -20,7 +20,7 @@ module Ed25519 = Hacl.Ed25519
 open LowStar.Comment
 open LowStar.Printf
 
-open RIoT.Spec.Certificate
+open L0.Spec.Certificate
 
 #set-options "--fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
@@ -51,7 +51,7 @@ open RIoT.Spec.Certificate
         |              |
         ----------------
         subjectPublicKeyInfo for AliasKey,
-        extensions           for RIoT
+        extensions           for L0
         }
    NOTE: The SEQUENCE Tag and Length of TBS is __NOT__ part of the template
    NOTE: Other extensions like Key Usage are __NOT__ included in this version.
@@ -74,7 +74,7 @@ let create_aliasKeyTBS_pre
   (fwid: B.lbuffer byte_pub 32)
   (ku: key_usage_payload_t)
   (keyID: B.lbuffer byte_pub 20)
-  (riot_version: datatype_of_asn1_type INTEGER)
+  (l0_version: datatype_of_asn1_type INTEGER)
   (deviceID_pub: B.lbuffer byte_pub 32)
   (aliasKey_pub: B.lbuffer byte_pub 32)
   (aliasKeyTBS_len: UInt32.t)
@@ -94,7 +94,7 @@ let create_aliasKeyTBS_pre
                          serialNumber
                          i_common i_org i_country
                          s_common s_org s_country
-                         riot_version))
+                         l0_version))
 #pop-options
 
 unfold
@@ -115,7 +115,7 @@ let create_aliasKeyTBS_post
   (fwid: B.lbuffer byte_pub 32)
   (ku: key_usage_payload_t)
   (keyID: B.lbuffer byte_pub 20)
-  (riot_version: datatype_of_asn1_type INTEGER)
+  (l0_version: datatype_of_asn1_type INTEGER)
   (deviceID_pub: B.lbuffer byte_pub 32)
   (aliasKey_pub: B.lbuffer byte_pub 32)
   (aliasKeyTBS_len: UInt32.t)
@@ -130,7 +130,7 @@ let create_aliasKeyTBS_post
                      (fwid)
                      (ku)
                      (keyID)
-                     (riot_version)
+                     (l0_version)
                      (deviceID_pub)
                      (aliasKey_pub)
                      (aliasKeyTBS_len) (aliasKeyTBS_buf) })
@@ -143,7 +143,7 @@ let create_aliasKeyTBS_post
                                      (s_common) (s_org) (s_country)
                                      (ku)
                                      (B.as_seq h0 keyID)
-                                     (riot_version)
+                                     (l0_version)
                                      (B.as_seq h0 fwid)
                                      (B.as_seq h0 deviceID_pub)
                                      (B.as_seq h0 aliasKey_pub) in
@@ -151,7 +151,7 @@ let create_aliasKeyTBS_post
   B.(modifies (loc_buffer aliasKeyTBS_buf) h0 h1) /\
   B.as_seq h1 aliasKeyTBS_buf == serialize_aliasKeyTBS `serialize` aliasKeyTBS
 
-#set-options "--__temp_no_proj RIoT.Impl.Certificate"
+#set-options "--__temp_no_proj L0.Impl.Certificate"
 noeq
 type aliasKeyTBS_bytes = {
   fwid_pub32     : B32.lbytes32 32ul;
@@ -211,7 +211,7 @@ let create_aliasKeyTBS
   (fwid: B.lbuffer byte_pub 32)
   (ku: key_usage_payload_t)
   (keyID: B.lbuffer byte_pub 20)
-  (riot_version: datatype_of_asn1_type INTEGER)
+  (l0_version: datatype_of_asn1_type INTEGER)
   (deviceID_pub: B.lbuffer byte_pub 32)
   (aliasKey_pub: B.lbuffer byte_pub 32)
   (aliasKeyTBS_len: UInt32.t)
@@ -227,7 +227,7 @@ let create_aliasKeyTBS
                      (fwid)
                      (ku)
                      (keyID)
-                     (riot_version)
+                     (l0_version)
                      (deviceID_pub)
                      (aliasKey_pub)
                      (aliasKeyTBS_len) (aliasKeyTBS_buf))
@@ -241,7 +241,7 @@ let create_aliasKeyTBS
                          (fwid)
                          (ku)
                          (keyID)
-                         (riot_version)
+                         (l0_version)
                          (deviceID_pub)
                          (aliasKey_pub)
                          (aliasKeyTBS_len) (aliasKeyTBS_buf))
@@ -261,7 +261,7 @@ let create_aliasKeyTBS
                                      s_common s_org s_country
                                      ku
                                      keyID_string
-                                     riot_version
+                                     l0_version
                                      b.fwid_pub32
                                      b.deviceID_pub32
                                      b.aliasKey_pub32 in
@@ -278,7 +278,7 @@ let create_aliasKeyTBS
                                      (s_common) (s_org) (s_country)
                                      (ku)
                                      (B.as_seq h0 keyID)
-                                     (riot_version)
+                                     (l0_version)
                                      (B.as_seq h0 fwid)
                                      (B.as_seq h0 deviceID_pub)
                                      (B.as_seq h0 aliasKey_pub)));
@@ -523,7 +523,7 @@ let sign_and_finalize_deviceIDCSR
 #push-options "--z3rlimit 256"
 [@@ "opaque_to_smt"]
 unfold
-let riot_core_step2_pre
+let l0_core_step2_pre
   (h: HS.mem)
   (csr_version: datatype_of_asn1_type INTEGER)
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
@@ -551,7 +551,7 @@ let riot_core_step2_pre
 #push-options "--z3rlimit 256"
 [@@ "opaque_to_smt"]
 unfold
-let riot_core_step2_post
+let l0_core_step2_post
   (h0: HS.mem) (h1: HS.mem)
   (csr_version: datatype_of_asn1_type INTEGER)
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
@@ -588,7 +588,7 @@ let riot_core_step2_post
 #set-options "--z3rlimit 200 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 [@@ "opaque_to_smt"]
 inline_for_extraction noextract
-let riot_core_step2
+let l0_core_step2
   (csr_version: datatype_of_asn1_type INTEGER)
   (s_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
   (s_org:     x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
@@ -599,11 +599,11 @@ let riot_core_step2
   (deviceIDCSR_len: size_t)
   (deviceIDCSR_buf: B.lbuffer byte_pub (v deviceIDCSR_len))
 : HST.Stack unit
-  (requires fun h -> riot_core_step2_pre (h)
+  (requires fun h -> l0_core_step2_pre (h)
                      (csr_version) (s_common) (s_org) (s_country) (ku)
                      (deviceID_pub) (deviceID_priv)
                      (deviceIDCSR_len) (deviceIDCSR_buf))
-  (ensures fun h0 _ h1 -> riot_core_step2_post (h0) (h1)
+  (ensures fun h0 _ h1 -> l0_core_step2_post (h0) (h1)
                      (csr_version) (s_common) (s_org) (s_country) (ku)
                      (deviceID_pub) (deviceID_priv)
                      (deviceIDCSR_len) (deviceIDCSR_buf))
@@ -704,7 +704,7 @@ let riot_core_step2
 #push-options "--z3rlimit 50"
 [@@ "opaque_to_smt"]
 unfold
-let riot_core_step3_pre
+let l0_core_step3_pre
   (h: HS.mem)
   (crt_version: x509_version_t)
   (serialNumber: x509_serialNumber_t)
@@ -719,7 +719,7 @@ let riot_core_step3_pre
   (fwid: B.lbuffer byte_pub 32)
   (ku: key_usage_payload_t)
   (keyID: B.lbuffer byte_pub 20)
-  (riot_version: datatype_of_asn1_type INTEGER)
+  (l0_version: datatype_of_asn1_type INTEGER)
   (deviceID_pub: B.lbuffer byte_pub 32)
   (deviceID_priv: B.lbuffer byte_sec 32)
   (aliasKey_pub: B.lbuffer byte_pub 32)
@@ -730,7 +730,7 @@ let riot_core_step3_pre
                                                            serialNumber
                                                            i_common i_org i_country
                                                            s_common s_org s_country
-                                                           riot_version in
+                                                           l0_version in
   B.all_live h [B.buf fwid;
                 B.buf deviceID_pub;
                 B.buf deviceID_priv;
@@ -750,7 +750,7 @@ let riot_core_step3_pre
 #push-options "--z3rlimit 512"
 [@@ "opaque_to_smt"]
 unfold
-let riot_core_step3_post
+let l0_core_step3_post
   (h0: HS.mem) (h1: HS.mem)
   (crt_version: x509_version_t)
   (serialNumber: x509_serialNumber_t)
@@ -765,7 +765,7 @@ let riot_core_step3_post
   (fwid: B.lbuffer byte_pub 32)
   (ku: key_usage_payload_t)
   (keyID: B.lbuffer byte_pub 20)
-  (riot_version: datatype_of_asn1_type INTEGER)
+  (l0_version: datatype_of_asn1_type INTEGER)
   (deviceID_pub: B.lbuffer byte_pub 32)
   (deviceID_priv: B.lbuffer byte_sec 32)
   (aliasKey_pub: B.lbuffer byte_pub 32)
@@ -775,7 +775,7 @@ let riot_core_step3_post
                                                            serialNumber
                                                            i_common i_org i_country
                                                            s_common s_org s_country
-                                                           riot_version in
+                                                           l0_version in
   let aliasKeyTBS = create_aliasKeyTBS_spec
                                      (crt_version)
                                      (serialNumber)
@@ -784,7 +784,7 @@ let riot_core_step3_post
                                      (s_common) (s_org) (s_country)
                                      (ku)
                                      (B.as_seq h0 keyID)
-                                     (riot_version)
+                                     (l0_version)
                                      (B.as_seq h0 fwid)
                                      (B.as_seq h0 deviceID_pub)
                                      (B.as_seq h0 aliasKey_pub) in
@@ -802,7 +802,7 @@ let riot_core_step3_post
 #set-options "--z3rlimit 200 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 [@@ "opaque_to_smt"]
 inline_for_extraction noextract
-let riot_core_step3
+let l0_core_step3
   (crt_version: x509_version_t)
   (serialNumber: x509_serialNumber_t)
   (i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
@@ -816,24 +816,24 @@ let riot_core_step3
   (fwid: B.lbuffer byte_pub 32)
   (ku: key_usage_payload_t)
   (keyID: B.lbuffer byte_pub 20)
-  (riot_version: datatype_of_asn1_type INTEGER)
+  (l0_version: datatype_of_asn1_type INTEGER)
   (deviceID_pub: B.lbuffer byte_pub 32)
   (deviceID_priv: B.lbuffer byte_sec 32)
   (aliasKey_pub: B.lbuffer byte_pub 32)
   (aliasKeyCRT_len: UInt32.t)
   (aliasKeyCRT_buf: B.lbuffer byte_pub (v aliasKeyCRT_len))
 : HST.Stack unit
-  (requires fun h -> riot_core_step3_pre (h)
+  (requires fun h -> l0_core_step3_pre (h)
                      (crt_version) (serialNumber) (i_common) (i_org) (i_country)
                      (notBefore) (notAfter) (s_common) (s_org) (s_country)
-                     (fwid) (ku) (keyID) (riot_version)
+                     (fwid) (ku) (keyID) (l0_version)
                      (deviceID_pub) (deviceID_priv) (aliasKey_pub)
                      (aliasKeyCRT_len) (aliasKeyCRT_buf)
   )
-  (ensures fun h0 _ h1 -> riot_core_step3_post (h0) (h1)
+  (ensures fun h0 _ h1 -> l0_core_step3_post (h0) (h1)
                      (crt_version) (serialNumber) (i_common) (i_org) (i_country)
                      (notBefore) (notAfter) (s_common) (s_org) (s_country)
-                     (fwid) (ku) (keyID) (riot_version)
+                     (fwid) (ku) (keyID) (l0_version)
                      (deviceID_pub) (deviceID_priv) (aliasKey_pub)
                      (aliasKeyCRT_len) (aliasKeyCRT_buf))
 = (**) let h0 = HST.get () in
@@ -849,7 +849,7 @@ let riot_core_step3
                                                            s_common
                                                            s_org
                                                            s_country
-                                                           riot_version in
+                                                           l0_version in
   let aliasKeyTBS_buf: B.lbuffer byte_pub (v aliasKeyTBS_len) = B.alloca 0x00uy aliasKeyTBS_len in
   (**) let hs1 = HST.get () in
 
@@ -863,7 +863,7 @@ let riot_core_step3
     (i_common) (i_org) (i_country)
     (notBefore) (notAfter)
     (s_common) (s_org) (s_country)
-    (fwid) (ku) (keyID) (riot_version)
+    (fwid) (ku) (keyID) (l0_version)
     (* DeviceID  *) deviceID_pub
     (* AliasKey  *) aliasKey_pub
     (*AliasKeyTBS*) aliasKeyTBS_len
@@ -879,7 +879,7 @@ let riot_core_step3
                                      (s_common) (s_org) (s_country)
                                      (ku)
                                      (B.as_seq h0 keyID)
-                                     (riot_version)
+                                     (l0_version)
                                      (B.as_seq h0 fwid)
                                      (B.as_seq h0 deviceID_pub)
                                      (B.as_seq h0 aliasKey_pub) in
@@ -912,7 +912,7 @@ let riot_core_step3
                                                            serialNumber
                                                            i_common i_org i_country
                                                            s_common s_org s_country
-                                                           riot_version in
+                                                           l0_version in
     let aliasKeyTBS = create_aliasKeyTBS_spec
                                      (crt_version)
                                      (serialNumber)
@@ -921,7 +921,7 @@ let riot_core_step3
                                      (s_common) (s_org) (s_country)
                                      (ku)
                                      (B.as_seq h0 keyID)
-                                     (riot_version)
+                                     (l0_version)
                                      (B.as_seq h0 fwid)
                                      (B.as_seq h0 deviceID_pub)
                                      (B.as_seq h0 aliasKey_pub) in

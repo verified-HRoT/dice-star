@@ -3,15 +3,15 @@ module L0.X509.DeviceIDCRI
 open ASN1.Spec
 open ASN1.Low
 open X509
-open RIoT.X509.DeviceIDCRI.Subject
-open RIoT.X509.DeviceIDCRI.Attributes
+open L0.X509.DeviceIDCRI.Subject
+open L0.X509.DeviceIDCRI.Attributes
 open FStar.Integers
 
 module B32 = FStar.Bytes
 
 #set-options "--z3rlimit 256 --fuel 0 --ifuel 0"
 
-#set-options "--__temp_no_proj RIoT.X509.DeviceIDCRI"
+#set-options "--__temp_no_proj L0.X509.DeviceIDCRI"
 
 let decl = ()
 

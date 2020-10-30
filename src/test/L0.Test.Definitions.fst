@@ -1,5 +1,5 @@
 (* NOTE: Separating this module because verification
-         with RIoT.* loaded becomes expensive *)
+         with L0.* loaded becomes expensive *)
 module L0.Test.Definitions
 
 open LowStar.Comment
@@ -19,13 +19,13 @@ open ASN1.Spec
 open ASN1.Low
 open X509
 
-open RIoT.Base
-open RIoT.X509.Base
-open RIoT.Declassify
-open RIoT.Helpers
-// open RIoT.Spec
-// open RIoT.Impl
-// open RIoT.Core
+open L0.Base
+open L0.X509.Base
+open L0.Declassify
+open L0.Helpers
+// open L0.Spec
+// open L0.Impl
+// open L0.Core
 
 module Ed25519 = Hacl.Ed25519
 
@@ -145,13 +145,13 @@ let aliasKeyCrt_i_country_buf = IB.igcmalloc_of_list HS.root aliasKeyCrt_i_count
 #pop-options
 
 inline_for_extraction
-let riot_get_aliasKeyCRT_ingredients ()
+let l0_get_aliasKeyCRT_ingredients ()
 : HST.Stack aliasKeyCRT_ingredients_t
   (requires fun h -> True)
   (ensures fun h0 _ h1 -> B.modifies B.loc_none h0 h1)
 = let ku: key_usage_payload_t = normalize_term aliasKeyCrt_key_usage in
 
-  let riot_version: datatype_of_asn1_type INTEGER = 1l in
+  let l0_version: datatype_of_asn1_type INTEGER = 1l in
 
   IB.recall aliasKeyCrt_serialNumber_buf;
   IB.recall_contents aliasKeyCrt_serialNumber_buf (Seq.createL aliasKeyCrt_serialNumber_list);
@@ -231,7 +231,7 @@ let riot_get_aliasKeyCRT_ingredients ()
     aliasKeyCrt_s_org        = aliasKeyCrt_s_org;
     aliasKeyCrt_s_country    = aliasKeyCrt_s_country;
     aliasKeyCrt_ku           = ku;
-    aliasKeyCrt_riot_version = riot_version
+    aliasKeyCrt_l0_version = riot_version
   } in
 
   aliasKeyCRT_ingredients
@@ -323,7 +323,7 @@ let deviceIDCSR_keyUsage = normalize_term aliasKeyCrt_key_usage
 
 #push-options "--z3rlimit 64 --fuel 0 --ifuel 0"
 inline_for_extraction
-let riot_get_deviceIDCSR_ingredients ()
+let l0_get_deviceIDCSR_ingredients ()
 : HST.Stack deviceIDCSR_ingredients_t
   (requires fun h -> True)
   (ensures fun h0 _ h1 -> B.modifies B.loc_none h0 h1)
@@ -367,7 +367,7 @@ let riot_get_deviceIDCSR_ingredients ()
 
 [@@ "opaque_to_smt"]
 inline_for_extraction
-let dump_riot
+let dump_l0
   (deviceID_pub : B.lbuffer byte_pub 32)
   (aliasKey_pub : B.lbuffer byte_pub 32)
   (aliasKey_priv: B.lbuffer byte_sec 32)
