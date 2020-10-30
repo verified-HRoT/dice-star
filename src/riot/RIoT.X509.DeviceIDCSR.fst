@@ -8,7 +8,11 @@ open FStar.Integers
 
 module B32 = FStar.Bytes
 
-#set-options "--z3rlimit 128 --fuel 0 --ifuel 0"
+#set-options "--z3rlimit 128 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
+
+#set-options "--__temp_no_proj RIoT.X509.DeviceIDCSR"
+
+let decl = ()
 
 let deviceIDCSR_payload_t' (cri_len: asn1_int32) = (
   (B32.lbytes32 cri_len `tuple2`
@@ -24,6 +28,7 @@ let synth_deviceIDCSR_payload_t
     deviceIDCSR_sig_alg = snd (fst x');
     deviceIDCSR_sig     = snd x' }
 
+inline_for_extraction noextract
 let synth_deviceIDCSR_payload_t'
   (cri_len: asn1_int32)
   (x: deviceIDCSR_payload_t cri_len)

@@ -10,6 +10,10 @@ module B32 = FStar.Bytes
 
 #set-options "--z3rlimit 128 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
+#set-options "--__temp_no_proj RIoT.X509.DeviceIDCSR"
+
+val decl : unit
+
 noeq
 type deviceIDCSR_payload_t (cri_len: asn1_int32) = {
   deviceIDCSR_cri: B32.lbytes32 cri_len;
