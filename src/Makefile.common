@@ -240,6 +240,8 @@ endif
 KRML_WARN_ERRORS = \
   -warn-error @2@4@15@17-6
 
+OTHER_KRML_FLAGS += -header $(SRC_DIR)/kremlin_header.txt
+
 KREMLIN_FLAGS = \
   $(OTHER_KRML_FLAGS) \
   $(KRML_NO_PREFIXS) \
