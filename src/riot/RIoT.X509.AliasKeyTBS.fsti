@@ -14,6 +14,10 @@ module B32 = FStar.Bytes
 
 #set-options "--z3rlimit 256 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection -LowParse'"
 
+#set-options "--__temp_no_proj RIoT.X509.AliasKeyTBS"
+
+val decl : unit
+
 noeq
 type aliasKeyTBS_payload_t = {
 (*

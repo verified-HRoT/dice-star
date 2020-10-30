@@ -12,6 +12,10 @@ module B32 = FStar.Bytes
 
 #set-options "--z3rlimit 512 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
+#set-options "--__temp_no_proj RIoT.X509.AliasKeyTBS"
+
+let decl = ()
+
 let aliasKeyTBS_payload_t' = (
 (*
 //  *       version         [0]  EXPLICIT Version DEFAULT v1,
@@ -59,6 +63,7 @@ let synth_aliasKeyTBS_payload_t
     aliasKeyTBS_aliasKey_pub = snd (fst x');
     aliasKeyTBS_extensions   = snd x' }
 
+inline_for_extraction noextract
 let synth_aliasKeyTBS_payload_t'
   (x: aliasKeyTBS_payload_t)
 : Tot (x': aliasKeyTBS_payload_t' { x == synth_aliasKeyTBS_payload_t x' })
