@@ -11,6 +11,8 @@ module B32 = FStar.Bytes
 
 #set-options "--__temp_no_proj RIoT.X509.DeviceIDCRI.Subject"
 
+let decl = ()
+
 let deviceIDCRI_subject_payload_t' = (
   x509_RDN_x520_attribute_t COMMON_NAME  IA5_STRING `tuple2`
   x509_RDN_x520_attribute_t ORGANIZATION IA5_STRING `tuple2`

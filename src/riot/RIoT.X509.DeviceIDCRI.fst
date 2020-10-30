@@ -13,6 +13,7 @@ module B32 = FStar.Bytes
 
 #set-options "--__temp_no_proj RIoT.X509.DeviceIDCRI"
 
+let decl = ()
 
 (*     (To-Be-Signed) DeviceID Certification Request Info
  *================================================================

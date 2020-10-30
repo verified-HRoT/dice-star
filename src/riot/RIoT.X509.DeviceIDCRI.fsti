@@ -24,6 +24,8 @@ module B32 = FStar.Bytes
 
 #set-options "--__temp_no_proj RIoT.X509.DeviceIDCRI"
 
+val decl : unit
+
 noeq
 type deviceIDCRI_payload_t = {
   deviceIDCRI_version: datatype_of_asn1_type INTEGER;

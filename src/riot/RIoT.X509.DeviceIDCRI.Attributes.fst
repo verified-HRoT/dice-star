@@ -48,7 +48,11 @@ open LowParse.Spec.Bytes
  *   }
  *)
 
-#set-options "--z3rlimit 128 --fuel 0 --ifuel 0"
+#set-options "--z3rlimit 128 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
+
+#set-options "--__temp_no_proj RIoT.X509.DeviceIDCRI.Attributes"
+
+let decl = ()
 
 let deviceIDCRI_attributes_extensionRequest_payload_t' = (
   key_usage_t
@@ -61,6 +65,7 @@ let synth_deviceIDCRI_attributes_extensionRequest_payload_t
   deviceID_attr_ext_key_usage = x
 }
 
+inline_for_extraction noextract
 let synth_deviceIDCRI_attributes_extensionRequest_payload_t'
   (x: deviceIDCRI_attributes_extensionRequest_payload_t)
 : Tot (x': deviceIDCRI_attributes_extensionRequest_payload_t'
