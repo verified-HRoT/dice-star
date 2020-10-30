@@ -9,6 +9,8 @@ open FStar.Integers
 
 #set-options "--z3rlimit 32 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
+#set-options "--__temp_no_proj RIoT.X509.Extension"
+
 type riot_extension_payload_t: Type
 = { x509_extID_riot      : x:datatype_of_asn1_type OID {x == OID_RIOT};
     x509_extCritical_riot: datatype_of_asn1_type BOOLEAN;
@@ -22,6 +24,7 @@ let synth_riot_extension_payload_t
     x509_extCritical_riot = snd (fst x');
     x509_extValue_riot    = snd x' }
 
+inline_for_extraction noextract
 let synth_riot_extension_payload_t_inverse
   (x: riot_extension_payload_t)
 : Tot (x': x509_extension_t' OID_RIOT serialize_compositeDeviceID

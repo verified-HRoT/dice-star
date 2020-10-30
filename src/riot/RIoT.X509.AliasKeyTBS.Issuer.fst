@@ -9,6 +9,10 @@ module B32 = FStar.Bytes
 
 #set-options "--z3rlimit 512 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
+#set-options "--__temp_no_proj RIoT.X509.AliasKeyTBS.Issuer"
+
+let decl = ()
+
 let aliasKeyTBS_issuer_payload_t' = (
   x509_RDN_x520_attribute_t COMMON_NAME  IA5_STRING `tuple2`
   x509_RDN_x520_attribute_t ORGANIZATION IA5_STRING `tuple2`
@@ -22,6 +26,7 @@ let synth_aliasKeyTBS_issuer_payload_t
     aliasKeyTBS_issuer_Organization = snd (fst x');
     aliasKeyTBS_issuer_Country      = snd x' }
 
+inline_for_extraction noextract
 let synth_aliasKeyTBS_issuer_payload_t'
   (x: aliasKeyTBS_issuer_payload_t)
 : Tot (x': aliasKeyTBS_issuer_payload_t'

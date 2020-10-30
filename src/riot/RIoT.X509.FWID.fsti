@@ -12,7 +12,11 @@ open ASN1.Low
 
 open FStar.Integers
 
-#set-options "--z3rlimit 32 --fuel 0 --ifuel 0"
+#set-options "--z3rlimit 32 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
+
+#set-options "--__temp_no_proj RIoT.X509.FWID"
+
+val decl : unit
 
 (* FWID
   ======
@@ -94,7 +98,7 @@ noextract inline_for_extraction
 val serialize32_fwid_payload_backwards
 : serializer32_backwards serialize_fwid_payload
 
-noextract inline_for_extraction
+//noextract inline_for_extraction
 val serialize32_fwid_backwards
 : serializer32_backwards serialize_fwid
 

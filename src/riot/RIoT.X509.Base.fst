@@ -5,6 +5,8 @@ open X509
 
 module B32 = FStar.Bytes
 
+#set-options "--__temp_no_proj RIoT.X509.Base"
+
 noeq
 type deviceIDCSR_ingredients_t = {
   deviceIDCSR_ku: key_usage_payload_t;

@@ -12,7 +12,11 @@ open X509.Crypto
 open RIoT.X509.Base
 open RIoT.X509.FWID
 
-#set-options "--z3rlimit 32 --fuel 0 --ifuel 0"
+#set-options "--z3rlimit 32 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
+
+#set-options "--__temp_no_proj RIoT.X509.CompositeDeviceID"
+
+val decl : unit
 
 (* CompositeDeviceID *)
 type compositeDeviceID_payload_t

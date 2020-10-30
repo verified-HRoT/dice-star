@@ -12,7 +12,11 @@ open X509.Crypto
 open RIoT.X509.Base
 open RIoT.X509.FWID
 
-#set-options "--z3rlimit 32 --fuel 0 --ifuel 0"
+#set-options "--z3rlimit 32 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
+
+#set-options "--__temp_no_proj RIoT.X509.CompositeDeviceID"
+
+let decl = ()
 
 (* CompositeDeviceID *)
 
@@ -29,6 +33,7 @@ let synth_compositeDeviceID_payload_t
     riot_deviceID = snd (fst x');
     riot_fwid     = snd x' }
 
+inline_for_extraction noextract
 let synth_compositeDeviceID_payload_t'
   (x: compositeDeviceID_payload_t)
 : Tot (x': compositeDeviceID_payload_t' { x == synth_compositeDeviceID_payload_t x' })

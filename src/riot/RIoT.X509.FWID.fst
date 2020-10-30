@@ -12,7 +12,11 @@ open ASN1.Low
 
 open FStar.Integers
 
-#set-options "--z3rlimit 32 --fuel 0 --ifuel 0"
+#set-options "--z3rlimit 32 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
+
+#set-options "--__temp_no_proj RIoT.X509.FWID"
+
+let decl = ()
 
 (* FWID
   ======
@@ -35,6 +39,7 @@ let synth_fwid_payload_t
 = { fwid_hashAlg = fst x';
     fwid_value   = snd x' }
 
+inline_for_extraction noextract
 let synth_fwid_payload_t'
   (x: fwid_payload_t)
 : Tot (x': fwid_payload_t' { x == synth_fwid_payload_t x' } )
