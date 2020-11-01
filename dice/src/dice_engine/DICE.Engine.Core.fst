@@ -1,4 +1,4 @@
-module DICE.Core
+module DICE.Engine.Core
 
 open LowStar.Comment
 

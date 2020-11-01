@@ -4,9 +4,9 @@ ALL_FSTAR_FILES = \
     $(wildcard $(addsuffix /*.fst,$(ALL_VHW_SOURCE_DIRS)))
 
 # F* source files required by different modules
-ifeq ($(shell basename "`pwd`"),dice)
+ifeq ($(shell basename "`pwd`"),dice_engine)
   TARGET_FSTAR_FILES = \
-    $(call find-all,$(DICE_DIR)/%,)
+    $(call find-all,$(DICE_ENGINE_DIR)/%,)
 else
 ifeq ($(shell basename "`pwd`"),l0)
   TARGET_FSTAR_FILES = \

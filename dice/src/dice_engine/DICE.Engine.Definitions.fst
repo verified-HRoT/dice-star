@@ -1,4 +1,4 @@
-module DICE.Definitions
+module DICE.Engine.Definitions
 
 module HS = FStar.HyperStack
 

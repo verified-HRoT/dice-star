@@ -1,4 +1,4 @@
-module DICE.Test
+module DICE.Engine.Test
 
 open LowStar.Buffer
 open FStar.HyperStack.ST

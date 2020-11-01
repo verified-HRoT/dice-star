@@ -2,7 +2,7 @@
 # src
 # ├── c
 # │   └── ...
-# ├── dice
+# ├── dice_engine
 # │   └── ...
 # ├── l0
 # │   ├── asn1
@@ -13,7 +13,7 @@
 # └── test
 #     └── ...
 
-ifeq ($(shell basename "`pwd`"),dice)
+ifeq ($(shell basename "`pwd`"),dice_engine)
   SRC_DIR ?= ..
 else
 ifeq ($(shell basename "`pwd`"),l0)
@@ -37,7 +37,7 @@ endif
 
 OUTPUT_DIR ?= $(SRC_DIR)/obj
 HINT_DIR ?= $(SRC_DIR)/hints
-DICE_DIR ?= $(SRC_DIR)/dice
+DICE_ENGINE_DIR ?= $(SRC_DIR)/dice_engine
 RIOT_DIR ?= $(SRC_DIR)/l0
 ASN1_DIR ?= $(RIOT_DIR)/asn1
 X509_DIR ?= $(RIOT_DIR)/x509
@@ -45,7 +45,7 @@ TEST_DIR ?= $(SRC_DIR)/test
 C_DIR ?= $(SRC_DIR)/c
 
 ALL_VHW_SOURCE_DIRS = \
-  $(DICE_DIR) \
+  $(DICE_ENGINE_DIR) \
   $(RIOT_DIR) \
   $(ASN1_DIR) \
   $(X509_DIR) \
