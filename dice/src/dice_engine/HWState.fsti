@@ -7,7 +7,7 @@ module G = FStar.Ghost
 module HS = FStar.HyperStack
 module B = LowStar.Buffer
 
-open DICE.Definitions
+open DICE.Engine.Definitions
 
 #set-options "--__temp_no_proj HWState"
 

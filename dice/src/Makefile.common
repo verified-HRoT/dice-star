@@ -165,13 +165,13 @@ FSTAR = $(FSTAR_HOME)/bin/fstar.exe
 KRML=$(KREMLIN_HOME)/krml
 
 KRML_NO_PREFIXS = \
-  -no-prefix 'DICE.ENGINE.\*' \
+  -no-prefix 'DICE.Engine.\*' \
   -no-prefix 'L0.\*' \
   -no-prefix 'ASN1.\*' \
   -no-prefix 'X509.\*' \
-  -no-prefix 'DICE.ENGINE.Definitions' \
-  -no-prefix 'DICE.ENGINE.Core' \
-  -no-prefix 'DICE.ENGINE.Test' \
+  -no-prefix 'DICE.Engine.Definitions' \
+  -no-prefix 'DICE.Engine.Core' \
+  -no-prefix 'DICE.Engine.Test' \
   -no-prefix 'HWAbstraction' \
   -no-prefix 'ASN1.Test' \
   -no-prefix 'ASN1.Test.Helpers' \
@@ -198,7 +198,7 @@ KRML_LIBRARIES = \
   -library L0.Helpers
 
 KRML_BUNDLES = \
-  -bundle DICE.ENGINE.Definitions \
+  -bundle DICE.Engine.Definitions \
   -bundle ASN1.*,X509.* \
   -bundle LowParse.* \
   -bundle L0.X509.LengthUtils \

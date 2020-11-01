@@ -17,7 +17,7 @@ module Ed25519 = Hacl.Ed25519
 
 module HW = HWAbstraction
 
-open DICE.Definitions
+open DICE.Engine.Definitions
 
 module HSeq = Lib.Sequence
 

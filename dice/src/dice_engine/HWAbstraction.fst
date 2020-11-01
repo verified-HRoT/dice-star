@@ -13,7 +13,7 @@ module I = Lib.IntTypes
 
 open FStar.Integers
 
-open DICE.Definitions
+open DICE.Engine.Definitions
 
 friend HWState
 

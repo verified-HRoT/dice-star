@@ -15,6 +15,6 @@ let main ()
   push_frame ();
   let h1 = get () in
   frame_ghost_state loc_none h0 h1;
-  let ret = DICE.Core.dice_main () in
+  let ret = DICE.Engine.Core.dice_main () in
   pop_frame ();
   C.EXIT_SUCCESS
