@@ -197,12 +197,14 @@ KRML_LIBRARIES = \
   -library ASN1.Test.Helpers \
   -library L0.Helpers
 
+HACL_LIB=Hacl_Lib
+
 KRML_BUNDLES = \
   -bundle DICE.Engine.Definitions \
   -bundle ASN1.*,X509.* \
   -bundle LowParse.* \
   -bundle L0.X509.LengthUtils \
-  -bundle Prims,C.Failure,C,C.*,FStar.*,Hacl.*,Spec.*,Vale.*,Lib.*,LowStar.*,Meta.*[rename=Hacl_Lib]
+  -bundle Prims,C.Failure,C,C.*,FStar.*,Hacl.*,Spec.*,Vale.*,Lib.*,LowStar.*,Meta.*[rename=$(HACL_LIB)]
 
 KRML_MISC_FLAGS = \
   -fparentheses -fno-shadow -fcurly-braces \
