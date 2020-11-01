@@ -9,6 +9,8 @@ module B = LowStar.Buffer
 
 open DICE.Definitions
 
+#set-options "--__temp_no_proj HWState"
+
 type mbuffer (a:Type0) (len:nat) =
   b:B.lbuffer a len{B.frameOf b == HS.root /\ B.recallable b}
 
