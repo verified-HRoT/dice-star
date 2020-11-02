@@ -234,12 +234,14 @@ let x509_get_deviceIDCRI_attributes
   (* Prf *) lemma_serialize_x509_key_usage_size_exact key_usage;
 
   (* construct innermost payload *)
+  [@inline_let]
   let attrs_payload: deviceIDCRI_attributes_extensionRequest_payload_t = {
     deviceID_attr_ext_key_usage = key_usage
   } in
   (* Prf *) lemma_serialize_deviceIDCRI_attributes_extensionRequest_payload_size attrs_payload;
 
   (* envelop into the innermost SEQUENCE *)
+  [@inline_let]
   let attrs_payload: (SEQUENCE `inbound_envelop_tag_with_value_of`
                      (**) serialize_deviceIDCRI_attributes_extensionRequest_payload) = attrs_payload in
   (* Prf *) lemma_serialize_asn1_envelop_tag_with_TLV_size
@@ -248,6 +250,7 @@ let x509_get_deviceIDCRI_attributes
               (attrs_payload);
 
   (* envelop into SET *)
+  [@inline_let]
   let attrs_payload: (SET `inbound_envelop_tag_with_value_of`
                      (**) (SEQUENCE `serialize_asn1_envelop_tag_with_TLV`
                           (**) serialize_deviceIDCRI_attributes_extensionRequest_payload))
@@ -259,6 +262,7 @@ let x509_get_deviceIDCRI_attributes
               (attrs_payload);
 
   (* attach the OID *)
+  [@inline_let]
   let attrs: (OID_PKCS9_CSR_EXT_REQ `envelop_OID_with_t`
              (SET `inbound_envelop_tag_with_value_of`
              (**) (SEQUENCE `serialize_asn1_envelop_tag_with_TLV`

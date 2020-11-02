@@ -62,24 +62,30 @@ let len_of_asn1_primitive_value
 
   | ASN1_NULL    -> ( 0ul )
 
-  | INTEGER      -> ( let value = value <: datatype_of_asn1_type INTEGER in
-                      len_of_asn1_integer value )
+  | INTEGER      -> ( [@inline_let]
+                     let value = value <: datatype_of_asn1_type INTEGER in
+                     len_of_asn1_integer value )
 
-  | OCTET_STRING -> ( let value = value <: datatype_of_asn1_type OCTET_STRING in
-                      value.ASN1.Base.len )
+  | OCTET_STRING -> ( [@inline_let]
+                     let value = value <: datatype_of_asn1_type OCTET_STRING in
+                     value.ASN1.Base.len )
 
   | PRINTABLE_STRING
-                 -> ( let value = value <: datatype_of_asn1_type PRINTABLE_STRING in
-                      dfst value )
+                 -> ( [@inline_let]
+                     let value = value <: datatype_of_asn1_type PRINTABLE_STRING in
+                     dfst value )
 
-  | IA5_STRING   -> ( let value = value <: datatype_of_asn1_type IA5_STRING in
-                      dfst value )
+  | IA5_STRING   -> ( [@inline_let]
+                     let value = value <: datatype_of_asn1_type IA5_STRING in
+                     dfst value )
 
-  | BIT_STRING   -> ( let value = value <: datatype_of_asn1_type BIT_STRING in
-                      Mkbit_string_t?.bs_len value )
+  | BIT_STRING   -> ( [@inline_let]
+                     let value = value <: datatype_of_asn1_type BIT_STRING in
+                     Mkbit_string_t?.bs_len value )
 
-  | OID          -> ( let value = value <: datatype_of_asn1_type OID in
-                      len_of_oid value )
+  | OID          -> ( [@inline_let]
+                     let value = value <: datatype_of_asn1_type OID in
+                     len_of_oid value )
 
   | UTC_TIME     -> ( 13ul )
 
@@ -119,10 +125,13 @@ let len_of_asn1_primitive_TLV
                                 ; lemma_serialize_asn1_utc_time_TLV_size   (value <: datatype_of_asn1_type UTC_TIME) )
               );
 
+  [@inline_let]
   let value_len = len_of_asn1_primitive_value value in
 
+  [@inline_let]
   let len_len = len_of_asn1_length value_len in
 
+  [@inline_let]
   let tag_len = 1ul in
 
 (* return *) tag_len + len_len + value_len

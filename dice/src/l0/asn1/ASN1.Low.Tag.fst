@@ -93,7 +93,9 @@ let serialize32_asn1_tag_of_type_backwards _a
     #rrel #rel
     b
     pos
-->  let offset = len_of_asn1_tag a in
+->  [@inline_let]
+   let offset = len_of_asn1_tag a in
+   [@inline_let]
    let content: byte = encode_asn1_tag a in
     (* Prf *) lemma_serialize_asn1_tag_of_type_unfold _a a;
     (* Prf *) serialize_u8_spec content;

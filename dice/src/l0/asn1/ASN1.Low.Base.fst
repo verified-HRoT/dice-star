@@ -80,6 +80,59 @@ let coerce_serializer32_backwards
 : Tot (serializer32_backwards (s2))
 = s32
 
+let frame32_post (#rrel #rel:_) (b:B.mbuffer byte rrel rel)
+  (posl posr:Ghost.erased size_t)
+  (pos:size_t)
+  (offset:UInt32.t)
+  (h0 h1:HS.mem)
+  : Lemma
+    (requires
+      B.live h0 b /\
+      v posl + v offset <= v pos /\ v pos <= v posr /\ v posr <= B.length b /\
+      writable b (v posl) (v posr) h0 /\
+      B.modifies (B.loc_buffer_from_to b (UInt32.sub pos offset) (pos)) h0 h1)
+    (ensures
+      B.live h1 b /\
+      Seq.slice (B.as_seq h0 b) (v posl) (v (pos - offset)) `Seq.equal`
+      Seq.slice (B.as_seq h1 b) (v posl) (v (pos - offset)) /\
+      Seq.slice (B.as_seq h0 b) (v pos) (v posr) `Seq.equal`
+      Seq.slice (B.as_seq h1 b) (v pos) (v posr) /\
+      writable b (v posl) (v posr) h1)
+   =  (* NOTE: Retain writability of b[posl, posr]. *)
+  (* Prf *) B.loc_includes_loc_buffer_from_to b
+            (*range*) posl posr
+            (* new *) (pos - offset) pos;
+  (* Prf *) writable_modifies b
+            (*range*) (v posl) (v posr)
+            (*from *) h0
+            (*other*) B.loc_none
+            (*to   *) h1;
+
+  (* NOTE: Prove b[posl, pos - offset] is not modified from `h0` to `h1`. *)
+  (* Prf *) B.loc_includes_loc_buffer_from_to b
+            (*range*) posl posr
+            (*frame*) posl (pos - offset);
+  (* Prf *) B.loc_disjoint_loc_buffer_from_to b
+            (*frame*) posl (pos - offset)
+            (* new *) (pos - offset) pos;
+  (* Prf *) B.modifies_buffer_from_to_elim b
+            (*frame*) posl (pos - offset)
+            (* new *) (B.loc_buffer_from_to b (pos - offset) pos)
+            (* mem *) h0 h1;
+
+  (* NOTE: Prove b[pos, posr] is s not modified from `h0` to `h1`. *)
+  (* Prf *) B.loc_includes_loc_buffer_from_to b
+            (*range*) posl posr
+            (*frame*) pos posr;
+  (* Prf *) B.loc_disjoint_loc_buffer_from_to b
+            (* new *) (pos - offset) pos
+            (*frame*) pos posr;
+  (* Prf *) B.modifies_buffer_from_to_elim b
+            (*frame*) pos posr
+            (* new *) (B.loc_buffer_from_to b (pos - offset) pos)
+            (* mem *) h0 h1
+
+#push-options "--warn_error -271 --fuel 0 --ifuel 0 --z3rlimit 30"
 inline_for_extraction
 let frame_serializer32_backwards
   (#k: parser_kind)
@@ -114,7 +167,41 @@ let frame_serializer32_backwards
     writable b (v posl) (v posr) h' /\
     Seq.slice s' (v (pos - offset)) (v pos) `Seq.equal` sx
   )))
-=
+= let aux (#rrel #rel:_) (b:B.mbuffer byte rrel rel)
+  (posl posr:Ghost.erased size_t)
+  (pos:size_t)
+  (offset:UInt32.t)
+  (h0:HS.mem)
+  : Lemma
+      (requires
+        B.live h0 b /\
+        v posl + v offset <= v pos /\ v pos <= v posr /\ v posr <= B.length b /\
+        writable b (v posl) (v posr) h0)
+      (ensures
+        (forall h1. B.modifies (B.loc_buffer_from_to b (UInt32.sub pos offset) (pos)) h0 h1 ==>
+        (B.live h1 b /\
+         Seq.slice (B.as_seq h0 b) (v posl) (v (pos - offset)) `Seq.equal`
+         Seq.slice (B.as_seq h1 b) (v posl) (v (pos - offset)) /\
+         Seq.slice (B.as_seq h0 b) (v pos) (v posr) `Seq.equal`
+         Seq.slice (B.as_seq h1 b) (v pos) (v posr) /\
+         writable b (v posl) (v posr) h1)))
+     [SMTPat ()]
+  = let aux (h1:HS.mem)
+      : Lemma
+        (requires
+          B.live h0 b /\
+          v posl + v offset <= v pos /\ v pos <= v posr /\ v posr <= B.length b /\
+          writable b (v posl) (v posr) h0 /\
+          B.modifies (B.loc_buffer_from_to b (UInt32.sub pos offset) (pos)) h0 h1)
+        (ensures
+         B.live h1 b /\
+         Seq.slice (B.as_seq h0 b) (v posl) (v (pos - offset)) `Seq.equal`
+         Seq.slice (B.as_seq h1 b) (v posl) (v (pos - offset)) /\
+         Seq.slice (B.as_seq h0 b) (v pos) (v posr) `Seq.equal`
+         Seq.slice (B.as_seq h1 b) (v pos) (v posr) /\
+         writable b (v posl) (v posr) h1)
+         [SMTPat ()]
+       = frame32_post b posl posr pos offset h0 h1 in () in
   (* Prf *) let h0 = HST.get () in
 
   (* NOTE: Prove writability of the to-be-written range of b[posl, posr]. *)
@@ -124,45 +211,8 @@ let frame_serializer32_backwards
             (* dst *) (v pos - Seq.length (serialize s x)) (v pos);
 
   (* NOTE: Serialization. *)
-  let offset = s32 x b pos in
-
-  (* Prf *) let h1 = HST.get () in
-
-  (* NOTE: Retain writability of b[posl, posr]. *)
-  (* Prf *) B.loc_includes_loc_buffer_from_to b
-            (*range*) posl posr
-            (* new *) (pos - offset) pos;
-  (* Prf *) writable_modifies b
-            (*range*) (v posl) (v posr)
-            (*from *) h0
-            (*other*) B.loc_none
-            (*to   *) h1;
-
-  (* NOTE: Prove b[posl, pos - offset] is not modified from `h0` to `h1`. *)
-  (* Prf *) B.loc_includes_loc_buffer_from_to b
-            (*range*) posl posr
-            (*frame*) posl (pos - offset);
-  (* Prf *) B.loc_disjoint_loc_buffer_from_to b
-            (*frame*) posl (pos - offset)
-            (* new *) (pos - offset) pos;
-  (* Prf *) B.modifies_buffer_from_to_elim b
-            (*frame*) posl (pos - offset)
-            (* new *) (B.loc_buffer_from_to b (pos - offset) pos)
-            (* mem *) h0 h1;
-
-  (* NOTE: Prove b[pos, posr] is s not modified from `h0` to `h1`. *)
-  (* Prf *) B.loc_includes_loc_buffer_from_to b
-            (*range*) posl posr
-            (*frame*) pos posr;
-  (* Prf *) B.loc_disjoint_loc_buffer_from_to b
-            (* new *) (pos - offset) pos
-            (*frame*) pos posr;
-  (* Prf *) B.modifies_buffer_from_to_elim b
-            (*frame*) pos posr
-            (* new *) (B.loc_buffer_from_to b (pos - offset) pos)
-            (* mem *) h0 h1;
-
-(* return *) offset
+  s32 x b pos
+#pop-options
 
 /// Backwards combinators
 ///
@@ -188,7 +238,9 @@ let serialize32_nondep_then_backwards
 
     let offset2 = frame_serializer32_backwards ls2 x2 b posl posr pos in
 
+    [@inline_let]
     let pos = pos - offset2 in
+
     let offset1 = frame_serializer32_backwards ls1 x1 b posl posr pos in
 
   (* return *) offset1 + offset2
@@ -222,6 +274,7 @@ let serialize32_tagged_union_backwards
 
   let offset_data = frame_serializer32_backwards (ls tg) x b posl posr pos in
 
+  [@inline_let]
   let pos = pos - offset_data in
   let offset_tag = frame_serializer32_backwards lst tg b posl posr pos in
 

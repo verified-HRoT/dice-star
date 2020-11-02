@@ -94,7 +94,7 @@ val lemma_serialize_fwid_size_exact
 )
 
 (* Low *)
-noextract inline_for_extraction
+//noextract inline_for_extraction
 val serialize32_fwid_payload_backwards
 : serializer32_backwards serialize_fwid_payload
 

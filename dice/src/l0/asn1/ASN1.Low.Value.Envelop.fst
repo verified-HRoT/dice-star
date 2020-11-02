@@ -41,6 +41,7 @@ let serialize32_asn1_envelop_tag_with_TLV_backwards #k #t #p #s a s32
 
   let offset_data = frame_serializer32_backwards s32 x b posl posr pos in
 
+  [@inline_let]
   let pos = pos - offset_data in
 
   let offset_tag_len = frame_serializer32_backwards
