@@ -51,17 +51,6 @@ extern FStar_Bytes_bytes FStar_Bytes_of_buffer(uint32_t l, uint8_t *p);
 
 static inline void store128_be(uint8_t *x0, FStar_UInt128_uint128 x1);
 
-#define Spec_Hash_Definitions_SHA2_224 0
-#define Spec_Hash_Definitions_SHA2_256 1
-#define Spec_Hash_Definitions_SHA2_384 2
-#define Spec_Hash_Definitions_SHA2_512 3
-#define Spec_Hash_Definitions_SHA1 4
-#define Spec_Hash_Definitions_MD5 5
-#define Spec_Hash_Definitions_Blake2S 6
-#define Spec_Hash_Definitions_Blake2B 7
-
-typedef uint8_t Spec_Hash_Definitions_hash_alg;
-
 void Hacl_Hash_SHA2_hash_256(uint8_t *input, uint32_t input_len, uint8_t *dst);
 
 void Hacl_Hash_SHA1_legacy_hash(uint8_t *input, uint32_t input_len, uint8_t *dst);

@@ -27,9 +27,10 @@ open Hacl.Hash.Definitions
 
 #set-options "--__temp_no_proj L0.Definitions"
 
-type l0_hash_alg = a:hash_alg{a == SHA2_256}
+inline_for_extraction noextract
+let l0_hash_alg = a:hash_alg{a == SHA2_256}
 
-inline_for_extraction
+inline_for_extraction noextract
 let alg : l0_hash_alg = SHA2_256
 
 inline_for_extraction noextract
@@ -48,16 +49,16 @@ let l0_hmac (alg:l0_hash_alg) : Hacl.HMAC.compute_st alg =
   | SHA2_512 -> Hacl.HMAC.compute_sha2_512
   // | SHA1     -> Hacl.HMAC.legacy_compute_sha1
 
-unfold let digest_len = hash_len alg
+unfold noextract let digest_len = hash_len alg
 
-unfold type digest_t = hash_t alg
+unfold noextract type digest_t = hash_t alg
 
-unfold type hashable_len = i:size_t{0 < v i /\ v i <= max_input_length alg}
+unfold noextract type hashable_len = i:size_t{0 < v i /\ v i <= max_input_length alg}
 
-unfold let cdi_len = digest_len
+unfold noextract let cdi_len = digest_len
 
-unfold let byte_sec = uint8
-unfold let byte_pub = pub_uint8
+unfold noextract let byte_sec = uint8
+unfold noextract let byte_pub = pub_uint8
 
 noextract unfold let bytes_pub  = Seq.seq byte_pub
 noextract unfold let lbytes_pub = Seq.lseq byte_pub
