@@ -44,8 +44,6 @@ typedef struct aliasKeyCRT_ingredients_t_s
 }
 aliasKeyCRT_ingredients_t;
 
-extern int32_t aliasKeyCrt_key_usage;
-
 #if defined(__cplusplus)
 }
 #endif

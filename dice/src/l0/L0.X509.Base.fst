@@ -32,6 +32,7 @@ type aliasKeyCRT_ingredients_t = {
   aliasKeyCrt_l0_version: datatype_of_asn1_type INTEGER;
 }
 
+inline_for_extraction noextract
 let aliasKeyCrt_key_usage: key_usage_payload_t
 = normalize_term (x509_KU_KEY_CERT_SIGN
   (*
