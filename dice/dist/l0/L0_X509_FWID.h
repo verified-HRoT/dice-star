@@ -26,6 +26,8 @@ fwid_payload_t;
 
 typedef fwid_payload_t fwid_t;
 
+uint32_t serialize32_fwid_payload_backwards(fwid_payload_t x, uint8_t *input, uint32_t pos);
+
 uint32_t serialize32_fwid_backwards(fwid_payload_t x, uint8_t *b, uint32_t pos);
 
 fwid_payload_t x509_get_fwid(FStar_Bytes_bytes fwid);

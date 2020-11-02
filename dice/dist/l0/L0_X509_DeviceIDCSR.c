@@ -25,18 +25,20 @@ serialize32_deviceIDCSR_payload_backwards(
   uint32_t pos
 )
 {
-  uint32_t offset0 = serialize32_asn1_bit_string_TLV_backwards(x.deviceIDCSR_sig, input, pos);
-  uint32_t offset2 = offset0;
-  uint32_t pos1 = pos - offset2;
+  uint32_t offset2 = serialize32_asn1_bit_string_TLV_backwards(x.deviceIDCSR_sig, input, pos);
   uint32_t
-  offset = serialize32_algorithmIdentifier_backwards(x.deviceIDCSR_sig_alg, input, pos1);
-  uint32_t offset21 = offset;
-  uint32_t pos2 = pos1 - offset21;
-  uint32_t offset1 = serialize32_flbytes32_backwards(cri_len, x.deviceIDCSR_cri, input, pos2);
-  uint32_t offset10 = offset1;
-  uint32_t offset3 = offset10 + offset21;
-  uint32_t offset11 = offset3;
-  return offset11 + offset2;
+  offset21 =
+    serialize32_algorithmIdentifier_backwards(x.deviceIDCSR_sig_alg,
+      input,
+      pos - offset2);
+  uint32_t
+  offset1 =
+    serialize32_flbytes32_backwards(cri_len,
+      x.deviceIDCSR_cri,
+      input,
+      pos - offset2 - offset21);
+  uint32_t offset10 = offset1 + offset21;
+  return offset10 + offset2;
 }
 
 uint32_t
@@ -47,24 +49,17 @@ serialize32_deviceIDCSR_backwards(
   uint32_t pos
 )
 {
-  uint32_t offset0 = serialize32_deviceIDCSR_payload_backwards(cri_len, x, b, pos);
-  uint32_t offset_data = offset0;
-  uint32_t pos1 = pos - offset_data;
+  uint32_t offset_data = serialize32_deviceIDCSR_payload_backwards(cri_len, x, b, pos);
   uint32_t
-  offset1 =
+  offset2 =
     serialize32_asn1_length_of_type_backwards(((asn1_tag_t){ .tag = SEQUENCE }),
       offset_data,
       b,
-      pos1);
-  uint32_t offset2 = offset1;
-  uint32_t pos2 = pos1 - offset2;
-  uint32_t offset = (uint32_t)1U;
-  uint8_t content = encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
-  b[pos2 - offset] = content;
-  uint32_t offset3 = offset;
-  uint32_t offset10 = offset3;
-  uint32_t offset4 = offset10 + offset2;
-  uint32_t offset_tag_len = offset4;
+      pos - offset_data);
+  b[pos - offset_data - offset2 - (uint32_t)1U] =
+    encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
+  uint32_t offset1 = (uint32_t)1U;
+  uint32_t offset_tag_len = offset1 + offset2;
   return offset_tag_len + offset_data;
 }
 

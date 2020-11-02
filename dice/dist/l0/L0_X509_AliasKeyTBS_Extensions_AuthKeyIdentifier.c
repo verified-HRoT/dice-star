@@ -36,24 +36,20 @@ serialize32_aliasKeyTBS_extensions_authKeyID_extValue_backwards(
 )
 {
   uint32_t
-  offset0 = serialize32_aliasKeyTBS_extensions_authKeyID_extValue_payload_backwards(x, b, pos);
-  uint32_t offset_data = offset0;
-  uint32_t pos1 = pos - offset_data;
+  offset_data =
+    serialize32_aliasKeyTBS_extensions_authKeyID_extValue_payload_backwards(x,
+      b,
+      pos);
   uint32_t
-  offset1 =
+  offset2 =
     serialize32_asn1_length_of_type_backwards(((asn1_tag_t){ .tag = SEQUENCE }),
       offset_data,
       b,
-      pos1);
-  uint32_t offset2 = offset1;
-  uint32_t pos2 = pos1 - offset2;
-  uint32_t offset = (uint32_t)1U;
-  uint8_t content = encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
-  b[pos2 - offset] = content;
-  uint32_t offset3 = offset;
-  uint32_t offset10 = offset3;
-  uint32_t offset4 = offset10 + offset2;
-  uint32_t offset_tag_len = offset4;
+      pos - offset_data);
+  b[pos - offset_data - offset2 - (uint32_t)1U] =
+    encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
+  uint32_t offset1 = (uint32_t)1U;
+  uint32_t offset_tag_len = offset1 + offset2;
   return offset_tag_len + offset_data;
 }
 
@@ -71,54 +67,35 @@ serialize32_aliasKeyTBS_extensions_authKeyID_backwards(
 {
   K___ASN1_Base_oid_t_bool x1 = x.fst;
   octet_string_t x2 = x.snd;
-  uint32_t offset0 = serialize32_aliasKeyTBS_extensions_authKeyID_extValue_backwards(x2, b, pos);
-  uint32_t offset_data = offset0;
-  uint32_t pos10 = pos - offset_data;
   uint32_t
-  offset1 =
+  offset_data = serialize32_aliasKeyTBS_extensions_authKeyID_extValue_backwards(x2, b, pos);
+  uint32_t
+  offset20 =
     serialize32_asn1_length_of_type_backwards(((asn1_tag_t){ .tag = OCTET_STRING }),
       offset_data,
       b,
-      pos10);
-  uint32_t offset2 = offset1;
-  uint32_t pos20 = pos10 - offset2;
-  uint32_t offset3 = (uint32_t)1U;
-  uint8_t content0 = encode_asn1_tag(((asn1_tag_t){ .tag = OCTET_STRING }));
-  b[pos20 - offset3] = content0;
-  uint32_t offset4 = offset3;
-  uint32_t offset10 = offset4;
-  uint32_t offset5 = offset10 + offset2;
-  uint32_t offset_tag_len = offset5;
-  uint32_t offset6 = offset_tag_len + offset_data;
-  uint32_t offset20 = offset6;
-  uint32_t pos11 = pos - offset20;
+      pos - offset_data);
+  b[pos - offset_data - offset20 - (uint32_t)1U] =
+    encode_asn1_tag(((asn1_tag_t){ .tag = OCTET_STRING }));
+  uint32_t offset10 = (uint32_t)1U;
+  uint32_t offset_tag_len = offset10 + offset20;
+  uint32_t offset21 = offset_tag_len + offset_data;
   oid_t x11 = x1.fst;
   bool x21 = x1.snd;
-  uint32_t offset7 = serialize32_asn1_boolean_TLV_backwards(x21, b, pos11);
-  uint32_t offset21 = offset7;
-  uint32_t pos21 = pos11 - offset21;
-  uint32_t offset8 = serialize32_asn1_oid_TLV_backwards(x11, b, pos21);
-  uint32_t offset11 = offset8;
-  uint32_t offset9 = offset11 + offset21;
-  uint32_t offset12 = offset9;
-  uint32_t offset13 = offset12 + offset20;
-  uint32_t offset_data0 = offset13;
-  uint32_t pos1 = pos - offset_data0;
+  uint32_t offset210 = serialize32_asn1_boolean_TLV_backwards(x21, b, pos - offset21);
+  uint32_t offset11 = serialize32_asn1_oid_TLV_backwards(x11, b, pos - offset21 - offset210);
+  uint32_t offset12 = offset11 + offset210;
+  uint32_t offset_data0 = offset12 + offset21;
   uint32_t
-  offset14 =
+  offset2 =
     serialize32_asn1_length_of_type_backwards(((asn1_tag_t){ .tag = SEQUENCE }),
       offset_data0,
       b,
-      pos1);
-  uint32_t offset22 = offset14;
-  uint32_t pos2 = pos1 - offset22;
-  uint32_t offset = (uint32_t)1U;
-  uint8_t content = encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
-  b[pos2 - offset] = content;
-  uint32_t offset15 = offset;
-  uint32_t offset16 = offset15;
-  uint32_t offset17 = offset16 + offset22;
-  uint32_t offset_tag_len0 = offset17;
+      pos - offset_data0);
+  b[pos - offset_data0 - offset2 - (uint32_t)1U] =
+    encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
+  uint32_t offset1 = (uint32_t)1U;
+  uint32_t offset_tag_len0 = offset1 + offset2;
   return offset_tag_len0 + offset_data0;
 }
 

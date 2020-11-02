@@ -101,8 +101,6 @@ serialize32_asn1_length_of_type_backwards(
 
 uint8_t encode_asn1_tag(asn1_tag_t a);
 
-uint32_t len_of_oid(oid_t oid);
-
 uint32_t serialize32_asn1_oid_TLV_backwards(oid_t x, uint8_t *b, uint32_t pos);
 
 uint32_t serialize32_asn1_bit_string_TLV_backwards(bit_string_t x, uint8_t *b, uint32_t pos);

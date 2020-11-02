@@ -4,36 +4,31 @@
 
 #include "L0_X509_FWID.h"
 
-uint32_t serialize32_fwid_backwards(fwid_payload_t x, uint8_t *b, uint32_t pos)
+uint32_t serialize32_fwid_payload_backwards(fwid_payload_t x, uint8_t *input, uint32_t pos)
 {
   uint32_t
-  offset0 =
+  offset2 =
     serialize32_asn1_octet_string_TLV_with_tag_backwards(((asn1_tag_t){ .tag = OCTET_STRING }),
       x.fwid_value,
-      b,
+      input,
       pos);
-  uint32_t offset2 = offset0;
-  uint32_t pos10 = pos - offset2;
-  uint32_t offset1 = serialize32_asn1_oid_TLV_backwards(x.fwid_hashAlg, b, pos10);
-  uint32_t offset10 = offset1;
-  uint32_t offset3 = offset10 + offset2;
-  uint32_t offset_data = offset3;
-  uint32_t pos1 = pos - offset_data;
+  uint32_t offset1 = serialize32_asn1_oid_TLV_backwards(x.fwid_hashAlg, input, pos - offset2);
+  return offset1 + offset2;
+}
+
+uint32_t serialize32_fwid_backwards(fwid_payload_t x, uint8_t *b, uint32_t pos)
+{
+  uint32_t offset_data = serialize32_fwid_payload_backwards(x, b, pos);
   uint32_t
-  offset4 =
+  offset2 =
     serialize32_asn1_length_of_type_backwards(((asn1_tag_t){ .tag = SEQUENCE }),
       offset_data,
       b,
-      pos1);
-  uint32_t offset20 = offset4;
-  uint32_t pos2 = pos1 - offset20;
-  uint32_t offset = (uint32_t)1U;
-  uint8_t content = encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
-  b[pos2 - offset] = content;
-  uint32_t offset5 = offset;
-  uint32_t offset11 = offset5;
-  uint32_t offset6 = offset11 + offset20;
-  uint32_t offset_tag_len = offset6;
+      pos - offset_data);
+  b[pos - offset_data - offset2 - (uint32_t)1U] =
+    encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
+  uint32_t offset1 = (uint32_t)1U;
+  uint32_t offset_tag_len = offset1 + offset2;
   return offset_tag_len + offset_data;
 }
 

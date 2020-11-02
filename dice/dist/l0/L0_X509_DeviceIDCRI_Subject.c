@@ -11,144 +11,120 @@ len_of_deviceIDCRI_subject_payload(
   character_string_t s_country
 )
 {
-  oid_t value0 = OID_AT_CN;
-  uint32_t value_len = len_of_oid(value0);
-  uint32_t len_len0 = len_of_asn1_length(value_len);
-  uint32_t tag_len0 = (uint32_t)1U;
-  character_string_t value1 = s_common;
-  uint32_t value_len0 = FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(value1);
-  uint32_t len_len1 = len_of_asn1_length(value_len0);
-  uint32_t tag_len1 = (uint32_t)1U;
-  oid_t value2 = OID_AT_CN;
-  uint32_t value_len1 = len_of_oid(value2);
-  uint32_t len_len2 = len_of_asn1_length(value_len1);
-  uint32_t tag_len2 = (uint32_t)1U;
-  character_string_t value3 = s_common;
-  uint32_t value_len2 = FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(value3);
-  uint32_t len_len3 = len_of_asn1_length(value_len2);
-  uint32_t tag_len3 = (uint32_t)1U;
-  oid_t value4 = OID_AT_CN;
-  uint32_t value_len3 = len_of_oid(value4);
-  uint32_t len_len4 = len_of_asn1_length(value_len3);
-  uint32_t tag_len4 = (uint32_t)1U;
-  character_string_t value5 = s_common;
-  uint32_t value_len4 = FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(value5);
-  uint32_t len_len5 = len_of_asn1_length(value_len4);
-  uint32_t tag_len5 = (uint32_t)1U;
-  oid_t value6 = OID_AT_CN;
-  uint32_t value_len5 = len_of_oid(value6);
-  uint32_t len_len6 = len_of_asn1_length(value_len5);
-  uint32_t tag_len6 = (uint32_t)1U;
-  character_string_t value7 = s_common;
-  uint32_t value_len6 = FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(value7);
-  uint32_t len_len7 = len_of_asn1_length(value_len6);
-  uint32_t tag_len7 = (uint32_t)1U;
-  oid_t value8 = OID_AT_ORGANIZATION;
-  uint32_t value_len7 = len_of_oid(value8);
-  uint32_t len_len8 = len_of_asn1_length(value_len7);
-  uint32_t tag_len8 = (uint32_t)1U;
-  character_string_t value9 = s_org;
-  uint32_t value_len8 = FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(value9);
-  uint32_t len_len9 = len_of_asn1_length(value_len8);
-  uint32_t tag_len9 = (uint32_t)1U;
-  oid_t value10 = OID_AT_ORGANIZATION;
-  uint32_t value_len9 = len_of_oid(value10);
-  uint32_t len_len10 = len_of_asn1_length(value_len9);
-  uint32_t tag_len10 = (uint32_t)1U;
-  character_string_t value11 = s_org;
-  uint32_t value_len10 = FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(value11);
-  uint32_t len_len11 = len_of_asn1_length(value_len10);
-  uint32_t tag_len11 = (uint32_t)1U;
-  oid_t value12 = OID_AT_ORGANIZATION;
-  uint32_t value_len11 = len_of_oid(value12);
-  uint32_t len_len12 = len_of_asn1_length(value_len11);
-  uint32_t tag_len12 = (uint32_t)1U;
-  character_string_t value13 = s_org;
-  uint32_t value_len12 = FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(value13);
-  uint32_t len_len13 = len_of_asn1_length(value_len12);
-  uint32_t tag_len13 = (uint32_t)1U;
-  oid_t value14 = OID_AT_ORGANIZATION;
-  uint32_t value_len13 = len_of_oid(value14);
-  uint32_t len_len14 = len_of_asn1_length(value_len13);
-  uint32_t tag_len14 = (uint32_t)1U;
-  character_string_t value15 = s_org;
-  uint32_t value_len14 = FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(value15);
-  uint32_t len_len15 = len_of_asn1_length(value_len14);
-  uint32_t tag_len15 = (uint32_t)1U;
-  oid_t value16 = OID_AT_COUNTRY;
-  uint32_t value_len15 = len_of_oid(value16);
-  uint32_t len_len16 = len_of_asn1_length(value_len15);
-  uint32_t tag_len16 = (uint32_t)1U;
-  character_string_t value17 = s_country;
-  uint32_t value_len16 = FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(value17);
-  uint32_t len_len17 = len_of_asn1_length(value_len16);
-  uint32_t tag_len17 = (uint32_t)1U;
-  oid_t value18 = OID_AT_COUNTRY;
-  uint32_t value_len17 = len_of_oid(value18);
-  uint32_t len_len18 = len_of_asn1_length(value_len17);
-  uint32_t tag_len18 = (uint32_t)1U;
-  character_string_t value19 = s_country;
-  uint32_t value_len18 = FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(value19);
-  uint32_t len_len19 = len_of_asn1_length(value_len18);
-  uint32_t tag_len19 = (uint32_t)1U;
-  oid_t value20 = OID_AT_COUNTRY;
-  uint32_t value_len19 = len_of_oid(value20);
-  uint32_t len_len20 = len_of_asn1_length(value_len19);
-  uint32_t tag_len20 = (uint32_t)1U;
-  character_string_t value21 = s_country;
-  uint32_t value_len20 = FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(value21);
-  uint32_t len_len21 = len_of_asn1_length(value_len20);
-  uint32_t tag_len21 = (uint32_t)1U;
-  oid_t value22 = OID_AT_COUNTRY;
-  uint32_t value_len21 = len_of_oid(value22);
-  uint32_t len_len22 = len_of_asn1_length(value_len21);
-  uint32_t tag_len22 = (uint32_t)1U;
-  character_string_t value = s_country;
-  uint32_t value_len22 = FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(value);
-  uint32_t len_len = len_of_asn1_length(value_len22);
-  uint32_t tag_len = (uint32_t)1U;
   return
     (uint32_t)1U
     +
       len_of_asn1_length((uint32_t)1U
-        + len_of_asn1_length(tag_len0 + len_len0 + value_len + tag_len1 + len_len1 + value_len0)
-        + tag_len2 + len_len2 + value_len1 + tag_len3 + len_len3 + value_len2)
-    +
-      (uint32_t)1U
-      + len_of_asn1_length(tag_len4 + len_len4 + value_len3 + tag_len5 + len_len5 + value_len4)
-      + tag_len6 + len_len6 + value_len5 + tag_len7 + len_len7 + value_len6
+        +
+          len_of_asn1_length((uint32_t)1U
+            + len_of_asn1_length((uint32_t)3U)
+            + (uint32_t)3U
+            +
+              (uint32_t)1U
+              + len_of_asn1_length(FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(s_common))
+              + FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(s_common))
+        +
+          (uint32_t)1U
+          + len_of_asn1_length((uint32_t)3U)
+          + (uint32_t)3U
+          +
+            (uint32_t)1U
+            + len_of_asn1_length(FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(s_common))
+            + FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(s_common))
     +
       (uint32_t)1U
       +
         len_of_asn1_length((uint32_t)1U
-          + len_of_asn1_length(tag_len8 + len_len8 + value_len7 + tag_len9 + len_len9 + value_len8)
-          + tag_len10 + len_len10 + value_len9 + tag_len11 + len_len11 + value_len10)
+          + len_of_asn1_length((uint32_t)3U)
+          + (uint32_t)3U
+          +
+            (uint32_t)1U
+            + len_of_asn1_length(FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(s_common))
+            + FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(s_common))
       +
         (uint32_t)1U
+        + len_of_asn1_length((uint32_t)3U)
+        + (uint32_t)3U
         +
-          len_of_asn1_length(tag_len12
-            + len_len12
-            + value_len11
-            + tag_len13 + len_len13 + value_len12)
-        + tag_len14 + len_len14 + value_len13 + tag_len15 + len_len15 + value_len14
+          (uint32_t)1U
+          + len_of_asn1_length(FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(s_common))
+          + FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(s_common)
     +
       (uint32_t)1U
       +
         len_of_asn1_length((uint32_t)1U
           +
-            len_of_asn1_length(tag_len16
-              + len_len16
-              + value_len15
-              + tag_len17 + len_len17 + value_len16)
-          + tag_len18 + len_len18 + value_len17 + tag_len19 + len_len19 + value_len18)
+            len_of_asn1_length((uint32_t)1U
+              + len_of_asn1_length((uint32_t)3U)
+              + (uint32_t)3U
+              +
+                (uint32_t)1U
+                + len_of_asn1_length(FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(s_org))
+                + FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(s_org))
+          +
+            (uint32_t)1U
+            + len_of_asn1_length((uint32_t)3U)
+            + (uint32_t)3U
+            +
+              (uint32_t)1U
+              + len_of_asn1_length(FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(s_org))
+              + FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(s_org))
       +
         (uint32_t)1U
         +
-          len_of_asn1_length(tag_len20
-            + len_len20
-            + value_len19
-            + tag_len21 + len_len21 + value_len20)
-        + tag_len22 + len_len22 + value_len21 + tag_len + len_len + value_len22;
+          len_of_asn1_length((uint32_t)1U
+            + len_of_asn1_length((uint32_t)3U)
+            + (uint32_t)3U
+            +
+              (uint32_t)1U
+              + len_of_asn1_length(FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(s_org))
+              + FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(s_org))
+        +
+          (uint32_t)1U
+          + len_of_asn1_length((uint32_t)3U)
+          + (uint32_t)3U
+          +
+            (uint32_t)1U
+            + len_of_asn1_length(FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(s_org))
+            + FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(s_org)
+    +
+      (uint32_t)1U
+      +
+        len_of_asn1_length((uint32_t)1U
+          +
+            len_of_asn1_length((uint32_t)1U
+              + len_of_asn1_length((uint32_t)3U)
+              + (uint32_t)3U
+              +
+                (uint32_t)1U
+                + len_of_asn1_length(FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(s_country))
+                + FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(s_country))
+          +
+            (uint32_t)1U
+            + len_of_asn1_length((uint32_t)3U)
+            + (uint32_t)3U
+            +
+              (uint32_t)1U
+              + len_of_asn1_length(FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(s_country))
+              + FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(s_country))
+      +
+        (uint32_t)1U
+        +
+          len_of_asn1_length((uint32_t)1U
+            + len_of_asn1_length((uint32_t)3U)
+            + (uint32_t)3U
+            +
+              (uint32_t)1U
+              + len_of_asn1_length(FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(s_country))
+              + FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(s_country))
+        +
+          (uint32_t)1U
+          + len_of_asn1_length((uint32_t)3U)
+          + (uint32_t)3U
+          +
+            (uint32_t)1U
+            + len_of_asn1_length(FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(s_country))
+            + FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(s_country);
 }
 
 uint32_t
@@ -171,18 +147,19 @@ serialize32_deviceIDCRI_subject_payload_backwards(
   uint32_t pos
 )
 {
-  uint32_t offset0 = serialize32_RDN_COUNTRY(x.deviceIDCRI_subject_Country, input, pos);
-  uint32_t offset2 = offset0;
-  uint32_t pos1 = pos - offset2;
+  uint32_t offset2 = serialize32_RDN_COUNTRY(x.deviceIDCRI_subject_Country, input, pos);
   uint32_t
-  offset = serialize32_RDN_ORGANIZATION(x.deviceIDCRI_subject_Organization, input, pos1);
-  uint32_t offset21 = offset;
-  uint32_t pos2 = pos1 - offset21;
-  uint32_t offset1 = serialize32_RDN_COMMON_NAME(x.deviceIDCRI_subject_Common, input, pos2);
-  uint32_t offset10 = offset1;
-  uint32_t offset3 = offset10 + offset21;
-  uint32_t offset11 = offset3;
-  return offset11 + offset2;
+  offset21 =
+    serialize32_RDN_ORGANIZATION(x.deviceIDCRI_subject_Organization,
+      input,
+      pos - offset2);
+  uint32_t
+  offset1 =
+    serialize32_RDN_COMMON_NAME(x.deviceIDCRI_subject_Common,
+      input,
+      pos - offset2 - offset21);
+  uint32_t offset10 = offset1 + offset21;
+  return offset10 + offset2;
 }
 
 uint32_t
@@ -192,24 +169,17 @@ serialize32_deviceIDCRI_subject_backwards(
   uint32_t pos
 )
 {
-  uint32_t offset0 = serialize32_deviceIDCRI_subject_payload_backwards(x, b, pos);
-  uint32_t offset_data = offset0;
-  uint32_t pos1 = pos - offset_data;
+  uint32_t offset_data = serialize32_deviceIDCRI_subject_payload_backwards(x, b, pos);
   uint32_t
-  offset1 =
+  offset2 =
     serialize32_asn1_length_of_type_backwards(((asn1_tag_t){ .tag = SEQUENCE }),
       offset_data,
       b,
-      pos1);
-  uint32_t offset2 = offset1;
-  uint32_t pos2 = pos1 - offset2;
-  uint32_t offset = (uint32_t)1U;
-  uint8_t content = encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
-  b[pos2 - offset] = content;
-  uint32_t offset3 = offset;
-  uint32_t offset10 = offset3;
-  uint32_t offset4 = offset10 + offset2;
-  uint32_t offset_tag_len = offset4;
+      pos - offset_data);
+  b[pos - offset_data - offset2 - (uint32_t)1U] =
+    encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
+  uint32_t offset1 = (uint32_t)1U;
+  uint32_t offset_tag_len = offset1 + offset2;
   return offset_tag_len + offset_data;
 }
 
