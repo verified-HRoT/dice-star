@@ -4,34 +4,6 @@
 
 #include "L0_X509_AliasKeyTBS_Subject.h"
 
-typedef struct
-__L0_X509_DeviceIDCRI_Subject_x509_rdn_string_t_L0_X509_DeviceIDCRI_Subject_x509_rdn_string_t_s
-{
-  x509_rdn_string_t fst;
-  x509_rdn_string_t snd;
-}
-__L0_X509_DeviceIDCRI_Subject_x509_rdn_string_t_L0_X509_DeviceIDCRI_Subject_x509_rdn_string_t;
-
-typedef struct aliasKeyTBS_subject_payload_t__s
-{
-  __L0_X509_DeviceIDCRI_Subject_x509_rdn_string_t_L0_X509_DeviceIDCRI_Subject_x509_rdn_string_t
-  fst;
-  x509_rdn_string_t snd;
-}
-aliasKeyTBS_subject_payload_t_;
-
-static aliasKeyTBS_subject_payload_t_
-synth_aliasKeyTBS_subject_payload_t_(aliasKeyTBS_subject_payload_t x)
-{
-  return
-    (
-      (aliasKeyTBS_subject_payload_t_){
-        .fst = { .fst = x.aliasKeyTBS_subject_Common, .snd = x.aliasKeyTBS_subject_Organization },
-        .snd = x.aliasKeyTBS_subject_Country
-      }
-    );
-}
-
 uint32_t
 len_of_aliasKeyTBS_subject_payload(
   character_string_t s_common,
@@ -175,15 +147,17 @@ serialize32_aliasKeyTBS_subject_payload_backwards(
   uint32_t pos
 )
 {
-  aliasKeyTBS_subject_payload_t_ scrut = synth_aliasKeyTBS_subject_payload_t_(x);
-  __L0_X509_DeviceIDCRI_Subject_x509_rdn_string_t_L0_X509_DeviceIDCRI_Subject_x509_rdn_string_t
-  x1 = scrut.fst;
-  x509_rdn_string_t x2 = scrut.snd;
-  uint32_t offset2 = serialize32_RDN_COUNTRY(x2, input, pos);
-  x509_rdn_string_t x11 = x1.fst;
-  x509_rdn_string_t x21 = x1.snd;
-  uint32_t offset21 = serialize32_RDN_ORGANIZATION(x21, input, pos - offset2);
-  uint32_t offset1 = serialize32_RDN_COMMON_NAME(x11, input, pos - offset2 - offset21);
+  uint32_t offset2 = serialize32_RDN_COUNTRY(x.aliasKeyTBS_subject_Country, input, pos);
+  uint32_t
+  offset21 =
+    serialize32_RDN_ORGANIZATION(x.aliasKeyTBS_subject_Organization,
+      input,
+      pos - offset2);
+  uint32_t
+  offset1 =
+    serialize32_RDN_COMMON_NAME(x.aliasKeyTBS_subject_Common,
+      input,
+      pos - offset2 - offset21);
   uint32_t offset10 = offset1 + offset21;
   return offset10 + offset2;
 }

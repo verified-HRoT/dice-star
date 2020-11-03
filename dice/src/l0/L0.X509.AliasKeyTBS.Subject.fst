@@ -26,6 +26,7 @@ let synth_aliasKeyTBS_subject_payload_t
     aliasKeyTBS_subject_Organization = snd (fst x');
     aliasKeyTBS_subject_Country      = snd x' }
 
+inline_for_extraction noextract
 let synth_aliasKeyTBS_subject_payload_t'
   (x: aliasKeyTBS_subject_payload_t)
 : Tot (x': aliasKeyTBS_subject_payload_t'
