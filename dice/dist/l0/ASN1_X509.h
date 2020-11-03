@@ -114,8 +114,6 @@ character_string_t;
 
 uint32_t FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(character_string_t t);
 
-FStar_Bytes_bytes FStar_Pervasives_dsnd__uint32_t_FStar_Bytes_bytes(character_string_t t);
-
 uint32_t
 serialize32_asn1_octet_string_TLV_with_tag_backwards(
   asn1_tag_t a,

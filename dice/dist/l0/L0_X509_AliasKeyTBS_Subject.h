@@ -25,21 +25,6 @@ typedef struct aliasKeyTBS_subject_payload_t_s
 }
 aliasKeyTBS_subject_payload_t;
 
-x509_rdn_string_t
-__proj__MkaliasKeyTBS_subject_payload_t__item__aliasKeyTBS_subject_Common(
-  aliasKeyTBS_subject_payload_t projectee
-);
-
-x509_rdn_string_t
-__proj__MkaliasKeyTBS_subject_payload_t__item__aliasKeyTBS_subject_Organization(
-  aliasKeyTBS_subject_payload_t projectee
-);
-
-x509_rdn_string_t
-__proj__MkaliasKeyTBS_subject_payload_t__item__aliasKeyTBS_subject_Country(
-  aliasKeyTBS_subject_payload_t projectee
-);
-
 uint32_t
 len_of_aliasKeyTBS_subject_payload(
   character_string_t s_common,

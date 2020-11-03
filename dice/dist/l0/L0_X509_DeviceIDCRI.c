@@ -131,13 +131,7 @@ x509_get_deviceIDCRI(
 )
 {
   deviceIDCRI_subject_payload_t
-  subject =
-    x509_get_deviceIDCRI_subject(FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(s_common),
-      FStar_Pervasives_dsnd__uint32_t_FStar_Bytes_bytes(s_common),
-      FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(s_org),
-      FStar_Pervasives_dsnd__uint32_t_FStar_Bytes_bytes(s_org),
-      FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(s_country),
-      FStar_Pervasives_dsnd__uint32_t_FStar_Bytes_bytes(s_country));
+  subject = x509_get_deviceIDCRI_subject(s_common, s_org, s_country);
   deviceIDCRI_attributes_t deviceIDCRI_attributes = x509_get_deviceIDCRI_attributes(ku);
   subjectPublicKeyInfo_payload_t deviceID_PKInfo = x509_get_subjectPublicKeyInfo(deviceIDPub);
   return

@@ -57,12 +57,9 @@ serialize32_deviceIDCRI_subject_backwards(
 
 deviceIDCRI_subject_payload_t
 x509_get_deviceIDCRI_subject(
-  uint32_t len_common,
-  FStar_Bytes_bytes s32_common,
-  uint32_t len_org,
-  FStar_Bytes_bytes s32_org,
-  uint32_t len_country,
-  FStar_Bytes_bytes s32_country
+  character_string_t s_common,
+  character_string_t s_org,
+  character_string_t s_country
 );
 
 #if defined(__cplusplus)

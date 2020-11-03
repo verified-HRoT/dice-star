@@ -4,30 +4,6 @@
 
 #include "L0_X509_AliasKeyTBS_Subject.h"
 
-x509_rdn_string_t
-__proj__MkaliasKeyTBS_subject_payload_t__item__aliasKeyTBS_subject_Common(
-  aliasKeyTBS_subject_payload_t projectee
-)
-{
-  return projectee.aliasKeyTBS_subject_Common;
-}
-
-x509_rdn_string_t
-__proj__MkaliasKeyTBS_subject_payload_t__item__aliasKeyTBS_subject_Organization(
-  aliasKeyTBS_subject_payload_t projectee
-)
-{
-  return projectee.aliasKeyTBS_subject_Organization;
-}
-
-x509_rdn_string_t
-__proj__MkaliasKeyTBS_subject_payload_t__item__aliasKeyTBS_subject_Country(
-  aliasKeyTBS_subject_payload_t projectee
-)
-{
-  return projectee.aliasKeyTBS_subject_Country;
-}
-
 typedef struct
 __L0_X509_DeviceIDCRI_Subject_x509_rdn_string_t_L0_X509_DeviceIDCRI_Subject_x509_rdn_string_t_s
 {
