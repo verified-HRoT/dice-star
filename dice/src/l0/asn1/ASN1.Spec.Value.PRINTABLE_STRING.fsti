@@ -19,20 +19,20 @@ let filter_asn1_printable_string
 let synth_asn1_printable_string
   (len: asn1_value_int32_of_type PRINTABLE_STRING)
   (s32: parse_filter_refine (filter_asn1_printable_string len))
-: GTot (value: datatype_of_asn1_type PRINTABLE_STRING{value.c_str_len == len})
-= { c_str_len = len; c_str = s32 }
+: GTot (value: datatype_of_asn1_type PRINTABLE_STRING{(dfst value) == len})
+= (|len, s32|)
 
 noextract inline_for_extraction
 val synth_asn1_printable_string_inverse
   (len: asn1_value_int32_of_type PRINTABLE_STRING)
-  (value: datatype_of_asn1_type PRINTABLE_STRING{value.c_str_len == len})
+  (value: datatype_of_asn1_type PRINTABLE_STRING{(dfst value) == len})
 : Tot (s32: parse_filter_refine (filter_asn1_printable_string len)
              { value == synth_asn1_printable_string len s32 })
 
 let parse_asn1_printable_string
 = parse_asn1_string
     (PRINTABLE_STRING)
-    (fun c -> c.c_str_len)
+    (dfst)
     (filter_asn1_printable_string)
     (synth_asn1_printable_string)
     ()
@@ -40,7 +40,7 @@ let parse_asn1_printable_string
 let serialize_asn1_printable_string
 = serialize_asn1_string
     (PRINTABLE_STRING)
-    (fun c -> c.c_str_len)
+    (dfst)
     (filter_asn1_printable_string)
     (synth_asn1_printable_string)
     (synth_asn1_printable_string_inverse)
@@ -49,7 +49,7 @@ let serialize_asn1_printable_string
 let lemma_serialize_asn1_printable_string_unfold
 = lemma_serialize_asn1_string_unfold
     (PRINTABLE_STRING)
-    (fun c -> c.c_str_len)
+    (dfst)
     (filter_asn1_printable_string)
     (synth_asn1_printable_string)
     (synth_asn1_printable_string_inverse)
@@ -58,7 +58,7 @@ let lemma_serialize_asn1_printable_string_unfold
 let lemma_serialize_asn1_printable_string_size
 = lemma_serialize_asn1_string_size
     (PRINTABLE_STRING)
-    (fun c -> c.c_str_len)
+    (dfst)
     (filter_asn1_printable_string)
     (synth_asn1_printable_string)
     (synth_asn1_printable_string_inverse)
@@ -70,7 +70,7 @@ let parse_asn1_printable_string_TLV_kind = parse_asn1_string_TLV_kind PRINTABLE_
 let parse_asn1_printable_string_TLV
 = parse_asn1_string_TLV
     (PRINTABLE_STRING)
-    (fun c -> c.c_str_len)
+    (dfst)
     (filter_asn1_printable_string)
     (synth_asn1_printable_string)
     ()
@@ -78,7 +78,7 @@ let parse_asn1_printable_string_TLV
 let serialize_asn1_printable_string_TLV
 = serialize_asn1_string_TLV
     (PRINTABLE_STRING)
-    (fun c -> c.c_str_len)
+    (dfst)
     (filter_asn1_printable_string)
     (synth_asn1_printable_string)
     (synth_asn1_printable_string_inverse)
@@ -89,7 +89,7 @@ let lemma_serialize_asn1_printable_string_TLV_unfold
 : Lemma (
   predicate_serialize_asn1_string_TLV_unfold
     (PRINTABLE_STRING)
-    (fun c -> c.c_str_len)
+    (dfst)
     (filter_asn1_printable_string)
     (synth_asn1_printable_string)
     (synth_asn1_printable_string_inverse)
@@ -98,7 +98,7 @@ let lemma_serialize_asn1_printable_string_TLV_unfold
 )
 = lemma_serialize_asn1_string_TLV_unfold
     (PRINTABLE_STRING)
-    (fun c -> c.c_str_len)
+    (dfst)
     (filter_asn1_printable_string)
     (synth_asn1_printable_string)
     (synth_asn1_printable_string_inverse)
@@ -110,7 +110,7 @@ let lemma_serialize_asn1_printable_string_TLV_size
 : Lemma (
   predicate_serialize_asn1_string_TLV_size
     (PRINTABLE_STRING)
-    (fun c -> c.c_str_len)
+    (dfst)
     (filter_asn1_printable_string)
     (synth_asn1_printable_string)
     (synth_asn1_printable_string_inverse)
@@ -119,7 +119,7 @@ let lemma_serialize_asn1_printable_string_TLV_size
 )
 = lemma_serialize_asn1_string_TLV_size
     (PRINTABLE_STRING)
-    (fun c -> c.c_str_len)
+    (dfst)
     (filter_asn1_printable_string)
     (synth_asn1_printable_string)
     (synth_asn1_printable_string_inverse)
@@ -129,7 +129,7 @@ let lemma_serialize_asn1_printable_string_TLV_size
 let count_printable_character
   (x: datatype_of_asn1_type PRINTABLE_STRING)
 : Tot (asn1_int32)
-= x.c_str_len
+= dfst x
 
 let parse_asn1_printable_string_TLV_with_character_bound
   (lb: asn1_value_int32_of_type PRINTABLE_STRING)
@@ -137,7 +137,7 @@ let parse_asn1_printable_string_TLV_with_character_bound
 : parser parse_asn1_printable_string_TLV_kind (asn1_string_with_character_bound_t PRINTABLE_STRING count_printable_character lb ub)
 = parse_asn1_string_TLV_with_character_bound
     (PRINTABLE_STRING)
-    (fun c -> c.c_str_len)
+    (dfst)
     (filter_asn1_printable_string)
     (synth_asn1_printable_string)
     ()
@@ -151,7 +151,7 @@ let serialize_asn1_printable_string_TLV_with_character_bound
 : serializer (parse_asn1_printable_string_TLV_with_character_bound lb ub)
 = serialize_asn1_string_TLV_with_character_bound
     (PRINTABLE_STRING)
-    (fun c -> c.c_str_len)
+    (dfst)
     (filter_asn1_printable_string)
     (synth_asn1_printable_string)
     (synth_asn1_printable_string_inverse)

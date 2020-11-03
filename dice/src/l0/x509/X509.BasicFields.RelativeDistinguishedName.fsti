@@ -480,7 +480,7 @@ let asn1_get_character_string
   (len: asn1_value_int32_of_type string_t)
   (s32: character_string_lbytes32 string_t len)
 : Tot (datatype_of_asn1_type string_t)
-= { c_str_len = len; c_str = s32 } <: character_string_t string_t
+= (|len, s32|) <: character_string_t string_t
 
 inline_for_extraction noextract
 let x509_get_RDN_x520_attribute_string

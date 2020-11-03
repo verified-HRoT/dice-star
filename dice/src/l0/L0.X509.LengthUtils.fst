@@ -29,8 +29,8 @@ unfold noextract
 let coerce_x509_rdn_attribute_t_string_to_asn1_string_cn
   (x:x509_RDN_x520_attribute_string_t COMMON_NAME IA5_STRING)
   : y:datatype_of_asn1_type IA5_STRING{
-      x520_attribute_lb COMMON_NAME <= y.c_str_len /\
-      y.c_str_len <= x520_attribute_ub COMMON_NAME
+      x520_attribute_lb COMMON_NAME <= dfst y /\
+      dfst y <= x520_attribute_ub COMMON_NAME
     }
   = x
 
@@ -38,8 +38,8 @@ unfold noextract
 let coerce_x509_rdn_attribute_t_string_to_asn1_string_org
   (x:x509_RDN_x520_attribute_string_t ORGANIZATION IA5_STRING)
   : y:datatype_of_asn1_type IA5_STRING{
-      x520_attribute_lb ORGANIZATION <= y.c_str_len /\
-      y.c_str_len <= x520_attribute_ub ORGANIZATION
+      x520_attribute_lb ORGANIZATION <= dfst y /\
+      dfst y <= x520_attribute_ub ORGANIZATION
     }
   = x
 
@@ -47,7 +47,7 @@ unfold noextract
 let coerce_x509_rdn_attribute_t_string_to_asn1_string_country
   (x:x509_RDN_x520_attribute_string_t COUNTRY PRINTABLE_STRING)
   : y:datatype_of_asn1_type PRINTABLE_STRING{
-      x520_attribute_lb COUNTRY <= y.c_str_len /\
-      y.c_str_len <= x520_attribute_ub COUNTRY
+      x520_attribute_lb COUNTRY <= dfst y /\
+      dfst y <= x520_attribute_ub COUNTRY
     }
   = x
