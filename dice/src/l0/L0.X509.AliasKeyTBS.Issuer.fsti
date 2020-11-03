@@ -167,34 +167,22 @@ val serialize32_aliasKeyTBS_issuer_backwards
  *)
 
 let x509_get_aliasKeyTBS_issuer
-  (#len_common: asn1_value_int32_of_type IA5_STRING
-                { x520_attribute_lb COMMON_NAME <= len_common /\
-                  len_common <= x520_attribute_ub COMMON_NAME })
-  (s32_common: character_string_lbytes32 IA5_STRING len_common)
-  (#len_org: asn1_value_int32_of_type IA5_STRING
-                { x520_attribute_lb ORGANIZATION <= len_org /\
-                  len_org <= x520_attribute_ub ORGANIZATION })
-  (s32_org: character_string_lbytes32 IA5_STRING len_org)
-  (#len_country: asn1_value_int32_of_type PRINTABLE_STRING
-                { x520_attribute_lb COUNTRY <= len_country /\
-                  len_country <= x520_attribute_ub COUNTRY })
-  (s32_country: character_string_lbytes32 PRINTABLE_STRING len_country)
+  (s_common:character_string_t IA5_STRING{
+    x520_attribute_lb COMMON_NAME <= dfst s_common /\
+    dfst s_common <= x520_attribute_ub COMMON_NAME})
+  (s_org:character_string_t IA5_STRING{
+    x520_attribute_lb ORGANIZATION <= dfst s_org /\
+    dfst s_org <= x520_attribute_ub ORGANIZATION})
+  (s_country:character_string_t PRINTABLE_STRING{
+    x520_attribute_lb COUNTRY <= dfst s_country /\
+    dfst s_country <= x520_attribute_ub COUNTRY})
 : Tot (aliasKeyTBS_issuer_t)
 = let rdn_common: x509_RDN_x520_attribute_t COMMON_NAME IA5_STRING
-    = x509_get_RDN_x520_attribute
-          (asn1_get_character_string
-            (len_common)
-            (s32_common)) in
+    = x509_get_RDN_x520_attribute s_common in
   let rdn_org: x509_RDN_x520_attribute_t ORGANIZATION IA5_STRING
-    = x509_get_RDN_x520_attribute
-          (asn1_get_character_string
-            (len_org)
-            (s32_org)) in
+    = x509_get_RDN_x520_attribute s_org in
   let rdn_country: x509_RDN_x520_attribute_t COUNTRY PRINTABLE_STRING
-    = x509_get_RDN_x520_attribute
-          (asn1_get_character_string
-            (len_country)
-            (s32_country)) in
+    = x509_get_RDN_x520_attribute s_country in
   let issuer: aliasKeyTBS_issuer_payload_t = {
     aliasKeyTBS_issuer_Common       = rdn_common;
     aliasKeyTBS_issuer_Organization = rdn_org;

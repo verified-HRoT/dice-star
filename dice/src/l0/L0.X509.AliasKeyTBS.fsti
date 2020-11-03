@@ -278,13 +278,7 @@ let x509_get_AliasKeyTBS
   [@inline_let]
   let i_country = coerce_x509_rdn_attribute_t_string_to_asn1_string_country i_country in
 
-  let issuer: aliasKeyTBS_issuer_t = x509_get_aliasKeyTBS_issuer
-    #(dfst i_common)
-    (dsnd i_common)
-    #(dfst i_org)
-    (dsnd i_org)
-    #(dfst i_country)
-    (dsnd i_country) in
+  let issuer: aliasKeyTBS_issuer_t = x509_get_aliasKeyTBS_issuer i_common i_org i_country in
 
   (* Prf *) lemma_serialize_aliasKeyTBS_issuer_size_exact issuer;
 
@@ -300,13 +294,7 @@ let x509_get_AliasKeyTBS
   [@inline_let]
   let s_country = coerce_x509_rdn_attribute_t_string_to_asn1_string_country s_country in
 
-  let subject: aliasKeyTBS_subject_t = x509_get_aliasKeyTBS_subject
-    #(dfst s_common)
-    (dsnd s_common)
-    #(dfst s_org)
-    (dsnd s_org)
-    #(dfst s_country)
-    (dsnd s_country) in
+  let subject: aliasKeyTBS_subject_t = x509_get_aliasKeyTBS_subject s_common s_org s_country in
   (* Prf *) lemma_serialize_aliasKeyTBS_subject_size_exact subject;
 
   let aliasKeyPubInfo = x509_get_subjectPublicKeyInfo
