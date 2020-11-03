@@ -73,11 +73,11 @@ let len_of_asn1_primitive_value
   | PRINTABLE_STRING
                  -> ( [@inline_let]
                      let value = value <: datatype_of_asn1_type PRINTABLE_STRING in
-                     dfst value )
+                     value.c_str_len )
 
   | IA5_STRING   -> ( [@inline_let]
                      let value = value <: datatype_of_asn1_type IA5_STRING in
-                     dfst value )
+                     value.c_str_len )
 
   | BIT_STRING   -> ( [@inline_let]
                      let value = value <: datatype_of_asn1_type BIT_STRING in

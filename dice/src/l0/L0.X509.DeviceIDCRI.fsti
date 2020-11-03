@@ -222,12 +222,12 @@ let x509_get_deviceIDCRI
 : Tot (deviceIDCRI_t)
 =
   let subject: deviceIDCRI_subject_t = x509_get_deviceIDCRI_subject
-    #(dfst (s_common <: datatype_of_asn1_type IA5_STRING))
-    (dsnd (s_common <: datatype_of_asn1_type IA5_STRING))
-    #(dfst (s_org <: datatype_of_asn1_type IA5_STRING))
-    (dsnd (s_org <: datatype_of_asn1_type IA5_STRING))
-    #(dfst (s_country <: datatype_of_asn1_type PRINTABLE_STRING))
-    (dsnd (s_country <: datatype_of_asn1_type PRINTABLE_STRING)) in
+    #((s_common <: datatype_of_asn1_type IA5_STRING).c_str_len)
+    ((s_common <: datatype_of_asn1_type IA5_STRING).c_str)
+    #((s_org <: datatype_of_asn1_type IA5_STRING).c_str_len)
+    ((s_org <: datatype_of_asn1_type IA5_STRING).c_str)
+    #((s_country <: datatype_of_asn1_type PRINTABLE_STRING).c_str_len)
+    ((s_country <: datatype_of_asn1_type PRINTABLE_STRING).c_str) in
   (* Prf *) lemma_serialize_deviceIDCRI_subject_size_exact subject;
 
   let deviceIDCRI_attributes: deviceIDCRI_attributes_t = x509_get_deviceIDCRI_attributes ku in

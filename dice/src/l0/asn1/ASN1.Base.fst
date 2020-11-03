@@ -498,12 +498,17 @@ let character_string_lbytes32
 : Type
 = s32: B32.lbytes32 len { valid_character_string_bytes t (B32.reveal s32) }
 
-// inline_for_extraction
-let character_string_t
-  (t: character_string_type)
-// : Type
-= ( len: asn1_value_int32_of_type t &
-    character_string_lbytes32 t len)
+type character_string_t (t:character_string_type) = {
+  c_str_len:asn1_value_int32_of_type t;
+  c_str:character_string_lbytes32 t c_str_len
+}
+
+// // inline_for_extraction
+// let character_string_t
+//   (t: character_string_type)
+// // : Type
+// = ( len: asn1_value_int32_of_type t &
+//     character_string_lbytes32 t len)
   
 noextract inline_for_extraction
 let asn1_utc_time_for_x509_validity_notBefore_default_list

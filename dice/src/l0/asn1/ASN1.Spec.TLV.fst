@@ -92,9 +92,9 @@ let length_of_asn1_primitive_value
     | OCTET_STRING -> serialize (serialize_asn1_octet_string (v ((value <: datatype_of_asn1_type OCTET_STRING).len))) value
     | PRINTABLE_STRING
                    -> let value: datatype_of_asn1_type PRINTABLE_STRING = value in
-                      serialize (serialize_asn1_printable_string (dfst (value))) value
+                      serialize (serialize_asn1_printable_string (value.c_str_len)) value
     | IA5_STRING   -> let value: datatype_of_asn1_type IA5_STRING = value in
-                      serialize (serialize_asn1_ia5_string (dfst (value))) value
+                      serialize (serialize_asn1_ia5_string (value.c_str_len)) value
     | BIT_STRING   -> serialize (serialize_asn1_bit_string (v (Mkbit_string_t?.bs_len (value <: datatype_of_asn1_type BIT_STRING)))) value
     | OID          -> serialize (serialize_asn1_oid (length_of_oid (value <: datatype_of_asn1_type OID))) value
     | Generalized_Time
@@ -123,13 +123,13 @@ let length_of_asn1_primitive_value
 
   | PRINTABLE_STRING
                  -> ( let value = value <: datatype_of_asn1_type PRINTABLE_STRING in
-                      let length = v (dfst value) in
-                      lemma_serialize_asn1_printable_string_size (dfst value) value
+                      let length = v (value.c_str_len) in
+                      lemma_serialize_asn1_printable_string_size (value.c_str_len) value
                     ; length )
 
   | IA5_STRING   -> ( let value = value <: datatype_of_asn1_type IA5_STRING in
-                      let length = v (dfst value) in
-                      lemma_serialize_asn1_ia5_string_size (dfst value) value
+                      let length = v (value.c_str_len) in
+                      lemma_serialize_asn1_ia5_string_size (value.c_str_len) value
                     ; length )
 
   | BIT_STRING   -> ( let value = value <: datatype_of_asn1_type BIT_STRING in
@@ -231,13 +231,13 @@ let length_of_asn1_primitive_TLV
 
   | PRINTABLE_STRING
                  -> ( let value = value <: datatype_of_asn1_type PRINTABLE_STRING in
-                      let len: asn1_value_int32_of_type PRINTABLE_STRING = dfst value in
+                      let len: asn1_value_int32_of_type PRINTABLE_STRING = value.c_str_len in
                       let length: asn1_value_length_of_type PRINTABLE_STRING = v len in
                       lemma_serialize_asn1_printable_string_TLV_size value
                     ; 1 + length_of_asn1_length len + length )
 
   | IA5_STRING   -> ( let value = value <: datatype_of_asn1_type IA5_STRING in
-                      let len: asn1_value_int32_of_type IA5_STRING = dfst value in
+                      let len: asn1_value_int32_of_type IA5_STRING = value.c_str_len in
                       let length: asn1_value_length_of_type IA5_STRING = v len in
                       lemma_serialize_asn1_ia5_string_TLV_size value
                     ; 1 + length_of_asn1_length len + length )

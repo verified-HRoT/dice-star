@@ -15,7 +15,7 @@ friend ASN1.Spec.Value.PRINTABLE_STRING
 let serialize32_asn1_printable_string_TLV_backwards
 = serialize32_asn1_string_TLV_backwards
     (PRINTABLE_STRING)
-    (dfst)
+    (fun c -> c.c_str_len)
     (filter_asn1_printable_string)
     (synth_asn1_printable_string)
     (synth_asn1_printable_string_inverse)
@@ -24,7 +24,7 @@ let serialize32_asn1_printable_string_TLV_backwards
 let serialize32_asn1_printable_string_TLV_with_character_bound_backwards lb ub
 = serialize32_asn1_string_TLV_with_character_bound_backwards
     (PRINTABLE_STRING)
-    (dfst)
+    (fun c -> c.c_str_len)
     (filter_asn1_printable_string)
     (synth_asn1_printable_string)
     (synth_asn1_printable_string_inverse)

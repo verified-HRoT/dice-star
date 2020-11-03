@@ -26,7 +26,7 @@ friend ASN1.Spec.Value.IA5_STRING
 let serialize32_asn1_ia5_string_TLV_backwards
 = serialize32_asn1_string_TLV_backwards
     (IA5_STRING)
-    (dfst)
+    (fun c -> c.c_str_len)
     (filter_asn1_ia5_string)
     (synth_asn1_ia5_string)
     (synth_asn1_ia5_string_inverse)
@@ -35,7 +35,7 @@ let serialize32_asn1_ia5_string_TLV_backwards
 let serialize32_asn1_ia5_string_TLV_with_character_bound_backwards lb ub
 = serialize32_asn1_string_TLV_with_character_bound_backwards
     (IA5_STRING)
-    (dfst)
+    (fun c -> c.c_str_len)
     (filter_asn1_ia5_string)
     (synth_asn1_ia5_string)
     (synth_asn1_ia5_string_inverse)

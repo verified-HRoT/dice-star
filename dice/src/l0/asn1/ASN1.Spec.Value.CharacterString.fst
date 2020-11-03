@@ -24,8 +24,8 @@ let len_of_character_string
   (x: datatype_of_asn1_type t)
 : Tot (asn1_value_int32_of_type t)
 = match t with
-  | IA5_STRING -> dfst (x <: datatype_of_asn1_type IA5_STRING)
-  | PRINTABLE_STRING -> dfst (x <: datatype_of_asn1_type PRINTABLE_STRING)
+  | IA5_STRING -> (x <: datatype_of_asn1_type IA5_STRING).c_str_len
+  | PRINTABLE_STRING -> (x <: datatype_of_asn1_type PRINTABLE_STRING).c_str_len
 
 let filter_character_string
   (t: character_string_type)
@@ -120,7 +120,7 @@ let lemma_serialize_character_string_unfold
     match t with
     | IA5_STRING -> predicate_serialize_asn1_string_TLV_unfold
                      (IA5_STRING)
-                     (dfst)
+                     (fun c -> c.c_str_len)
                      (filter_asn1_ia5_string)
                      (synth_asn1_ia5_string)
                      (synth_asn1_ia5_string_inverse)
@@ -129,7 +129,7 @@ let lemma_serialize_character_string_unfold
     | PRINTABLE_STRING
                  -> predicate_serialize_asn1_string_TLV_unfold
                      (PRINTABLE_STRING)
-                     (dfst)
+                     (fun c -> c.c_str_len)
                      (filter_asn1_printable_string)
                      (synth_asn1_printable_string)
                      (synth_asn1_printable_string_inverse)
@@ -161,7 +161,7 @@ let lemma_serialize_character_string_size
     match t with
     | IA5_STRING -> predicate_serialize_asn1_string_TLV_size
                      (IA5_STRING)
-                     (dfst)
+                     (fun c -> c.c_str_len)
                      (filter_asn1_ia5_string)
                      (synth_asn1_ia5_string)
                      (synth_asn1_ia5_string_inverse)
@@ -170,7 +170,7 @@ let lemma_serialize_character_string_size
     | PRINTABLE_STRING
                  -> predicate_serialize_asn1_string_TLV_size
                      (PRINTABLE_STRING)
-                     (dfst)
+                     (fun c -> c.c_str_len)
                      (filter_asn1_printable_string)
                      (synth_asn1_printable_string)
                      (synth_asn1_printable_string_inverse)
