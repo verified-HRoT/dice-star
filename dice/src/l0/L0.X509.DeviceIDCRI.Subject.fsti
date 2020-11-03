@@ -15,6 +15,9 @@ module B32 = FStar.Bytes
 
 val decl : unit
 
+let x509_rdn_IA5_t = ASN1.Base.oid_t & ASN1.Base.character_string_t IA5_STRING
+let x509_rdn_PRINTABLE_t = ASN1.Base.oid_t & ASN1.Base.character_string_t PRINTABLE_STRING
+
 noeq
 type deviceIDCRI_subject_payload_t = {
   deviceIDCRI_subject_Common      : x509_RDN_x520_attribute_t COMMON_NAME  IA5_STRING;
