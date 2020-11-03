@@ -19,23 +19,23 @@ extern "C" {
 
 typedef struct aliasKeyTBS_subject_payload_t_s
 {
-  K___ASN1_Base_oid_t_ASN1_Base_character_string_t aliasKeyTBS_subject_Common;
-  K___ASN1_Base_oid_t_ASN1_Base_character_string_t aliasKeyTBS_subject_Organization;
-  K___ASN1_Base_oid_t_ASN1_Base_character_string_t aliasKeyTBS_subject_Country;
+  x509_rdn_string_t aliasKeyTBS_subject_Common;
+  x509_rdn_string_t aliasKeyTBS_subject_Organization;
+  x509_rdn_string_t aliasKeyTBS_subject_Country;
 }
 aliasKeyTBS_subject_payload_t;
 
-K___ASN1_Base_oid_t_ASN1_Base_character_string_t
+x509_rdn_string_t
 __proj__MkaliasKeyTBS_subject_payload_t__item__aliasKeyTBS_subject_Common(
   aliasKeyTBS_subject_payload_t projectee
 );
 
-K___ASN1_Base_oid_t_ASN1_Base_character_string_t
+x509_rdn_string_t
 __proj__MkaliasKeyTBS_subject_payload_t__item__aliasKeyTBS_subject_Organization(
   aliasKeyTBS_subject_payload_t projectee
 );
 
-K___ASN1_Base_oid_t_ASN1_Base_character_string_t
+x509_rdn_string_t
 __proj__MkaliasKeyTBS_subject_payload_t__item__aliasKeyTBS_subject_Country(
   aliasKeyTBS_subject_payload_t projectee
 );
@@ -72,12 +72,9 @@ serialize32_aliasKeyTBS_subject_backwards(
 
 aliasKeyTBS_subject_payload_t
 x509_get_aliasKeyTBS_subject(
-  uint32_t len_common,
-  FStar_Bytes_bytes s32_common,
-  uint32_t len_org,
-  FStar_Bytes_bytes s32_org,
-  uint32_t len_country,
-  FStar_Bytes_bytes s32_country
+  character_string_t s_common,
+  character_string_t s_org,
+  character_string_t s_country
 );
 
 #if defined(__cplusplus)

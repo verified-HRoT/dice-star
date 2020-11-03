@@ -165,23 +165,10 @@ x509_get_AliasKeyTBS(
 )
 {
   oid_t signatureAlg = OID_ED25519;
-  aliasKeyTBS_issuer_payload_t
-  issuer =
-    x509_get_aliasKeyTBS_issuer(FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(i_common),
-      FStar_Pervasives_dsnd__uint32_t_FStar_Bytes_bytes(i_common),
-      FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(i_org),
-      FStar_Pervasives_dsnd__uint32_t_FStar_Bytes_bytes(i_org),
-      FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(i_country),
-      FStar_Pervasives_dsnd__uint32_t_FStar_Bytes_bytes(i_country));
+  aliasKeyTBS_issuer_payload_t issuer = x509_get_aliasKeyTBS_issuer(i_common, i_org, i_country);
   x509_validity_payload_t validity = { .notBefore = notBefore, .notAfter = notAfter };
   aliasKeyTBS_subject_payload_t
-  subject =
-    x509_get_aliasKeyTBS_subject(FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(s_common),
-      FStar_Pervasives_dsnd__uint32_t_FStar_Bytes_bytes(s_common),
-      FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(s_org),
-      FStar_Pervasives_dsnd__uint32_t_FStar_Bytes_bytes(s_org),
-      FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(s_country),
-      FStar_Pervasives_dsnd__uint32_t_FStar_Bytes_bytes(s_country));
+  subject = x509_get_aliasKeyTBS_subject(s_common, s_org, s_country);
   subjectPublicKeyInfo_payload_t aliasKeyPubInfo = x509_get_subjectPublicKeyInfo(aliasKeyPub);
   aliasKeyTBS_extensions_payload_t
   extensions = x509_get_aliasKeyTBS_extensions(ku, keyID, version, fwid, deviceIDPub);

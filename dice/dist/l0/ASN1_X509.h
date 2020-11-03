@@ -143,33 +143,18 @@ key_usage_t;
 
 uint32_t serialize32_x509_key_usage_backwards(key_usage_t x, uint8_t *b, uint32_t pos);
 
-typedef struct K___ASN1_Base_oid_t_ASN1_Base_character_string_t_s
+typedef struct x509_rdn_string_t_s
 {
   oid_t fst;
   character_string_t snd;
 }
-K___ASN1_Base_oid_t_ASN1_Base_character_string_t;
+x509_rdn_string_t;
 
-uint32_t
-serialize32_RDN_COMMON_NAME(
-  K___ASN1_Base_oid_t_ASN1_Base_character_string_t x,
-  uint8_t *b,
-  uint32_t pos
-);
+uint32_t serialize32_RDN_COMMON_NAME(x509_rdn_string_t x, uint8_t *b, uint32_t pos);
 
-uint32_t
-serialize32_RDN_ORGANIZATION(
-  K___ASN1_Base_oid_t_ASN1_Base_character_string_t x,
-  uint8_t *b,
-  uint32_t pos
-);
+uint32_t serialize32_RDN_ORGANIZATION(x509_rdn_string_t x, uint8_t *b, uint32_t pos);
 
-uint32_t
-serialize32_RDN_COUNTRY(
-  K___ASN1_Base_oid_t_ASN1_Base_character_string_t x,
-  uint8_t *b,
-  uint32_t pos
-);
+uint32_t serialize32_RDN_COUNTRY(x509_rdn_string_t x, uint8_t *b, uint32_t pos);
 
 extern asn1_tag_t x509_extensions_outmost_explicit_tag;
 

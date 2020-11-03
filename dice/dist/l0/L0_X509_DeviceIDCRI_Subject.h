@@ -19,9 +19,9 @@ extern "C" {
 
 typedef struct deviceIDCRI_subject_payload_t_s
 {
-  K___ASN1_Base_oid_t_ASN1_Base_character_string_t deviceIDCRI_subject_Common;
-  K___ASN1_Base_oid_t_ASN1_Base_character_string_t deviceIDCRI_subject_Organization;
-  K___ASN1_Base_oid_t_ASN1_Base_character_string_t deviceIDCRI_subject_Country;
+  x509_rdn_string_t deviceIDCRI_subject_Common;
+  x509_rdn_string_t deviceIDCRI_subject_Organization;
+  x509_rdn_string_t deviceIDCRI_subject_Country;
 }
 deviceIDCRI_subject_payload_t;
 

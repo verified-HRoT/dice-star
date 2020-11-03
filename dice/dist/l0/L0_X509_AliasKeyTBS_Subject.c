@@ -4,7 +4,7 @@
 
 #include "L0_X509_AliasKeyTBS_Subject.h"
 
-K___ASN1_Base_oid_t_ASN1_Base_character_string_t
+x509_rdn_string_t
 __proj__MkaliasKeyTBS_subject_payload_t__item__aliasKeyTBS_subject_Common(
   aliasKeyTBS_subject_payload_t projectee
 )
@@ -12,7 +12,7 @@ __proj__MkaliasKeyTBS_subject_payload_t__item__aliasKeyTBS_subject_Common(
   return projectee.aliasKeyTBS_subject_Common;
 }
 
-K___ASN1_Base_oid_t_ASN1_Base_character_string_t
+x509_rdn_string_t
 __proj__MkaliasKeyTBS_subject_payload_t__item__aliasKeyTBS_subject_Organization(
   aliasKeyTBS_subject_payload_t projectee
 )
@@ -20,7 +20,7 @@ __proj__MkaliasKeyTBS_subject_payload_t__item__aliasKeyTBS_subject_Organization(
   return projectee.aliasKeyTBS_subject_Organization;
 }
 
-K___ASN1_Base_oid_t_ASN1_Base_character_string_t
+x509_rdn_string_t
 __proj__MkaliasKeyTBS_subject_payload_t__item__aliasKeyTBS_subject_Country(
   aliasKeyTBS_subject_payload_t projectee
 )
@@ -29,18 +29,18 @@ __proj__MkaliasKeyTBS_subject_payload_t__item__aliasKeyTBS_subject_Country(
 }
 
 typedef struct
-__K___ASN1_Base_oid_t_ASN1_Base_character_string_t_K___ASN1_Base_oid_t_ASN1_Base_character_string_t_s
+__L0_X509_DeviceIDCRI_Subject_x509_rdn_string_t_L0_X509_DeviceIDCRI_Subject_x509_rdn_string_t_s
 {
-  K___ASN1_Base_oid_t_ASN1_Base_character_string_t fst;
-  K___ASN1_Base_oid_t_ASN1_Base_character_string_t snd;
+  x509_rdn_string_t fst;
+  x509_rdn_string_t snd;
 }
-__K___ASN1_Base_oid_t_ASN1_Base_character_string_t_K___ASN1_Base_oid_t_ASN1_Base_character_string_t;
+__L0_X509_DeviceIDCRI_Subject_x509_rdn_string_t_L0_X509_DeviceIDCRI_Subject_x509_rdn_string_t;
 
 typedef struct aliasKeyTBS_subject_payload_t__s
 {
-  __K___ASN1_Base_oid_t_ASN1_Base_character_string_t_K___ASN1_Base_oid_t_ASN1_Base_character_string_t
+  __L0_X509_DeviceIDCRI_Subject_x509_rdn_string_t_L0_X509_DeviceIDCRI_Subject_x509_rdn_string_t
   fst;
-  K___ASN1_Base_oid_t_ASN1_Base_character_string_t snd;
+  x509_rdn_string_t snd;
 }
 aliasKeyTBS_subject_payload_t_;
 
@@ -200,12 +200,12 @@ serialize32_aliasKeyTBS_subject_payload_backwards(
 )
 {
   aliasKeyTBS_subject_payload_t_ scrut = synth_aliasKeyTBS_subject_payload_t_(x);
-  __K___ASN1_Base_oid_t_ASN1_Base_character_string_t_K___ASN1_Base_oid_t_ASN1_Base_character_string_t
+  __L0_X509_DeviceIDCRI_Subject_x509_rdn_string_t_L0_X509_DeviceIDCRI_Subject_x509_rdn_string_t
   x1 = scrut.fst;
-  K___ASN1_Base_oid_t_ASN1_Base_character_string_t x2 = scrut.snd;
+  x509_rdn_string_t x2 = scrut.snd;
   uint32_t offset2 = serialize32_RDN_COUNTRY(x2, input, pos);
-  K___ASN1_Base_oid_t_ASN1_Base_character_string_t x11 = x1.fst;
-  K___ASN1_Base_oid_t_ASN1_Base_character_string_t x21 = x1.snd;
+  x509_rdn_string_t x11 = x1.fst;
+  x509_rdn_string_t x21 = x1.snd;
   uint32_t offset21 = serialize32_RDN_ORGANIZATION(x21, input, pos - offset2);
   uint32_t offset1 = serialize32_RDN_COMMON_NAME(x11, input, pos - offset2 - offset21);
   uint32_t offset10 = offset1 + offset21;
@@ -235,20 +235,14 @@ serialize32_aliasKeyTBS_subject_backwards(
 
 aliasKeyTBS_subject_payload_t
 x509_get_aliasKeyTBS_subject(
-  uint32_t len_common,
-  FStar_Bytes_bytes s32_common,
-  uint32_t len_org,
-  FStar_Bytes_bytes s32_org,
-  uint32_t len_country,
-  FStar_Bytes_bytes s32_country
+  character_string_t s_common,
+  character_string_t s_org,
+  character_string_t s_country
 )
 {
-  K___ASN1_Base_oid_t_ASN1_Base_character_string_t
-  rdn_common = { .fst = OID_AT_CN, .snd = { .fst = len_common, .snd = s32_common } };
-  K___ASN1_Base_oid_t_ASN1_Base_character_string_t
-  rdn_org = { .fst = OID_AT_ORGANIZATION, .snd = { .fst = len_org, .snd = s32_org } };
-  K___ASN1_Base_oid_t_ASN1_Base_character_string_t
-  rdn_country = { .fst = OID_AT_COUNTRY, .snd = { .fst = len_country, .snd = s32_country } };
+  x509_rdn_string_t rdn_common = { .fst = OID_AT_CN, .snd = s_common };
+  x509_rdn_string_t rdn_org = { .fst = OID_AT_ORGANIZATION, .snd = s_org };
+  x509_rdn_string_t rdn_country = { .fst = OID_AT_COUNTRY, .snd = s_country };
   return
     (
       (aliasKeyTBS_subject_payload_t){

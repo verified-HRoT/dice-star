@@ -185,20 +185,14 @@ serialize32_aliasKeyTBS_issuer_backwards(
 
 aliasKeyTBS_issuer_payload_t
 x509_get_aliasKeyTBS_issuer(
-  uint32_t len_common,
-  FStar_Bytes_bytes s32_common,
-  uint32_t len_org,
-  FStar_Bytes_bytes s32_org,
-  uint32_t len_country,
-  FStar_Bytes_bytes s32_country
+  character_string_t s_common,
+  character_string_t s_org,
+  character_string_t s_country
 )
 {
-  K___ASN1_Base_oid_t_ASN1_Base_character_string_t
-  rdn_common = { .fst = OID_AT_CN, .snd = { .fst = len_common, .snd = s32_common } };
-  K___ASN1_Base_oid_t_ASN1_Base_character_string_t
-  rdn_org = { .fst = OID_AT_ORGANIZATION, .snd = { .fst = len_org, .snd = s32_org } };
-  K___ASN1_Base_oid_t_ASN1_Base_character_string_t
-  rdn_country = { .fst = OID_AT_COUNTRY, .snd = { .fst = len_country, .snd = s32_country } };
+  x509_rdn_string_t rdn_common = { .fst = OID_AT_CN, .snd = s_common };
+  x509_rdn_string_t rdn_org = { .fst = OID_AT_ORGANIZATION, .snd = s_org };
+  x509_rdn_string_t rdn_country = { .fst = OID_AT_COUNTRY, .snd = s_country };
   return
     (
       (aliasKeyTBS_issuer_payload_t){

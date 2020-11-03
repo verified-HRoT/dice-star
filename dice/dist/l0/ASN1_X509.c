@@ -1016,12 +1016,7 @@ uint32_t serialize32_x509_key_usage_backwards(key_usage_t x, uint8_t *b, uint32_
   return offset_tag_len0 + offset_data0;
 }
 
-uint32_t
-serialize32_RDN_COMMON_NAME(
-  K___ASN1_Base_oid_t_ASN1_Base_character_string_t x,
-  uint8_t *b,
-  uint32_t pos
-)
+uint32_t serialize32_RDN_COMMON_NAME(x509_rdn_string_t x, uint8_t *b, uint32_t pos)
 {
   oid_t x1 = x.fst;
   character_string_t x2 = x.snd;
@@ -1086,12 +1081,7 @@ serialize32_RDN_COMMON_NAME(
   return offset_tag_len0 + offset_data1;
 }
 
-uint32_t
-serialize32_RDN_ORGANIZATION(
-  K___ASN1_Base_oid_t_ASN1_Base_character_string_t x,
-  uint8_t *b,
-  uint32_t pos
-)
+uint32_t serialize32_RDN_ORGANIZATION(x509_rdn_string_t x, uint8_t *b, uint32_t pos)
 {
   oid_t x1 = x.fst;
   character_string_t x2 = x.snd;
@@ -1156,12 +1146,7 @@ serialize32_RDN_ORGANIZATION(
   return offset_tag_len0 + offset_data1;
 }
 
-uint32_t
-serialize32_RDN_COUNTRY(
-  K___ASN1_Base_oid_t_ASN1_Base_character_string_t x,
-  uint8_t *b,
-  uint32_t pos
-)
+uint32_t serialize32_RDN_COUNTRY(x509_rdn_string_t x, uint8_t *b, uint32_t pos)
 {
   oid_t x1 = x.fst;
   character_string_t x2 = x.snd;
