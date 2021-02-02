@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) [FIXME PROJECT] Contributors
+Copyright (c) [dice-star] Contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
