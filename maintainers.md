@@ -4,3 +4,7 @@ This document lists the Maintainers of Project dice-star. Maintainers may be add
 
 
 Aseem Rastogi, Microsoft Research
+Zhe Tao, University of California - Davis
+Kapil Vaswani, Microsoft Research
+Aditya Thakur, University of California - Davis
+Naman Gupta, Microsoft Research
