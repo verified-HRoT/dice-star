@@ -6,9 +6,9 @@
 
 uint32_t
 len_of_deviceIDCRI_subject_payload(
-  character_string_t s_common,
-  character_string_t s_org,
-  character_string_t s_country
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_common,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_org,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_country
 )
 {
   return
@@ -129,9 +129,9 @@ len_of_deviceIDCRI_subject_payload(
 
 uint32_t
 len_of_deviceIDCRI_subject(
-  character_string_t s_common,
-  character_string_t s_org,
-  character_string_t s_country
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_common,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_org,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_country
 )
 {
   return
@@ -185,9 +185,9 @@ serialize32_deviceIDCRI_subject_backwards(
 
 deviceIDCRI_subject_payload_t
 x509_get_deviceIDCRI_subject(
-  character_string_t s_common,
-  character_string_t s_org,
-  character_string_t s_country
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_common,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_org,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_country
 )
 {
   x509_rdn_string_t rdn_common = { .fst = OID_AT_CN, .snd = s_common };

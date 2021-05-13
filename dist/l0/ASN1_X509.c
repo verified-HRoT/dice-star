@@ -643,30 +643,36 @@ uint32_t serialize32_asn1_bit_string_TLV_backwards(bit_string_t x, uint8_t *b, u
 }
 
 static uint32_t
-__proj__Mkdtuple2__item___1__uint32_t_FStar_Bytes_bytes(character_string_t pair)
+__proj__Mkdtuple2__item___1__uint32_t_FStar_Bytes_bytes(
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes pair
+)
 {
   return pair.fst;
 }
 
-uint32_t FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(character_string_t t)
+uint32_t
+FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(Prims_dtuple2__uint32_t_FStar_Bytes_bytes t)
 {
   return __proj__Mkdtuple2__item___1__uint32_t_FStar_Bytes_bytes(t);
 }
 
 static FStar_Bytes_bytes
-__proj__Mkdtuple2__item___2__uint32_t_FStar_Bytes_bytes(character_string_t pair)
+__proj__Mkdtuple2__item___2__uint32_t_FStar_Bytes_bytes(
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes pair
+)
 {
   return pair.snd;
 }
 
-static FStar_Bytes_bytes dsnd__uint32_t_FStar_Bytes_bytes(character_string_t t)
+static FStar_Bytes_bytes
+dsnd__uint32_t_FStar_Bytes_bytes(Prims_dtuple2__uint32_t_FStar_Bytes_bytes t)
 {
   return __proj__Mkdtuple2__item___2__uint32_t_FStar_Bytes_bytes(t);
 }
 
 static uint32_t
 serialize32_asn1_printable_string_TLV_with_character_bound_backwards(
-  character_string_t x,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes x,
   uint8_t *input,
   uint32_t pos
 )
@@ -984,7 +990,8 @@ _serialize32_x509_key_usage_payload_backwards(int32_t x, uint8_t *input, uint32_
       pos);
 }
 
-uint32_t serialize32_x509_key_usage_backwards(key_usage_t x, uint8_t *b, uint32_t pos)
+uint32_t
+serialize32_x509_key_usage_backwards(K___ASN1_Base_oid_t_int32_t x, uint8_t *b, uint32_t pos)
 {
   oid_t x1 = x.fst;
   int32_t x2 = x.snd;
@@ -1018,7 +1025,7 @@ uint32_t serialize32_x509_key_usage_backwards(key_usage_t x, uint8_t *b, uint32_
 uint32_t serialize32_RDN_COMMON_NAME(x509_rdn_string_t x, uint8_t *b, uint32_t pos)
 {
   oid_t x1 = x.fst;
-  character_string_t x2 = x.snd;
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes x2 = x.snd;
   uint32_t bi = (uint32_t)0U;
   uint32_t len = FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(x2) - (uint32_t)0U;
   while (true)
@@ -1082,7 +1089,7 @@ uint32_t serialize32_RDN_COMMON_NAME(x509_rdn_string_t x, uint8_t *b, uint32_t p
 uint32_t serialize32_RDN_ORGANIZATION(x509_rdn_string_t x, uint8_t *b, uint32_t pos)
 {
   oid_t x1 = x.fst;
-  character_string_t x2 = x.snd;
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes x2 = x.snd;
   uint32_t bi = (uint32_t)0U;
   uint32_t len = FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(x2) - (uint32_t)0U;
   while (true)
@@ -1146,7 +1153,7 @@ uint32_t serialize32_RDN_ORGANIZATION(x509_rdn_string_t x, uint8_t *b, uint32_t 
 uint32_t serialize32_RDN_COUNTRY(x509_rdn_string_t x, uint8_t *b, uint32_t pos)
 {
   oid_t x1 = x.fst;
-  character_string_t x2 = x.snd;
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes x2 = x.snd;
   uint32_t
   offset20 = serialize32_asn1_printable_string_TLV_with_character_bound_backwards(x2, b, pos);
   uint32_t offset10 = serialize32_asn1_oid_TLV_backwards(x1, b, pos - offset20);

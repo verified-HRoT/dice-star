@@ -7,9 +7,9 @@
 uint32_t
 len_of_deviceIDCRI_payload(
   int32_t version,
-  character_string_t s_common,
-  character_string_t s_org,
-  character_string_t s_country
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_common,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_org,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_country
 )
 {
   return
@@ -64,9 +64,9 @@ len_of_deviceIDCRI_payload(
 uint32_t
 len_of_deviceIDCRI(
   int32_t version,
-  character_string_t s_common,
-  character_string_t s_org,
-  character_string_t s_country
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_common,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_org,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_country
 )
 {
   return
@@ -123,16 +123,17 @@ uint32_t serialize32_deviceIDCRI_backwards(deviceIDCRI_payload_t x, uint8_t *b, 
 deviceIDCRI_payload_t
 x509_get_deviceIDCRI(
   int32_t version,
-  character_string_t s_common,
-  character_string_t s_org,
-  character_string_t s_country,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_common,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_org,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_country,
   int32_t ku,
   FStar_Bytes_bytes deviceIDPub
 )
 {
   deviceIDCRI_subject_payload_t
   subject = x509_get_deviceIDCRI_subject(s_common, s_org, s_country);
-  deviceIDCRI_attributes_t deviceIDCRI_attributes = x509_get_deviceIDCRI_attributes(ku);
+  K___ASN1_Base_oid_t_L0_X509_DeviceIDCRI_Attributes_deviceIDCRI_attributes_extensionRequest_payload_t
+  deviceIDCRI_attributes = x509_get_deviceIDCRI_attributes(ku);
   subjectPublicKeyInfo_payload_t deviceID_PKInfo = x509_get_subjectPublicKeyInfo(deviceIDPub);
   return
     (

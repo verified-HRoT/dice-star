@@ -22,7 +22,7 @@ friend ASN1.Spec.Value.BIT_STRING
 
 (* NOTE: Read after `ASN1.Spec.Tag`, `ASN1.Spec.Length`, `ASN1.Spec.Value.OCTET_STRING` *)
 
-#push-options "--z3rlimit 256 --fuel 0 --ifuel 0"
+#push-options "--z3rlimit 512 --fuel 0 --ifuel 0"
 let serialize32_asn1_bit_string_backwards len
 = fun (value: datatype_of_asn1_type BIT_STRING { v len == v (Mkbit_string_t?.bs_len value) })
     (#rrel #rel: _)

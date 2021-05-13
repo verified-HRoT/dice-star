@@ -36,12 +36,12 @@ aliasKeyTBS_payload_t;
 uint32_t
 len_of_aliasKeyTBS_payload(
   octet_string_t serialNumber,
-  character_string_t i_common,
-  character_string_t i_org,
-  character_string_t i_country,
-  character_string_t s_common,
-  character_string_t s_org,
-  character_string_t s_country,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes i_common,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes i_org,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes i_country,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_common,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_org,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_country,
   int32_t version
 );
 
@@ -50,12 +50,12 @@ typedef aliasKeyTBS_payload_t aliasKeyTBS_t;
 uint32_t
 len_of_aliasKeyTBS(
   octet_string_t serialNumber,
-  character_string_t i_common,
-  character_string_t i_org,
-  character_string_t i_country,
-  character_string_t s_common,
-  character_string_t s_org,
-  character_string_t s_country,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes i_common,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes i_org,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes i_country,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_common,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_org,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_country,
   int32_t version
 );
 
@@ -72,14 +72,14 @@ aliasKeyTBS_payload_t
 x509_get_AliasKeyTBS(
   int32_t crt_version,
   octet_string_t serialNumber,
-  character_string_t i_common,
-  character_string_t i_org,
-  character_string_t i_country,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes i_common,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes i_org,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes i_country,
   FStar_Bytes_bytes notBefore,
   FStar_Bytes_bytes notAfter,
-  character_string_t s_common,
-  character_string_t s_org,
-  character_string_t s_country,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_common,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_org,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_country,
   int32_t ku,
   octet_string_t keyID,
   int32_t version,

@@ -23,7 +23,7 @@ extern "C" {
 
 typedef struct aliasKeyTBS_extensions_payload_t_s
 {
-  key_usage_t aliasKeyTBS_extensions_key_usage;
+  K___ASN1_Base_oid_t_int32_t aliasKeyTBS_extensions_key_usage;
   aliasKeyTBS_extensions_extendedKeyUsage_t aliasKeyTBS_extensions_extendedKeyUsage;
   aliasKeyTBS_extensions_basicConstraints_t aliasKeyTBS_extensions_basicConstraints;
   aliasKeyTBS_extensions_authKeyID_t aliasKeyTBS_extensions_authKeyID;

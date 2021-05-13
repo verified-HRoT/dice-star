@@ -105,14 +105,15 @@ uint32_t serialize32_asn1_oid_TLV_backwards(oid_t x, uint8_t *b, uint32_t pos);
 
 uint32_t serialize32_asn1_bit_string_TLV_backwards(bit_string_t x, uint8_t *b, uint32_t pos);
 
-typedef struct character_string_t_s
+typedef struct Prims_dtuple2__uint32_t_FStar_Bytes_bytes_s
 {
   uint32_t fst;
   FStar_Bytes_bytes snd;
 }
-character_string_t;
+Prims_dtuple2__uint32_t_FStar_Bytes_bytes;
 
-uint32_t FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(character_string_t t);
+uint32_t
+FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(Prims_dtuple2__uint32_t_FStar_Bytes_bytes t);
 
 uint32_t
 serialize32_asn1_octet_string_TLV_with_tag_backwards(
@@ -132,19 +133,20 @@ uint32_t serialize32_asn1_boolean_TLV_false_backwards(bool x, uint8_t *input, ui
 
 extern asn1_tag_t x509_authKeyID_keyIdentifier_tag;
 
-typedef struct key_usage_t_s
+typedef struct K___ASN1_Base_oid_t_int32_t_s
 {
   oid_t fst;
   int32_t snd;
 }
-key_usage_t;
+K___ASN1_Base_oid_t_int32_t;
 
-uint32_t serialize32_x509_key_usage_backwards(key_usage_t x, uint8_t *b, uint32_t pos);
+uint32_t
+serialize32_x509_key_usage_backwards(K___ASN1_Base_oid_t_int32_t x, uint8_t *b, uint32_t pos);
 
 typedef struct x509_rdn_string_t_s
 {
   oid_t fst;
-  character_string_t snd;
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes snd;
 }
 x509_rdn_string_t;
 

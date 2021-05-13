@@ -17,30 +17,36 @@ extern "C" {
 
 #include "ASN1_X509.h"
 
-typedef key_usage_t deviceIDCRI_attributes_extensionRequest_payload_t;
+typedef K___ASN1_Base_oid_t_int32_t deviceIDCRI_attributes_extensionRequest_payload_t;
+
+typedef struct
+K___ASN1_Base_oid_t_L0_X509_DeviceIDCRI_Attributes_deviceIDCRI_attributes_extensionRequest_payload_t_s
+{
+  oid_t fst;
+  K___ASN1_Base_oid_t_int32_t snd;
+}
+K___ASN1_Base_oid_t_L0_X509_DeviceIDCRI_Attributes_deviceIDCRI_attributes_extensionRequest_payload_t;
+
+typedef K___ASN1_Base_oid_t_L0_X509_DeviceIDCRI_Attributes_deviceIDCRI_attributes_extensionRequest_payload_t
+deviceIDCRI_attributes_t;
 
 uint32_t
 serialize32_deviceIDCRI_attributes_extensionRequest_payload_backwards(
-  key_usage_t x,
+  K___ASN1_Base_oid_t_int32_t x,
   uint8_t *input,
   uint32_t pos
 );
 
-typedef struct deviceIDCRI_attributes_t_s
-{
-  oid_t fst;
-  key_usage_t snd;
-}
-deviceIDCRI_attributes_t;
-
 uint32_t
 serialize32_deviceIDCRI_attributes_backwards(
-  deviceIDCRI_attributes_t x,
+  K___ASN1_Base_oid_t_L0_X509_DeviceIDCRI_Attributes_deviceIDCRI_attributes_extensionRequest_payload_t
+  x,
   uint8_t *b,
   uint32_t pos
 );
 
-deviceIDCRI_attributes_t x509_get_deviceIDCRI_attributes(int32_t ku);
+K___ASN1_Base_oid_t_L0_X509_DeviceIDCRI_Attributes_deviceIDCRI_attributes_extensionRequest_payload_t
+x509_get_deviceIDCRI_attributes(int32_t ku);
 
 #if defined(__cplusplus)
 }

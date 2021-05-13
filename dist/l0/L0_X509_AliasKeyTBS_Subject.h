@@ -27,18 +27,18 @@ aliasKeyTBS_subject_payload_t;
 
 uint32_t
 len_of_aliasKeyTBS_subject_payload(
-  character_string_t s_common,
-  character_string_t s_org,
-  character_string_t s_country
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_common,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_org,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_country
 );
 
 typedef aliasKeyTBS_subject_payload_t aliasKeyTBS_subject_t;
 
 uint32_t
 len_of_aliasKeyTBS_subject(
-  character_string_t s_common,
-  character_string_t s_org,
-  character_string_t s_country
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_common,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_org,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_country
 );
 
 uint32_t
@@ -57,9 +57,9 @@ serialize32_aliasKeyTBS_subject_backwards(
 
 aliasKeyTBS_subject_payload_t
 x509_get_aliasKeyTBS_subject(
-  character_string_t s_common,
-  character_string_t s_org,
-  character_string_t s_country
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_common,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_org,
+  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_country
 );
 
 #if defined(__cplusplus)

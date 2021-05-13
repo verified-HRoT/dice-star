@@ -116,7 +116,7 @@ x509_get_aliasKeyTBS_extensions(
   FStar_Bytes_bytes deviceIDPub
 )
 {
-  key_usage_t key_usage = { .fst = OID_KEY_USAGE, .snd = ku };
+  K___ASN1_Base_oid_t_int32_t key_usage = { .fst = OID_KEY_USAGE, .snd = ku };
   aliasKeyTBS_extensions_extendedKeyUsage_t
   extendedKeyUsage = x509_get_aliasKeyTBS_extensions_extendedKeyUsage(true);
   aliasKeyTBS_extensions_basicConstraints_t
