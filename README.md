@@ -24,19 +24,19 @@ File Organization
 ```
 
 - `src/c`: C source files
-- `src/dice`: F* source files for DICE
-- `src/riot`: F* source files for RIoT
-  - `RIoT.Base`: X.509 base definitions
-  - `RIoT.Declassify`: Interface for declassification functions
-  - `RIoT.X509.*`: X.509 certificate-related definitions
-  - `RIoT.Spec.*`: Specification for crypto and X.509 certificate-related functions
-  - `RIoT.Impl.*`: Implementation for crypto and X.509 certificate-related functions
-  - `RIoT.Core`: RIoT Core functionality
-  - `src/riot/asn1`: F* source files for ASN.1 serializer
+- `src/dice_engine`: F* source files for DICE
+- `src/l0`: F* source files for RIoT
+  - `L0.Base`: X.509 base definitions
+  - `L0.Declassify`: Interface for declassification functions
+  - `L0.X509.*`: X.509 certificate-related definitions
+  - `L0.Spec.*`: Specification for crypto and X.509 certificate-related functions
+  - `L0.Impl.*`: Implementation for crypto and X.509 certificate-related functions
+  - `L0.Core`: RIoT Core functionality
+  - `src/l0/asn1`: F* source files for ASN.1 serializer
     - `ASN1.Base`: Base ASN.1 definitions
     - `ASN1.Spec.*`: Specification serializers and combinators
     - `ASN1.Low.*`: Implementation serializers and combinators
-  - `src/riot/x509`: F* source files for X.509 serializer
+  - `src/l0/x509`: F* source files for X.509 serializer
     - `X509.Base`: X.509 base definitions
     - `X509.Crypto`:  Crypto-related serializer
     - `X509.BasicFields`: Serializer for X.509 certificate basic fields
