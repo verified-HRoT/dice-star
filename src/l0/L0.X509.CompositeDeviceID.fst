@@ -14,8 +14,6 @@ open L0.X509.FWID
 
 #set-options "--z3rlimit 32 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
-#set-options "--__temp_no_proj L0.X509.CompositeDeviceID"
-
 let decl = ()
 
 (* CompositeDeviceID *)

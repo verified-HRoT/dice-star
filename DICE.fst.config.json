@@ -1,0 +1,34 @@
+{
+  "fstar_exe": "fstar.exe",
+  "options": [
+    "--cache_dir", ".cache"
+  ],
+  "include_dirs": [
+    "../everest/FStar/ulib/",
+    "../everest/FStar/ulib/experimental",
+    "../everest/FStar/ulib/legacy",
+    "../everest/hacl-star/specs",
+    "../everest/hacl-star/specs/lemmas",
+    "../everest/hacl-star/lib",
+    "../everest/hacl-star/providers/evercrypt",
+    "../everest/hacl-star/code/bignum",
+    "../everest/hacl-star/code/meta",
+    "../everest/hacl-star/code/blake2",
+    "../everest/hacl-star/code/hash",
+    "../everest/hacl-star/code/hkdf",
+    "../everest/hacl-star/code/hmac",
+    "../everest/hacl-star/code/curve25519",
+    "../everest/hacl-star/code/ed25519",
+    "../everest/hacl-star/code/streaming",
+    "../everest/hacl-star/code/sha2-mb",
+    "../everest/karamel/include",
+    "../everest/karamel/krmllib/dist/generic/",
+    "../everest/karamel/krmllib/",
+    "../everest/everparse/src/lowparse/",
+    "src/dice_engine",
+    "src/l0",
+    "src/l0/asn1",
+    "src/l0/x509",
+    "src/obj"
+  ]
+}

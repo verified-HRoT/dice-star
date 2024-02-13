@@ -49,8 +49,8 @@ let verify_l0_image_hash (img:l0_image_t)
 
     let hash_buf = B.alloca (u8 0x00) digest_len in
     dice_hash alg
-      (* msg *) img.l0_binary img.l0_binary_size
-      (* dst *) hash_buf;
+      (* dst *) hash_buf
+      (* msg *) img.l0_binary img.l0_binary_size;
     let b = lbytes_eq #digest_len img.l0_binary_hash hash_buf in
 
     HST.pop_frame ();
@@ -74,9 +74,9 @@ let authenticate_l0_image (img:l0_image_t)
 let lemma_hmac_preconditions ()
   : Lemma
       (Spec.Agile.HMAC.keysized alg (v digest_len) /\
-       v digest_len + S.block_length alg <= S.max_input_length alg)
+       v digest_len + S.block_length alg <= (Some?.v (S.max_input_length alg)))
   = assert_norm (Spec.Agile.HMAC.keysized alg (v digest_len) /\
-               v digest_len + S.block_length alg <= S.max_input_length alg)
+               v digest_len + S.block_length alg <= (Some?.v (S.max_input_length alg)))
 
 
 let cdi_functional_correctness (st:state) (h:HS.mem) =
@@ -112,8 +112,8 @@ let compute_cdi (st:state)
     let uds_digest = B.alloca (u8 0x00) digest_len in
     let l0_digest = B.alloca (u8 0x00) digest_len in
     
-    dice_hash alg uds uds_len uds_digest;
-    dice_hash alg st.l0.l0_binary st.l0.l0_binary_size l0_digest;
+    dice_hash alg uds_digest uds uds_len;
+    dice_hash alg l0_digest st.l0.l0_binary st.l0.l0_binary_size;
     
     (* Prf *) lemma_hmac_preconditions ();
 

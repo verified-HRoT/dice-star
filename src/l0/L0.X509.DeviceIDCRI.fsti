@@ -22,8 +22,6 @@ module B32 = FStar.Bytes
  *
  *)
 
-#set-options "--__temp_no_proj L0.X509.DeviceIDCRI"
-
 val decl : unit
 
 noeq

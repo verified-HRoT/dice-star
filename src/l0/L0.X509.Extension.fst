@@ -9,8 +9,6 @@ open FStar.Integers
 
 #set-options "--z3rlimit 32 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
-#set-options "--__temp_no_proj L0.X509.Extension"
-
 type l0_extension_payload_t: Type
 = { x509_extID_l0      : x:datatype_of_asn1_type OID {x == OID_RIOT};
     x509_extCritical_l0: datatype_of_asn1_type BOOLEAN;

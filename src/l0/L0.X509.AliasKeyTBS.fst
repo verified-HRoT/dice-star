@@ -12,8 +12,6 @@ module B32 = FStar.Bytes
 
 #set-options "--z3rlimit 512 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
-#set-options "--__temp_no_proj L0.X509.AliasKeyTBS"
-
 let decl = ()
 
 let aliasKeyTBS_payload_t' = (

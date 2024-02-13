@@ -65,8 +65,8 @@ find-all = $(filter $1,$(addsuffix $2,$(ALL_FSTAR_FILES)))
 
 # FStar
 
-ifneq ($(wildcard $(KREMLIN_HOME)/kremlib/obj/.),)
-        KRML_OBJ_DIR=$(KREMLIN_HOME)/kremlib/obj
+ifneq ($(wildcard $(KRML_HOME)/krmllib/obj/.),)
+        KRML_OBJ_DIR=$(KRML_HOME)/krmllib/obj
 else
         KRML_OBJ_DIR=
 endif
@@ -74,8 +74,8 @@ endif
 # Includes
 INCLUDES=$(FSTAR_HOME)/ulib/.cache \
   $(KRML_OBJ_DIR) \
-  $(KREMLIN_HOME)/include \
-  $(KREMLIN_HOME)/kremlib/dist/generic \
+  $(KRML_HOME)/include \
+  $(KRML_HOME)/krmllib/dist/generic \
   $(HACL_HOME)/specs \
   $(HACL_HOME)/specs/lemmas \
   $(HACL_HOME)/vale/specs/hardware \
@@ -88,9 +88,11 @@ INCLUDES=$(FSTAR_HOME)/ulib/.cache \
   $(HACL_HOME)/code/hmac\
   $(HACL_HOME)/code/curve25519 \
   $(HACL_HOME)/code/ed25519 \
+  $(HACL_HOME)/code/streaming \
+  $(HACL_HOME)/code/sha2-mb/ \
   $(HACL_HOME)/lib \
   $(HACL_HOME)/providers/evercrypt \
-  $(KREMLIN_HOME)/kremlib \
+  $(KRML_HOME)/krmllib \
   $(HACL_HOME)/obj \
   $(EVERPARSE_HOME)/src/lowparse \
   $(OUTPUT_DIR) \
@@ -156,14 +158,14 @@ FSTAR_EXTRACT_FLAGS = $(FSTAR_INCLUDES) \
   --odir $(OUTPUT_DIR) \
   --cache_dir $(OUTPUT_DIR) \
   --warn_error -272-241-247-331-333 \
-  --codegen Kremlin \
+  --codegen krml \
   --cmi
 
 FSTAR = $(FSTAR_HOME)/bin/fstar.exe
 
-# 2. KreMLin
+# 2. KRML
 
-KRML=$(KREMLIN_HOME)/krml
+KRML=$(KRML_HOME)/krml
 
 KRML_NO_PREFIXS = \
   -no-prefix 'DICE.Engine.\*' \
@@ -217,8 +219,8 @@ KRML_MISC_FLAGS = \
   -verbose
 
 KRML_C_INCLUDES = \
-  -add-include '"kremlin/internal/types.h"' \
-  -add-include '"kremlin/lowstar_endianness.h"' \
+  -add-include '"krml/internal/types.h"' \
+  -add-include '"krml/lowstar_endianness.h"' \
   -add-include '"LowStar_Printf.h"' \
   -add-include '<string.h>'
 
@@ -247,9 +249,9 @@ endif
 KRML_WARN_ERRORS = \
   -warn-error @2@4@15@17-6
 
-OTHER_KRML_FLAGS += -header $(SRC_DIR)/kremlin_header.txt
+OTHER_KRML_FLAGS += -header $(SRC_DIR)/krml_header.txt
 
-KREMLIN_FLAGS = \
+KRML_FLAGS = \
   $(OTHER_KRML_FLAGS) \
   $(KRML_NO_PREFIXS) \
   $(KRML_LIBRARIES) \

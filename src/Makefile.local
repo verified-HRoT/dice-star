@@ -103,7 +103,7 @@ extract-all: $(ALL_KRML_FILES)
 
 compile-all:
 	$(KRML) \
-	  $(KREMLIN_FLAGS) \
+	  $(KRML_FLAGS) \
 	  $(ALL_KRML_FILES) \
       $(C_FILES)
 

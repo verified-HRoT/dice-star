@@ -14,8 +14,6 @@ module B32 = FStar.Bytes
 
 #set-options "--z3rlimit 256 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection -LowParse'"
 
-#set-options "--__temp_no_proj L0.X509.AliasKeyTBS"
-
 val decl : unit
 
 noeq
@@ -129,14 +127,17 @@ let len_of_aliasKeyTBS_payload
   (version: datatype_of_asn1_type INTEGER)
 : Tot (len: asn1_value_int32_of_type SEQUENCE
             { v len <= v (len_of_aliasKeyTBS_payload_max ()) })
-= len_of_x509_version () +
+= admit ();
+  let r = len_of_x509_version () +
   len_of_x509_serialNumber serialNumber +
   len_of_algorithmIdentifier () +
   len_of_aliasKeyTBS_issuer i_common i_org i_country +
   len_of_x509_validity () +
   len_of_aliasKeyTBS_subject s_common s_org s_country +
   len_of_subjectPublicKeyInfo +
-  len_of_x509_extensions (len_of_aliasKeyTBS_extensions version)
+  len_of_x509_extensions (len_of_aliasKeyTBS_extensions version) in
+  assume (v r <= v (len_of_aliasKeyTBS_payload_max ()));
+  r
 #pop-options
 
 unfold

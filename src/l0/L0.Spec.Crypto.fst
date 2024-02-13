@@ -26,7 +26,7 @@ let valid_hkdf_ikm_len
 = (* for Hacl.HKDF.extract_st *)
   v len + block_length alg < pow2 32 /\
   (* for Spec.Agile.HKDF.extract *)
-  v len + block_length alg <= max_input_length alg
+  v len + block_length alg <= Some?.v (max_input_length alg)
 
 unfold
 let valid_hkdf_lbl_len
@@ -34,7 +34,7 @@ let valid_hkdf_lbl_len
 = (* for Hacl.HKDF.expand_st *)
   hash_length alg + v len + 1 + block_length alg < pow2 32 /\
   (* for Spec.Aigle.HKDF.expand *)
-  hash_length alg + v len + 1 + block_length alg < max_input_length alg
+  hash_length alg + v len + 1 + block_length alg < Some?.v (max_input_length alg)
 
 (* Key Pair Derivation using HKDF and Ed25519
    See appendix below
@@ -102,13 +102,13 @@ let derive_AliasKey_spec
     (* lbl *) l0_label_AliasKey_len l0_label_AliasKey
 
 let lemma_derive_authKeyID_length_valid ()
-: Lemma ( 32 <= max_input_length Spec.Agile.Hash.SHA1 )
-= assert_norm ( 32 <= max_input_length Spec.Agile.Hash.SHA1 )
+: Lemma ( 32 <= Some?.v (max_input_length Spec.Agile.Hash.SHA1 ))
+= assert_norm ( 32 <= Some?.v (max_input_length Spec.Agile.Hash.SHA1 ))
 
 let derive_authKeyID_spec
   (deviceIDPub: lbytes_sec 32)
 : GTot (lbytes_pub 20)
-= assert_norm (Seq.length deviceIDPub <= max_input_length Spec.Agile.Hash.SHA1);
+= assert_norm (Seq.length deviceIDPub <= Some?.v (max_input_length Spec.Agile.Hash.SHA1));
   declassify_secret_bytes
     (Spec.Agile.Hash.hash
        Spec.Agile.Hash.SHA1

@@ -151,7 +151,6 @@ let create_aliasKeyTBS_post
   B.(modifies (loc_buffer aliasKeyTBS_buf) h0 h1) /\
   B.as_seq h1 aliasKeyTBS_buf == serialize_aliasKeyTBS `serialize` aliasKeyTBS
 
-#set-options "--__temp_no_proj L0.Impl.Certificate"
 noeq
 type aliasKeyTBS_bytes = {
   fwid_pub32     : B32.lbytes32 32ul;

@@ -2,8 +2,6 @@ module HWState
 
 module G = FStar.Ghost
 
-#set-options "--__temp_no_proj HWState"
-
 let t = bool & bool
 
 let t_rel = fun s1 s2 ->

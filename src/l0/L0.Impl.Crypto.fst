@@ -41,11 +41,11 @@ let derive_key_pair
     (* for Hacl.HKDF.extract_st *)
     v ikm_len + block_length alg < pow2 32 /\
     (* for Spec.Agile.HKDF.extract *)
-    v ikm_len + block_length alg <= max_input_length alg /\
+    v ikm_len + block_length alg <= Some?.v (max_input_length alg) /\
     (* for Hacl.HKDF.expand_st *)
     hash_length alg + v lbl_len + 1 + block_length alg < pow2 32 /\
     (* for Spec.Aigle.HKDF.expand *)
-    hash_length alg + v lbl_len + 1 + block_length alg < max_input_length alg)
+    hash_length alg + v lbl_len + 1 + block_length alg < Some?.v (max_input_length alg))
   (ensures  fun h0 _ h1 -> let alg = SHA2_256 in
     B.(modifies ((loc_buffer public_key) `loc_union` (loc_buffer private_key)) h0 h1) /\
    (let pub_seq, priv_seq = derive_key_pair_spec ikm_len (B.as_seq h0 ikm) lbl_len (B.as_seq h0 lbl) in
@@ -114,8 +114,9 @@ let derive_DeviceID
 = HST.push_frame ();
   let cDigest = B.alloca (u8 0) 32ul in
   l0_hash alg
-    cdi 32ul
-    cDigest;
+    cDigest
+    cdi
+    32ul;
   derive_key_pair
     deviceID_pub
     deviceID_priv
@@ -157,8 +158,9 @@ let derive_AliasKey
 = HST.push_frame ();
   let cDigest = B.alloca (u8 0) 32ul in
   l0_hash alg
-    cdi 32ul
-    cDigest;
+    cDigest
+    cdi
+    32ul;
   let aDigest = B.alloca (u8 0) 32ul in
   let fwid_sec = B.alloca (u8 0) 32ul in
   L0.Declassify.classify_public_buffer 32ul fwid fwid_sec;
@@ -188,9 +190,10 @@ let derive_authKeyID
 
   let authKeyID_sec = B.alloca (u8 0x00) 20ul in
   (* Prf *) lemma_derive_authKeyID_length_valid ();
-  Hacl.Hash.SHA1.legacy_hash
-    deviceIDPub 32ul
-    authKeyID_sec;
+  Hacl.Hash.SHA1.hash_oneshot
+    authKeyID_sec
+    deviceIDPub
+    32ul;
 
   declassify_secret_buffer 20ul authKeyID_sec authKeyID;
 

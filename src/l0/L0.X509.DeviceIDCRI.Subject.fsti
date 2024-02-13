@@ -11,8 +11,6 @@ module B32 = FStar.Bytes
 
 #set-options "--z3rlimit 128 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 
-#set-options "--__temp_no_proj L0.X509.DeviceIDCRI.Subject"
-
 val decl : unit
 
 let x509_rdn_string_t = ASN1.Base.oid_t & ASN1.Base.character_string_t IA5_STRING

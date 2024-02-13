@@ -25,8 +25,6 @@ open Hacl.Hash.Definitions
  * Some common definitions used in the L0 code
  *)
 
-#set-options "--__temp_no_proj L0.Definitions"
-
 inline_for_extraction noextract
 let l0_hash_alg = a:hash_alg{a == SHA2_256}
 
@@ -36,9 +34,9 @@ let alg : l0_hash_alg = SHA2_256
 inline_for_extraction noextract
 let l0_hash (alg:l0_hash_alg) : hash_st alg =
   match alg with
-  | SHA2_256 -> Hacl.Hash.SHA2.hash_256
-  | SHA2_384 -> Hacl.Hash.SHA2.hash_384
-  | SHA2_512 -> Hacl.Hash.SHA2.hash_512
+  | SHA2_256 -> Hacl.Streaming.SHA2.hash_256
+  | SHA2_384 -> Hacl.Streaming.SHA2.hash_384
+  | SHA2_512 -> Hacl.Streaming.SHA2.hash_512
   // | SHA1     -> Hacl.Hash.SHA1.legacy_hash
 
 inline_for_extraction noextract
@@ -53,7 +51,7 @@ unfold noextract let digest_len = hash_len alg
 
 unfold noextract type digest_t = hash_t alg
 
-unfold noextract type hashable_len = i:size_t{0 < v i /\ v i <= max_input_length alg}
+unfold noextract type hashable_len = i:size_t{0 < v i /\ v i <= (Some?.v (max_input_length alg))}
 
 unfold noextract let cdi_len = digest_len
 
