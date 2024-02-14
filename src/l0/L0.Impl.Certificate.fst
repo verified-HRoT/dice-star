@@ -547,7 +547,7 @@ let l0_core_step2_pre
   0 < v deviceIDCRI_len /\ valid_deviceIDCSR_ingredients deviceIDCRI_len /\
   v deviceIDCSR_len == length_of_deviceIDCSR deviceIDCRI_len
 
-#push-options "--z3rlimit 256 --admit_smt_queries true"
+#push-options "--z3rlimit 256 --fuel 0 --ifuel 0 --using_facts_from '* -FStar.Tactics -FStar.Reflection'"
 [@@ "opaque_to_smt"]
 unfold
 let l0_core_step2_post
