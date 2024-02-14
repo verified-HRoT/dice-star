@@ -115,7 +115,9 @@ let len_of_aliasKeyTBS_payload_max ()
   len_of_aliasKeyTBS_subject_max () +
   len_of_subjectPublicKeyInfo +
   len_of_x509_extensions (len_of_aliasKeyTBS_extensions_max ())
+#pop-options
 
+#push-options "--fuel 0 --ifuel 0"
 let len_of_aliasKeyTBS_payload
   (serialNumber: x509_serialNumber_t)
   (i_common:  x509_RDN_x520_attribute_string_t COMMON_NAME  IA5_STRING)
@@ -127,8 +129,7 @@ let len_of_aliasKeyTBS_payload
   (version: datatype_of_asn1_type INTEGER)
 : Tot (len: asn1_value_int32_of_type SEQUENCE
             { v len <= v (len_of_aliasKeyTBS_payload_max ()) })
-= admit ();
-  let r = len_of_x509_version () +
+= let r = len_of_x509_version () +
   len_of_x509_serialNumber serialNumber +
   len_of_algorithmIdentifier () +
   len_of_aliasKeyTBS_issuer i_common i_org i_country +
@@ -136,7 +137,6 @@ let len_of_aliasKeyTBS_payload
   len_of_aliasKeyTBS_subject s_common s_org s_country +
   len_of_subjectPublicKeyInfo +
   len_of_x509_extensions (len_of_aliasKeyTBS_extensions version) in
-  assume (v r <= v (len_of_aliasKeyTBS_payload_max ()));
   r
 #pop-options
 
