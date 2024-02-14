@@ -9,44 +9,36 @@
 extern "C" {
 #endif
 
-#include "kremlin/internal/types.h"
-#include "kremlin/lowstar_endianness.h"
+#include "ASN1_X509.h"
+#include "krml/internal/types.h"
+#include "krml/lowstar_endianness.h"
 #include "LowStar_Printf.h"
 #include <string.h>
 
+typedef key_usage_t deviceIDCRI_attributes_extensionRequest_payload_t;
 
-#include "ASN1_X509.h"
-
-typedef K___ASN1_Base_oid_t_int32_t deviceIDCRI_attributes_extensionRequest_payload_t;
-
-typedef struct
-K___ASN1_Base_oid_t_L0_X509_DeviceIDCRI_Attributes_deviceIDCRI_attributes_extensionRequest_payload_t_s
+typedef struct deviceIDCRI_attributes_t_s
 {
   oid_t fst;
-  K___ASN1_Base_oid_t_int32_t snd;
+  key_usage_t snd;
 }
-K___ASN1_Base_oid_t_L0_X509_DeviceIDCRI_Attributes_deviceIDCRI_attributes_extensionRequest_payload_t;
-
-typedef K___ASN1_Base_oid_t_L0_X509_DeviceIDCRI_Attributes_deviceIDCRI_attributes_extensionRequest_payload_t
 deviceIDCRI_attributes_t;
 
 uint32_t
 serialize32_deviceIDCRI_attributes_extensionRequest_payload_backwards(
-  K___ASN1_Base_oid_t_int32_t x,
+  key_usage_t x,
   uint8_t *input,
   uint32_t pos
 );
 
 uint32_t
 serialize32_deviceIDCRI_attributes_backwards(
-  K___ASN1_Base_oid_t_L0_X509_DeviceIDCRI_Attributes_deviceIDCRI_attributes_extensionRequest_payload_t
-  x,
+  deviceIDCRI_attributes_t x,
   uint8_t *b,
   uint32_t pos
 );
 
-K___ASN1_Base_oid_t_L0_X509_DeviceIDCRI_Attributes_deviceIDCRI_attributes_extensionRequest_payload_t
-x509_get_deviceIDCRI_attributes(int32_t ku);
+deviceIDCRI_attributes_t x509_get_deviceIDCRI_attributes(int32_t ku);
 
 #if defined(__cplusplus)
 }

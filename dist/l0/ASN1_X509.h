@@ -9,49 +9,10 @@
 extern "C" {
 #endif
 
-#include "kremlin/internal/types.h"
-#include "kremlin/lowstar_endianness.h"
+#include "krml/internal/types.h"
+#include "krml/lowstar_endianness.h"
 #include "LowStar_Printf.h"
 #include <string.h>
-
-
-#include "Hacl_Lib.h"
-
-#define PRIMITIVE 0
-#define CONSTRUCTED 1
-
-typedef uint8_t asn1_tag_form_t;
-
-#define APPLICATION 0
-#define CONTEXT_SPECIFIC 1
-#define PRIVATE 2
-
-typedef uint8_t asn1_tag_class_t;
-
-#define BOOLEAN 0
-#define INTEGER 1
-#define ASN1_NULL 2
-#define OCTET_STRING 3
-#define PRINTABLE_STRING 4
-#define IA5_STRING 5
-#define BIT_STRING 6
-#define OID 7
-#define UTC_TIME 8
-#define Generalized_Time 9
-#define SEQUENCE 10
-#define SET 11
-#define CUSTOM_TAG 12
-
-typedef uint8_t asn1_tag_t_tags;
-
-typedef struct asn1_tag_t_s
-{
-  asn1_tag_t_tags tag;
-  asn1_tag_class_t tag_class;
-  asn1_tag_form_t tag_form;
-  uint8_t tag_value;
-}
-asn1_tag_t;
 
 #define OID_RIOT 0
 #define OID_AT_CN 1
@@ -79,6 +40,13 @@ typedef struct bit_string_t_s
 }
 bit_string_t;
 
+typedef struct character_string_t_s
+{
+  uint32_t fst;
+  FStar_Bytes_bytes snd;
+}
+character_string_t;
+
 typedef struct octet_string_t_s
 {
   uint32_t len;
@@ -86,83 +54,19 @@ typedef struct octet_string_t_s
 }
 octet_string_t;
 
-uint32_t
-serialize32_flbytes32_backwards(uint32_t len, FStar_Bytes_bytes x, uint8_t *b, uint32_t pos);
-
-uint32_t len_of_asn1_length(uint32_t len);
-
-uint32_t
-serialize32_asn1_length_of_type_backwards(
-  asn1_tag_t _a,
-  uint32_t len,
-  uint8_t *b,
-  uint32_t pos
-);
-
-uint8_t encode_asn1_tag(asn1_tag_t a);
-
-uint32_t serialize32_asn1_oid_TLV_backwards(oid_t x, uint8_t *b, uint32_t pos);
-
-uint32_t serialize32_asn1_bit_string_TLV_backwards(bit_string_t x, uint8_t *b, uint32_t pos);
-
-typedef struct Prims_dtuple2__uint32_t_FStar_Bytes_bytes_s
-{
-  uint32_t fst;
-  FStar_Bytes_bytes snd;
-}
-Prims_dtuple2__uint32_t_FStar_Bytes_bytes;
-
-uint32_t
-FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(Prims_dtuple2__uint32_t_FStar_Bytes_bytes t);
-
-uint32_t
-serialize32_asn1_octet_string_TLV_with_tag_backwards(
-  asn1_tag_t a,
-  octet_string_t x,
-  uint8_t *b,
-  uint32_t pos
-);
-
-uint32_t len_of_asn1_integer(int32_t value);
-
-uint32_t serialize32_asn1_integer_TLV_backwards(int32_t x, uint8_t *b, uint32_t pos);
-
-uint32_t serialize32_asn1_boolean_TLV_backwards(bool x, uint8_t *input, uint32_t pos);
-
-uint32_t serialize32_asn1_boolean_TLV_false_backwards(bool x, uint8_t *input, uint32_t pos);
-
-extern asn1_tag_t x509_authKeyID_keyIdentifier_tag;
-
-typedef struct K___ASN1_Base_oid_t_int32_t_s
+typedef struct key_usage_t_s
 {
   oid_t fst;
   int32_t snd;
 }
-K___ASN1_Base_oid_t_int32_t;
+key_usage_t;
 
-uint32_t
-serialize32_x509_key_usage_backwards(K___ASN1_Base_oid_t_int32_t x, uint8_t *b, uint32_t pos);
-
-typedef struct x509_rdn_string_t_s
+typedef struct K___ASN1_Base_oid_t_ASN1_Base_character_string_t_s
 {
   oid_t fst;
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes snd;
+  character_string_t snd;
 }
-x509_rdn_string_t;
-
-uint32_t serialize32_RDN_COMMON_NAME(x509_rdn_string_t x, uint8_t *b, uint32_t pos);
-
-uint32_t serialize32_RDN_ORGANIZATION(x509_rdn_string_t x, uint8_t *b, uint32_t pos);
-
-uint32_t serialize32_RDN_COUNTRY(x509_rdn_string_t x, uint8_t *b, uint32_t pos);
-
-extern asn1_tag_t x509_extensions_outmost_explicit_tag;
-
-uint32_t len_of_x509_extensions(uint32_t len_payload);
-
-extern uint8_t x509_validity_notBefore_default_buffer[13U];
-
-extern uint8_t x509_validity_notAfter_default_buffer[15U];
+K___ASN1_Base_oid_t_ASN1_Base_character_string_t;
 
 typedef struct x509_validity_payload_t_s
 {
@@ -171,33 +75,12 @@ typedef struct x509_validity_payload_t_s
 }
 x509_validity_payload_t;
 
-uint32_t
-serialize32_x509_validity_backwards(x509_validity_payload_t x, uint8_t *b, uint32_t pos);
-
-uint32_t serialize32_algorithmIdentifier_backwards(oid_t x, uint8_t *b, uint32_t pos);
-
 typedef struct subjectPublicKeyInfo_payload_t_s
 {
   oid_t subjectPubKey_alg;
   bit_string_t subjectPubKey;
 }
 subjectPublicKeyInfo_payload_t;
-
-uint32_t
-serialize32_subjectPublicKeyInfo_backwards(
-  subjectPublicKeyInfo_payload_t x,
-  uint8_t *b,
-  uint32_t pos
-);
-
-subjectPublicKeyInfo_payload_t x509_get_subjectPublicKeyInfo(FStar_Bytes_bytes pubkey);
-
-uint32_t len_of_x509_serialNumber(octet_string_t x);
-
-uint32_t
-serialize32_x509_serialNumber_backwards(octet_string_t x, uint8_t *input, uint32_t pos);
-
-uint32_t serialize32_x509_version_backwards(int32_t x, uint8_t *b, uint32_t pos);
 
 #if defined(__cplusplus)
 }

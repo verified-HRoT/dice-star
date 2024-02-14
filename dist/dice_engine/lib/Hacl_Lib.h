@@ -2,49 +2,31 @@
 
 
 
-#ifndef __Hacl_Lib_H
-#define __Hacl_Lib_H
+#ifndef __internal_Hacl_Lib_H
+#define __internal_Hacl_Lib_H
 
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
-#include "kremlin/internal/types.h"
-#include "kremlin/lowstar_endianness.h"
+#include "krml/internal/types.h"
+#include "krml/lowstar_endianness.h"
 #include "LowStar_Printf.h"
 #include <string.h>
 
+static KRML_NOINLINE uint8_t FStar_UInt8_eq_mask(uint8_t a, uint8_t b);
 
+/**
+Hash `input`, of len `input_len`, into `output`, an array of 32 bytes.
+*/
+void Hacl_Streaming_SHA2_hash_256(uint8_t *output, uint8_t *input, uint32_t input_len);
 
+/**
+Write the HMAC-SHA-2-256 MAC of a message (`data`) by using a key (`key`) into `dst`.
 
-static inline uint64_t FStar_UInt64_eq_mask(uint64_t a, uint64_t b);
-
-static inline uint64_t FStar_UInt64_gte_mask(uint64_t a, uint64_t b);
-
-static inline uint8_t FStar_UInt8_eq_mask(uint8_t a, uint8_t b);
-
-static inline FStar_UInt128_uint128
-FStar_UInt128_add(FStar_UInt128_uint128 a, FStar_UInt128_uint128 b);
-
-static inline FStar_UInt128_uint128
-FStar_UInt128_add_mod(FStar_UInt128_uint128 a, FStar_UInt128_uint128 b);
-
-static inline FStar_UInt128_uint128
-FStar_UInt128_shift_left(FStar_UInt128_uint128 a, uint32_t s);
-
-static inline FStar_UInt128_uint128
-FStar_UInt128_shift_right(FStar_UInt128_uint128 a, uint32_t s);
-
-static inline FStar_UInt128_uint128 FStar_UInt128_uint64_to_uint128(uint64_t a);
-
-static inline uint64_t FStar_UInt128_uint128_to_uint64(FStar_UInt128_uint128 a);
-
-static inline FStar_UInt128_uint128 FStar_UInt128_mul_wide(uint64_t x, uint64_t y);
-
-static inline void store128_be(uint8_t *x0, FStar_UInt128_uint128 x1);
-
-void Hacl_Hash_SHA2_hash_256(uint8_t *input, uint32_t input_len, uint8_t *dst);
-
+The key can be any length and will be hashed if it is longer and padded if it is shorter than 64 bytes.
+`dst` must point to 32 bytes of memory.
+*/
 void
 Hacl_HMAC_compute_sha2_256(
   uint8_t *dst,
@@ -54,11 +36,22 @@ Hacl_HMAC_compute_sha2_256(
   uint32_t data_len
 );
 
-bool Hacl_Ed25519_verify(uint8_t *pub, uint32_t len, uint8_t *msg, uint8_t *signature);
+/**
+Verify an Ed25519 signature.
+
+  @param public_key Points to 32 bytes of valid memory containing the public key, i.e., `uint8_t[32]`.
+  @param msg_len Length of `msg`.
+  @param msg Points to `msg_len` bytes of valid memory containing the message, i.e., `uint8_t[msg_len]`.
+  @param signature Points to 64 bytes of valid memory containing the signature, i.e., `uint8_t[64]`.
+
+  @return Returns `true` if the signature is valid and `false` otherwise.
+*/
+bool
+Hacl_Ed25519_verify(uint8_t *public_key, uint32_t msg_len, uint8_t *msg, uint8_t *signature);
 
 #if defined(__cplusplus)
 }
 #endif
 
-#define __Hacl_Lib_H_DEFINED
+#define __internal_Hacl_Lib_H_DEFINED
 #endif

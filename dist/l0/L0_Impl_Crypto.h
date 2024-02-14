@@ -9,14 +9,11 @@
 extern "C" {
 #endif
 
-#include "kremlin/internal/types.h"
-#include "kremlin/lowstar_endianness.h"
+#include "L0_Declassify.h"
+#include "krml/internal/types.h"
+#include "krml/lowstar_endianness.h"
 #include "LowStar_Printf.h"
 #include <string.h>
-
-
-#include "L0_Declassify.h"
-#include "Hacl_Lib.h"
 
 void
 derive_key_pair(
@@ -48,6 +45,10 @@ derive_AliasKey(
 );
 
 void derive_authKeyID(uint8_t *authKeyID, uint8_t *deviceIDPub);
+
+typedef void *l0_core_step1_pre;
+
+typedef void *l0_core_step1_post;
 
 void
 l0_core_step1(

@@ -9,13 +9,10 @@
 extern "C" {
 #endif
 
-#include "kremlin/internal/types.h"
-#include "kremlin/lowstar_endianness.h"
+#include "krml/internal/types.h"
+#include "krml/lowstar_endianness.h"
 #include "LowStar_Printf.h"
 #include <string.h>
-
-
-
 
 extern void declassify_secret_buffer(uint32_t len, uint8_t *src, uint8_t *dst);
 

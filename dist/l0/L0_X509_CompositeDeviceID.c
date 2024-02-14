@@ -4,6 +4,8 @@
 
 #include "L0_X509_CompositeDeviceID.h"
 
+#include "internal/ASN1_X509.h"
+
 uint32_t
 serialize32_compositeDeviceID_payload_backwards(
   compositeDeviceID_payload_t x,
@@ -34,9 +36,8 @@ serialize32_compositeDeviceID_backwards(
       offset_data,
       b,
       pos - offset_data);
-  b[pos - offset_data - offset2 - (uint32_t)1U] =
-    encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
-  uint32_t offset1 = (uint32_t)1U;
+  b[pos - offset_data - offset2 - 1U] = encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
+  uint32_t offset1 = 1U;
   uint32_t offset_tag_len = offset1 + offset2;
   return offset_tag_len + offset_data;
 }

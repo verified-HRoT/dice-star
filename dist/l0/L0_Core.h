@@ -9,20 +9,33 @@
 extern "C" {
 #endif
 
-#include "kremlin/internal/types.h"
-#include "kremlin/lowstar_endianness.h"
+#include "L0_X509_DeviceIDCRI.h"
+#include "L0_X509_Base.h"
+#include "L0_X509_AliasKeyTBS.h"
+#include "L0_Impl_Crypto.h"
+#include "L0_Impl_Certificate.h"
+#include "L0_Declassify.h"
+#include "ASN1_X509.h"
+#include "krml/internal/types.h"
+#include "krml/lowstar_endianness.h"
 #include "LowStar_Printf.h"
 #include <string.h>
 
+typedef void *deviceIDCRI_pre;
 
-#include "L0_Impl_Crypto.h"
-#include "L0_X509_AliasKeyTBS.h"
-#include "ASN1_X509.h"
-#include "L0_Declassify.h"
-#include "L0_X509_Base.h"
-#include "L0_Impl_Certificate.h"
-#include "L0_X509_DeviceIDCRI.h"
-#include "Hacl_Lib.h"
+typedef void *deviceIDCSR_pre;
+
+typedef void *aliasKeyCRT_pre;
+
+typedef void *l0_pre;
+
+typedef void *aliasKey_post;
+
+typedef void *deviceIDCSR_post;
+
+typedef void *aliasKeyCRT_post;
+
+typedef void *l0_aux_post;
 
 void
 l0_aux(
@@ -42,6 +55,8 @@ l0_aux(
   uint32_t aliasKeyCRT_len,
   uint8_t *aliasKeyCRT_buf
 );
+
+typedef void *l0_post;
 
 void
 l0(

@@ -4,9 +4,11 @@
 
 #include "L0_X509_DeviceIDCRI_Attributes.h"
 
+#include "internal/ASN1_X509.h"
+
 uint32_t
 serialize32_deviceIDCRI_attributes_extensionRequest_payload_backwards(
-  K___ASN1_Base_oid_t_int32_t x,
+  key_usage_t x,
   uint8_t *input,
   uint32_t pos
 )
@@ -16,14 +18,13 @@ serialize32_deviceIDCRI_attributes_extensionRequest_payload_backwards(
 
 uint32_t
 serialize32_deviceIDCRI_attributes_backwards(
-  K___ASN1_Base_oid_t_L0_X509_DeviceIDCRI_Attributes_deviceIDCRI_attributes_extensionRequest_payload_t
-  x,
+  deviceIDCRI_attributes_t x,
   uint8_t *b,
   uint32_t pos
 )
 {
   oid_t x1 = x.fst;
-  K___ASN1_Base_oid_t_int32_t x2 = x.snd;
+  key_usage_t x2 = x.snd;
   uint32_t
   offset_data = serialize32_deviceIDCRI_attributes_extensionRequest_payload_backwards(x2, b, pos);
   uint32_t
@@ -32,9 +33,8 @@ serialize32_deviceIDCRI_attributes_backwards(
       offset_data,
       b,
       pos - offset_data);
-  b[pos - offset_data - offset20 - (uint32_t)1U] =
-    encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
-  uint32_t offset10 = (uint32_t)1U;
+  b[pos - offset_data - offset20 - 1U] = encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
+  uint32_t offset10 = 1U;
   uint32_t offset_tag_len = offset10 + offset20;
   uint32_t offset_data0 = offset_tag_len + offset_data;
   uint32_t
@@ -43,8 +43,8 @@ serialize32_deviceIDCRI_attributes_backwards(
       offset_data0,
       b,
       pos - offset_data0);
-  b[pos - offset_data0 - offset21 - (uint32_t)1U] = encode_asn1_tag(((asn1_tag_t){ .tag = SET }));
-  uint32_t offset11 = (uint32_t)1U;
+  b[pos - offset_data0 - offset21 - 1U] = encode_asn1_tag(((asn1_tag_t){ .tag = SET }));
+  uint32_t offset11 = 1U;
   uint32_t offset_tag_len0 = offset11 + offset21;
   uint32_t offset22 = offset_tag_len0 + offset_data0;
   uint32_t offset12 = serialize32_asn1_oid_TLV_backwards(x1, b, pos - offset22);
@@ -55,9 +55,8 @@ serialize32_deviceIDCRI_attributes_backwards(
       offset_data1,
       b,
       pos - offset_data1);
-  b[pos - offset_data1 - offset23 - (uint32_t)1U] =
-    encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
-  uint32_t offset13 = (uint32_t)1U;
+  b[pos - offset_data1 - offset23 - 1U] = encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
+  uint32_t offset13 = 1U;
   uint32_t offset_tag_len1 = offset13 + offset23;
   uint32_t offset_data2 = offset_tag_len1 + offset_data1;
   uint32_t
@@ -67,36 +66,29 @@ serialize32_deviceIDCRI_attributes_backwards(
           .tag = CUSTOM_TAG,
           .tag_class = CONTEXT_SPECIFIC,
           .tag_form = CONSTRUCTED,
-          .tag_value = (uint8_t)0U
+          .tag_value = 0U
         }
       ),
       offset_data2,
       b,
       pos - offset_data2);
-  b[pos - offset_data2 - offset2 - (uint32_t)1U] =
+  b[pos - offset_data2 - offset2 - 1U] =
     encode_asn1_tag((
         (asn1_tag_t){
           .tag = CUSTOM_TAG,
           .tag_class = CONTEXT_SPECIFIC,
           .tag_form = CONSTRUCTED,
-          .tag_value = (uint8_t)0U
+          .tag_value = 0U
         }
       ));
-  uint32_t offset1 = (uint32_t)1U;
+  uint32_t offset1 = 1U;
   uint32_t offset_tag_len2 = offset1 + offset2;
   return offset_tag_len2 + offset_data2;
 }
 
-K___ASN1_Base_oid_t_L0_X509_DeviceIDCRI_Attributes_deviceIDCRI_attributes_extensionRequest_payload_t
-x509_get_deviceIDCRI_attributes(int32_t ku)
+deviceIDCRI_attributes_t x509_get_deviceIDCRI_attributes(int32_t ku)
 {
-  K___ASN1_Base_oid_t_int32_t key_usage = { .fst = OID_KEY_USAGE, .snd = ku };
-  return
-    (
-      (K___ASN1_Base_oid_t_L0_X509_DeviceIDCRI_Attributes_deviceIDCRI_attributes_extensionRequest_payload_t){
-        .fst = OID_PKCS9_CSR_EXT_REQ,
-        .snd = key_usage
-      }
-    );
+  key_usage_t key_usage = { .fst = OID_KEY_USAGE, .snd = ku };
+  return ((deviceIDCRI_attributes_t){ .fst = OID_PKCS9_CSR_EXT_REQ, .snd = key_usage });
 }
 

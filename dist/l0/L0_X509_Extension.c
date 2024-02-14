@@ -4,19 +4,21 @@
 
 #include "L0_X509_Extension.h"
 
+#include "internal/ASN1_X509.h"
+
 uint32_t len_of_l0_extension_payload(int32_t version)
 {
   return
-    (uint32_t)1U
+    1U
     + len_of_asn1_length(len_of_asn1_integer(version))
     + len_of_asn1_integer(version)
-    + (uint32_t)110U;
+    + 110U;
 }
 
 uint32_t len_of_l0_extension(int32_t version)
 {
   return
-    (uint32_t)1U
+    1U
     + len_of_asn1_length(len_of_l0_extension_payload(version))
     + len_of_l0_extension_payload(version);
 }
@@ -35,9 +37,9 @@ serialize32_l0_extension_payload_backwards(
       offset_data,
       input,
       pos - offset_data);
-  input[pos - offset_data - offset2 - (uint32_t)1U] =
+  input[pos - offset_data - offset2 - 1U] =
     encode_asn1_tag(((asn1_tag_t){ .tag = OCTET_STRING }));
-  uint32_t offset10 = (uint32_t)1U;
+  uint32_t offset10 = 1U;
   uint32_t offset_tag_len = offset10 + offset2;
   uint32_t offset20 = offset_tag_len + offset_data;
   uint32_t
@@ -57,9 +59,8 @@ uint32_t serialize32_l0_extension_backwards(l0_extension_payload_t x, uint8_t *b
       offset_data,
       b,
       pos - offset_data);
-  b[pos - offset_data - offset20 - (uint32_t)1U] =
-    encode_asn1_tag(((asn1_tag_t){ .tag = OCTET_STRING }));
-  uint32_t offset10 = (uint32_t)1U;
+  b[pos - offset_data - offset20 - 1U] = encode_asn1_tag(((asn1_tag_t){ .tag = OCTET_STRING }));
+  uint32_t offset10 = 1U;
   uint32_t offset_tag_len = offset10 + offset20;
   uint32_t offset22 = offset_tag_len + offset_data;
   uint32_t
@@ -74,9 +75,8 @@ uint32_t serialize32_l0_extension_backwards(l0_extension_payload_t x, uint8_t *b
       offset_data0,
       b,
       pos - offset_data0);
-  b[pos - offset_data0 - offset2 - (uint32_t)1U] =
-    encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
-  uint32_t offset1 = (uint32_t)1U;
+  b[pos - offset_data0 - offset2 - 1U] = encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
+  uint32_t offset1 = 1U;
   uint32_t offset_tag_len0 = offset1 + offset2;
   return offset_tag_len0 + offset_data0;
 }

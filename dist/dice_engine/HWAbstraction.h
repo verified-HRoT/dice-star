@@ -9,23 +9,29 @@
 extern "C" {
 #endif
 
-#include "kremlin/internal/types.h"
-#include "kremlin/lowstar_endianness.h"
+#include "HWState.h"
+#include "krml/internal/types.h"
+#include "krml/lowstar_endianness.h"
 #include "LowStar_Printf.h"
 #include <string.h>
 
-
-#include "HWState.h"
-
 extern uint32_t uds_len;
 
-extern HWState_state st();
+extern HWState_state st(void);
+
+typedef void *st_liveness;
+
+typedef void *uds_is_enabled;
+
+typedef void *stack_is_erased;
 
 extern void read_uds(uint8_t *uds_out);
 
-extern void disable_uds();
+extern void disable_uds(void);
 
-extern void platform_zeroize_stack();
+typedef void *all_heap_buffers_except_ghost_state_remain_same;
+
+extern void platform_zeroize_stack(void);
 
 extern void zeroize(uint32_t len, uint8_t *b);
 

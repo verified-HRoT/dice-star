@@ -9,13 +9,10 @@
 extern "C" {
 #endif
 
-#include "kremlin/internal/types.h"
-#include "kremlin/lowstar_endianness.h"
+#include "krml/internal/types.h"
+#include "krml/lowstar_endianness.h"
 #include "LowStar_Printf.h"
 #include <string.h>
-
-
-
 
 extern void write_out(Prims_string filename, uint8_t *content, uint32_t len);
 

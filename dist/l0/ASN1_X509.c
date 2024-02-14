@@ -2,13 +2,15 @@
 
 
 
-#include "ASN1_X509.h"
+#include "internal/ASN1_X509.h"
+
+#include "internal/Hacl_Lib.h"
 
 uint32_t
 serialize32_flbytes32_backwards(uint32_t len, FStar_Bytes_bytes x, uint8_t *b, uint32_t pos)
 {
-  uint32_t bi = (uint32_t)0U;
-  uint32_t len1 = len - (uint32_t)0U;
+  uint32_t bi = 0U;
+  uint32_t len1 = len - 0U;
   while (true)
   {
     uint32_t i = bi;
@@ -19,9 +21,9 @@ serialize32_flbytes32_backwards(uint32_t len, FStar_Bytes_bytes x, uint8_t *b, u
     }
     else
     {
-      uint8_t x1 = FStar_Bytes_get(x, (uint32_t)0U + i);
+      uint8_t x1 = FStar_Bytes_get(x, 0U + i);
       b[pos - len + i] = x1;
-      uint32_t i_ = i + (uint32_t)1U;
+      uint32_t i_ = i + 1U;
       bi = i_;
       ite = i_ == len1;
     }
@@ -35,157 +37,157 @@ serialize32_flbytes32_backwards(uint32_t len, FStar_Bytes_bytes x, uint8_t *b, u
 
 uint32_t len_of_asn1_length(uint32_t len)
 {
-  if (len < (uint32_t)128U)
+  if (len < 128U)
   {
-    return (uint32_t)1U;
+    return 1U;
   }
-  if (len < (uint32_t)256U)
+  if (len < 256U)
   {
-    return (uint32_t)2U;
+    return 2U;
   }
-  if (len < (uint32_t)65536U)
+  if (len < 65536U)
   {
-    return (uint32_t)3U;
+    return 3U;
   }
-  if (len < (uint32_t)16777216U)
+  if (len < 16777216U)
   {
-    return (uint32_t)4U;
+    return 4U;
   }
-  return (uint32_t)5U;
+  return 5U;
 }
 
 static uint32_t serialize32_asn1_length(uint32_t y_, uint8_t *b, uint32_t pos)
 {
   uint8_t x;
-  if (y_ < (uint32_t)128U)
+  if (y_ < 128U)
   {
     x = (uint8_t)y_;
   }
   else
   {
     uint8_t len_len;
-    if (y_ < (uint32_t)256U)
+    if (y_ < 256U)
     {
-      len_len = (uint8_t)1U;
+      len_len = 1U;
     }
-    else if (y_ < (uint32_t)65536U)
+    else if (y_ < 65536U)
     {
-      len_len = (uint8_t)2U;
+      len_len = 2U;
     }
-    else if (y_ < (uint32_t)16777216U)
+    else if (y_ < 16777216U)
     {
-      len_len = (uint8_t)3U;
+      len_len = 3U;
     }
     else
     {
-      len_len = (uint8_t)4U;
+      len_len = 4U;
     }
-    x = (uint8_t)128U + len_len;
+    x = 128U + (uint32_t)len_len;
   }
-  if (x < (uint8_t)128U)
+  if (x < 128U)
   {
     b[pos] = x;
-    return (uint32_t)1U;
+    return 1U;
   }
-  if (x == (uint8_t)129U)
+  if (x == 129U)
   {
     b[pos] = x;
-    b[pos + (uint32_t)1U] = (uint8_t)y_;
-    return (uint32_t)2U;
+    b[pos + 1U] = (uint8_t)y_;
+    return 2U;
   }
-  if (x == (uint8_t)130U)
+  if (x == 130U)
   {
     b[pos] = x;
     uint16_t v_ = (uint16_t)y_;
-    uint32_t x1 = pos + (uint32_t)1U;
+    uint32_t x1 = pos + 1U;
     store16_be(b + x1, v_);
-    uint32_t z = (uint32_t)2U;
-    return (uint32_t)3U;
+    KRML_HOST_IGNORE(2U);
+    return 3U;
   }
-  if (x == (uint8_t)131U)
+  if (x == 131U)
   {
     b[pos] = x;
     uint8_t lo = (uint8_t)y_;
-    b[pos + (uint32_t)1U + (uint32_t)2U] = lo;
-    uint32_t hi_ = y_ >> (uint32_t)8U;
+    b[pos + 1U + 2U] = lo;
+    uint32_t hi_ = y_ >> 8U;
     uint16_t hi = (uint16_t)hi_;
-    uint32_t x1 = pos + (uint32_t)1U;
+    uint32_t x1 = pos + 1U;
     store16_be(b + x1, hi);
-    uint32_t z = (uint32_t)3U;
-    return (uint32_t)4U;
+    KRML_HOST_IGNORE(3U);
+    return 4U;
   }
   b[pos] = x;
-  uint32_t x1 = pos + (uint32_t)1U;
+  uint32_t x1 = pos + 1U;
   store32_be(b + x1, y_);
-  uint32_t z = (uint32_t)4U;
-  return (uint32_t)5U;
+  KRML_HOST_IGNORE(4U);
+  return 5U;
 }
 
 static uint32_t serialize32_asn1_length_of_type(uint32_t y_, uint8_t *b, uint32_t pos)
 {
   uint8_t x;
-  if (y_ < (uint32_t)128U)
+  if (y_ < 128U)
   {
     x = (uint8_t)y_;
   }
   else
   {
     uint8_t len_len;
-    if (y_ < (uint32_t)256U)
+    if (y_ < 256U)
     {
-      len_len = (uint8_t)1U;
+      len_len = 1U;
     }
-    else if (y_ < (uint32_t)65536U)
+    else if (y_ < 65536U)
     {
-      len_len = (uint8_t)2U;
+      len_len = 2U;
     }
-    else if (y_ < (uint32_t)16777216U)
+    else if (y_ < 16777216U)
     {
-      len_len = (uint8_t)3U;
+      len_len = 3U;
     }
     else
     {
-      len_len = (uint8_t)4U;
+      len_len = 4U;
     }
-    x = (uint8_t)128U + len_len;
+    x = 128U + (uint32_t)len_len;
   }
-  if (x < (uint8_t)128U)
+  if (x < 128U)
   {
     b[pos] = x;
-    return (uint32_t)1U;
+    return 1U;
   }
-  if (x == (uint8_t)129U)
+  if (x == 129U)
   {
     b[pos] = x;
-    b[pos + (uint32_t)1U] = (uint8_t)y_;
-    return (uint32_t)2U;
+    b[pos + 1U] = (uint8_t)y_;
+    return 2U;
   }
-  if (x == (uint8_t)130U)
+  if (x == 130U)
   {
     b[pos] = x;
     uint16_t v_ = (uint16_t)y_;
-    uint32_t x1 = pos + (uint32_t)1U;
+    uint32_t x1 = pos + 1U;
     store16_be(b + x1, v_);
-    uint32_t z = (uint32_t)2U;
-    return (uint32_t)3U;
+    KRML_HOST_IGNORE(2U);
+    return 3U;
   }
-  if (x == (uint8_t)131U)
+  if (x == 131U)
   {
     b[pos] = x;
     uint8_t lo = (uint8_t)y_;
-    b[pos + (uint32_t)1U + (uint32_t)2U] = lo;
-    uint32_t hi_ = y_ >> (uint32_t)8U;
+    b[pos + 1U + 2U] = lo;
+    uint32_t hi_ = y_ >> 8U;
     uint16_t hi = (uint16_t)hi_;
-    uint32_t x1 = pos + (uint32_t)1U;
+    uint32_t x1 = pos + 1U;
     store16_be(b + x1, hi);
-    uint32_t z = (uint32_t)3U;
-    return (uint32_t)4U;
+    KRML_HOST_IGNORE(3U);
+    return 4U;
   }
   b[pos] = x;
-  uint32_t x1 = pos + (uint32_t)1U;
+  uint32_t x1 = pos + 1U;
   store32_be(b + x1, y_);
-  uint32_t z = (uint32_t)4U;
-  return (uint32_t)5U;
+  KRML_HOST_IGNORE(4U);
+  return 5U;
 }
 
 uint32_t
@@ -196,6 +198,7 @@ serialize32_asn1_length_of_type_backwards(
   uint32_t pos
 )
 {
+  KRML_MAYBE_UNUSED_VAR(_a);
   uint32_t offset = len_of_asn1_length(len);
   uint32_t offset1 = serialize32_asn1_length_of_type(len, b, pos - offset);
   return offset1;
@@ -205,51 +208,51 @@ uint8_t encode_asn1_tag(asn1_tag_t a)
 {
   if (a.tag == BOOLEAN)
   {
-    return (uint8_t)0x01U;
+    return 0x01U;
   }
   if (a.tag == INTEGER)
   {
-    return (uint8_t)0x02U;
+    return 0x02U;
   }
   if (a.tag == BIT_STRING)
   {
-    return (uint8_t)0x03U;
+    return 0x03U;
   }
   if (a.tag == OCTET_STRING)
   {
-    return (uint8_t)0x04U;
+    return 0x04U;
   }
   if (a.tag == PRINTABLE_STRING)
   {
-    return (uint8_t)0x13U;
+    return 0x13U;
   }
   if (a.tag == IA5_STRING)
   {
-    return (uint8_t)0x16U;
+    return 0x16U;
   }
   if (a.tag == ASN1_NULL)
   {
-    return (uint8_t)0x05U;
+    return 0x05U;
   }
   if (a.tag == OID)
   {
-    return (uint8_t)0x06U;
+    return 0x06U;
   }
   if (a.tag == UTC_TIME)
   {
-    return (uint8_t)0x17U;
+    return 0x17U;
   }
   if (a.tag == Generalized_Time)
   {
-    return (uint8_t)0x18U;
+    return 0x18U;
   }
   if (a.tag == SEQUENCE)
   {
-    return (uint8_t)0x30U;
+    return 0x30U;
   }
   if (a.tag == SET)
   {
-    return (uint8_t)0x31U;
+    return 0x31U;
   }
   if (a.tag == CUSTOM_TAG)
   {
@@ -261,22 +264,22 @@ uint8_t encode_asn1_tag(asn1_tag_t a)
     {
       case APPLICATION:
         {
-          b_tag_class = (uint8_t)0b01000000U;
+          b_tag_class = 0b01000000U;
           break;
         }
       case CONTEXT_SPECIFIC:
         {
-          b_tag_class = (uint8_t)0b10000000U;
+          b_tag_class = 0b10000000U;
           break;
         }
       case PRIVATE:
         {
-          b_tag_class = (uint8_t)0b11000000U;
+          b_tag_class = 0b11000000U;
           break;
         }
       default:
         {
-          KRML_HOST_EPRINTF("KreMLin incomplete match at %s:%d\n", __FILE__, __LINE__);
+          KRML_HOST_EPRINTF("KaRaMeL incomplete match at %s:%d\n", __FILE__, __LINE__);
           KRML_HOST_EXIT(253U);
         }
     }
@@ -285,23 +288,23 @@ uint8_t encode_asn1_tag(asn1_tag_t a)
     {
       case PRIMITIVE:
         {
-          b_tag_form = (uint8_t)0b000000U;
+          b_tag_form = 0b000000U;
           break;
         }
       case CONSTRUCTED:
         {
-          b_tag_form = (uint8_t)0b100000U;
+          b_tag_form = 0b100000U;
           break;
         }
       default:
         {
-          KRML_HOST_EPRINTF("KreMLin incomplete match at %s:%d\n", __FILE__, __LINE__);
+          KRML_HOST_EPRINTF("KaRaMeL incomplete match at %s:%d\n", __FILE__, __LINE__);
           KRML_HOST_EXIT(253U);
         }
     }
-    return b_tag_class + b_tag_form + tag_value;
+    return (uint32_t)b_tag_class + (uint32_t)b_tag_form + (uint32_t)tag_value;
   }
-  KRML_HOST_EPRINTF("KreMLin abort at %s:%d\n%s\n",
+  KRML_HOST_EPRINTF("KaRaMeL abort at %s:%d\n%s\n",
     __FILE__,
     __LINE__,
     "unreachable (pattern matches are exhaustive in F*)");
@@ -311,7 +314,7 @@ uint8_t encode_asn1_tag(asn1_tag_t a)
 static uint32_t
 serialize32_asn1_generalized_time_backwards(FStar_Bytes_bytes x, uint8_t *input, uint32_t pos)
 {
-  return serialize32_flbytes32_backwards((uint32_t)15U, x, input, pos);
+  return serialize32_flbytes32_backwards(15U, x, input, pos);
 }
 
 static uint32_t
@@ -321,12 +324,12 @@ serialize32_asn1_generalized_time_TLV_backwards(FStar_Bytes_bytes x, uint8_t *b,
   uint32_t
   offset2 =
     serialize32_asn1_length_of_type_backwards(((asn1_tag_t){ .tag = Generalized_Time }),
-      (uint32_t)15U,
+      15U,
       b,
       pos - offset_data);
-  b[pos - offset_data - offset2 - (uint32_t)1U] =
+  b[pos - offset_data - offset2 - 1U] =
     encode_asn1_tag(((asn1_tag_t){ .tag = Generalized_Time }));
-  uint32_t offset1 = (uint32_t)1U;
+  uint32_t offset1 = 1U;
   uint32_t offset_tag = offset1 + offset2;
   return offset_tag + offset_data;
 }
@@ -334,7 +337,7 @@ serialize32_asn1_generalized_time_TLV_backwards(FStar_Bytes_bytes x, uint8_t *b,
 static uint32_t
 serialize32_asn1_utc_time_backwards(FStar_Bytes_bytes x, uint8_t *input, uint32_t pos)
 {
-  return serialize32_flbytes32_backwards((uint32_t)13U, x, input, pos);
+  return serialize32_flbytes32_backwards(13U, x, input, pos);
 }
 
 static uint32_t
@@ -344,77 +347,52 @@ serialize32_asn1_utc_time_TLV_backwards(FStar_Bytes_bytes x, uint8_t *b, uint32_
   uint32_t
   offset2 =
     serialize32_asn1_length_of_type_backwards(((asn1_tag_t){ .tag = UTC_TIME }),
-      (uint32_t)13U,
+      13U,
       b,
       pos - offset_data);
-  b[pos - offset_data - offset2 - (uint32_t)1U] =
-    encode_asn1_tag(((asn1_tag_t){ .tag = UTC_TIME }));
-  uint32_t offset1 = (uint32_t)1U;
+  b[pos - offset_data - offset2 - 1U] = encode_asn1_tag(((asn1_tag_t){ .tag = UTC_TIME }));
+  uint32_t offset1 = 1U;
   uint32_t offset_tag = offset1 + offset2;
   return offset_tag + offset_data;
 }
 
 static uint8_t
 oid_RIOT_as_buffer[10U] =
-  {
-    (uint8_t)0x2BU, (uint8_t)0x06U, (uint8_t)0x01U, (uint8_t)0x04U, (uint8_t)0x01U, (uint8_t)0x82U,
-    (uint8_t)0x37U, (uint8_t)0x59U, (uint8_t)0x03U, (uint8_t)0x01U
-  };
+  { 0x2BU, 0x06U, 0x01U, 0x04U, 0x01U, 0x82U, 0x37U, 0x59U, 0x03U, 0x01U };
 
-static uint8_t oid_AT_CN_as_buffer[3U] = { (uint8_t)0x55U, (uint8_t)0x04U, (uint8_t)0x03U };
+static uint8_t oid_AT_CN_as_buffer[3U] = { 0x55U, 0x04U, 0x03U };
 
-static uint8_t
-oid_AT_COUNTRY_as_buffer[3U] = { (uint8_t)0x55U, (uint8_t)0x04U, (uint8_t)0x06U };
+static uint8_t oid_AT_COUNTRY_as_buffer[3U] = { 0x55U, 0x04U, 0x06U };
+
+static uint8_t oid_AT_ORGANIZATION_as_buffer[3U] = { 0x55U, 0x04U, 0x0AU };
 
 static uint8_t
-oid_AT_ORGANIZATION_as_buffer[3U] = { (uint8_t)0x55U, (uint8_t)0x04U, (uint8_t)0x0AU };
+oid_CLIENT_AUTH_as_buffer[8U] = { 0x2BU, 0x06U, 0x01U, 0x05U, 0x05U, 0x07U, 0x03U, 0x02U };
+
+static uint8_t oid_AUTHORITY_KEY_IDENTIFIER_as_buffer[3U] = { 0x55U, 0x1DU, 0x23U };
+
+static uint8_t oid_KEY_USAGE_as_buffer[3U] = { 0x55U, 0x1DU, 0x0FU };
+
+static uint8_t oid_EXTENDED_KEY_USAGE_as_buffer[3U] = { 0x55U, 0x1DU, 0x25U };
+
+static uint8_t oid_BASIC_CONSTRAINTS_as_buffer[3U] = { 0x55U, 0x1DU, 0x13U };
+
+static uint8_t oid_EC_ALG_UNRESTRICTED_as_buffer[5U] = { 0x2AU, 0xceU, 0x3dU, 0x02U, 0x01U };
 
 static uint8_t
-oid_CLIENT_AUTH_as_buffer[8U] =
-  {
-    (uint8_t)0x2BU, (uint8_t)0x06U, (uint8_t)0x01U, (uint8_t)0x05U, (uint8_t)0x05U, (uint8_t)0x07U,
-    (uint8_t)0x03U, (uint8_t)0x02U
-  };
-
-static uint8_t
-oid_AUTHORITY_KEY_IDENTIFIER_as_buffer[3U] = { (uint8_t)0x55U, (uint8_t)0x1DU, (uint8_t)0x23U };
-
-static uint8_t
-oid_KEY_USAGE_as_buffer[3U] = { (uint8_t)0x55U, (uint8_t)0x1DU, (uint8_t)0x0FU };
-
-static uint8_t
-oid_EXTENDED_KEY_USAGE_as_buffer[3U] = { (uint8_t)0x55U, (uint8_t)0x1DU, (uint8_t)0x25U };
-
-static uint8_t
-oid_BASIC_CONSTRAINTS_as_buffer[3U] = { (uint8_t)0x55U, (uint8_t)0x1DU, (uint8_t)0x13U };
-
-static uint8_t
-oid_EC_ALG_UNRESTRICTED_as_buffer[5U] =
-  { (uint8_t)0x2AU, (uint8_t)0xceU, (uint8_t)0x3dU, (uint8_t)0x02U, (uint8_t)0x01U };
-
-static uint8_t
-oid_EC_GRP_SECP256R1_as_buffer[6U] =
-  {
-    (uint8_t)0x2AU, (uint8_t)0xceU, (uint8_t)0x3dU, (uint8_t)0x03U, (uint8_t)0x01U, (uint8_t)0x07U
-  };
+oid_EC_GRP_SECP256R1_as_buffer[6U] = { 0x2AU, 0xceU, 0x3dU, 0x03U, 0x01U, 0x07U };
 
 static uint8_t
 oid_DIGEST_ALG_SHA256_as_buffer[9U] =
-  {
-    (uint8_t)0x60U, (uint8_t)0x86U, (uint8_t)0x48U, (uint8_t)0x01U, (uint8_t)0x65U, (uint8_t)0x03U,
-    (uint8_t)0x04U, (uint8_t)0x02U, (uint8_t)0x01U
-  };
+  { 0x60U, 0x86U, 0x48U, 0x01U, 0x65U, 0x03U, 0x04U, 0x02U, 0x01U };
 
-static uint8_t oid_ED25519_as_bufffer[3U] = { (uint8_t)0x2BU, (uint8_t)0x65U, (uint8_t)0x70U };
+static uint8_t oid_ED25519_as_bufffer[3U] = { 0x2BU, 0x65U, 0x70U };
 
-static uint8_t oid_X25519_as_bufffer[3U] = { (uint8_t)0x2BU, (uint8_t)0x65U, (uint8_t)0x6EU };
+static uint8_t oid_X25519_as_bufffer[3U] = { 0x2BU, 0x65U, 0x6EU };
 
 static uint8_t
 oid_PKCS9_CSR_EXT_REQ_as_buffer[9U] =
-  {
-    (uint8_t)0x2AU, (uint8_t)0x86U, (uint8_t)0x48U, (uint8_t)0x86U, (uint8_t)0xF7U, (uint8_t)0x0DU,
-    (uint8_t)0x01U, (uint8_t)0x09U, (uint8_t)0x0EU
-  };
+  { 0x2AU, 0x86U, 0x48U, 0x86U, 0xF7U, 0x0DU, 0x01U, 0x09U, 0x0EU };
 
 static uint8_t *oid_buffer_of_oid(oid_t oid)
 {
@@ -482,7 +460,7 @@ static uint8_t *oid_buffer_of_oid(oid_t oid)
       }
     default:
       {
-        KRML_HOST_EPRINTF("KreMLin incomplete match at %s:%d\n", __FILE__, __LINE__);
+        KRML_HOST_EPRINTF("KaRaMeL incomplete match at %s:%d\n", __FILE__, __LINE__);
         KRML_HOST_EXIT(253U);
       }
   }
@@ -494,67 +472,67 @@ static uint32_t len_of_oid_buffer(oid_t oid)
   {
     case OID_RIOT:
       {
-        return (uint32_t)10U;
+        return 10U;
       }
     case OID_AT_CN:
       {
-        return (uint32_t)3U;
+        return 3U;
       }
     case OID_AT_COUNTRY:
       {
-        return (uint32_t)3U;
+        return 3U;
       }
     case OID_AT_ORGANIZATION:
       {
-        return (uint32_t)3U;
+        return 3U;
       }
     case OID_CLIENT_AUTH:
       {
-        return (uint32_t)8U;
+        return 8U;
       }
     case OID_AUTHORITY_KEY_IDENTIFIER:
       {
-        return (uint32_t)3U;
+        return 3U;
       }
     case OID_KEY_USAGE:
       {
-        return (uint32_t)3U;
+        return 3U;
       }
     case OID_EXTENDED_KEY_USAGE:
       {
-        return (uint32_t)3U;
+        return 3U;
       }
     case OID_BASIC_CONSTRAINTS:
       {
-        return (uint32_t)3U;
+        return 3U;
       }
     case OID_EC_ALG_UNRESTRICTED:
       {
-        return (uint32_t)5U;
+        return 5U;
       }
     case OID_EC_GRP_SECP256R1:
       {
-        return (uint32_t)6U;
+        return 6U;
       }
     case OID_ED25519:
       {
-        return (uint32_t)3U;
+        return 3U;
       }
     case OID_X25519:
       {
-        return (uint32_t)3U;
+        return 3U;
       }
     case OID_DIGEST_SHA256:
       {
-        return (uint32_t)9U;
+        return 9U;
       }
     case OID_PKCS9_CSR_EXT_REQ:
       {
-        return (uint32_t)9U;
+        return 9U;
       }
     default:
       {
-        KRML_HOST_EPRINTF("KreMLin incomplete match at %s:%d\n", __FILE__, __LINE__);
+        KRML_HOST_EPRINTF("KaRaMeL incomplete match at %s:%d\n", __FILE__, __LINE__);
         KRML_HOST_EXIT(253U);
       }
   }
@@ -565,8 +543,8 @@ uint32_t serialize32_asn1_oid_TLV_backwards(oid_t x, uint8_t *b, uint32_t pos)
   uint8_t *oid_buffer = oid_buffer_of_oid(x);
   uint32_t offset = len_of_oid_buffer(x);
   FStar_Bytes_bytes uu____0 = FStar_Bytes_of_buffer(offset, (uint8_t *)oid_buffer);
-  uint32_t bi = (uint32_t)0U;
-  uint32_t len = offset - (uint32_t)0U;
+  uint32_t bi = 0U;
+  uint32_t len = offset - 0U;
   while (true)
   {
     uint32_t i = bi;
@@ -577,9 +555,9 @@ uint32_t serialize32_asn1_oid_TLV_backwards(oid_t x, uint8_t *b, uint32_t pos)
     }
     else
     {
-      uint8_t x1 = FStar_Bytes_get(uu____0, (uint32_t)0U + i);
+      uint8_t x1 = FStar_Bytes_get(uu____0, 0U + i);
       b[pos - offset + i] = x1;
-      uint32_t i_ = i + (uint32_t)1U;
+      uint32_t i_ = i + 1U;
       bi = i_;
       ite = i_ == len;
     }
@@ -595,8 +573,8 @@ uint32_t serialize32_asn1_oid_TLV_backwards(oid_t x, uint8_t *b, uint32_t pos)
       len_of_oid_buffer(x),
       b,
       pos - offset_data);
-  b[pos - offset_data - offset2 - (uint32_t)1U] = encode_asn1_tag(((asn1_tag_t){ .tag = OID }));
-  uint32_t offset1 = (uint32_t)1U;
+  b[pos - offset_data - offset2 - 1U] = encode_asn1_tag(((asn1_tag_t){ .tag = OID }));
+  uint32_t offset1 = 1U;
   uint32_t offset_tag = offset1 + offset2;
   return offset_tag + offset_data;
 }
@@ -605,8 +583,8 @@ uint32_t serialize32_asn1_bit_string_TLV_backwards(bit_string_t x, uint8_t *b, u
 {
   uint8_t leading_byte = (uint8_t)x.bs_unused_bits;
   b[pos - x.bs_len] = leading_byte;
-  uint32_t bi = (uint32_t)0U;
-  uint32_t len = x.bs_len - (uint32_t)1U - (uint32_t)0U;
+  uint32_t bi = 0U;
+  uint32_t len = x.bs_len - 1U - 0U;
   while (true)
   {
     uint32_t i = bi;
@@ -617,9 +595,9 @@ uint32_t serialize32_asn1_bit_string_TLV_backwards(bit_string_t x, uint8_t *b, u
     }
     else
     {
-      uint8_t x1 = FStar_Bytes_get(x.bs_s, (uint32_t)0U + i);
-      b[pos - x.bs_len + (uint32_t)1U + i] = x1;
-      uint32_t i_ = i + (uint32_t)1U;
+      uint8_t x1 = FStar_Bytes_get(x.bs_s, 0U + i);
+      b[pos - x.bs_len + 1U + i] = x1;
+      uint32_t i_ = i + 1U;
       bi = i_;
       ite = i_ == len;
     }
@@ -635,50 +613,43 @@ uint32_t serialize32_asn1_bit_string_TLV_backwards(bit_string_t x, uint8_t *b, u
       x.bs_len,
       b,
       pos - offset_data);
-  b[pos - offset_data - offset2 - (uint32_t)1U] =
-    encode_asn1_tag(((asn1_tag_t){ .tag = BIT_STRING }));
-  uint32_t offset1 = (uint32_t)1U;
+  b[pos - offset_data - offset2 - 1U] = encode_asn1_tag(((asn1_tag_t){ .tag = BIT_STRING }));
+  uint32_t offset1 = 1U;
   uint32_t offset_tag = offset1 + offset2;
   return offset_tag + offset_data;
 }
 
 static uint32_t
-__proj__Mkdtuple2__item___1__uint32_t_FStar_Bytes_bytes(
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes pair
-)
+__proj__Mkdtuple2__item___1__uint32_t_FStar_Bytes_bytes(character_string_t pair)
 {
   return pair.fst;
 }
 
-uint32_t
-FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(Prims_dtuple2__uint32_t_FStar_Bytes_bytes t)
+uint32_t FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(character_string_t t)
 {
   return __proj__Mkdtuple2__item___1__uint32_t_FStar_Bytes_bytes(t);
 }
 
 static FStar_Bytes_bytes
-__proj__Mkdtuple2__item___2__uint32_t_FStar_Bytes_bytes(
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes pair
-)
+__proj__Mkdtuple2__item___2__uint32_t_FStar_Bytes_bytes(character_string_t pair)
 {
   return pair.snd;
 }
 
-static FStar_Bytes_bytes
-dsnd__uint32_t_FStar_Bytes_bytes(Prims_dtuple2__uint32_t_FStar_Bytes_bytes t)
+static FStar_Bytes_bytes dsnd__uint32_t_FStar_Bytes_bytes(character_string_t t)
 {
   return __proj__Mkdtuple2__item___2__uint32_t_FStar_Bytes_bytes(t);
 }
 
 static uint32_t
 serialize32_asn1_printable_string_TLV_with_character_bound_backwards(
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes x,
+  character_string_t x,
   uint8_t *input,
   uint32_t pos
 )
 {
-  uint32_t bi = (uint32_t)0U;
-  uint32_t len = FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(x) - (uint32_t)0U;
+  uint32_t bi = 0U;
+  uint32_t len = FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(x) - 0U;
   while (true)
   {
     uint32_t i = bi;
@@ -689,9 +660,9 @@ serialize32_asn1_printable_string_TLV_with_character_bound_backwards(
     }
     else
     {
-      uint8_t x1 = FStar_Bytes_get(dsnd__uint32_t_FStar_Bytes_bytes(x), (uint32_t)0U + i);
+      uint8_t x1 = FStar_Bytes_get(dsnd__uint32_t_FStar_Bytes_bytes(x), 0U + i);
       input[pos - FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(x) + i] = x1;
-      uint32_t i_ = i + (uint32_t)1U;
+      uint32_t i_ = i + 1U;
       bi = i_;
       ite = i_ == len;
     }
@@ -707,9 +678,9 @@ serialize32_asn1_printable_string_TLV_with_character_bound_backwards(
       FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(x),
       input,
       pos - offset_data);
-  input[pos - offset_data - offset2 - (uint32_t)1U] =
+  input[pos - offset_data - offset2 - 1U] =
     encode_asn1_tag(((asn1_tag_t){ .tag = PRINTABLE_STRING }));
-  uint32_t offset1 = (uint32_t)1U;
+  uint32_t offset1 = 1U;
   uint32_t offset_tag = offset1 + offset2;
   return offset_tag + offset_data;
 }
@@ -722,8 +693,8 @@ serialize32_asn1_octet_string_TLV_with_tag_backwards(
   uint32_t pos
 )
 {
-  uint32_t bi = (uint32_t)0U;
-  uint32_t len = x.len - (uint32_t)0U;
+  uint32_t bi = 0U;
+  uint32_t len = x.len - 0U;
   while (true)
   {
     uint32_t i = bi;
@@ -734,9 +705,9 @@ serialize32_asn1_octet_string_TLV_with_tag_backwards(
     }
     else
     {
-      uint8_t x1 = FStar_Bytes_get(x.s, (uint32_t)0U + i);
+      uint8_t x1 = FStar_Bytes_get(x.s, 0U + i);
       b[pos - x.len + i] = x1;
-      uint32_t i_ = i + (uint32_t)1U;
+      uint32_t i_ = i + 1U;
       bi = i_;
       ite = i_ == len;
     }
@@ -752,8 +723,8 @@ serialize32_asn1_octet_string_TLV_with_tag_backwards(
       x.len,
       b,
       pos - offset_data);
-  b[pos - offset_data - offset2 - (uint32_t)1U] = encode_asn1_tag(a);
-  uint32_t offset1 = (uint32_t)1U;
+  b[pos - offset_data - offset2 - 1U] = encode_asn1_tag(a);
+  uint32_t offset1 = 1U;
   uint32_t offset_tag = offset1 + offset2;
   return offset_tag + offset_data;
 }
@@ -762,29 +733,29 @@ uint32_t len_of_asn1_integer(int32_t value)
 {
   if ((int32_t)0 <= value && value <= (int32_t)0x7F)
   {
-    return (uint32_t)1U;
+    return 1U;
   }
   if ((int32_t)0x7F < value && value <= (int32_t)0xFF)
   {
-    return (uint32_t)2U;
+    return 2U;
   }
   if ((int32_t)0xFF < value && value <= (int32_t)0x7FFF)
   {
-    return (uint32_t)2U;
+    return 2U;
   }
   if ((int32_t)0x7FFF < value && value <= (int32_t)0xFFFF)
   {
-    return (uint32_t)3U;
+    return 3U;
   }
   if ((int32_t)0xFFFF < value && value <= (int32_t)0x7FFFFF)
   {
-    return (uint32_t)3U;
+    return 3U;
   }
   if ((int32_t)0x7FFFFF < value && value <= (int32_t)0xFFFFFF)
   {
-    return (uint32_t)4U;
+    return 4U;
   }
-  return (uint32_t)4U;
+  return 4U;
 }
 
 uint32_t serialize32_asn1_integer_TLV_backwards(int32_t x, uint8_t *b, uint32_t pos)
@@ -793,54 +764,54 @@ uint32_t serialize32_asn1_integer_TLV_backwards(int32_t x, uint8_t *b, uint32_t 
   if ((int32_t)0 <= x && x <= (int32_t)0x7F)
   {
     uint8_t b0 = (uint8_t)x;
-    b[pos - (uint32_t)1U] = b0;
-    offset_data = (uint32_t)1U;
+    b[pos - 1U] = b0;
+    offset_data = 1U;
   }
   else if ((int32_t)0x7F < x && x <= (int32_t)0xFF)
   {
-    b[pos - (uint32_t)2U] = (uint8_t)0x00U;
+    b[pos - 2U] = 0x00U;
     uint8_t b0 = (uint8_t)x;
-    b[pos - (uint32_t)1U] = b0;
-    offset_data = (uint32_t)2U;
+    b[pos - 1U] = b0;
+    offset_data = 2U;
   }
   else if ((int32_t)0xFF < x && x <= (int32_t)0x7FFF)
   {
-    uint32_t x1 = pos - (uint32_t)2U;
+    uint32_t x1 = pos - 2U;
     store16_be(b + x1, (uint16_t)x);
-    offset_data = (uint32_t)2U;
+    offset_data = 2U;
   }
   else if ((int32_t)0x7FFF < x && x <= (int32_t)0xFFFF)
   {
-    b[pos - (uint32_t)3U] = (uint8_t)0x00U;
-    uint32_t x1 = pos - (uint32_t)2U;
+    b[pos - 3U] = 0x00U;
+    uint32_t x1 = pos - 2U;
     store16_be(b + x1, (uint16_t)x);
-    offset_data = (uint32_t)3U;
+    offset_data = 3U;
   }
   else if ((int32_t)0xFFFF < x && x <= (int32_t)0x7FFFFF)
   {
     uint16_t first_2_bytes = (uint16_t)(x / (int32_t)0x100);
-    uint32_t x1 = pos - (uint32_t)3U;
+    uint32_t x1 = pos - 3U;
     store16_be(b + x1, first_2_bytes);
     uint8_t last_byte = (uint8_t)(x % (int32_t)0x100);
-    b[pos - (uint32_t)1U] = last_byte;
-    offset_data = (uint32_t)3U;
+    b[pos - 1U] = last_byte;
+    offset_data = 3U;
   }
   else if ((int32_t)0x7FFFFF < x && x <= (int32_t)0xFFFFFF)
   {
-    b[pos - (uint32_t)4U] = (uint8_t)0x00U;
+    b[pos - 4U] = 0x00U;
     uint16_t first_2_bytes = (uint16_t)(x / (int32_t)0x100);
-    uint32_t x1 = pos - (uint32_t)3U;
+    uint32_t x1 = pos - 3U;
     store16_be(b + x1, first_2_bytes);
     uint8_t last_byte = (uint8_t)(x % (int32_t)0x100);
-    b[pos - (uint32_t)1U] = last_byte;
-    offset_data = (uint32_t)4U;
+    b[pos - 1U] = last_byte;
+    offset_data = 4U;
   }
   else if ((int32_t)0xFFFFFF < x && x <= (int32_t)0x7FFFFFFF)
   {
     uint32_t value_of_all_4_bytes = (uint32_t)x;
-    uint32_t x1 = pos - (uint32_t)4U;
+    uint32_t x1 = pos - 4U;
     store32_be(b + x1, value_of_all_4_bytes);
-    offset_data = (uint32_t)4U;
+    offset_data = 4U;
   }
   else
   {
@@ -852,36 +823,34 @@ uint32_t serialize32_asn1_integer_TLV_backwards(int32_t x, uint8_t *b, uint32_t 
       len_of_asn1_integer(x),
       b,
       pos - offset_data);
-  b[pos - offset_data - offset2 - (uint32_t)1U] =
-    encode_asn1_tag(((asn1_tag_t){ .tag = INTEGER }));
-  uint32_t offset1 = (uint32_t)1U;
+  b[pos - offset_data - offset2 - 1U] = encode_asn1_tag(((asn1_tag_t){ .tag = INTEGER }));
+  uint32_t offset1 = 1U;
   uint32_t offset_tag = offset1 + offset2;
   return offset_tag + offset_data;
 }
 
 uint32_t serialize32_asn1_boolean_TLV_backwards(bool x, uint8_t *input, uint32_t pos)
 {
-  uint32_t offset = (uint32_t)1U;
+  uint32_t offset = 1U;
   uint8_t content;
   if (x)
   {
-    content = (uint8_t)0xFFU;
+    content = 0xFFU;
   }
   else
   {
-    content = (uint8_t)0x00U;
+    content = 0x00U;
   }
   input[pos - offset] = content;
   uint32_t offset2 = offset;
   uint32_t
   offset21 =
     serialize32_asn1_length_of_type_backwards(((asn1_tag_t){ .tag = BOOLEAN }),
-      (uint32_t)1U,
+      1U,
       input,
       pos - offset2);
-  input[pos - offset2 - offset21 - (uint32_t)1U] =
-    encode_asn1_tag(((asn1_tag_t){ .tag = BOOLEAN }));
-  uint32_t offset1 = (uint32_t)1U;
+  input[pos - offset2 - offset21 - 1U] = encode_asn1_tag(((asn1_tag_t){ .tag = BOOLEAN }));
+  uint32_t offset1 = 1U;
   uint32_t offset10 = offset1 + offset21;
   return offset10 + offset2;
 }
@@ -893,9 +862,9 @@ uint32_t serialize32_asn1_boolean_TLV_false_backwards(bool x, uint8_t *input, ui
 
 static uint32_t len_of_big_integer_as_octet_string(octet_string_t x)
 {
-  if (FStar_Bytes_get(x.s, (uint32_t)0U) >= (uint8_t)0x80U)
+  if (FStar_Bytes_get(x.s, 0U) >= 0x80U)
   {
-    return x.len + (uint32_t)1U;
+    return x.len + 1U;
   }
   return x.len;
 }
@@ -903,7 +872,7 @@ static uint32_t len_of_big_integer_as_octet_string(octet_string_t x)
 static uint32_t len_of_big_integer_as_octet_string_TLV(octet_string_t x)
 {
   uint32_t len = len_of_big_integer_as_octet_string(x);
-  return (uint32_t)1U + len_of_asn1_length(len) + len;
+  return 1U + len_of_asn1_length(len) + len;
 }
 
 static uint32_t
@@ -921,8 +890,8 @@ serialize32_big_integer_as_octet_string_TLV_backwards(
   uint32_t pos
 )
 {
-  uint32_t bi = (uint32_t)0U;
-  uint32_t len = x.len - (uint32_t)0U;
+  uint32_t bi = 0U;
+  uint32_t len = x.len - 0U;
   while (true)
   {
     uint32_t i = bi;
@@ -933,9 +902,9 @@ serialize32_big_integer_as_octet_string_TLV_backwards(
     }
     else
     {
-      uint8_t x1 = FStar_Bytes_get(x.s, (uint32_t)0U + i);
+      uint8_t x1 = FStar_Bytes_get(x.s, 0U + i);
       b[pos - x.len + i] = x1;
-      uint32_t i_ = i + (uint32_t)1U;
+      uint32_t i_ = i + 1U;
       bi = i_;
       ite = i_ == len;
     }
@@ -944,9 +913,9 @@ serialize32_big_integer_as_octet_string_TLV_backwards(
       break;
     }
   }
-  if (FStar_Bytes_get(x.s, (uint32_t)0U) >= (uint8_t)0x80U)
+  if (FStar_Bytes_get(x.s, 0U) >= 0x80U)
   {
-    b[pos - len_of_big_integer_as_octet_string(x)] = (uint8_t)0x00U;
+    b[pos - len_of_big_integer_as_octet_string(x)] = 0x00U;
   }
   uint32_t offset_data = len_of_big_integer_as_octet_string(x);
   uint32_t
@@ -954,31 +923,23 @@ serialize32_big_integer_as_octet_string_TLV_backwards(
     serialize32_asn1_length_of_big_integer_backwards(len_of_big_integer_as_octet_string(x),
       b,
       pos - offset_data);
-  b[pos - offset_data - offset2 - (uint32_t)1U] =
-    encode_asn1_tag(((asn1_tag_t){ .tag = INTEGER }));
-  uint32_t offset1 = (uint32_t)1U;
+  b[pos - offset_data - offset2 - 1U] = encode_asn1_tag(((asn1_tag_t){ .tag = INTEGER }));
+  uint32_t offset1 = 1U;
   uint32_t offset_tag = offset1 + offset2;
   return offset_tag + offset_data;
 }
 
 asn1_tag_t
 x509_authKeyID_keyIdentifier_tag =
-  {
-    .tag = CUSTOM_TAG,
-    .tag_class = CONTEXT_SPECIFIC,
-    .tag_form = PRIMITIVE,
-    .tag_value = (uint8_t)0U
-  };
+  { .tag = CUSTOM_TAG, .tag_class = CONTEXT_SPECIFIC, .tag_form = PRIMITIVE, .tag_value = 0U };
 
 static bit_string_t _synth_x509_key_usage_payload_inverse_impl(int32_t ku)
 {
   uint8_t b0 = (uint8_t)(ku % (int32_t)0x100);
   uint8_t b1 = (uint8_t)(ku / (int32_t)0x100);
   FStar_Bytes_bytes
-  s32 =
-    FStar_Bytes_append(FStar_Bytes_create((uint32_t)1U, b0),
-      FStar_Bytes_create((uint32_t)1U, b1));
-  return ((bit_string_t){ .bs_len = (uint32_t)3U, .bs_unused_bits = (uint32_t)7U, .bs_s = s32 });
+  s32 = FStar_Bytes_append(FStar_Bytes_create(1U, b0), FStar_Bytes_create(1U, b1));
+  return ((bit_string_t){ .bs_len = 3U, .bs_unused_bits = 7U, .bs_s = s32 });
 }
 
 static uint32_t
@@ -990,8 +951,7 @@ _serialize32_x509_key_usage_payload_backwards(int32_t x, uint8_t *input, uint32_
       pos);
 }
 
-uint32_t
-serialize32_x509_key_usage_backwards(K___ASN1_Base_oid_t_int32_t x, uint8_t *b, uint32_t pos)
+uint32_t serialize32_x509_key_usage_backwards(key_usage_t x, uint8_t *b, uint32_t pos)
 {
   oid_t x1 = x.fst;
   int32_t x2 = x.snd;
@@ -1002,9 +962,8 @@ serialize32_x509_key_usage_backwards(K___ASN1_Base_oid_t_int32_t x, uint8_t *b, 
       offset_data,
       b,
       pos - offset_data);
-  b[pos - offset_data - offset20 - (uint32_t)1U] =
-    encode_asn1_tag(((asn1_tag_t){ .tag = OCTET_STRING }));
-  uint32_t offset10 = (uint32_t)1U;
+  b[pos - offset_data - offset20 - 1U] = encode_asn1_tag(((asn1_tag_t){ .tag = OCTET_STRING }));
+  uint32_t offset10 = 1U;
   uint32_t offset_tag_len = offset10 + offset20;
   uint32_t offset21 = offset_tag_len + offset_data;
   uint32_t offset11 = serialize32_asn1_oid_TLV_backwards(x1, b, pos - offset21);
@@ -1015,19 +974,23 @@ serialize32_x509_key_usage_backwards(K___ASN1_Base_oid_t_int32_t x, uint8_t *b, 
       offset_data0,
       b,
       pos - offset_data0);
-  b[pos - offset_data0 - offset2 - (uint32_t)1U] =
-    encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
-  uint32_t offset1 = (uint32_t)1U;
+  b[pos - offset_data0 - offset2 - 1U] = encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
+  uint32_t offset1 = 1U;
   uint32_t offset_tag_len0 = offset1 + offset2;
   return offset_tag_len0 + offset_data0;
 }
 
-uint32_t serialize32_RDN_COMMON_NAME(x509_rdn_string_t x, uint8_t *b, uint32_t pos)
+uint32_t
+serialize32_RDN_COMMON_NAME(
+  K___ASN1_Base_oid_t_ASN1_Base_character_string_t x,
+  uint8_t *b,
+  uint32_t pos
+)
 {
   oid_t x1 = x.fst;
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes x2 = x.snd;
-  uint32_t bi = (uint32_t)0U;
-  uint32_t len = FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(x2) - (uint32_t)0U;
+  character_string_t x2 = x.snd;
+  uint32_t bi = 0U;
+  uint32_t len = FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(x2) - 0U;
   while (true)
   {
     uint32_t i = bi;
@@ -1038,9 +1001,9 @@ uint32_t serialize32_RDN_COMMON_NAME(x509_rdn_string_t x, uint8_t *b, uint32_t p
     }
     else
     {
-      uint8_t x3 = FStar_Bytes_get(dsnd__uint32_t_FStar_Bytes_bytes(x2), (uint32_t)0U + i);
+      uint8_t x3 = FStar_Bytes_get(dsnd__uint32_t_FStar_Bytes_bytes(x2), 0U + i);
       b[pos - FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(x2) + i] = x3;
-      uint32_t i_ = i + (uint32_t)1U;
+      uint32_t i_ = i + 1U;
       bi = i_;
       ite = i_ == len;
     }
@@ -1056,9 +1019,8 @@ uint32_t serialize32_RDN_COMMON_NAME(x509_rdn_string_t x, uint8_t *b, uint32_t p
       FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(x2),
       b,
       pos - offset_data);
-  b[pos - offset_data - offset20 - (uint32_t)1U] =
-    encode_asn1_tag(((asn1_tag_t){ .tag = IA5_STRING }));
-  uint32_t offset10 = (uint32_t)1U;
+  b[pos - offset_data - offset20 - 1U] = encode_asn1_tag(((asn1_tag_t){ .tag = IA5_STRING }));
+  uint32_t offset10 = 1U;
   uint32_t offset_tag = offset10 + offset20;
   uint32_t offset21 = offset_tag + offset_data;
   uint32_t offset11 = serialize32_asn1_oid_TLV_backwards(x1, b, pos - offset21);
@@ -1069,9 +1031,8 @@ uint32_t serialize32_RDN_COMMON_NAME(x509_rdn_string_t x, uint8_t *b, uint32_t p
       offset_data0,
       b,
       pos - offset_data0);
-  b[pos - offset_data0 - offset22 - (uint32_t)1U] =
-    encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
-  uint32_t offset12 = (uint32_t)1U;
+  b[pos - offset_data0 - offset22 - 1U] = encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
+  uint32_t offset12 = 1U;
   uint32_t offset_tag_len = offset12 + offset22;
   uint32_t offset_data1 = offset_tag_len + offset_data0;
   uint32_t
@@ -1080,18 +1041,23 @@ uint32_t serialize32_RDN_COMMON_NAME(x509_rdn_string_t x, uint8_t *b, uint32_t p
       offset_data1,
       b,
       pos - offset_data1);
-  b[pos - offset_data1 - offset2 - (uint32_t)1U] = encode_asn1_tag(((asn1_tag_t){ .tag = SET }));
-  uint32_t offset1 = (uint32_t)1U;
+  b[pos - offset_data1 - offset2 - 1U] = encode_asn1_tag(((asn1_tag_t){ .tag = SET }));
+  uint32_t offset1 = 1U;
   uint32_t offset_tag_len0 = offset1 + offset2;
   return offset_tag_len0 + offset_data1;
 }
 
-uint32_t serialize32_RDN_ORGANIZATION(x509_rdn_string_t x, uint8_t *b, uint32_t pos)
+uint32_t
+serialize32_RDN_ORGANIZATION(
+  K___ASN1_Base_oid_t_ASN1_Base_character_string_t x,
+  uint8_t *b,
+  uint32_t pos
+)
 {
   oid_t x1 = x.fst;
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes x2 = x.snd;
-  uint32_t bi = (uint32_t)0U;
-  uint32_t len = FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(x2) - (uint32_t)0U;
+  character_string_t x2 = x.snd;
+  uint32_t bi = 0U;
+  uint32_t len = FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(x2) - 0U;
   while (true)
   {
     uint32_t i = bi;
@@ -1102,9 +1068,9 @@ uint32_t serialize32_RDN_ORGANIZATION(x509_rdn_string_t x, uint8_t *b, uint32_t 
     }
     else
     {
-      uint8_t x3 = FStar_Bytes_get(dsnd__uint32_t_FStar_Bytes_bytes(x2), (uint32_t)0U + i);
+      uint8_t x3 = FStar_Bytes_get(dsnd__uint32_t_FStar_Bytes_bytes(x2), 0U + i);
       b[pos - FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(x2) + i] = x3;
-      uint32_t i_ = i + (uint32_t)1U;
+      uint32_t i_ = i + 1U;
       bi = i_;
       ite = i_ == len;
     }
@@ -1120,9 +1086,8 @@ uint32_t serialize32_RDN_ORGANIZATION(x509_rdn_string_t x, uint8_t *b, uint32_t 
       FStar_Pervasives_dfst__uint32_t_FStar_Bytes_bytes(x2),
       b,
       pos - offset_data);
-  b[pos - offset_data - offset20 - (uint32_t)1U] =
-    encode_asn1_tag(((asn1_tag_t){ .tag = IA5_STRING }));
-  uint32_t offset10 = (uint32_t)1U;
+  b[pos - offset_data - offset20 - 1U] = encode_asn1_tag(((asn1_tag_t){ .tag = IA5_STRING }));
+  uint32_t offset10 = 1U;
   uint32_t offset_tag = offset10 + offset20;
   uint32_t offset21 = offset_tag + offset_data;
   uint32_t offset11 = serialize32_asn1_oid_TLV_backwards(x1, b, pos - offset21);
@@ -1133,9 +1098,8 @@ uint32_t serialize32_RDN_ORGANIZATION(x509_rdn_string_t x, uint8_t *b, uint32_t 
       offset_data0,
       b,
       pos - offset_data0);
-  b[pos - offset_data0 - offset22 - (uint32_t)1U] =
-    encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
-  uint32_t offset12 = (uint32_t)1U;
+  b[pos - offset_data0 - offset22 - 1U] = encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
+  uint32_t offset12 = 1U;
   uint32_t offset_tag_len = offset12 + offset22;
   uint32_t offset_data1 = offset_tag_len + offset_data0;
   uint32_t
@@ -1144,16 +1108,21 @@ uint32_t serialize32_RDN_ORGANIZATION(x509_rdn_string_t x, uint8_t *b, uint32_t 
       offset_data1,
       b,
       pos - offset_data1);
-  b[pos - offset_data1 - offset2 - (uint32_t)1U] = encode_asn1_tag(((asn1_tag_t){ .tag = SET }));
-  uint32_t offset1 = (uint32_t)1U;
+  b[pos - offset_data1 - offset2 - 1U] = encode_asn1_tag(((asn1_tag_t){ .tag = SET }));
+  uint32_t offset1 = 1U;
   uint32_t offset_tag_len0 = offset1 + offset2;
   return offset_tag_len0 + offset_data1;
 }
 
-uint32_t serialize32_RDN_COUNTRY(x509_rdn_string_t x, uint8_t *b, uint32_t pos)
+uint32_t
+serialize32_RDN_COUNTRY(
+  K___ASN1_Base_oid_t_ASN1_Base_character_string_t x,
+  uint8_t *b,
+  uint32_t pos
+)
 {
   oid_t x1 = x.fst;
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes x2 = x.snd;
+  character_string_t x2 = x.snd;
   uint32_t
   offset20 = serialize32_asn1_printable_string_TLV_with_character_bound_backwards(x2, b, pos);
   uint32_t offset10 = serialize32_asn1_oid_TLV_backwards(x1, b, pos - offset20);
@@ -1164,9 +1133,8 @@ uint32_t serialize32_RDN_COUNTRY(x509_rdn_string_t x, uint8_t *b, uint32_t pos)
       offset_data,
       b,
       pos - offset_data);
-  b[pos - offset_data - offset21 - (uint32_t)1U] =
-    encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
-  uint32_t offset11 = (uint32_t)1U;
+  b[pos - offset_data - offset21 - 1U] = encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
+  uint32_t offset11 = 1U;
   uint32_t offset_tag_len = offset11 + offset21;
   uint32_t offset_data0 = offset_tag_len + offset_data;
   uint32_t
@@ -1175,40 +1143,30 @@ uint32_t serialize32_RDN_COUNTRY(x509_rdn_string_t x, uint8_t *b, uint32_t pos)
       offset_data0,
       b,
       pos - offset_data0);
-  b[pos - offset_data0 - offset2 - (uint32_t)1U] = encode_asn1_tag(((asn1_tag_t){ .tag = SET }));
-  uint32_t offset1 = (uint32_t)1U;
+  b[pos - offset_data0 - offset2 - 1U] = encode_asn1_tag(((asn1_tag_t){ .tag = SET }));
+  uint32_t offset1 = 1U;
   uint32_t offset_tag_len0 = offset1 + offset2;
   return offset_tag_len0 + offset_data0;
 }
 
 asn1_tag_t
 x509_extensions_outmost_explicit_tag =
-  {
-    .tag = CUSTOM_TAG,
-    .tag_class = CONTEXT_SPECIFIC,
-    .tag_form = CONSTRUCTED,
-    .tag_value = (uint8_t)3U
-  };
+  { .tag = CUSTOM_TAG, .tag_class = CONTEXT_SPECIFIC, .tag_form = CONSTRUCTED, .tag_value = 3U };
 
 uint32_t len_of_x509_extensions(uint32_t len_payload)
 {
-  return (uint32_t)1U + len_of_asn1_length(len_payload) + len_payload;
+  return 1U + len_of_asn1_length(len_payload) + len_payload;
 }
 
 uint8_t
 x509_validity_notBefore_default_buffer[13U] =
-  {
-    (uint8_t)0x31U, (uint8_t)0x37U, (uint8_t)0x30U, (uint8_t)0x31U, (uint8_t)0x30U, (uint8_t)0x31U,
-    (uint8_t)0x30U, (uint8_t)0x30U, (uint8_t)0x30U, (uint8_t)0x30U, (uint8_t)0x30U, (uint8_t)0x30U,
-    (uint8_t)0x5AU
-  };
+  { 0x31U, 0x37U, 0x30U, 0x31U, 0x30U, 0x31U, 0x30U, 0x30U, 0x30U, 0x30U, 0x30U, 0x30U, 0x5AU };
 
 uint8_t
 x509_validity_notAfter_default_buffer[15U] =
   {
-    (uint8_t)0x39U, (uint8_t)0x39U, (uint8_t)0x39U, (uint8_t)0x39U, (uint8_t)0x31U, (uint8_t)0x32U,
-    (uint8_t)0x33U, (uint8_t)0x31U, (uint8_t)0x32U, (uint8_t)0x33U, (uint8_t)0x35U, (uint8_t)0x39U,
-    (uint8_t)0x35U, (uint8_t)0x39U, (uint8_t)0x5AU
+    0x39U, 0x39U, 0x39U, 0x39U, 0x31U, 0x32U, 0x33U, 0x31U, 0x32U, 0x33U, 0x35U, 0x39U, 0x35U,
+    0x39U, 0x5AU
   };
 
 static uint32_t
@@ -1233,9 +1191,8 @@ serialize32_x509_validity_backwards(x509_validity_payload_t x, uint8_t *b, uint3
       offset_data,
       b,
       pos - offset_data);
-  b[pos - offset_data - offset2 - (uint32_t)1U] =
-    encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
-  uint32_t offset1 = (uint32_t)1U;
+  b[pos - offset_data - offset2 - 1U] = encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
+  uint32_t offset1 = 1U;
   uint32_t offset_tag_len = offset1 + offset2;
   return offset_tag_len + offset_data;
 }
@@ -1257,9 +1214,8 @@ uint32_t serialize32_algorithmIdentifier_backwards(oid_t x, uint8_t *b, uint32_t
       offset_data,
       b,
       pos - offset_data);
-  b[pos - offset_data - offset2 - (uint32_t)1U] =
-    encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
-  uint32_t offset1 = (uint32_t)1U;
+  b[pos - offset_data - offset2 - 1U] = encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
+  uint32_t offset1 = 1U;
   uint32_t offset_tag_len = offset1 + offset2;
   return offset_tag_len + offset_data;
 }
@@ -1291,17 +1247,15 @@ serialize32_subjectPublicKeyInfo_backwards(
       offset_data,
       b,
       pos - offset_data);
-  b[pos - offset_data - offset2 - (uint32_t)1U] =
-    encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
-  uint32_t offset1 = (uint32_t)1U;
+  b[pos - offset_data - offset2 - 1U] = encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
+  uint32_t offset1 = 1U;
   uint32_t offset_tag_len = offset1 + offset2;
   return offset_tag_len + offset_data;
 }
 
 subjectPublicKeyInfo_payload_t x509_get_subjectPublicKeyInfo(FStar_Bytes_bytes pubkey)
 {
-  bit_string_t
-  pubkey_bs = { .bs_len = (uint32_t)33U, .bs_unused_bits = (uint32_t)0U, .bs_s = pubkey };
+  bit_string_t pubkey_bs = { .bs_len = 33U, .bs_unused_bits = 0U, .bs_s = pubkey };
   oid_t alg_id = OID_ED25519;
   return
     ((subjectPublicKeyInfo_payload_t){ .subjectPubKey_alg = alg_id, .subjectPubKey = pubkey_bs });
@@ -1334,22 +1288,22 @@ uint32_t serialize32_x509_version_backwards(int32_t x, uint8_t *b, uint32_t pos)
           .tag = CUSTOM_TAG,
           .tag_class = CONTEXT_SPECIFIC,
           .tag_form = CONSTRUCTED,
-          .tag_value = (uint8_t)0U
+          .tag_value = 0U
         }
       ),
       offset_data,
       b,
       pos - offset_data);
-  b[pos - offset_data - offset2 - (uint32_t)1U] =
+  b[pos - offset_data - offset2 - 1U] =
     encode_asn1_tag((
         (asn1_tag_t){
           .tag = CUSTOM_TAG,
           .tag_class = CONTEXT_SPECIFIC,
           .tag_form = CONSTRUCTED,
-          .tag_value = (uint8_t)0U
+          .tag_value = 0U
         }
       ));
-  uint32_t offset1 = (uint32_t)1U;
+  uint32_t offset1 = 1U;
   uint32_t offset_tag_len = offset1 + offset2;
   return offset_tag_len + offset_data;
 }

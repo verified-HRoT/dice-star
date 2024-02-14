@@ -9,32 +9,29 @@
 extern "C" {
 #endif
 
-#include "kremlin/internal/types.h"
-#include "kremlin/lowstar_endianness.h"
-#include "LowStar_Printf.h"
-#include <string.h>
-
-
 #include "L0_X509_DeviceIDCRI_Subject.h"
 #include "L0_X509_DeviceIDCRI_Attributes.h"
 #include "ASN1_X509.h"
+#include "krml/internal/types.h"
+#include "krml/lowstar_endianness.h"
+#include "LowStar_Printf.h"
+#include <string.h>
 
 typedef struct deviceIDCRI_payload_t_s
 {
   int32_t deviceIDCRI_version;
   deviceIDCRI_subject_payload_t deviceIDCRI_subject;
   subjectPublicKeyInfo_payload_t deviceIDCRI_subjectPKInfo;
-  K___ASN1_Base_oid_t_L0_X509_DeviceIDCRI_Attributes_deviceIDCRI_attributes_extensionRequest_payload_t
-  deviceIDCRI_attributes;
+  deviceIDCRI_attributes_t deviceIDCRI_attributes;
 }
 deviceIDCRI_payload_t;
 
 uint32_t
 len_of_deviceIDCRI_payload(
   int32_t version,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_common,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_org,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_country
+  character_string_t s_common,
+  character_string_t s_org,
+  character_string_t s_country
 );
 
 typedef deviceIDCRI_payload_t deviceIDCRI_t;
@@ -42,9 +39,9 @@ typedef deviceIDCRI_payload_t deviceIDCRI_t;
 uint32_t
 len_of_deviceIDCRI(
   int32_t version,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_common,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_org,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_country
+  character_string_t s_common,
+  character_string_t s_org,
+  character_string_t s_country
 );
 
 uint32_t
@@ -59,9 +56,9 @@ uint32_t serialize32_deviceIDCRI_backwards(deviceIDCRI_payload_t x, uint8_t *b, 
 deviceIDCRI_payload_t
 x509_get_deviceIDCRI(
   int32_t version,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_common,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_org,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_country,
+  character_string_t s_common,
+  character_string_t s_org,
+  character_string_t s_country,
   int32_t ku,
   FStar_Bytes_bytes deviceIDPub
 );

@@ -9,13 +9,11 @@
 extern "C" {
 #endif
 
-#include "kremlin/internal/types.h"
-#include "kremlin/lowstar_endianness.h"
+#include "ASN1_X509.h"
+#include "krml/internal/types.h"
+#include "krml/lowstar_endianness.h"
 #include "LowStar_Printf.h"
 #include <string.h>
-
-
-#include "ASN1_X509.h"
 
 typedef struct deviceIDCSR_payload_t_s
 {
@@ -26,6 +24,10 @@ typedef struct deviceIDCSR_payload_t_s
 deviceIDCSR_payload_t;
 
 uint32_t len_of_deviceIDCSR_payload(uint32_t cri_len);
+
+typedef deviceIDCSR_payload_t deviceIDCSR_t;
+
+typedef void *valid_deviceIDCSR_ingredients;
 
 uint32_t len_of_deviceIDCSR(uint32_t cri_len);
 

@@ -4,15 +4,17 @@
 
 #include "L0_X509_DeviceIDCSR.h"
 
+#include "internal/ASN1_X509.h"
+
 uint32_t len_of_deviceIDCSR_payload(uint32_t cri_len)
 {
-  return cri_len + (uint32_t)74U;
+  return cri_len + 74U;
 }
 
 uint32_t len_of_deviceIDCSR(uint32_t cri_len)
 {
   return
-    (uint32_t)1U
+    1U
     + len_of_asn1_length(len_of_deviceIDCSR_payload(cri_len))
     + len_of_deviceIDCSR_payload(cri_len);
 }
@@ -56,9 +58,8 @@ serialize32_deviceIDCSR_backwards(
       offset_data,
       b,
       pos - offset_data);
-  b[pos - offset_data - offset2 - (uint32_t)1U] =
-    encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
-  uint32_t offset1 = (uint32_t)1U;
+  b[pos - offset_data - offset2 - 1U] = encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
+  uint32_t offset1 = 1U;
   uint32_t offset_tag_len = offset1 + offset2;
   return offset_tag_len + offset_data;
 }
@@ -70,10 +71,9 @@ x509_get_deviceIDCSR(
   FStar_Bytes_bytes signature32
 )
 {
+  KRML_MAYBE_UNUSED_VAR(cri_len);
   oid_t deviceIDCSR_sig_alg = OID_ED25519;
-  bit_string_t
-  deviceIDCSR_sig =
-    { .bs_len = (uint32_t)65U, .bs_unused_bits = (uint32_t)0U, .bs_s = signature32 };
+  bit_string_t deviceIDCSR_sig = { .bs_len = 65U, .bs_unused_bits = 0U, .bs_s = signature32 };
   return
     (
       (deviceIDCSR_payload_t){

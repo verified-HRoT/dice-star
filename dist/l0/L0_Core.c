@@ -4,6 +4,8 @@
 
 #include "L0_Core.h"
 
+#include "internal/Hacl_Lib.h"
+
 void
 l0_aux(
   uint8_t *cdi,
@@ -24,16 +26,16 @@ l0_aux(
 )
 {
   uint8_t deviceID_priv[32U];
-  memset(deviceID_priv, 0U, (uint32_t)32U * sizeof (uint8_t));
+  memset(deviceID_priv, 0U, 32U * sizeof (uint8_t));
   uint8_t authKeyID[20U];
-  memset(authKeyID, 0U, (uint32_t)20U * sizeof (uint8_t));
+  memset(authKeyID, 0U, 20U * sizeof (uint8_t));
   uint8_t deviceID_pub_sec[32U];
-  memset(deviceID_pub_sec, 0U, (uint32_t)32U * sizeof (uint8_t));
+  memset(deviceID_pub_sec, 0U, 32U * sizeof (uint8_t));
   LowStar_Printf_print_string("Deriving DeviceID\n");
   derive_DeviceID(deviceID_pub, deviceID_priv, cdi, deviceID_label_len, deviceID_label);
   LowStar_Printf_print_string("Deriving AliasKey\n");
   derive_AliasKey(aliasKey_pub, aliasKey_priv, cdi, fwid, aliasKey_label_len, aliasKey_label);
-  classify_public_buffer((uint32_t)32U, deviceID_pub, deviceID_pub_sec);
+  classify_public_buffer(32U, deviceID_pub, deviceID_pub_sec);
   derive_authKeyID(authKeyID, deviceID_pub_sec);
   uint32_t
   deviceIDCRI_len =

@@ -4,43 +4,47 @@
 
 #include "L0_X509_AliasKeyTBS.h"
 
+#include "internal/ASN1_X509.h"
+
 uint32_t
 len_of_aliasKeyTBS_payload(
   octet_string_t serialNumber,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes i_common,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes i_org,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes i_country,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_common,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_org,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_country,
+  character_string_t i_common,
+  character_string_t i_org,
+  character_string_t i_country,
+  character_string_t s_common,
+  character_string_t s_org,
+  character_string_t s_country,
   int32_t version
 )
 {
-  return
-    (uint32_t)5U
+  uint32_t
+  r =
+    5U
     + len_of_x509_serialNumber(serialNumber)
-    + (uint32_t)1U + len_of_asn1_length((uint32_t)5U) + (uint32_t)5U
+    + 1U + len_of_asn1_length(5U) + 5U
     + len_of_aliasKeyTBS_issuer(i_common, i_org, i_country)
-    + (uint32_t)34U
+    + 34U
     + len_of_aliasKeyTBS_subject(s_common, s_org, s_country)
-    + (uint32_t)44U
+    + 44U
     + len_of_x509_extensions(len_of_aliasKeyTBS_extensions(version));
+  return r;
 }
 
 uint32_t
 len_of_aliasKeyTBS(
   octet_string_t serialNumber,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes i_common,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes i_org,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes i_country,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_common,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_org,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_country,
+  character_string_t i_common,
+  character_string_t i_org,
+  character_string_t i_country,
+  character_string_t s_common,
+  character_string_t s_org,
+  character_string_t s_country,
   int32_t version
 )
 {
   return
-    (uint32_t)1U
+    1U
     +
       len_of_asn1_length(len_of_aliasKeyTBS_payload(serialNumber,
           i_common,
@@ -79,9 +83,8 @@ serialize32_aliasKeyTBS_payload_backwards(
       offset_data,
       input,
       pos - offset_data);
-  input[pos - offset_data - offset2 - (uint32_t)1U] =
-    encode_asn1_tag(x509_extensions_outmost_explicit_tag);
-  uint32_t offset10 = (uint32_t)1U;
+  input[pos - offset_data - offset2 - 1U] = encode_asn1_tag(x509_extensions_outmost_explicit_tag);
+  uint32_t offset10 = 1U;
   uint32_t offset_tag_len = offset10 + offset2;
   uint32_t offset20 = offset_tag_len + offset_data;
   uint32_t
@@ -137,9 +140,8 @@ uint32_t serialize32_aliasKeyTBS_backwards(aliasKeyTBS_payload_t x, uint8_t *b, 
       offset_data,
       b,
       pos - offset_data);
-  b[pos - offset_data - offset2 - (uint32_t)1U] =
-    encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
-  uint32_t offset1 = (uint32_t)1U;
+  b[pos - offset_data - offset2 - 1U] = encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
+  uint32_t offset1 = 1U;
   uint32_t offset_tag_len = offset1 + offset2;
   return offset_tag_len + offset_data;
 }
@@ -148,14 +150,14 @@ aliasKeyTBS_payload_t
 x509_get_AliasKeyTBS(
   int32_t crt_version,
   octet_string_t serialNumber,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes i_common,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes i_org,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes i_country,
+  character_string_t i_common,
+  character_string_t i_org,
+  character_string_t i_country,
   FStar_Bytes_bytes notBefore,
   FStar_Bytes_bytes notAfter,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_common,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_org,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_country,
+  character_string_t s_common,
+  character_string_t s_org,
+  character_string_t s_country,
   int32_t ku,
   octet_string_t keyID,
   int32_t version,

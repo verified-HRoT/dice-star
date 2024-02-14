@@ -4,50 +4,52 @@
 
 #include "L0_X509_AliasKeyTBS_Extensions.h"
 
+#include "internal/ASN1_X509.h"
+
 uint32_t len_of_aliasKeyTBS_extensions_payload(int32_t version)
 {
   return
-    (uint32_t)38U
+    38U
     +
-      (uint32_t)1U
+      1U
       +
-        len_of_asn1_length((uint32_t)1U
-          + len_of_asn1_length((uint32_t)3U)
-          + (uint32_t)3U
-          + (uint32_t)1U + len_of_asn1_length((uint32_t)1U) + (uint32_t)1U
+        len_of_asn1_length(1U
+          + len_of_asn1_length(3U)
+          + 3U
+          + 1U + len_of_asn1_length(1U) + 1U
           +
-            (uint32_t)1U
+            1U
             +
-              len_of_asn1_length((uint32_t)1U
-                + len_of_asn1_length((uint32_t)1U + len_of_asn1_length((uint32_t)1U) + (uint32_t)1U)
-                + (uint32_t)1U + len_of_asn1_length((uint32_t)1U) + (uint32_t)1U)
+              len_of_asn1_length(1U
+                + len_of_asn1_length(1U + len_of_asn1_length(1U) + 1U)
+                + 1U + len_of_asn1_length(1U) + 1U)
             +
-              (uint32_t)1U
-              + len_of_asn1_length((uint32_t)1U + len_of_asn1_length((uint32_t)1U) + (uint32_t)1U)
-              + (uint32_t)1U + len_of_asn1_length((uint32_t)1U) + (uint32_t)1U)
+              1U
+              + len_of_asn1_length(1U + len_of_asn1_length(1U) + 1U)
+              + 1U + len_of_asn1_length(1U) + 1U)
       +
-        (uint32_t)1U
-        + len_of_asn1_length((uint32_t)3U)
-        + (uint32_t)3U
-        + (uint32_t)1U + len_of_asn1_length((uint32_t)1U) + (uint32_t)1U
+        1U
+        + len_of_asn1_length(3U)
+        + 3U
+        + 1U + len_of_asn1_length(1U) + 1U
         +
-          (uint32_t)1U
+          1U
           +
-            len_of_asn1_length((uint32_t)1U
-              + len_of_asn1_length((uint32_t)1U + len_of_asn1_length((uint32_t)1U) + (uint32_t)1U)
-              + (uint32_t)1U + len_of_asn1_length((uint32_t)1U) + (uint32_t)1U)
+            len_of_asn1_length(1U
+              + len_of_asn1_length(1U + len_of_asn1_length(1U) + 1U)
+              + 1U + len_of_asn1_length(1U) + 1U)
           +
-            (uint32_t)1U
-            + len_of_asn1_length((uint32_t)1U + len_of_asn1_length((uint32_t)1U) + (uint32_t)1U)
-            + (uint32_t)1U + len_of_asn1_length((uint32_t)1U) + (uint32_t)1U
-    + (uint32_t)36U
+            1U
+            + len_of_asn1_length(1U + len_of_asn1_length(1U) + 1U)
+            + 1U + len_of_asn1_length(1U) + 1U
+    + 36U
     + len_of_l0_extension(version);
 }
 
 uint32_t len_of_aliasKeyTBS_extensions(int32_t version)
 {
   return
-    (uint32_t)1U
+    1U
     + len_of_asn1_length(len_of_aliasKeyTBS_extensions_payload(version))
     + len_of_aliasKeyTBS_extensions_payload(version);
 }
@@ -100,9 +102,8 @@ serialize32_aliasKeyTBS_extensions_backwards(
       offset_data,
       b,
       pos - offset_data);
-  b[pos - offset_data - offset2 - (uint32_t)1U] =
-    encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
-  uint32_t offset1 = (uint32_t)1U;
+  b[pos - offset_data - offset2 - 1U] = encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
+  uint32_t offset1 = 1U;
   uint32_t offset_tag_len = offset1 + offset2;
   return offset_tag_len + offset_data;
 }
@@ -116,7 +117,7 @@ x509_get_aliasKeyTBS_extensions(
   FStar_Bytes_bytes deviceIDPub
 )
 {
-  K___ASN1_Base_oid_t_int32_t key_usage = { .fst = OID_KEY_USAGE, .snd = ku };
+  key_usage_t key_usage = { .fst = OID_KEY_USAGE, .snd = ku };
   aliasKeyTBS_extensions_extendedKeyUsage_t
   extendedKeyUsage = x509_get_aliasKeyTBS_extensions_extendedKeyUsage(true);
   aliasKeyTBS_extensions_basicConstraints_t

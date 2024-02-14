@@ -9,13 +9,12 @@
 extern "C" {
 #endif
 
-#include "kremlin/internal/types.h"
-#include "kremlin/lowstar_endianness.h"
+#include "krml/internal/types.h"
+#include "krml/lowstar_endianness.h"
 #include "LowStar_Printf.h"
 #include <string.h>
 
-
-
+typedef void *HWState_t_rel;
 
 typedef struct HWState_l0_image_t_s
 {

@@ -9,21 +9,19 @@
 extern "C" {
 #endif
 
-#include "kremlin/internal/types.h"
-#include "kremlin/lowstar_endianness.h"
+#include "L0_X509_Extension.h"
+#include "L0_X509_AliasKeyTBS_Extensions_ExtendedKeyUsage.h"
+#include "L0_X509_AliasKeyTBS_Extensions_BasicConstraints.h"
+#include "L0_X509_AliasKeyTBS_Extensions_AuthKeyIdentifier.h"
+#include "ASN1_X509.h"
+#include "krml/internal/types.h"
+#include "krml/lowstar_endianness.h"
 #include "LowStar_Printf.h"
 #include <string.h>
 
-
-#include "L0_X509_AliasKeyTBS_Extensions_BasicConstraints.h"
-#include "ASN1_X509.h"
-#include "L0_X509_AliasKeyTBS_Extensions_AuthKeyIdentifier.h"
-#include "L0_X509_AliasKeyTBS_Extensions_ExtendedKeyUsage.h"
-#include "L0_X509_Extension.h"
-
 typedef struct aliasKeyTBS_extensions_payload_t_s
 {
-  K___ASN1_Base_oid_t_int32_t aliasKeyTBS_extensions_key_usage;
+  key_usage_t aliasKeyTBS_extensions_key_usage;
   aliasKeyTBS_extensions_extendedKeyUsage_t aliasKeyTBS_extensions_extendedKeyUsage;
   aliasKeyTBS_extensions_basicConstraints_t aliasKeyTBS_extensions_basicConstraints;
   aliasKeyTBS_extensions_authKeyID_t aliasKeyTBS_extensions_authKeyID;

@@ -4,9 +4,11 @@
 
 #include "L0_X509_AliasKeyTBS_Extensions_AuthKeyIdentifier.h"
 
+#include "internal/ASN1_X509.h"
+
 bool filter_aliasKeyTBS_extensions_authKeyID_extValue_payload(octet_string_t x)
 {
-  return x.len == (uint32_t)20U;
+  return x.len == 20U;
 }
 
 uint32_t
@@ -25,7 +27,8 @@ serialize32_aliasKeyTBS_extensions_authKeyID_extValue_payload_backwards(
 
 uint32_t len_of_aliasKeyTBS_extensions_authKeyID_extValue_payload(octet_string_t keyID)
 {
-  return (uint32_t)22U;
+  KRML_MAYBE_UNUSED_VAR(keyID);
+  return 22U;
 }
 
 uint32_t
@@ -46,16 +49,15 @@ serialize32_aliasKeyTBS_extensions_authKeyID_extValue_backwards(
       offset_data,
       b,
       pos - offset_data);
-  b[pos - offset_data - offset2 - (uint32_t)1U] =
-    encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
-  uint32_t offset1 = (uint32_t)1U;
+  b[pos - offset_data - offset2 - 1U] = encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
+  uint32_t offset1 = 1U;
   uint32_t offset_tag_len = offset1 + offset2;
   return offset_tag_len + offset_data;
 }
 
-uint32_t len_of_aliasKeyTBS_extensions_authKeyID_extValue()
+uint32_t len_of_aliasKeyTBS_extensions_authKeyID_extValue(void)
 {
-  return (uint32_t)24U;
+  return 24U;
 }
 
 uint32_t
@@ -75,9 +77,8 @@ serialize32_aliasKeyTBS_extensions_authKeyID_backwards(
       offset_data,
       b,
       pos - offset_data);
-  b[pos - offset_data - offset20 - (uint32_t)1U] =
-    encode_asn1_tag(((asn1_tag_t){ .tag = OCTET_STRING }));
-  uint32_t offset10 = (uint32_t)1U;
+  b[pos - offset_data - offset20 - 1U] = encode_asn1_tag(((asn1_tag_t){ .tag = OCTET_STRING }));
+  uint32_t offset10 = 1U;
   uint32_t offset_tag_len = offset10 + offset20;
   uint32_t offset21 = offset_tag_len + offset_data;
   oid_t x11 = x1.fst;
@@ -92,9 +93,8 @@ serialize32_aliasKeyTBS_extensions_authKeyID_backwards(
       offset_data0,
       b,
       pos - offset_data0);
-  b[pos - offset_data0 - offset2 - (uint32_t)1U] =
-    encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
-  uint32_t offset1 = (uint32_t)1U;
+  b[pos - offset_data0 - offset2 - 1U] = encode_asn1_tag(((asn1_tag_t){ .tag = SEQUENCE }));
+  uint32_t offset1 = 1U;
   uint32_t offset_tag_len0 = offset1 + offset2;
   return offset_tag_len0 + offset_data0;
 }

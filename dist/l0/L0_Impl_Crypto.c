@@ -4,6 +4,8 @@
 
 #include "L0_Impl_Crypto.h"
 
+#include "internal/Hacl_Lib.h"
+
 void
 derive_key_pair(
   uint8_t *public_key,
@@ -15,14 +17,14 @@ derive_key_pair(
 )
 {
   uint8_t salt[32U];
-  memset(salt, 0U, (uint32_t)32U * sizeof (uint8_t));
+  memset(salt, 0U, 32U * sizeof (uint8_t));
   uint8_t prk[32U];
-  memset(prk, 0U, (uint32_t)32U * sizeof (uint8_t));
-  Hacl_HKDF_extract_sha2_256(prk, salt, (uint32_t)32U, ikm, ikm_len);
-  Hacl_HKDF_expand_sha2_256(private_key, prk, (uint32_t)32U, lbl, lbl_len, (uint32_t)32U);
+  memset(prk, 0U, 32U * sizeof (uint8_t));
+  Hacl_HKDF_extract_sha2_256(prk, salt, 32U, ikm, ikm_len);
+  Hacl_HKDF_expand_sha2_256(private_key, prk, 32U, lbl, lbl_len, 32U);
   uint8_t secret_public_key[32U] = { 0U };
   Hacl_Ed25519_secret_to_public(secret_public_key, private_key);
-  declassify_secret_buffer((uint32_t)32U, secret_public_key, public_key);
+  declassify_secret_buffer(32U, secret_public_key, public_key);
 }
 
 void
@@ -35,10 +37,10 @@ derive_DeviceID(
 )
 {
   uint8_t cDigest[32U] = { 0U };
-  Hacl_Hash_SHA2_hash_256(cdi, (uint32_t)32U, cDigest);
+  Hacl_Streaming_SHA2_hash_256(cDigest, cdi, 32U);
   derive_key_pair(deviceID_pub,
     deviceID_priv,
-    (uint32_t)32U,
+    32U,
     cDigest,
     l0_label_DeviceID_len,
     l0_label_DeviceID);
@@ -55,14 +57,14 @@ derive_AliasKey(
 )
 {
   uint8_t cDigest[32U] = { 0U };
-  Hacl_Hash_SHA2_hash_256(cdi, (uint32_t)32U, cDigest);
+  Hacl_Streaming_SHA2_hash_256(cDigest, cdi, 32U);
   uint8_t aDigest[32U] = { 0U };
   uint8_t fwid_sec[32U] = { 0U };
-  classify_public_buffer((uint32_t)32U, fwid, fwid_sec);
-  Hacl_HMAC_compute_sha2_256(aDigest, cDigest, (uint32_t)32U, fwid_sec, (uint32_t)32U);
+  classify_public_buffer(32U, fwid, fwid_sec);
+  Hacl_HMAC_compute_sha2_256(aDigest, cDigest, 32U, fwid_sec, 32U);
   derive_key_pair(aliasKey_pub,
     aliasKey_priv,
-    (uint32_t)32U,
+    32U,
     aDigest,
     l0_label_AliasKey_len,
     l0_label_AliasKey);
@@ -71,9 +73,9 @@ derive_AliasKey(
 void derive_authKeyID(uint8_t *authKeyID, uint8_t *deviceIDPub)
 {
   uint8_t authKeyID_sec[20U];
-  memset(authKeyID_sec, 0U, (uint32_t)20U * sizeof (uint8_t));
-  Hacl_Hash_SHA1_legacy_hash(deviceIDPub, (uint32_t)32U, authKeyID_sec);
-  declassify_secret_buffer((uint32_t)20U, authKeyID_sec, authKeyID);
+  memset(authKeyID_sec, 0U, 20U * sizeof (uint8_t));
+  Hacl_Hash_SHA1_hash_oneshot(authKeyID_sec, deviceIDPub, 32U);
+  declassify_secret_buffer(20U, authKeyID_sec, authKeyID);
 }
 
 void
@@ -92,12 +94,12 @@ l0_core_step1(
 )
 {
   uint8_t deviceID_pub_sec[32U];
-  memset(deviceID_pub_sec, 0U, (uint32_t)32U * sizeof (uint8_t));
+  memset(deviceID_pub_sec, 0U, 32U * sizeof (uint8_t));
   LowStar_Printf_print_string("Deriving DeviceID\n");
   derive_DeviceID(deviceID_pub, deviceID_priv, cdi, deviceID_label_len, deviceID_label);
   LowStar_Printf_print_string("Deriving AliasKey\n");
   derive_AliasKey(aliasKey_pub, aliasKey_priv, cdi, fwid, aliasKey_label_len, aliasKey_label);
-  classify_public_buffer((uint32_t)32U, deviceID_pub, deviceID_pub_sec);
+  classify_public_buffer(32U, deviceID_pub, deviceID_pub_sec);
   derive_authKeyID(authKeyID, deviceID_pub_sec);
 }
 

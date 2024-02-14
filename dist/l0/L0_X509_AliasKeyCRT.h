@@ -9,13 +9,11 @@
 extern "C" {
 #endif
 
-#include "kremlin/internal/types.h"
-#include "kremlin/lowstar_endianness.h"
+#include "ASN1_X509.h"
+#include "krml/internal/types.h"
+#include "krml/lowstar_endianness.h"
 #include "LowStar_Printf.h"
 #include <string.h>
-
-
-#include "ASN1_X509.h"
 
 typedef struct aliasKeyCRT_payload_t_s
 {
@@ -26,6 +24,8 @@ typedef struct aliasKeyCRT_payload_t_s
 aliasKeyCRT_payload_t;
 
 uint32_t len_of_aliasKeyCRT_payload(uint32_t tbs_len);
+
+typedef aliasKeyCRT_payload_t aliasKeyCRT_t;
 
 uint32_t len_of_aliasKeyCRT(uint32_t tbs_len);
 

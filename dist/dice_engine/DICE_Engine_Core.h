@@ -9,17 +9,18 @@
 extern "C" {
 #endif
 
-#include "kremlin/internal/types.h"
-#include "kremlin/lowstar_endianness.h"
+#include "HWState.h"
+#include "HWAbstraction.h"
+#include "krml/internal/types.h"
+#include "krml/lowstar_endianness.h"
 #include "LowStar_Printf.h"
 #include <string.h>
 
-
-#include "HWState.h"
-#include "HWAbstraction.h"
-#include "Hacl_Lib.h"
+typedef void *l0_image_is_valid;
 
 bool authenticate_l0_image(HWState_l0_image_t img);
+
+typedef void *cdi_functional_correctness;
 
 #define DICE_SUCCESS 0
 #define DICE_ERROR 1
@@ -30,7 +31,9 @@ bool uu___is_DICE_SUCCESS(dice_return_code projectee);
 
 bool uu___is_DICE_ERROR(dice_return_code projectee);
 
-dice_return_code dice_main();
+typedef void *all_heap_buffers_except_cdi_and_ghost_state_remain_same;
+
+dice_return_code dice_main(void);
 
 #if defined(__cplusplus)
 }

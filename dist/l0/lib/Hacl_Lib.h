@@ -2,42 +2,17 @@
 
 
 
-#ifndef __Hacl_Lib_H
-#define __Hacl_Lib_H
+#ifndef __internal_Hacl_Lib_H
+#define __internal_Hacl_Lib_H
 
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
-#include "kremlin/internal/types.h"
-#include "kremlin/lowstar_endianness.h"
+#include "krml/internal/types.h"
+#include "krml/lowstar_endianness.h"
 #include "LowStar_Printf.h"
 #include <string.h>
-
-
-
-
-static inline uint64_t FStar_UInt64_eq_mask(uint64_t a, uint64_t b);
-
-static inline uint64_t FStar_UInt64_gte_mask(uint64_t a, uint64_t b);
-
-static inline FStar_UInt128_uint128
-FStar_UInt128_add(FStar_UInt128_uint128 a, FStar_UInt128_uint128 b);
-
-static inline FStar_UInt128_uint128
-FStar_UInt128_add_mod(FStar_UInt128_uint128 a, FStar_UInt128_uint128 b);
-
-static inline FStar_UInt128_uint128
-FStar_UInt128_shift_left(FStar_UInt128_uint128 a, uint32_t s);
-
-static inline FStar_UInt128_uint128
-FStar_UInt128_shift_right(FStar_UInt128_uint128 a, uint32_t s);
-
-static inline FStar_UInt128_uint128 FStar_UInt128_uint64_to_uint128(uint64_t a);
-
-static inline uint64_t FStar_UInt128_uint128_to_uint64(FStar_UInt128_uint128 a);
-
-static inline FStar_UInt128_uint128 FStar_UInt128_mul_wide(uint64_t x, uint64_t y);
 
 extern void LowStar_Printf_print_string(Prims_string uu___);
 
@@ -47,14 +22,21 @@ extern FStar_Bytes_bytes FStar_Bytes_create(uint32_t len1, uint8_t v);
 
 extern FStar_Bytes_bytes FStar_Bytes_append(FStar_Bytes_bytes b1, FStar_Bytes_bytes b2);
 
-extern FStar_Bytes_bytes FStar_Bytes_of_buffer(uint32_t l, uint8_t *p);
+extern FStar_Bytes_bytes FStar_Bytes_of_buffer(uint32_t l, uint8_t *buf);
 
-static inline void store128_be(uint8_t *x0, FStar_UInt128_uint128 x1);
+void Hacl_Hash_SHA1_hash_oneshot(uint8_t *output, uint8_t *input, uint32_t input_len);
 
-void Hacl_Hash_SHA2_hash_256(uint8_t *input, uint32_t input_len, uint8_t *dst);
+/**
+Hash `input`, of len `input_len`, into `output`, an array of 32 bytes.
+*/
+void Hacl_Streaming_SHA2_hash_256(uint8_t *output, uint8_t *input, uint32_t input_len);
 
-void Hacl_Hash_SHA1_legacy_hash(uint8_t *input, uint32_t input_len, uint8_t *dst);
+/**
+Write the HMAC-SHA-2-256 MAC of a message (`data`) by using a key (`key`) into `dst`.
 
+The key can be any length and will be hashed if it is longer and padded if it is shorter than 64 bytes.
+`dst` must point to 32 bytes of memory.
+*/
 void
 Hacl_HMAC_compute_sha2_256(
   uint8_t *dst,
@@ -64,10 +46,45 @@ Hacl_HMAC_compute_sha2_256(
   uint32_t data_len
 );
 
-void Hacl_Ed25519_sign(uint8_t *signature, uint8_t *priv, uint32_t len, uint8_t *msg);
+/********************************************************************************
+  Verified C library for EdDSA signing and verification on the edwards25519 curve.
+********************************************************************************/
 
-void Hacl_Ed25519_secret_to_public(uint8_t *pub, uint8_t *priv);
 
+/**
+Compute the public key from the private key.
+
+  @param[out] public_key Points to 32 bytes of valid memory, i.e., `uint8_t[32]`. Must not overlap the memory location of `private_key`.
+  @param[in] private_key Points to 32 bytes of valid memory containing the private key, i.e., `uint8_t[32]`.
+*/
+void Hacl_Ed25519_secret_to_public(uint8_t *public_key, uint8_t *private_key);
+
+/**
+Create an Ed25519 signature.
+
+  @param[out] signature Points to 64 bytes of valid memory, i.e., `uint8_t[64]`. Must not overlap the memory locations of `private_key` nor `msg`.
+  @param[in] private_key Points to 32 bytes of valid memory containing the private key, i.e., `uint8_t[32]`.
+  @param[in] msg_len Length of `msg`.
+  @param[in] msg Points to `msg_len` bytes of valid memory containing the message, i.e., `uint8_t[msg_len]`.
+
+  The function first calls `expand_keys` and then invokes `sign_expanded`.
+
+  If one needs to sign several messages under the same private key, it is more efficient
+  to call `expand_keys` only once and `sign_expanded` multiple times, for each message.
+*/
+void
+Hacl_Ed25519_sign(uint8_t *signature, uint8_t *private_key, uint32_t msg_len, uint8_t *msg);
+
+/**
+Expand pseudorandom key to desired length.
+
+@param okm Pointer to `len` bytes of memory where output keying material is written to.
+@param prk Pointer to at least `HashLen` bytes of memory where pseudorandom key is read from. Usually, this points to the output from the extract step.
+@param prklen Length of pseudorandom key.
+@param info Pointer to `infolen` bytes of memory where context and application specific information is read from. Can be a zero-length string.
+@param infolen Length of context and application specific information.
+@param len Length of output keying material.
+*/
 void
 Hacl_HKDF_expand_sha2_256(
   uint8_t *okm,
@@ -78,6 +95,15 @@ Hacl_HKDF_expand_sha2_256(
   uint32_t len
 );
 
+/**
+Extract a fixed-length pseudorandom key from input keying material.
+
+@param prk Pointer to `HashLen` bytes of memory where pseudorandom key is written to.
+@param salt Pointer to `saltlen` bytes of memory where salt value is read from.
+@param saltlen Length of salt value.
+@param ikm Pointer to `ikmlen` bytes of memory where input keying material is read from.
+@param ikmlen Length of input keying material.
+*/
 void
 Hacl_HKDF_extract_sha2_256(
   uint8_t *prk,
@@ -91,5 +117,5 @@ Hacl_HKDF_extract_sha2_256(
 }
 #endif
 
-#define __Hacl_Lib_H_DEFINED
+#define __internal_Hacl_Lib_H_DEFINED
 #endif

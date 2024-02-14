@@ -9,19 +9,20 @@
 extern "C" {
 #endif
 
-#include "kremlin/internal/types.h"
-#include "kremlin/lowstar_endianness.h"
+#include "L0_X509_DeviceIDCSR.h"
+#include "L0_X509_DeviceIDCRI.h"
+#include "L0_X509_AliasKeyTBS.h"
+#include "L0_X509_AliasKeyCRT.h"
+#include "L0_Declassify.h"
+#include "ASN1_X509.h"
+#include "krml/internal/types.h"
+#include "krml/lowstar_endianness.h"
 #include "LowStar_Printf.h"
 #include <string.h>
 
+typedef void *create_aliasKeyTBS_pre;
 
-#include "L0_X509_AliasKeyTBS.h"
-#include "ASN1_X509.h"
-#include "L0_Declassify.h"
-#include "L0_X509_DeviceIDCSR.h"
-#include "L0_X509_AliasKeyCRT.h"
-#include "L0_X509_DeviceIDCRI.h"
-#include "Hacl_Lib.h"
+typedef void *create_aliasKeyTBS_post;
 
 typedef struct aliasKeyTBS_bytes_s
 {
@@ -36,14 +37,14 @@ void
 create_aliasKeyTBS(
   int32_t crt_version,
   octet_string_t serialNumber,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes i_common,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes i_org,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes i_country,
+  character_string_t i_common,
+  character_string_t i_org,
+  character_string_t i_country,
   FStar_Bytes_bytes notBefore,
   FStar_Bytes_bytes notAfter,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_common,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_org,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_country,
+  character_string_t s_common,
+  character_string_t s_org,
+  character_string_t s_country,
   uint8_t *fwid,
   int32_t ku,
   uint8_t *keyID,
@@ -66,9 +67,9 @@ sign_and_finalize_aliasKeyCRT(
 void
 create_deviceIDCRI(
   int32_t csr_version,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_common,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_org,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_country,
+  character_string_t s_common,
+  character_string_t s_org,
+  character_string_t s_country,
   int32_t ku,
   uint8_t *deviceID_pub,
   uint32_t deviceIDCRI_len,
@@ -83,6 +84,14 @@ sign_and_finalize_deviceIDCSR(
   uint32_t deviceIDCSR_len,
   uint8_t *deviceIDCSR_buf
 );
+
+typedef void *l0_core_step2_pre;
+
+typedef void *l0_core_step2_post;
+
+typedef void *l0_core_step3_pre;
+
+typedef void *l0_core_step3_post;
 
 #if defined(__cplusplus)
 }

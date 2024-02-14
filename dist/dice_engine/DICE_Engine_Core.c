@@ -4,6 +4,8 @@
 
 #include "DICE_Engine_Core.h"
 
+#include "internal/Hacl_Lib.h"
+
 bool authenticate_l0_image(HWState_l0_image_t img)
 {
   bool
@@ -15,16 +17,16 @@ bool authenticate_l0_image(HWState_l0_image_t img)
   if (valid_header_sig)
   {
     uint8_t hash_buf[32U];
-    memset(hash_buf, 0U, (uint32_t)32U * sizeof (uint8_t));
-    Hacl_Hash_SHA2_hash_256(img.l0_binary, img.l0_binary_size, hash_buf);
-    uint8_t res = (uint8_t)255U;
-    for (uint32_t i = (uint32_t)0U; i < (uint32_t)32U; i++)
+    memset(hash_buf, 0U, 32U * sizeof (uint8_t));
+    Hacl_Streaming_SHA2_hash_256(hash_buf, img.l0_binary, img.l0_binary_size);
+    uint8_t res = 255U;
+    for (uint32_t i = 0U; i < 32U; i++)
     {
       uint8_t uu____0 = FStar_UInt8_eq_mask(img.l0_binary_hash[i], hash_buf[i]);
-      res = uu____0 & res;
+      res = (uint32_t)uu____0 & (uint32_t)res;
     }
     uint8_t z = res;
-    bool b = z == (uint8_t)255U;
+    bool b = z == 255U;
     return b;
   }
   return false;
@@ -60,7 +62,7 @@ bool uu___is_DICE_ERROR(dice_return_code projectee)
   }
 }
 
-dice_return_code dice_main()
+dice_return_code dice_main(void)
 {
   HWState_state s = st();
   bool b = authenticate_l0_image(s.l0);
@@ -72,12 +74,12 @@ dice_return_code dice_main()
     memset(uds, 0U, uds_len * sizeof (uint8_t));
     read_uds(uds);
     uint8_t uds_digest[32U];
-    memset(uds_digest, 0U, (uint32_t)32U * sizeof (uint8_t));
+    memset(uds_digest, 0U, 32U * sizeof (uint8_t));
     uint8_t l0_digest[32U];
-    memset(l0_digest, 0U, (uint32_t)32U * sizeof (uint8_t));
-    Hacl_Hash_SHA2_hash_256(uds, uds_len, uds_digest);
-    Hacl_Hash_SHA2_hash_256(s.l0.l0_binary, s.l0.l0_binary_size, l0_digest);
-    Hacl_HMAC_compute_sha2_256(s.cdi, uds_digest, (uint32_t)32U, l0_digest, (uint32_t)32U);
+    memset(l0_digest, 0U, 32U * sizeof (uint8_t));
+    Hacl_Streaming_SHA2_hash_256(uds_digest, uds, uds_len);
+    Hacl_Streaming_SHA2_hash_256(l0_digest, s.l0.l0_binary, s.l0.l0_binary_size);
+    Hacl_HMAC_compute_sha2_256(s.cdi, uds_digest, 32U, l0_digest, 32U);
     zeroize(uds_len, uds);
     r = DICE_SUCCESS;
   }

@@ -9,14 +9,12 @@
 extern "C" {
 #endif
 
-#include "kremlin/internal/types.h"
-#include "kremlin/lowstar_endianness.h"
+#include "L0_X509_FWID.h"
+#include "ASN1_X509.h"
+#include "krml/internal/types.h"
+#include "krml/lowstar_endianness.h"
 #include "LowStar_Printf.h"
 #include <string.h>
-
-
-#include "ASN1_X509.h"
-#include "L0_X509_FWID.h"
 
 typedef struct compositeDeviceID_payload_t_s
 {

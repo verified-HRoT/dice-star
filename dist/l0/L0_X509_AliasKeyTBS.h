@@ -9,16 +9,14 @@
 extern "C" {
 #endif
 
-#include "kremlin/internal/types.h"
-#include "kremlin/lowstar_endianness.h"
+#include "L0_X509_AliasKeyTBS_Subject.h"
+#include "L0_X509_AliasKeyTBS_Issuer.h"
+#include "L0_X509_AliasKeyTBS_Extensions.h"
+#include "ASN1_X509.h"
+#include "krml/internal/types.h"
+#include "krml/lowstar_endianness.h"
 #include "LowStar_Printf.h"
 #include <string.h>
-
-
-#include "L0_X509_AliasKeyTBS_Extensions.h"
-#include "L0_X509_AliasKeyTBS_Issuer.h"
-#include "L0_X509_AliasKeyTBS_Subject.h"
-#include "ASN1_X509.h"
 
 typedef struct aliasKeyTBS_payload_t_s
 {
@@ -36,26 +34,28 @@ aliasKeyTBS_payload_t;
 uint32_t
 len_of_aliasKeyTBS_payload(
   octet_string_t serialNumber,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes i_common,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes i_org,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes i_country,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_common,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_org,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_country,
+  character_string_t i_common,
+  character_string_t i_org,
+  character_string_t i_country,
+  character_string_t s_common,
+  character_string_t s_org,
+  character_string_t s_country,
   int32_t version
 );
+
+typedef void *predicate_serialize_aliasKeyTBS_payload_size_unfold;
 
 typedef aliasKeyTBS_payload_t aliasKeyTBS_t;
 
 uint32_t
 len_of_aliasKeyTBS(
   octet_string_t serialNumber,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes i_common,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes i_org,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes i_country,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_common,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_org,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_country,
+  character_string_t i_common,
+  character_string_t i_org,
+  character_string_t i_country,
+  character_string_t s_common,
+  character_string_t s_org,
+  character_string_t s_country,
   int32_t version
 );
 
@@ -72,14 +72,14 @@ aliasKeyTBS_payload_t
 x509_get_AliasKeyTBS(
   int32_t crt_version,
   octet_string_t serialNumber,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes i_common,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes i_org,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes i_country,
+  character_string_t i_common,
+  character_string_t i_org,
+  character_string_t i_country,
   FStar_Bytes_bytes notBefore,
   FStar_Bytes_bytes notAfter,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_common,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_org,
-  Prims_dtuple2__uint32_t_FStar_Bytes_bytes s_country,
+  character_string_t s_common,
+  character_string_t s_org,
+  character_string_t s_country,
   int32_t ku,
   octet_string_t keyID,
   int32_t version,
