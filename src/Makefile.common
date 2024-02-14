@@ -90,6 +90,7 @@ INCLUDES=$(FSTAR_HOME)/ulib/.cache \
   $(HACL_HOME)/code/ed25519 \
   $(HACL_HOME)/code/streaming \
   $(HACL_HOME)/code/sha2-mb/ \
+  $(HACL_HOME)/code/sha3/ \
   $(HACL_HOME)/lib \
   $(HACL_HOME)/providers/evercrypt \
   $(KRML_HOME)/krmllib \

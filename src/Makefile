@@ -1,4 +1,4 @@
-OUTPUT_DIR=obj
+OUTPUT_DIR=./obj
 
 DIST_DIR=../dist
 
@@ -14,9 +14,7 @@ dist:
 	$(MAKE) -C dice_engine verify-all
 	$(MAKE) -C dice_engine extract-all
 	$(MAKE) -C dice_engine compile-all
-	mv $(OUTPUT_DIR)/$(HACL_LIB).c $(DICE_ENGINE_DIST_LIB_DIR)
-	mv $(OUTPUT_DIR)/$(HACL_LIB).h $(DICE_ENGINE_DIST_LIB_DIR)
-	mv $(OUTPUT_DIR)/EverCrypt_Helpers.h $(DICE_ENGINE_DIST_LIB_DIR)
+	mv $(OUTPUT_DIR)/internal/$(HACL_LIB).h $(DICE_ENGINE_DIST_LIB_DIR)
 	mv $(OUTPUT_DIR)/DICE_Engine_Core.c $(DICE_ENGINE_DIST_DIR)
 	mv $(OUTPUT_DIR)/DICE_Engine_Core.h $(DICE_ENGINE_DIST_DIR)
 	mv $(OUTPUT_DIR)/HWState.h $(DICE_ENGINE_DIST_DIR)
@@ -25,9 +23,7 @@ dist:
 	$(MAKE) -C test verify-all
 	$(MAKE) -C test extract-all
 	$(MAKE) -C test compile-all
-	mv $(OUTPUT_DIR)/$(HACL_LIB).c $(L0_DIST_LIB_DIR)
-	mv $(OUTPUT_DIR)/$(HACL_LIB).h $(L0_DIST_LIB_DIR)
-	mv $(OUTPUT_DIR)/EverCrypt_Helpers.h $(L0_DIST_LIB_DIR)
+	mv $(OUTPUT_DIR)/internal/$(HACL_LIB).h $(L0_DIST_LIB_DIR)
 	mv $(OUTPUT_DIR)/ASN1*.h $(L0_DIST_DIR)
 	mv $(OUTPUT_DIR)/L0_X509*.h $(L0_DIST_DIR)
 	mv $(OUTPUT_DIR)/L0_Core.h $(L0_DIST_DIR)
