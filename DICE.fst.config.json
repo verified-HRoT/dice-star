@@ -32,6 +32,7 @@
     "src/l0",
     "src/l0/asn1",
     "src/l0/x509",
+    "src/test",
     "src/obj"
   ]
 }

@@ -57,7 +57,8 @@ noextract inline_for_extraction let aliasKeyCrt_s_common_list
            0x20uy; 0x49uy; 0x64uy; 0x65uy;
            0x6euy; 0x74uy; 0x69uy; 0x74uy;
            0x79uy] in
-  assert_norm ( List.length l == 17 /\ Seq.length (Seq.createL l) == 17);
+  assert_norm ( List.length l == 17 );
+  assert (Seq.length (Seq.createL l) == 17);
   assert ( l == Seq.seq_to_list (Seq.createL l) );
   Seq.lemma_index_is_nth (Seq.createL l) 1;
   Seq.lemma_index_is_nth (Seq.createL l) 2;
@@ -249,7 +250,8 @@ noextract inline_for_extraction let deviceIDCSR_s_common_list
            0x20uy; 0x49uy; 0x64uy; 0x65uy;
            0x6euy; 0x74uy; 0x69uy; 0x74uy;
            0x79uy] in
-  assert_norm ( List.length l == 17 /\ Seq.length (Seq.createL l) == 17);
+  assert_norm ( List.length l == 17 );
+  assert (Seq.length (Seq.createL l) == 17);
   assert ( l == Seq.seq_to_list (Seq.createL l) );
   Seq.lemma_index_is_nth (Seq.createL l) 1;
   Seq.lemma_index_is_nth (Seq.createL l) 2;
