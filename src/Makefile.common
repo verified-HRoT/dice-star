@@ -103,15 +103,6 @@ INCLUDES=$(FSTAR_HOME)/ulib/.cache \
   $(X509_DIR) \
   $(TEST_DIR)
 
-FSTAR_INCLUDES = $(addprefix --include ,$(INCLUDES))
-
-# Hints
-ifeq ($(OTHERFLAGS),$(subst --admit_smt_queries true,,$(OTHERFLAGS)))
-  FSTAR_HINTS ?= --use_hints --use_hint_hashes --record_hints
-else 
-  FSTAR_HINTS ?= --use_hints --use_hint_hashes
-endif
-
 # Checked
 ALREADY_CACHED = Prims FStar LowStar Hacl Spec Lib EverCrypt Vale C Meta LowParse
 
@@ -128,13 +119,23 @@ ifeq ($(shell basename "`pwd`"),l0)
   FSTAR_ALREADY_CACHED = --already_cached '$(ALREADY_CACHED)'
 else
 ifeq ($(shell basename "`pwd`"),test)
-  FSTAR_ALREADY_CACHED = --already_cached '$(ALREADY_CACHED)'
+  FSTAR_ALREADY_CACHED = --already_cached '$(ALREADY_CACHED) X509 L0 ASN1 -L0.Test -ASN1.Test'
+  INCLUDES += $(OUTPUT_DIR)/../l0
 else
   FSTAR_ALREADY_CACHED = --already_cached '$(ALREADY_CACHED)'
 endif
 endif
 endif
 endif
+endif
+
+FSTAR_INCLUDES = $(addprefix --include ,$(INCLUDES))
+
+# Hints
+ifeq ($(OTHERFLAGS),$(subst --admit_smt_queries true,,$(OTHERFLAGS)))
+  FSTAR_HINTS ?= --use_hints --use_hint_hashes --record_hints
+else 
+  FSTAR_HINTS ?= --use_hints --use_hint_hashes
 endif
 
 # 272: top-level bindings must be total
@@ -228,15 +229,15 @@ KRML_C_INCLUDES = \
 KRML_FSTAR_INCLUDES = $(addprefix -I , $(INCLUDES))
 
 ifeq ($(shell basename "`pwd`"),dice_engine)
-  KRML_EXECUTABLE = dice_engine.exe
+  KRML_LINKING_FLAGS = -o dice_engine.exe
 else
 ifeq ($(shell basename "`pwd`"),l0)
-  KRML_EXECUTABLE = l0.exe
+  KRML_LINKING_FLAGS = -ldopts -shared,-o,$(OUTPUT_DIR)/l0.so
 else
 ifeq ($(shell basename "`pwd`"),test)
-  KRML_EXECUTABLE = test.exe
+  KRML_LINKING_FLAGS = -o test.exe
 else
-  KRML_EXECUTABLE = test.exe
+  KRML_LINKING_FLAGS = -o test.exe
 endif
 endif
 endif
@@ -263,7 +264,8 @@ KRML_FLAGS = \
   $(KRML_C_INCLUDES) \
   $(KRML_FSTAR_INCLUDES) \
   -tmpdir $(OUTPUT_DIR) \
-  -o $(KRML_EXECUTABLE)
+  $(KRML_LINKING_FLAGS) \
+  -ccopt -fPIC
 
 # C Implementations
 ifeq ($(shell basename "`pwd`"),dice_engine)

@@ -15,27 +15,32 @@
 
 ifeq ($(shell basename "`pwd`"),dice_engine)
   SRC_DIR ?= ..
+  OUTPUT_DIR ?= $(SRC_DIR)/obj/dice_engine
 else
 ifeq ($(shell basename "`pwd`"),l0)
   SRC_DIR ?= ..
+  OUTPUT_DIR ?= $(SRC_DIR)/obj/l0
 else
 ifeq ($(shell basename "`pwd`"),asn1)
   SRC_DIR ?= ../..
+  OUTPUT_DIR ?= $(SRC_DIR)/obj/asn1
 else
 ifeq ($(shell basename "`pwd`"),x509)
   SRC_DIR ?= ../..
+  OUTPUT_DIR ?= $(SRC_DIR)/obj/x509
 else
 ifeq ($(shell basename "`pwd`"),test)
   SRC_DIR ?= ..
+  OUTPUT_DIR ?= $(SRC_DIR)/obj/test
 else
   SRC_DIR ?= .
+  OUTPUT_DIR ?= $(SRC_DIR)/obj/
 endif
 endif
 endif
 endif
 endif
 
-OUTPUT_DIR ?= $(SRC_DIR)/obj
 HINT_DIR ?= $(SRC_DIR)/hints
 DICE_ENGINE_DIR ?= $(SRC_DIR)/dice_engine
 RIOT_DIR ?= $(SRC_DIR)/l0
