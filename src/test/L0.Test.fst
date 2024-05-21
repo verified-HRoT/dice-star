@@ -24,6 +24,7 @@ open L0.Helpers
 open L0.Spec
 open L0.Impl
 open L0.Core
+open L0.X509.Sample
 
 module Ed25519 = Hacl.Ed25519
 
@@ -73,6 +74,7 @@ let main ()
                             aliasKeyCRT_ingredients.aliasKeyCrt_s_country
                             aliasKeyCRT_ingredients.aliasKeyCrt_l0_version) in
   let aliasKeyCRT_buf: B.lbuffer byte_pub (v aliasKeyCRT_len) = B.alloca 0x00uy aliasKeyCRT_len in
+  printf "aliasKeyCRT_len: %ul\n" (aliasKeyCRT_len <: UInt32.t) done;
 admit();
   let deviceID_pub : B.lbuffer byte_pub 32 = B.alloca 0x00uy 32ul in
   let aliasKey_pub : B.lbuffer byte_pub 32 = B.alloca 0x00uy 32ul in
